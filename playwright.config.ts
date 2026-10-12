@@ -1,0 +1,29 @@
+import { defineConfig, devices } from '@playwright/test';
+
+const PORT = 4174;
+
+/** Journeys run on the production build, in the two viewports of the specification. */
+export default defineConfig({
+  testDir: 'e2e',
+  fullyParallel: true,
+  forbidOnly: Boolean(process.env.CI),
+  retries: process.env.CI ? 1 : 0,
+  reporter: [['list']],
+  use: { baseURL: `http://localhost:${PORT}/`, trace: 'retain-on-failure' },
+  webServer: {
+    command: `npm run build && npx vite preview --port ${PORT} --strictPort`,
+    port: PORT,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
+  projects: [
+    {
+      name: 'mobile',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, hasTouch: true },
+    },
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+    },
+  ],
+});

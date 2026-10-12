@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "title": "Ballmania — tembak bola berantai dengan cara baru",
+    "description": "Permainan tembak bola berantai versi baru: kampanye enam dunia, mode baru, ledakan spektakuler. Gratis, tanpa daftar, di ponsel dan komputer."
+  },
+  "app": {
+    "name": "Ballmania",
+    "version": "Versi {version}"
+  },
+  "nav": {
+    "skip": "Langsung ke konten",
+    "home": "Beranda Ballmania"
+  },
+  "home": {
+    "tagline": "Tembak bola berantai, dengan cara baru",
+    "pitch": "Enam dunia untuk ditaklukkan, ledakan berantai, dan mode yang belum pernah kamu mainkan.",
+    "campaign": "Kampanye",
+    "arcade": "Arkade",
+    "soon": "Segera hadir"
+  },
+  "settings": {
+    "language": "Bahasa",
+    "theme": "Tema"
+  },
+  "theme": {
+    "system": "Sistem",
+    "light": "Terang",
+    "dark": "Gelap"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  }
+}
