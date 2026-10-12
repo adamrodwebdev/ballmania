@@ -126,12 +126,15 @@
     "prism": "Prisms bounce shots too: follow the aim line, it shows every rebound.",
     "spin": "These prisms turn: wait for the right angle before you shoot.",
     "magnet": "Tap “Magnet” (or M), then aim at a ball: it leaves the chain and joins your shooter.",
-    "magnetCombo": "Pull out the ball that separates two equal colours: they join and explode."
+    "magnetCombo": "Pull out the ball that separates two equal colours: they join and explode.",
+    "alchemy": "Light mixes: ruby + lime = amber, lime + violet = cyan, ruby + violet = rose. Shoot one colour onto another to fuse them.",
+    "alchemySecondary": "Mixed colours cannot be shot: fuse three of them side by side to blow them up."
   },
   "colossus": {
     "nebula": "Stellar Colossus",
     "neon": "Prism Colossus",
-    "abyss": "Abyssal Colossus"
+    "abyss": "Abyssal Colossus",
+    "jewel": "Crystal Colossus"
   },
   "player": {
     "balance": "{count} shards",
@@ -187,7 +190,8 @@
     "board-world": "The world's own",
     "board-nebula": "Nebula",
     "board-neon": "Neon",
-    "board-abyss": "Abyss"
+    "board-abyss": "Abyss",
+    "board-jewel": "Jewels"
   },
   "achievements": {
     "title": "Goals",
@@ -233,6 +237,10 @@
         "name": "Deep-sea angler",
         "text": "Pull {target} balls out with the magnet."
       },
+      "alchemist": {
+        "name": "Alchemist",
+        "text": "Fuse two colours {target} times."
+      },
       "no-swap": {
         "name": "No safety net",
         "text": "Win a level without swapping a ball."
@@ -260,6 +268,10 @@
       "world-neon": {
         "name": "Black light",
         "text": "Finish the Neon world."
+      },
+      "world-abyss": {
+        "name": "Back to the surface",
+        "text": "Finish the Abyss world."
       }
     }
   },
@@ -274,5 +286,17 @@
     "armed": "Aim at the ball to pull",
     "label": "Magnet, {count} of {max} charges",
     "pulled": "Ball pulled out"
+  },
+  "tones": {
+    "0": "ruby",
+    "1": "amber",
+    "2": "lime",
+    "3": "cyan",
+    "4": "violet",
+    "5": "rose"
+  },
+  "alchemy": {
+    "title": "Mixes",
+    "formula": "{a} + {b} = {result}"
   }
 }

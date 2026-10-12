@@ -126,12 +126,15 @@
     "prism": "Les prismes renvoient aussi les tirs : suivez la ligne de visée, elle montre chaque rebond.",
     "spin": "Ces prismes tournent : attendez le bon angle avant de tirer.",
     "magnet": "Touchez « Aimant » (ou M), puis visez une bille : elle quitte la chaîne et rejoint votre lanceur.",
-    "magnetCombo": "Aspirez la bille qui sépare deux couleurs identiques : elles se rejoignent et explosent."
+    "magnetCombo": "Aspirez la bille qui sépare deux couleurs identiques : elles se rejoignent et explosent.",
+    "alchemy": "La lumière se mélange : rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose. Tirez une couleur sur une autre pour les fusionner.",
+    "alchemySecondary": "Les couleurs mélangées ne se tirent pas : fusionnez-en trois côte à côte pour les faire exploser."
   },
   "colossus": {
     "nebula": "Colosse stellaire",
     "neon": "Colosse prisme",
-    "abyss": "Colosse abyssal"
+    "abyss": "Colosse abyssal",
+    "jewel": "Colosse de cristal"
   },
   "player": {
     "balance": "{count} éclats",
@@ -187,7 +190,8 @@
     "board-world": "Celui du monde",
     "board-nebula": "Nébuleuse",
     "board-neon": "Néon",
-    "board-abyss": "Abysses"
+    "board-abyss": "Abysses",
+    "board-jewel": "Joaillerie"
   },
   "achievements": {
     "title": "Objectifs",
@@ -233,6 +237,10 @@
         "name": "Pêcheur des profondeurs",
         "text": "Aspirer {target} billes avec l'aimant."
       },
+      "alchemist": {
+        "name": "Alchimiste",
+        "text": "Fusionner {target} fois deux couleurs."
+      },
       "no-swap": {
         "name": "Sans filet",
         "text": "Gagner un niveau sans échanger de bille."
@@ -260,6 +268,10 @@
       "world-neon": {
         "name": "Lumière noire",
         "text": "Terminer le monde Néon."
+      },
+      "world-abyss": {
+        "name": "Remonter à la surface",
+        "text": "Terminer le monde Abysses."
       }
     }
   },
@@ -274,5 +286,17 @@
     "armed": "Visez la bille à aspirer",
     "label": "Aimant, {count} charge(s) sur {max}",
     "pulled": "Bille aspirée"
+  },
+  "tones": {
+    "0": "rubis",
+    "1": "ambre",
+    "2": "lime",
+    "3": "cyan",
+    "4": "violet",
+    "5": "rose"
+  },
+  "alchemy": {
+    "title": "Mélanges",
+    "formula": "{a} + {b} = {result}"
   }
 }

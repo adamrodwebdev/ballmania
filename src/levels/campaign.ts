@@ -14,7 +14,9 @@ export type HintId =
   | 'prism'
   | 'spin'
   | 'magnet'
-  | 'magnetCombo';
+  | 'magnetCombo'
+  | 'alchemy'
+  | 'alchemySecondary';
 
 /**
  * A mirror described in fractions of the board (0 to 1 on each axis), so it
@@ -51,6 +53,11 @@ export interface CampaignLevel {
   readonly hint?: HintId;
   readonly colossus?: { readonly hp: number; readonly spit: number };
   readonly mirrors?: readonly MirrorRecipe[];
+  /**
+   * Jewel world: the colours of the chain. Shots are primaries that fuse
+   * into secondaries (specification § 3.2, alchemy).
+   */
+  readonly palette?: readonly number[];
   /** Abyss world: pull balls out of the chain. */
   readonly magnet?: {
     readonly charges: number;
@@ -92,6 +99,11 @@ const levelOf =
 const level = levelOf('nebula');
 const neon = levelOf('neon');
 const abyss = levelOf('abyss');
+const jewel = levelOf('jewel');
+
+/** Colours of the Jewel world: ruby, lime, violet are primaries; amber, cyan, rose come from them. */
+const PRIMARY = [0, 2, 4] as const;
+const withSecondaries = (...secondaries: number[]) => [...PRIMARY, ...secondaries];
 
 /** The magnet of the Abyss world: generous at first, then tighter. */
 const magnet = (charges: number, rechargeEvery: number) =>
@@ -447,12 +459,121 @@ const ABYSS: readonly CampaignLevel[] = [
   }),
 ];
 
-/** The six worlds in order; Nebula, Neon and Abyss have their levels in this version. */
+/**
+ * World 4, Jewels: colours mix like light. A primary shot onto another
+ * primary fuses with it (ruby + lime = amber, lime + violet = cyan,
+ * ruby + violet = rose). Secondaries cannot be shot: three of them side by
+ * side must be made by fusion. They appear one by one.
+ */
+const JEWEL: readonly CampaignLevel[] = [
+  jewel(1, {
+    track: spiral(1.3, 0.75, true),
+    palette: withSecondaries(),
+    length: 30,
+    tones: 3,
+    repeatChance: 0.45,
+    speed: 26,
+    hint: 'alchemy',
+  }),
+  jewel(2, {
+    track: { kind: 'serpentine', rows: 3 },
+    palette: withSecondaries(1),
+    length: 30,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 28,
+    hint: 'alchemySecondary',
+  }),
+  jewel(3, {
+    track: spiral(1.45, 0.25, false, { squareness: 2, outer: 0.86 }),
+    palette: withSecondaries(3),
+    length: 36,
+    tones: 4,
+    repeatChance: 0.42,
+    speed: 30,
+  }),
+  jewel(4, {
+    track: spiral(1.1, 0.75, true, { arms: 2, inner: 0.4 }),
+    palette: withSecondaries(5),
+    length: 20,
+    tones: 4,
+    repeatChance: 0.42,
+    speed: 30,
+  }),
+  jewel(5, {
+    track: { kind: 'serpentine', rows: 4 },
+    palette: withSecondaries(1, 3),
+    length: 36,
+    tones: 5,
+    repeatChance: 0.42,
+    speed: 30,
+  }),
+  jewel(6, {
+    track: spiral(1.4, 0.5, true),
+    palette: withSecondaries(1),
+    length: 34,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 28,
+  }),
+  jewel(7, {
+    track: spiral(1.65, 0, false, { squareness: 3, inner: 0.38, outer: 0.84 }),
+    palette: withSecondaries(1, 3, 5),
+    length: 38,
+    tones: 6,
+    repeatChance: 0.4,
+    speed: 36,
+  }),
+  jewel(8, {
+    track: { kind: 'serpentine', rows: 3 },
+    palette: withSecondaries(3, 5),
+    length: 34,
+    tones: 5,
+    repeatChance: 0.42,
+    speed: 36,
+  }),
+  jewel(9, {
+    track: spiral(1.15, 0.25, false, { arms: 2, inner: 0.4 }),
+    palette: withSecondaries(1, 5),
+    length: 24,
+    tones: 5,
+    repeatChance: 0.42,
+    speed: 36,
+  }),
+  jewel(10, {
+    track: spiral(1.5, 0.75, true, { squareness: 2, outer: 0.86 }),
+    palette: withSecondaries(5),
+    length: 38,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 32,
+  }),
+  jewel(11, {
+    track: spiral(1.75, 0.5, true, { inner: 0.36 }),
+    palette: withSecondaries(1, 3, 5),
+    length: 42,
+    tones: 6,
+    repeatChance: 0.38,
+    speed: 42,
+  }),
+  jewel(12, {
+    track: spiral(1.6, 0.75, false, { inner: 0.4 }),
+    palette: withSecondaries(1),
+    length: 24,
+    tones: 4,
+    repeatChance: 0.42,
+    speed: 20,
+    hint: 'colossus',
+    colossus: { hp: 56, spit: 5 },
+  }),
+];
+
+/** The six worlds in order; the first four have their levels in this version. */
 export const WORLDS: readonly World[] = [
   { id: 'nebula', levels: NEBULA },
   { id: 'neon', levels: NEON },
   { id: 'abyss', levels: ABYSS },
-  { id: 'jewel', levels: [] },
+  { id: 'jewel', levels: JEWEL },
   { id: 'volcano', levels: [] },
   { id: 'singularity', levels: [] },
 ];

@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch 
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import type { PlayRequest } from '@/app/PlayRequest';
+import { ingredients, SECONDARIES } from '@/engine/chain/Alchemy';
 import { CAMPAIGN, nextLevel, starsFor, WORLDS } from '@/levels/campaign';
 import { resolveLevel } from '@/levels/resolveLevel';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
@@ -39,6 +40,12 @@ const earned = ref(0);
 const assisted = ref(request.kind === 'campaign' && request.assisted === true);
 const shareOutcome = ref<'shared' | 'copied' | 'cancelled' | 'unavailable' | null>(null);
 const hintVisible = ref(level.hint !== undefined && daily === null);
+/** Jewel world: the three mixes, always on screen. */
+const alchemy = level.palette !== undefined;
+const RECIPES = SECONDARIES.map((result) => {
+  const [a, b] = ingredients(result)!;
+  return { a, b, result };
+});
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const overlay = ref<HTMLCanvasElement | null>(null);
@@ -291,6 +298,24 @@ const quit = () => emit('quit');
           <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" />
         </svg>
       </button>
+      <p v-if="alchemy" class="alchemy" :aria-label="t('alchemy.title')" data-testid="alchemy">
+        <span v-for="recipe in RECIPES" :key="recipe.result" class="recipe">
+          <span class="sr-only">
+            {{
+              t('alchemy.formula', {
+                a: t(`tones.${recipe.a}`),
+                b: t(`tones.${recipe.b}`),
+                result: t(`tones.${recipe.result}`),
+              })
+            }}
+          </span>
+          <span class="dot" :class="`tone-${recipe.a}`" aria-hidden="true"></span>
+          <span class="op" aria-hidden="true">+</span>
+          <span class="dot" :class="`tone-${recipe.b}`" aria-hidden="true"></span>
+          <span class="op" aria-hidden="true">=</span>
+          <span class="dot" :class="`tone-${recipe.result}`" aria-hidden="true"></span>
+        </span>
+      </p>
       <label v-if="hud?.colossus" class="colossus">
         <span>{{ t(`colossus.${level.world}`) }}</span>
         <progress
@@ -559,6 +584,25 @@ const quit = () => emit('quit');
   100% {
     opacity: 0;
   }
+}
+
+.alchemy {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+  font-weight: 800;
+}
+
+.recipe {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.op {
+  color: var(--text-muted);
 }
 
 .eyebrow {

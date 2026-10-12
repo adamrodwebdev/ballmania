@@ -50,3 +50,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   lanceur (bouton, touche M), charges rechargées par les explosions, ligne de visée en
   crochet, animation de succion, 12 niveaux dont le Colosse abyssal, plateau « Abysses »
   débloqué en finissant Néon, objectifs « pêcheur des profondeurs » et « lumière noire ».
+- Lot 8, monde 4 « Joaillerie » : les couleurs se mélangent comme la lumière (rubis +
+  lime = ambre, lime + violet = cyan, rubis + violet = rose) ; une primaire tirée sur une
+  autre fusionne avec elle ; légende des mélanges et aperçu de la couleur obtenue au bout
+  de la ligne de visée ; mélanges générés par paires ; 12 niveaux dont le Colosse de
+  cristal ; plateau « Joaillerie » ; objectifs « alchimiste » et « remonter à la surface ».

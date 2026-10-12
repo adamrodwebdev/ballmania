@@ -1,3 +1,4 @@
+import { ingredients, mix } from '@/engine/chain/Alchemy';
 import { SeededRandom } from '@/engine/core/Random';
 import { Game } from '@/engine/Game';
 import type { CampaignLevel } from '@/levels/campaign';
@@ -30,20 +31,89 @@ export function playLevel(
 ): BotResult {
   const hand = SeededRandom.fromString(`hand:${seed}`);
   const game = new Game(toLevelSetup(resolveLevel(level, frame)), SeededRandom.fromString(seed));
+  const alchemy = game.setup.alchemy === true;
   let shots = 0;
   let danger = 0;
-  const target = (tone: number) => {
-    let best: { score: number; chain: number; s: number } | null = null;
+  interface Candidate {
+    readonly score: number;
+    readonly chain: number;
+    readonly s: number;
+    readonly id: number;
+  }
+  /** Balls worth shooting the loaded colour at, best first. */
+  const candidates = (tone: number): Candidate[] => {
+    const found: Candidate[] = [];
     game.chains.forEach((chain, index) => {
       const balls = chain.balls;
       balls.forEach((ball, i) => {
-        if (ball.tone !== tone || ball.s < 0) return;
-        const pair = (balls[i - 1]?.tone === tone ? 1 : 0) + (balls[i + 1]?.tone === tone ? 1 : 0);
-        const score = pair * 2 + ball.s / chain.path.length;
-        if (!best || score > best.score) best = { score, chain: index, s: ball.s };
+        if (ball.s < 0) return;
+        // Jewel world: shooting onto another primary turns it into their mix.
+        const becomes = alchemy ? mix(tone, ball.tone) : null;
+        // Jewel world, first half of a two-step move: put an ingredient next to a
+        // pair of its mixed colour; the other ingredient will fuse it into a third.
+        const setsUp =
+          alchemy &&
+          becomes === null &&
+          ingredients(ball.tone)?.includes(tone) === true &&
+          (balls[i - 1]?.tone === ball.tone || balls[i + 1]?.tone === ball.tone);
+        if (setsUp) {
+          found.push({
+            score: 1 + ball.s / chain.path.length,
+            chain: index,
+            s: ball.s,
+            id: ball.id,
+          });
+          return;
+        }
+        if (ball.tone !== tone && becomes === null) return;
+        const colour = becomes ?? tone;
+        const pair =
+          (balls[i - 1]?.tone === colour ? 1 : 0) + (balls[i + 1]?.tone === colour ? 1 : 0);
+        // A fusion only helps next to its own colour; alone, it leaves a ball nobody can shoot.
+        const fusion = becomes === null ? 0 : pair > 0 ? 0.3 : -1.5;
+        found.push({
+          score: pair * 2 + fusion + ball.s / chain.path.length,
+          chain: index,
+          s: ball.s,
+          id: ball.id,
+        });
       });
     });
-    return best as { score: number; chain: number; s: number } | null;
+    return found.sort((a, b) => b.score - a.score);
+  };
+  /**
+   * The best candidate the shot would really reach, as a player reading the
+   * aim line would check (only where touching another ball matters: alchemy).
+   */
+  const target = (tone: number): Candidate | null => {
+    const list = candidates(tone);
+    if (!alchemy) return list[0] ?? null;
+    const saved = game.shooter.angle;
+    for (const candidate of list.slice(0, 8)) {
+      game.aimAt(game.chains[candidate.chain]!.path.pointAt(candidate.s));
+      if (game.aimTarget()?.ball.id === candidate.id) {
+        game.shooter.aim(saved);
+        return candidate;
+      }
+    }
+    game.shooter.aim(saved);
+    return null;
+  };
+
+  /**
+   * Nothing useful to shoot at: aim where the ball lands next to a mixed colour,
+   * which neither fuses nor wastes a good ball (Jewel world).
+   */
+  const harmless = (): boolean => {
+    for (const chain of game.chains) {
+      const visible = chain.balls.filter((ball) => ball.s >= 0);
+      for (const ball of [...visible].reverse()) {
+        if (mix(game.shooter.current, ball.tone) !== null) continue;
+        game.aimAt(chain.positionOf(ball));
+        if (game.aimTarget()?.ball.id === ball.id) return true;
+      }
+    }
+    return false;
   };
 
   /** A ball between two balls of one same colour: pulling it out makes them meet. */
@@ -83,6 +153,8 @@ export function playLevel(
       if (aim) {
         const chain = game.chains[aim.chain]!;
         game.aimAt(chain.path.pointAt(aim.s + 6 + (hand.next() - 0.5) * 2 * sloppiness));
+        if (game.fire()) shots++;
+      } else if (alchemy && harmless()) {
         if (game.fire()) shots++;
       }
     }

@@ -1,3 +1,4 @@
+import { ingredients, mix, PRIMARIES, SECONDARIES } from './chain/Alchemy';
 import { BallFactory, type BallView, type Tone } from './chain/Ball';
 import { Chain, type ChainParams, type Explosion, type ExplosionCause } from './chain/Chain';
 import { ChainGenerator, type ChainRecipe } from './chain/ChainGenerator';
@@ -35,6 +36,8 @@ export interface LevelSetup {
   readonly reflectors?: readonly ReflectorSetup[];
   /** The magnet that pulls balls out of the chain (Abyss world). */
   readonly magnet?: MagnetSetup;
+  /** Primaries fuse into secondaries instead of being inserted (Jewel world). */
+  readonly alchemy?: boolean;
 }
 
 export interface MagnetSetup {
@@ -60,6 +63,8 @@ export interface GameReport {
   readonly swaps: number;
   /** Balls pulled out of the chain with the magnet. */
   readonly pulls: number;
+  /** Primaries fused into a secondary (Jewel world). */
+  readonly fusions: number;
   /** Furthest any chain head got, as a share of its track (1 = the hole). */
   readonly danger: number;
   readonly colossusDefeated: boolean;
@@ -71,6 +76,13 @@ export interface GameEvents {
   bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
   pulled: { readonly chain: number; readonly ball: BallView; readonly position: Vec2 };
   magnetCharged: { readonly charges: number };
+  fused: {
+    readonly chain: number;
+    readonly ball: BallView;
+    /** The two colours that fused, the shot one first. */
+    readonly from: readonly [Tone, Tone];
+    readonly position: Vec2;
+  };
   inserted: { readonly chain: number; readonly ball: BallView; readonly from: Vec2 };
   missed: { readonly projectile: ProjectileView };
   exploded: {
@@ -123,6 +135,7 @@ export class Game {
   private stateValue: GameState = 'playing';
   private swaps = 0;
   private pulls = 0;
+  private fusions = 0;
   private charges: number;
   private towardsCharge = 0;
   private danger = 0;
@@ -150,7 +163,7 @@ export class Game {
       random,
       setup.projectileSpeed,
       setup.fireCooldown,
-      this.availableTones(),
+      this.shooterTones(),
     );
   }
 
@@ -194,6 +207,13 @@ export class Game {
    */
   aimPath(maxBounces = 2): Vec2[] {
     return this.trace(maxBounces).points;
+  }
+
+  /** The ball the aim line meets first (rebounds included), or null. */
+  aimTarget(): { readonly chain: number; readonly index: number; readonly ball: BallView } | null {
+    const target = this.trace(2).target;
+    if (!target) return null;
+    return { ...target, ball: this.chains[target.chain]!.balls[target.index]! };
   }
 
   /** Magnet charges left, or null on a level without a magnet. */
@@ -269,6 +289,7 @@ export class Game {
       bestBounce: this.scoring.bestBounce,
       swaps: this.swaps,
       pulls: this.pulls,
+      fusions: this.fusions,
       danger: this.danger,
       colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
     };
@@ -283,7 +304,7 @@ export class Game {
   /** Fires the loaded ball; false while reloading or once the game is over. */
   fire(): boolean {
     if (this.stateValue !== 'playing') return false;
-    const projectile = this.shooter.fire(this.availableTones());
+    const projectile = this.shooter.fire(this.shooterTones());
     if (!projectile) return false;
     this.flying.push(projectile);
     this.events.emit('fired', { projectile });
@@ -313,7 +334,7 @@ export class Game {
       const head = chain.balls[chain.balls.length - 1];
       if (head) this.danger = Math.max(this.danger, head.s / chain.path.length);
     }
-    this.shooter.refresh(this.availableTones());
+    this.shooter.refresh(this.shooterTones());
     this.checkEnd();
   }
 
@@ -346,6 +367,7 @@ export class Game {
       const chain = this.chains[index]!;
       const hit = chain.hitTest(projectile.position);
       if (!hit) continue;
+      if (this.fuse(index, chain, hit.index, projectile)) return true;
       const ball = this.balls.create(projectile.tone);
       const explosion = chain.insert(ball, hit);
       this.events.emit('inserted', { chain: index, ball, from: projectile.position });
@@ -354,6 +376,22 @@ export class Game {
       return true;
     }
     return false;
+  }
+
+  /** Jewel world: a primary shot onto another primary fuses with it. True if it did. */
+  private fuse(index: number, chain: Chain, ballIndex: number, projectile: Projectile): boolean {
+    if (!this.setup.alchemy) return false;
+    const touched = chain.balls[ballIndex]!;
+    const mixed = mix(projectile.tone, touched.tone);
+    if (mixed === null) return false;
+    const from: readonly [Tone, Tone] = [projectile.tone, touched.tone];
+    const position = chain.positionOf(touched);
+    const explosion = chain.recolour(ballIndex, mixed);
+    this.fusions++;
+    this.events.emit('fused', { chain: index, ball: touched, from, position });
+    if (explosion) this.report(index, chain, explosion, projectile.bounces);
+    else this.scoring.miss();
+    return true;
   }
 
   /** True once the projectile has left the board (plus a margin): a miss. */
@@ -421,15 +459,38 @@ export class Game {
 
   private createContext(): ObjectiveContext {
     const tones = Math.max(2, ...this.setup.chains.map(({ recipe }) => recipe.tones));
+    const palette = this.setup.chains[0]?.recipe.palette;
     return {
       chains: this.chains,
       createBalls: (count) =>
         this.generator
-          .tones({ length: count, tones, repeatChance: 0.35 })
+          .tones({
+            length: count,
+            tones,
+            repeatChance: 0.35,
+            ...(palette ? { palette } : {}),
+            ...(this.setup.alchemy ? { paired: SECONDARIES } : {}),
+          })
           .map((tone) => this.balls.create(tone)),
       colossusHit: (event) => this.events.emit('colossusHit', event),
       colossusPhase: (event) => this.events.emit('colossusPhase', event),
     };
+  }
+
+  /**
+   * What the shooter may load: colours still on the track. In the Jewel world,
+   * only primaries: those on the track, and those a mixed colour on the track
+   * is made of (never a colour that can no longer help).
+   */
+  private shooterTones(): Tone[] {
+    const available = this.availableTones();
+    if (!this.setup.alchemy) return available;
+    const useful = new Set<Tone>();
+    for (const tone of available) {
+      if (PRIMARIES.includes(tone)) useful.add(tone);
+      for (const part of ingredients(tone) ?? []) useful.add(part);
+    }
+    return useful.size > 0 ? [...useful].sort((a, b) => a - b) : [...PRIMARIES];
   }
 
   private availableTones(): Tone[] {

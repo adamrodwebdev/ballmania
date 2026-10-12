@@ -27,8 +27,9 @@ export function resolveLevel(level: CampaignLevel, frame: Frame): LevelDefinitio
     chains: track.paths.map((points) => ({
       path: { kind: 'points', points },
       length: level.length,
-      tones: level.tones,
+      tones: level.palette?.length ?? level.tones,
       repeatChance: level.repeatChance,
+      ...(level.palette ? { palette: level.palette } : {}),
     })),
     speed: level.speed,
     rushSpeed: 420,
@@ -40,6 +41,7 @@ export function resolveLevel(level: CampaignLevel, frame: Frame): LevelDefinitio
       ? { reflectors: level.mirrors.map((mirror) => placeMirror(mirror, frame)) }
       : {}),
     ...(level.magnet ? { magnet: level.magnet } : {}),
+    ...(level.palette ? { alchemy: true } : {}),
   };
 }
 

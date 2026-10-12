@@ -126,12 +126,15 @@
     "prism": "Prisma juga memantulkan tembakan: ikuti garis bidik, garis itu menunjukkan setiap pantulan.",
     "spin": "Prisma ini berputar: tunggu sudut yang tepat sebelum menembak.",
     "magnet": "Sentuh “Magnet” (atau M), lalu bidik sebuah bola: bola itu keluar dari rantai dan masuk ke penembakmu.",
-    "magnetCombo": "Sedot bola yang memisahkan dua warna sama: keduanya bertemu dan meledak."
+    "magnetCombo": "Sedot bola yang memisahkan dua warna sama: keduanya bertemu dan meledak.",
+    "alchemy": "Cahaya bercampur: rubi + limau = amber, limau + ungu = sian, rubi + ungu = merah muda. Tembakkan satu warna ke warna lain untuk menyatukannya.",
+    "alchemySecondary": "Warna campuran tidak bisa ditembakkan: satukan tiga berdampingan untuk meledakkannya."
   },
   "colossus": {
     "nebula": "Kolosus Bintang",
     "neon": "Kolosus Prisma",
-    "abyss": "Kolosus Samudra"
+    "abyss": "Kolosus Samudra",
+    "jewel": "Kolosus Kristal"
   },
   "player": {
     "balance": "{count} kepingan",
@@ -187,7 +190,8 @@
     "board-world": "Sesuai dunia",
     "board-nebula": "Nebula",
     "board-neon": "Neon",
-    "board-abyss": "Samudra Dalam"
+    "board-abyss": "Samudra Dalam",
+    "board-jewel": "Permata"
   },
   "achievements": {
     "title": "Target",
@@ -233,6 +237,10 @@
         "name": "Pemancing laut dalam",
         "text": "Sedot {target} bola dengan magnet."
       },
+      "alchemist": {
+        "name": "Ahli alkimia",
+        "text": "Satukan dua warna sebanyak {target} kali."
+      },
       "no-swap": {
         "name": "Tanpa jaring",
         "text": "Menangkan level tanpa menukar bola."
@@ -260,6 +268,10 @@
       "world-neon": {
         "name": "Cahaya hitam",
         "text": "Selesaikan dunia Neon."
+      },
+      "world-abyss": {
+        "name": "Kembali ke permukaan",
+        "text": "Selesaikan dunia Samudra Dalam."
       }
     }
   },
@@ -274,5 +286,17 @@
     "armed": "Bidik bola yang mau disedot",
     "label": "Magnet, {count} dari {max} muatan",
     "pulled": "Bola tersedot"
+  },
+  "tones": {
+    "0": "rubi",
+    "1": "amber",
+    "2": "limau",
+    "3": "sian",
+    "4": "ungu",
+    "5": "merah muda"
+  },
+  "alchemy": {
+    "title": "Campuran",
+    "formula": "{a} + {b} = {result}"
   }
 }

@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                |
-| ------- | ---------- | ------------------------------------- |
-| 0.10    | 12/10/2026 | Lot 7 livré (monde 3 Abysses, aimant) |
+| Version | Date       | Statut                                     |
+| ------- | ---------- | ------------------------------------------ |
+| 0.11    | 12/10/2026 | Lot 8 livré (monde 4 Joaillerie, alchimie) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -182,7 +182,7 @@ Deux portes d'entrée depuis l'accueil :
   billes × 48 + 700, arrondis à 50 (le Colosse compte pour un tiers de ses points de vie en
   billes). Le robot obtient en moyenne entre 1 et 2 étoiles ; la 3ᵉ demande des réactions
   en chaîne. **À affiner en tests joueurs.**
-- La carte de campagne présente les six mondes ; les mondes 4 à 6 sont annoncés
+- La carte de campagne présente les six mondes ; les mondes 5 et 6 sont annoncés
   (« bientôt ») avec leur mécanique.
 
 #### Monde 2 « Néon », livré au lot 6
@@ -260,6 +260,51 @@ Deux portes d'entrée depuis l'accueil :
   Colosse. **À confirmer en tests joueurs**, qui n'auront pas l'efficacité du robot.
 - Terminer Néon ouvre les Abysses et débloque le plateau « Abysses » (rayons de lumière,
   plancton luminescent, fond rocheux).
+
+#### Monde 4 « Joaillerie », livré au lot 8
+
+- **Décision : les couleurs se mélangent comme la lumière** (synthèse additive), ce qui
+  utilise exactement les six couleurs du jeu : trois **primaires** (rubis, lime, violet) et
+  trois **mélanges** (rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose).
+- Une primaire tirée sur une **autre primaire fusionne** avec elle au lieu de s'insérer ;
+  sur la même primaire ou sur un mélange, elle s'insère comme d'habitude. Les mélanges ne
+  se tirent pas : on les fait exploser en en créant trois côte à côte.
+- Le lanceur ne propose que des primaires **utiles** : celles présentes sur le tracé et
+  celles dont sont faits les mélanges présents (la règle « jamais de couleur inutile »).
+- Les mélanges arrivent **toujours par paires** : une seule fusion bien placée à côté
+  complète le trio. Quand la paire est bordée d'une primaire qui n'en est pas un
+  ingrédient, il faut un coup en deux temps (tirer un ingrédient sur la paire pour
+  l'insérer à côté, puis le fusionner).
+- **Aides** : légende des trois mélanges en permanence dans le bandeau ; la ligne de visée
+  se termine par un anneau de la couleur que prendra la bille touchée ; effet de fusion
+  (anneau du nouveau mélange, étincelles des deux couleurs d'origine) et son de deux notes
+  qui se rejoignent.
+- **Rythme** : c'est le monde de la réflexion. Une fusion ratée transforme une bonne bille
+  en mélange ; les vitesses sont donc plus basses que dans les mondes précédents.
+
+| Niveau | Tracé                                    | Mélanges présents | Billes        | Vitesse | Conseil                    |
+| ------ | ---------------------------------------- | ----------------- | ------------- | ------- | -------------------------- |
+| 1      | Spirale 1,3 tour                         | aucun (primaires) | 30            | 26      | Les mélanges               |
+| 2      | Serpentin 3 rangées                      | ambre             | 30            | 28      | Trois mélanges côte à côte |
+| 3      | Spirale arrondie, sens inverse           | cyan              | 36            | 30      | —                          |
+| 4      | Double spirale                           | rose              | 2 × 20        | 30      | —                          |
+| 5      | Serpentin 4 rangées                      | ambre, cyan       | 36            | 30      | —                          |
+| 6      | Spirale 1,4 tour (respiration)           | ambre             | 34            | 28      | —                          |
+| 7      | Spirale carrée, sens inverse             | les trois         | 38            | 36      | —                          |
+| 8      | Serpentin 3 rangées                      | cyan, rose        | 34            | 36      | —                          |
+| 9      | Double spirale                           | ambre, rose       | 2 × 24        | 36      | —                          |
+| 10     | Spirale arrondie (respiration)           | rose              | 38            | 32      | —                          |
+| 11     | Spirale 1,75 tour                        | les trois         | 42            | 42      | —                          |
+| 12     | Spirale + **Colosse de cristal** (56 PV) | ambre             | 24 + renforts | 20      | Blesser le Colosse         |
+
+- **Équilibrage** : le robot a dû apprendre l'alchimie (viser ce que la ligne touche
+  vraiment, fusionner seulement à côté de sa couleur, coup en deux temps, tir sans
+  dommage à côté d'un mélange). Il gagne chaque niveau au moins 4 fois sur 6 ; pression de
+  35 à 60 %, 66 % contre le Colosse. Trois défauts de conception ont été corrigés grâce à
+  lui : le lanceur proposait des primaires devenues inutiles, les mélanges isolés
+  demandaient quatre tirs, et chaque visée imprécise créait un mélange.
+- Terminer les Abysses ouvre la Joaillerie et débloque le plateau « Joaillerie » (velours,
+  reflets de facettes, filet doré, éclats).
 
 #### Modes et mécaniques (v0.1)
 
@@ -405,19 +450,20 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 
 **Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu) :
 
-| Emplacement        | Objets (prix en éclats)                                                                                       |
-| ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                              |
-| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                              |
-| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                          |
-| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon) |
+| Emplacement        | Objets (prix en éclats)                                                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                                                                         |
+| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                                                                         |
+| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                                                                     |
+| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon), **Joaillerie** (en finissant les Abysses) |
 
 Un objet acheté est aussitôt équipé. Le plateau choisi habille tous les niveaux et le défi
 du jour ; « Celui du monde » suit le monde joué.
 
-**16 objectifs** (compteurs à vie ; « tir en bande » ajouté au lot 6 : faire exploser un
+**18 objectifs** (compteurs à vie ; « tir en bande » ajouté au lot 6 : faire exploser un
 groupe après 2 rebonds, 60 éclats ; au lot 7 : aspirer 10 billes avec l'aimant, 50 éclats, et
-terminer Néon, 200 éclats) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
+terminer Néon, 200 éclats ; au lot 8 : fusionner 20 fois, 60 éclats, et terminer les
+Abysses, 250 éclats) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
 5 et 10 tirs réussis d'affilée (40, 100), 500 et 2 000 billes détruites (50, 120), gagner
 sans échanger (40), gagner alors que la chaîne a dépassé 90 % du tracé (50), 3 étoiles sur
 5 niveaux (80), vaincre le Colosse (100), jouer le défi 3 jours (60), terminer la Nébuleuse
@@ -693,6 +739,18 @@ le moteur de tracés.
 | Événements `pulled`, `magnetCharged` | Animation, son, vibration, interface                                                |
 | `AbyssTheme`                         | Fond du monde 3                                                                     |
 
+### 5.10 Alchimie (livrée au lot 8)
+
+| Élément                                       | Responsabilité                                                  |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| `Alchemy` (`PRIMARIES`, `mix`, `ingredients`) | Table des mélanges de lumière                                   |
+| `Ball.recolour`, `Chain.recolour`             | Changement de couleur d'une bille, explosion du groupe complété |
+| `ChainRecipe.palette`, `.paired`              | Couleurs tirées au choix, couleurs qui arrivent par paires      |
+| `Game` (`alchemy`, `fuse`, `shooterTones`)    | Fusion au lieu d'insertion, primaires utiles au lanceur         |
+| `Game.aimTarget`                              | Bille que touchera le tir (aperçu du mélange, robot)            |
+| Événement `fused`                             | Effet, son, compteur `fusions` du bilan                         |
+| `JewelTheme`                                  | Fond du monde 4                                                 |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -729,7 +787,8 @@ le moteur de tracés.
 | 5 ✅ | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance |
 | 6 ✅ | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                     |
 | 7 ✅ | Monde 3 Abysses : aimant, charges, Colosse abyssal                                            |
-| 8–10 | Mondes 4 à 6 (une mécanique et un thème par lot), modes Arcade intercalés                     |
+| 8 ✅ | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                |
+| 9–10 | Mondes 5 et 6 (une mécanique et un thème par lot), modes Arcade intercalés                    |
 | 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
 | 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
 | 13   | Démo portfolio                                                                                |
@@ -756,3 +815,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7). |
 | 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                               |
 | 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                               |
+| 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                           |

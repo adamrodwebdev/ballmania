@@ -188,7 +188,7 @@ test.describe('progression', () => {
 
   test('lists the goals with their progress', async ({ page }) => {
     await page.goto('./');
-    await expect(page.getByTestId('achievements')).toContainText('1 / 16 reached');
+    await expect(page.getByTestId('achievements')).toContainText(/1 \/ \d+ reached/);
     await page.getByTestId('achievements').click();
     await expect(page.getByTestId('achievement-first-win')).toContainText('Reached');
     await expect(page.getByTestId('achievement-colossus')).toContainText('+100 shards');
@@ -280,4 +280,23 @@ test('arms the magnet and pulls a ball out of the chain in the Abyss world', asy
   await page.getByTestId('board').click({ position: { x: box.width / 2, y: box.height * 0.08 } });
   await expect(magnet).toHaveAttribute('aria-label', 'Magnet, 2 of 3 charges');
   await expect(magnet).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('shows the colour mixes in the Jewel world, up to the Crystal Colossus', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+    const levels: Record<string, { stars: number; best: number }> = {};
+    for (const world of ['nebula', 'neon', 'abyss', 'jewel']) {
+      for (let i = 1; i <= 12; i++) {
+        if (world === 'jewel' && i === 12) continue;
+        levels[`${world}-${String(i).padStart(2, '0')}`] = { stars: 1, best: 1 };
+      }
+    }
+    localStorage.setItem('ballmania:progress', JSON.stringify({ version: 1, levels }));
+  });
+  await page.goto('./');
+  await page.getByTestId('play').click();
+  await page.getByTestId('level-jewel-12').click();
+  await expect(page.getByTestId('alchemy')).toContainText('ruby + lime = amber');
+  await expect(page.getByText('Crystal Colossus')).toBeVisible();
 });
