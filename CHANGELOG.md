@@ -16,3 +16,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 - Accueil provisoire en français, anglais et indonésien, thèmes clair, sombre et système,
   appliqués avant le premier affichage.
 - Politique de sécurité du contenu stricte sur la page construite.
+- Lot 1, moteur de jeu indépendant de l'interface : tracé à abscisse curviligne, chaînes
+  (poussée du segment arrière, rappel des segments de même couleur, réactions en chaîne),
+  tir et insertion, score avec profondeur de réaction et série, partie à pas fixe
+  reproductible par graine, événements de domaine. 42 tests dont des invariants sur des
+  parties aléatoires.
