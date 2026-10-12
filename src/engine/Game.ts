@@ -7,6 +7,7 @@ import type { RandomSource } from './core/Random';
 import { Vec2 } from './geometry/Vec2';
 import { ColossusObjective, type ColossusSetup } from './objectives/ColossusObjective';
 import { ClearObjective, type Objective, type ObjectiveContext } from './objectives/Objective';
+import type { Branch, ForkSpan, ForkedRoute } from './path/ForkedRoute';
 import type { Path } from './path/Path';
 import { Reflectors, type ReflectorSetup } from './reflectors/Reflectors';
 import { Scoring } from './Scoring';
@@ -16,7 +17,22 @@ import { Shooter } from './shooter/Shooter';
 export interface ChainSetup {
   readonly path: Path;
   readonly recipe: ChainRecipe;
+  /** A track with switches (Volcano world); `path` is then its all-short version. */
+  readonly route?: ForkedRoute;
 }
+
+/** A switch of the board, as the interface needs it. */
+export interface SwitchView {
+  readonly chain: number;
+  readonly fork: number;
+  readonly branch: Branch;
+  /** The chain has reached it: it can no longer be flipped. */
+  readonly locked: boolean;
+  readonly position: Vec2;
+}
+
+/** Explosions on the short branch of a fork are worth this much more (Volcano world). */
+export const HOT_MULTIPLIER = 2;
 
 /** Everything needed to start a level; levels are data, never code. */
 export interface LevelSetup {
@@ -65,6 +81,8 @@ export interface GameReport {
   readonly pulls: number;
   /** Primaries fused into a secondary (Jewel world). */
   readonly fusions: number;
+  /** Switches flipped (Volcano world). */
+  readonly switches: number;
   /** Furthest any chain head got, as a share of its track (1 = the hole). */
   readonly danger: number;
   readonly colossusDefeated: boolean;
@@ -76,6 +94,7 @@ export interface GameEvents {
   bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
   pulled: { readonly chain: number; readonly ball: BallView; readonly position: Vec2 };
   magnetCharged: { readonly charges: number };
+  switched: { readonly chain: number; readonly fork: number; readonly branch: Branch };
   fused: {
     readonly chain: number;
     readonly ball: BallView;
@@ -96,6 +115,8 @@ export interface GameEvents {
     readonly streak: number;
     /** Mirrors the shot bounced off before landing (0 for chain reactions). */
     readonly bounces: number;
+    /** The explosion happened on a hot short branch (Volcano world). */
+    readonly hot: boolean;
   };
   colossusHit: {
     readonly hp: number;
@@ -136,6 +157,9 @@ export class Game {
   private swaps = 0;
   private pulls = 0;
   private fusions = 0;
+  private flips = 0;
+  /** Switch choices and fork spans of each chain with a forked route. */
+  private readonly routes: ({ choices: Branch[]; spans: readonly ForkSpan[] } | null)[];
   private charges: number;
   private towardsCharge = 0;
   private danger = 0;
@@ -153,6 +177,11 @@ export class Game {
         setup.chain,
       ),
     );
+    this.routes = setup.chains.map(({ route }) => {
+      if (!route) return null;
+      const choices: Branch[] = Array.from({ length: route.forkCount }, () => 'short');
+      return { choices, spans: route.build(choices).spans };
+    });
     this.reflectors = new Reflectors(setup.reflectors ?? []);
     this.charges = setup.magnet?.charges ?? 0;
     this.context = this.createContext();
@@ -207,6 +236,57 @@ export class Game {
    */
   aimPath(maxBounces = 2): Vec2[] {
     return this.trace(maxBounces).points;
+  }
+
+  /** Every switch of the board, with its branch and whether the chain has reached it. */
+  switches(): SwitchView[] {
+    const views: SwitchView[] = [];
+    this.routes.forEach((state, chain) => {
+      if (!state) return;
+      const track = this.chains[chain]!;
+      state.spans.forEach((span, fork) => {
+        views.push({
+          chain,
+          fork,
+          branch: state.choices[fork]!,
+          locked: this.isLocked(chain, fork),
+          position: track.path.pointAt(span.start),
+        });
+      });
+    });
+    return views;
+  }
+
+  /** Sends the chain the other way at a fork it has not reached yet. */
+  toggleSwitch(chain: number, fork: number): boolean {
+    const state = this.routes[chain];
+    const route = this.setup.chains[chain]?.route;
+    if (this.stateValue !== 'playing' || !state || !route || fork >= state.choices.length) {
+      return false;
+    }
+    if (this.isLocked(chain, fork)) return false;
+    state.choices[fork] = state.choices[fork] === 'short' ? 'long' : 'short';
+    const built = route.build(state.choices);
+    state.spans = built.spans;
+    this.chains[chain]!.setPath(built.path);
+    this.flips++;
+    this.events.emit('switched', { chain, fork, branch: state.choices[fork] });
+    return true;
+  }
+
+  private isLocked(chain: number, fork: number): boolean {
+    const span = this.routes[chain]?.spans[fork];
+    if (!span) return true;
+    return this.chains[chain]!.front >= span.start - this.setup.chain.ballRadius;
+  }
+
+  /** True if any of these balls sits on the short branch of a fork (Volcano world). */
+  private isHot(chain: number, balls: readonly BallView[]): boolean {
+    const spans = this.routes[chain]?.spans;
+    if (!spans) return false;
+    return balls.some((ball) =>
+      spans.some((span) => span.branch === 'short' && ball.s >= span.start && ball.s <= span.end),
+    );
   }
 
   /** The ball the aim line meets first (rebounds included), or null. */
@@ -290,6 +370,7 @@ export class Game {
       swaps: this.swaps,
       pulls: this.pulls,
       fusions: this.fusions,
+      switches: this.flips,
       danger: this.danger,
       colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
     };
@@ -406,11 +487,13 @@ export class Game {
   }
 
   private report(index: number, chain: Chain, explosion: Explosion, bounces = 0): void {
+    const hot = this.isHot(index, explosion.balls);
     const points = this.scoring.explosion(
       explosion.balls.length,
       explosion.depth,
       explosion.cause === 'shot',
       bounces,
+      hot ? HOT_MULTIPLIER : 1,
     );
     this.events.emit('exploded', {
       chain: index,
@@ -421,6 +504,7 @@ export class Game {
       points,
       streak: this.scoring.streak,
       bounces,
+      hot,
     });
     this.objective.onExplosion(this.context, index, explosion);
     this.rechargeMagnet();

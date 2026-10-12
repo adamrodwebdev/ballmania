@@ -16,7 +16,9 @@ export type HintId =
   | 'magnet'
   | 'magnetCombo'
   | 'alchemy'
-  | 'alchemySecondary';
+  | 'alchemySecondary'
+  | 'switch'
+  | 'hot';
 
 /**
  * A mirror described in fractions of the board (0 to 1 on each axis), so it
@@ -100,6 +102,14 @@ const level = levelOf('nebula');
 const neon = levelOf('neon');
 const abyss = levelOf('abyss');
 const jewel = levelOf('jewel');
+const volcano = levelOf('volcano');
+
+/** A serpentine whose listed rows split into a hot shortcut and a slower detour. */
+const forked = (rows: number, ...forks: number[]): TrackRecipe => ({
+  kind: 'serpentine',
+  rows,
+  forks,
+});
 
 /** Colours of the Jewel world: ruby, lime, violet are primaries; amber, cyan, rose come from them. */
 const PRIMARY = [0, 2, 4] as const;
@@ -568,13 +578,114 @@ const JEWEL: readonly CampaignLevel[] = [
   }),
 ];
 
-/** The six worlds in order; the first four have their levels in this version. */
+/**
+ * World 5, Volcano: switches. Some rows split into a shortcut, where the
+ * lava is molten and exploded balls are worth double, and a longer detour
+ * that buys time. A switch can be flipped until the chain reaches it. Later
+ * levels mix in the magnet and the mirrors of the previous worlds.
+ */
+const VOLCANO: readonly CampaignLevel[] = [
+  volcano(1, {
+    track: forked(3, 0),
+    length: 36,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 40,
+    hint: 'switch',
+  }),
+  volcano(2, {
+    track: forked(3, 0, 1),
+    length: 38,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 44,
+    hint: 'hot',
+  }),
+  volcano(3, {
+    track: forked(4, 1),
+    length: 44,
+    tones: 4,
+    repeatChance: 0.42,
+    speed: 46,
+  }),
+  volcano(4, {
+    track: forked(3, 1),
+    magnet: magnet(2, 4),
+    length: 40,
+    tones: 5,
+    repeatChance: 0.42,
+    speed: 48,
+  }),
+  volcano(5, {
+    track: forked(4, 0, 2),
+    length: 48,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 42,
+  }),
+  volcano(6, {
+    track: forked(3, 0, 1),
+    length: 36,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 40,
+  }),
+  volcano(7, {
+    track: forked(3, 0),
+    mirrors: SIDE_WALLS,
+    length: 42,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 46,
+  }),
+  volcano(8, {
+    track: forked(4, 0, 1, 2),
+    length: 46,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 40,
+  }),
+  volcano(9, {
+    track: forked(3, 1),
+    mirrors: [...SIDE_WALLS, ...lowerPrisms(0.8)],
+    length: 40,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 42,
+  }),
+  volcano(10, {
+    track: forked(4, 1, 2),
+    magnet: magnet(2, 4),
+    length: 44,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 46,
+  }),
+  volcano(11, {
+    track: forked(4, 0, 1, 2),
+    length: 46,
+    tones: 5,
+    repeatChance: 0.38,
+    speed: 46,
+  }),
+  volcano(12, {
+    track: forked(3, 0, 1),
+    length: 30,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 20,
+    hint: 'colossus',
+    colossus: { hp: 44, spit: 6 },
+  }),
+];
+
+/** The six worlds in order; the first five have their levels in this version. */
 export const WORLDS: readonly World[] = [
   { id: 'nebula', levels: NEBULA },
   { id: 'neon', levels: NEON },
   { id: 'abyss', levels: ABYSS },
   { id: 'jewel', levels: JEWEL },
-  { id: 'volcano', levels: [] },
+  { id: 'volcano', levels: VOLCANO },
   { id: 'singularity', levels: [] },
 ];
 

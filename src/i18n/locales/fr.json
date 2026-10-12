@@ -128,13 +128,16 @@
     "magnet": "Touchez « Aimant » (ou M), puis visez une bille : elle quitte la chaîne et rejoint votre lanceur.",
     "magnetCombo": "Aspirez la bille qui sépare deux couleurs identiques : elles se rejoignent et explosent.",
     "alchemy": "La lumière se mélange : rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose. Tirez une couleur sur une autre pour les fusionner.",
-    "alchemySecondary": "Les couleurs mélangées ne se tirent pas : fusionnez-en trois côte à côte pour les faire exploser."
+    "alchemySecondary": "Les couleurs mélangées ne se tirent pas : fusionnez-en trois côte à côte pour les faire exploser.",
+    "switch": "Touchez un aiguillage (ou appuyez sur S) pour envoyer la lave dans le détour : plus long, il vous donne du temps. On ne peut plus le changer une fois la chaîne arrivée.",
+    "hot": "Sur le raccourci, la lave est en fusion : les billes qui y explosent valent double. À vous de choisir entre points et temps."
   },
   "colossus": {
     "nebula": "Colosse stellaire",
     "neon": "Colosse prisme",
     "abyss": "Colosse abyssal",
-    "jewel": "Colosse de cristal"
+    "jewel": "Colosse de cristal",
+    "volcano": "Colosse de lave"
   },
   "player": {
     "balance": "{count} éclats",
@@ -191,7 +194,8 @@
     "board-nebula": "Nébuleuse",
     "board-neon": "Néon",
     "board-abyss": "Abysses",
-    "board-jewel": "Joaillerie"
+    "board-jewel": "Joaillerie",
+    "board-volcano": "Volcan"
   },
   "achievements": {
     "title": "Objectifs",
@@ -241,6 +245,10 @@
         "name": "Alchimiste",
         "text": "Fusionner {target} fois deux couleurs."
       },
+      "switchman": {
+        "name": "Aiguilleur",
+        "text": "Basculer {target} aiguillages."
+      },
       "no-swap": {
         "name": "Sans filet",
         "text": "Gagner un niveau sans échanger de bille."
@@ -272,6 +280,10 @@
       "world-abyss": {
         "name": "Remonter à la surface",
         "text": "Terminer le monde Abysses."
+      },
+      "world-jewel": {
+        "name": "Cœur de diamant",
+        "text": "Terminer le monde Joaillerie."
       }
     }
   },
@@ -298,5 +310,12 @@
   "alchemy": {
     "title": "Mélanges",
     "formula": "{a} + {b} = {result}"
+  },
+  "switch": {
+    "label": "Aiguillage {number} : {branch}",
+    "short": "raccourci",
+    "long": "détour",
+    "locked": "verrouillé",
+    "flipped": "Aiguillage vers le {branch}"
   }
 }

@@ -100,6 +100,8 @@ describe('KeyboardControls', () => {
     const commands = {
       aimAt: vi.fn(),
       isOnShooter: vi.fn(() => false),
+      flipSwitchAt: vi.fn(() => false),
+      flipNextSwitch: vi.fn(),
       fire: vi.fn(),
       swap: vi.fn(),
       turn: vi.fn(),
@@ -126,6 +128,8 @@ describe('KeyboardControls', () => {
     press('keydown', 'KeyX');
     press('keydown', 'Escape');
     press('keydown', 'KeyM');
+    press('keydown', 'KeyS');
+    expect(commands.flipNextSwitch).toHaveBeenCalledTimes(1);
     expect(commands.toggleMagnet).toHaveBeenCalledTimes(1);
     expect(commands.fire).toHaveBeenCalledTimes(1);
     expect(commands.swap).toHaveBeenCalledTimes(1);

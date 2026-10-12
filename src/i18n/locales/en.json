@@ -128,13 +128,16 @@
     "magnet": "Tap “Magnet” (or M), then aim at a ball: it leaves the chain and joins your shooter.",
     "magnetCombo": "Pull out the ball that separates two equal colours: they join and explode.",
     "alchemy": "Light mixes: ruby + lime = amber, lime + violet = cyan, ruby + violet = rose. Shoot one colour onto another to fuse them.",
-    "alchemySecondary": "Mixed colours cannot be shot: fuse three of them side by side to blow them up."
+    "alchemySecondary": "Mixed colours cannot be shot: fuse three of them side by side to blow them up.",
+    "switch": "Tap a switch (or press S) to send the lava into the detour: longer, it buys you time. It can no longer change once the chain gets there.",
+    "hot": "On the shortcut the lava is molten: balls blown up there are worth double. Points or time: your call."
   },
   "colossus": {
     "nebula": "Stellar Colossus",
     "neon": "Prism Colossus",
     "abyss": "Abyssal Colossus",
-    "jewel": "Crystal Colossus"
+    "jewel": "Crystal Colossus",
+    "volcano": "Lava Colossus"
   },
   "player": {
     "balance": "{count} shards",
@@ -191,7 +194,8 @@
     "board-nebula": "Nebula",
     "board-neon": "Neon",
     "board-abyss": "Abyss",
-    "board-jewel": "Jewels"
+    "board-jewel": "Jewels",
+    "board-volcano": "Volcano"
   },
   "achievements": {
     "title": "Goals",
@@ -241,6 +245,10 @@
         "name": "Alchemist",
         "text": "Fuse two colours {target} times."
       },
+      "switchman": {
+        "name": "Signalman",
+        "text": "Flip {target} switches."
+      },
       "no-swap": {
         "name": "No safety net",
         "text": "Win a level without swapping a ball."
@@ -272,6 +280,10 @@
       "world-abyss": {
         "name": "Back to the surface",
         "text": "Finish the Abyss world."
+      },
+      "world-jewel": {
+        "name": "Diamond heart",
+        "text": "Finish the Jewels world."
       }
     }
   },
@@ -298,5 +310,12 @@
   "alchemy": {
     "title": "Mixes",
     "formula": "{a} + {b} = {result}"
+  },
+  "switch": {
+    "label": "Switch {number}: {branch}",
+    "short": "shortcut",
+    "long": "detour",
+    "locked": "locked",
+    "flipped": "Switch set to the {branch}"
   }
 }

@@ -8,6 +8,10 @@ import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
 import type { Look } from './cosmetics/Look';
 import { SHOOTER_RADIUS } from './cosmetics/ShooterSkins';
+import type { Path } from '@/engine/path/Path';
+
+/** Radius of a switch lever, in board units (also the size of its tap target). */
+export const SWITCH_RADIUS = 30;
 import { TRAIL_LENGTH } from './cosmetics/Trails';
 
 /** What every renderer offers the play session. */
@@ -48,7 +52,8 @@ export class CanvasRenderer implements Renderer {
   private offsetX = 0;
   private offsetY = 0;
   private pixelRatio = 1;
-  private readonly tracks = new Map<Chain, Path2D>();
+  /** Track shapes, per path: flipping a switch gives the chain a new path. */
+  private readonly tracks = new Map<Path, Path2D>();
   private background: HTMLCanvasElement | null = null;
   private readonly trails = new Map<number, Vec2[]>();
   private time = 0;
@@ -136,6 +141,7 @@ export class CanvasRenderer implements Renderer {
     this.time = scene.time;
     const radius = game.setup.chain.ballRadius;
     for (const chain of game.chains) this.drawTrack(chain, radius);
+    this.drawSwitches(radius, scene.time);
     this.drawReflectors(scene.time);
     if (scene.aimPath) this.drawAim(scene.aimPath, radius, scene.magnetArmed, scene.time);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
@@ -167,14 +173,14 @@ export class CanvasRenderer implements Renderer {
   }
 
   private trackOf(chain: Chain): Path2D {
-    let track = this.tracks.get(chain);
+    let track = this.tracks.get(chain.path);
     if (!track) {
       track = new Path2D();
       chain.path.sample(8).forEach((point, i) => {
         if (i === 0) track!.moveTo(point.x, point.y);
         else track!.lineTo(point.x, point.y);
       });
-      this.tracks.set(chain, track);
+      this.tracks.set(chain.path, track);
     }
     return track;
   }
@@ -341,6 +347,77 @@ export class CanvasRenderer implements Renderer {
       ctx.beginPath();
       ctx.arc(end.x, end.y, radius * (1.35 + 0.12 * Math.sin(time * 8)), 0, Math.PI * 2);
       ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Volcano world: each fork's unused branch, dashed; the shortcut glowing
+   * like lava while the chain is sent that way; a lever on each switch.
+   */
+  private drawSwitches(radius: number, time: number): void {
+    const switches = this.game.switches();
+    if (switches.length === 0) return;
+    const { ctx, palette } = this;
+    const line = (points: readonly Vec2[]) => {
+      ctx.beginPath();
+      points.forEach((point, i) =>
+        i === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y),
+      );
+    };
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const view of switches) {
+      const fork = this.game.setup.chains[view.chain]?.route?.forks[view.fork];
+      if (!fork) continue;
+      // The branch not taken: a faint, dashed track.
+      line(view.branch === 'short' ? fork.long : fork.short);
+      ctx.setLineDash([radius, radius * 0.8]);
+      ctx.globalAlpha = 0.45;
+      ctx.strokeStyle = palette.trackEdge;
+      ctx.lineWidth = radius * 2 + 4;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      if (view.branch === 'short') {
+        // Molten shortcut: balls exploded here are worth double.
+        line(fork.short);
+        ctx.globalAlpha = 0.35 + 0.12 * Math.sin(time * 4 + view.fork);
+        ctx.strokeStyle = palette.tone(1);
+        ctx.lineWidth = radius * 2 + 10;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+    // Levers, on top of everything on the track.
+    for (const view of switches) {
+      const fork = this.game.setup.chains[view.chain]?.route?.forks[view.fork];
+      if (!fork) continue;
+      const branch = view.branch === 'short' ? fork.short : fork.long;
+      const ahead = branch[Math.min(3, branch.length - 1)]!.sub(branch[0]!).normalize();
+      const { x, y } = view.position;
+      ctx.globalAlpha = view.locked ? 0.45 : 1;
+      ctx.beginPath();
+      ctx.arc(x, y, SWITCH_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = palette.shooter;
+      ctx.fill();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = view.branch === 'short' ? palette.tone(1) : palette.tone(3);
+      ctx.stroke();
+      // Arrow towards the branch taken.
+      ctx.beginPath();
+      ctx.moveTo(x - ahead.x * 14, y - ahead.y * 14);
+      ctx.lineTo(x + ahead.x * 16, y + ahead.y * 16);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + ahead.x * 20, y + ahead.y * 20);
+      ctx.lineTo(x + ahead.x * 6 - ahead.y * 10, y + ahead.y * 6 + ahead.x * 10);
+      ctx.lineTo(x + ahead.x * 6 + ahead.y * 10, y + ahead.y * 6 - ahead.x * 10);
+      ctx.closePath();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.fill();
+      ctx.globalAlpha = 1;
     }
     ctx.restore();
   }

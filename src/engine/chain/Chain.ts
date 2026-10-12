@@ -57,7 +57,7 @@ export class Chain {
   private speedFactor = 1;
 
   constructor(
-    readonly path: Path,
+    private pathValue: Path,
     balls: readonly Ball[],
     private readonly params: ChainParams,
   ) {
@@ -84,6 +84,23 @@ export class Chain {
 
   get diameter(): number {
     return this.params.ballRadius * 2;
+  }
+
+  get path(): Path {
+    return this.pathValue;
+  }
+
+  /**
+   * Follows another track (Volcano world: a switch was flipped). Only allowed
+   * for tracks identical up to the head, so no ball moves: the caller checks.
+   */
+  setPath(path: Path): void {
+    this.pathValue = path;
+  }
+
+  /** Arc length of the frontmost thing on the track: the head, or the pusher if empty. */
+  get front(): number {
+    return this.items[this.items.length - 1]?.s ?? this.pusher?.s ?? -Infinity;
   }
 
   /** True once a ball (or the pusher) has reached the hole: the game is lost. */

@@ -100,6 +100,20 @@ export class SoundEngine {
     });
   }
 
+  /** A switch flips: a heavy mechanical clack, lower for the detour. */
+  switch(detour: boolean): void {
+    this.play((ctx, out, now) => {
+      this.noiseBurst(ctx, out, now, 0.06, 1500, 0.25);
+      this.thump(ctx, out, now, 0.3);
+      this.bell(ctx, out, now + 0.03, detour ? 330 : 494, 0.25, 0.08);
+    });
+  }
+
+  /** A switch the chain has already reached: a dull refusal. */
+  locked(): void {
+    this.play((ctx, out, now) => this.sweep(ctx, out, now, 'square', 140, 110, 0.12, 0.08, 600));
+  }
+
   /** Two colours fuse: two glass notes sliding into one. */
   fuse(): void {
     this.play((ctx, out, now) => {

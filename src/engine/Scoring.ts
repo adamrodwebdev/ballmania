@@ -14,7 +14,8 @@ export const SPEED_BONUS = 10;
  *   consecutive one, each adds 20 × (streak − 2);
  * - a shot that does not explode anything breaks the streak;
  * - a shot that bounced off mirrors multiplies the balls' points by
- *   1 + bounces (Neon world: ricochet).
+ *   1 + bounces (Neon world: ricochet);
+ * - on the short branch of a fork, the balls' points are doubled (Volcano world).
  */
 export class Scoring {
   private total = 0;
@@ -51,14 +52,14 @@ export class Scoring {
   }
 
   /** Records an explosion and returns the points it earned. */
-  explosion(balls: number, depth: number, fromShot: boolean, bounces = 0): number {
+  explosion(balls: number, depth: number, fromShot: boolean, bounces = 0, multiplier = 1): number {
     if (fromShot) this.streakValue++;
     this.bestBounceValue = Math.max(this.bestBounceValue, bounces);
     this.bestDepthValue = Math.max(this.bestDepthValue, depth);
     this.bestStreakValue = Math.max(this.bestStreakValue, this.streakValue);
     this.destroyed += balls;
     const streakBonus = fromShot ? Math.max(0, this.streakValue - 2) * STREAK_BONUS : 0;
-    const points = balls * POINTS_PER_BALL * depth * (1 + bounces) + streakBonus;
+    const points = balls * POINTS_PER_BALL * depth * (1 + bounces) * multiplier + streakBonus;
     this.total += points;
     return points;
   }

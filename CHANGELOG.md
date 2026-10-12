@@ -55,3 +55,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   autre fusionne avec elle ; légende des mélanges et aperçu de la couleur obtenue au bout
   de la ligne de visée ; mélanges générés par paires ; 12 niveaux dont le Colosse de
   cristal ; plateau « Joaillerie » ; objectifs « alchimiste » et « remonter à la surface ».
+- Lot 9, monde 5 « Volcan » : aiguillages à basculer (levier ou touche S) tant que la
+  chaîne ne les a pas atteints, entre un raccourci en fusion (billes ×2) et un détour qui
+  donne du temps ; 12 niveaux mêlant aimant et miroirs, dont le Colosse de lave ; plateau
+  « Volcan » ; objectifs « aiguilleur » et « cœur de diamant ».

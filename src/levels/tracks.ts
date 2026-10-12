@@ -43,11 +43,21 @@ export type TrackRecipe =
   | {
       readonly kind: 'serpentine';
       readonly rows: number;
+      /** Rows (not the last one) whose middle splits into a shortcut and a detour (Volcano world). */
+      readonly forks?: readonly number[];
     };
 
+/** A piece of a track with switches: a line, or a fork with its two branches. */
+export type TrackPart =
+  | { readonly kind: 'line'; readonly points: readonly Point[] }
+  | { readonly kind: 'fork'; readonly short: readonly Point[]; readonly long: readonly Point[] };
+
 export interface Track {
+  /** Each chain's track; with forks, the version that takes every shortcut. */
   readonly paths: readonly Point[][];
   readonly shooter: Point;
+  /** Each chain's track as lines and forks, when it has switches. */
+  readonly routes?: readonly (readonly TrackPart[])[];
 }
 
 /** How far outside the board the entrance tunnel starts. */
@@ -91,7 +101,11 @@ function serpentineTrack(
   const top = 110;
   const gap = Math.min(300, (frame.height * 0.62 - top) / Math.max(1, recipe.rows - 1));
   const turn = gap / 2;
-  const points: Point[] = [[-TUNNEL, top]];
+  const forks = new Set(recipe.forks ?? []);
+  const parts: TrackPart[] = [];
+  let points: Point[] = [[-TUNNEL, top]];
+  // The detour dips towards the shooter, clear of the next row.
+  const depth = Math.min(120, gap - 75);
   for (let row = 0; row < recipe.rows; row++) {
     const y = top + row * gap;
     const rightwards = row % 2 === 0;
@@ -99,6 +113,26 @@ function serpentineTrack(
     const to = rightwards ? frame.width - margin - turn : margin + turn;
     // The last row stops short of the far side: the hole sits there.
     const end = last ? (rightwards ? frame.width * 0.68 : frame.width * 0.32) : to;
+    if (forks.has(row) && !last) {
+      const start = row === 0 ? margin : rightwards ? margin + turn : frame.width - margin - turn;
+      const a = start + (end - start) * 0.3;
+      const b = start + (end - start) * 0.7;
+      points.push([a, y]);
+      parts.push({ kind: 'line', points });
+      const long: Point[] = Array.from({ length: 33 }, (_, k): Point => {
+        const phi = (k / 32) * Math.PI;
+        return [a + ((b - a) * (1 - Math.cos(phi))) / 2, y + depth * Math.sin(phi)];
+      });
+      parts.push({
+        kind: 'fork',
+        short: [
+          [a, y],
+          [b, y],
+        ],
+        long,
+      });
+      points = [[b, y]];
+    }
     // Each row starts where the previous half circle ended.
     points.push([end, y]);
     if (last) break;
@@ -109,7 +143,11 @@ function serpentineTrack(
       points.push([x, y + turn + Math.sin(a) * turn]);
     }
   }
-  return { paths: [points], shooter: [frame.width / 2, frame.height - 170] };
+  parts.push({ kind: 'line', points });
+  const shooter: Point = [frame.width / 2, frame.height - 170];
+  if (forks.size === 0) return { paths: [points], shooter };
+  const shortcut = parts.flatMap((part) => (part.kind === 'line' ? part.points : part.short));
+  return { paths: [shortcut], shooter, routes: [parts] };
 }
 
 /** A straight tunnel from outside the nearest edge to the first point of the track. */
