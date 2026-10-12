@@ -110,6 +110,14 @@ export class SoundEngine {
   }
 
   /** A switch the chain has already reached: a dull refusal. */
+  /** A shot falling into the black hole: a long sigh down into the depths. */
+  swallow(): void {
+    this.play((ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sine', 620, 55, 0.5, 0.2);
+      this.noiseBurst(ctx, out, now, 0.25, 600, 0.06);
+    });
+  }
+
   locked(): void {
     this.play((ctx, out, now) => this.sweep(ctx, out, now, 'square', 140, 110, 0.12, 0.08, 600));
   }

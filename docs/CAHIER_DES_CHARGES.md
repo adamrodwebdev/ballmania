@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                    |
-| ------- | ---------- | ----------------------------------------- |
-| 0.12    | 12/10/2026 | Lot 9 livré (monde 5 Volcan, aiguillages) |
+| Version | Date       | Statut                                      |
+| ------- | ---------- | ------------------------------------------- |
+| 0.13    | 12/10/2026 | Lot 10, monde 6 livré (Singularité, orbite) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -182,8 +182,8 @@ Deux portes d'entrée depuis l'accueil :
   billes × 48 + 700, arrondis à 50 (le Colosse compte pour un tiers de ses points de vie en
   billes). Le robot obtient en moyenne entre 1 et 2 étoiles ; la 3ᵉ demande des réactions
   en chaîne. **À affiner en tests joueurs.**
-- La carte de campagne présente les six mondes ; le monde 6 est annoncé
-  (« bientôt ») avec leur mécanique.
+- La carte de campagne présente les six mondes et leur mécanique ; tous sont jouables
+  depuis le lot 10.
 
 #### Monde 2 « Néon », livré au lot 6
 
@@ -346,6 +346,55 @@ Deux portes d'entrée depuis l'accueil :
 - Terminer la Joaillerie ouvre le Volcan et débloque le plateau « Volcan » (basalte,
   fissures de magma, braises).
 
+#### Monde 6 « Singularité », livré au lot 10
+
+- **Gravité** : un trou noir occupe le centre du plateau ; les chaînes en sortent d'un
+  **portail** et spiralent jusqu'à lui. Il attire chaque tir (attraction en 1/d², adoucie
+  près du centre) : **la ligne de visée suit exactement la courbe** que suivra la bille, car
+  elle est calculée avec la même intégration que le vol. Un tir qui passe trop près de
+  l'horizon est **avalé** (anneau qui se referme, soupir grave) ; un tir qui tourne plus de
+  4 secondes est perdu.
+- **Décision : orbite automatique.** Le lanceur glisse seul, à vitesse constante, sur un
+  anneau autour du trou noir (sens et vitesse propres à chaque niveau). Le joueur garde les
+  mêmes commandes qu'ailleurs : il vise et tire, et c'est le **moment** du tir qui devient un
+  choix. Le lanceur continue de viser le point visé pendant qu'il se déplace. Une orbite
+  pilotée par le joueur aurait demandé une seconde commande continue, malcommode au doigt.
+- Le niveau 1 présente la gravité seule (lanceur immobile), le niveau 2 l'orbite ; les
+  suivants reprennent les mécaniques des mondes précédents : deux chaînes (4 et 8), aimant (7),
+  miroirs d'angle (9), alchimie (10).
+- **Destruction « aspiration et implosion »** : les éclats et étincelles sont attirés par le
+  trou noir et disparaissent à l'horizon. Disque d'accrétion animé, anneau de photons qui
+  rougit quand une chaîne approche, anneau du lanceur en pointillés qui défilent dans son
+  sens.
+
+| Niveau | Spirale (tours)                | Gravité | Orbite (rad/s) | Autre mécanique | Billes        | Vitesse | Conseil            |
+| ------ | ------------------------------ | ------- | -------------- | --------------- | ------------- | ------- | ------------------ |
+| 1      | 1,6                            | 0,45    | immobile       | —               | 30            | 28      | Gravité            |
+| 2      | 1,8                            | 0,7     | 0,12           | —               | 34            | 38      | Orbite             |
+| 3      | 2                              | 0,8     | 0,15           | —               | 38            | 38      | —                  |
+| 4      | 1,3 × 2 chaînes                | 0,8     | −0,15          | —               | 2 × 24        | 32      | —                  |
+| 5      | 2,2                            | 0,9     | 0,18           | —               | 42            | 44      | —                  |
+| 6      | 1,8 (respiration)              | 0,8     | 0,12           | —               | 34            | 38      | —                  |
+| 7      | 2,2                            | 1       | −0,18          | Aimant          | 42            | 50      | —                  |
+| 8      | 1,5 × 2 chaînes                | 1       | 0,2            | —               | 2 × 24        | 28      | —                  |
+| 9      | 2,3                            | 1,1     | 0,2            | Miroirs d'angle | 44            | 46      | —                  |
+| 10     | 1,8                            | 0,9     | 0,15           | Alchimie        | 34            | 26      | —                  |
+| 11     | 2,5                            | 1,2     | −0,22          | —               | 48            | 36      | —                  |
+| 12     | 2 + **Colosse ultime** (44 PV) | 1       | 0,15           | —               | 30 + renforts | 18      | Blesser le Colosse |
+
+- Gravité 1 = 6 × 10⁷ unités³/s² ; tirs à 1 050 unités/s dans ce monde (1 500 ailleurs), pour
+  que la courbe se lise. Anneau du lanceur à 70 unités des bords, spirales de 0,6 à 0,2
+  du demi-plateau (les tests vérifient que l'anneau reste à distance des tracés et des
+  miroirs sur tout son tour, sur les deux formats de plateau).
+- **Équilibrage** : le robot a appris à viser en balayant les angles et en lisant la ligne
+  de visée courbe, comme un joueur. Il gagne chaque niveau au moins 4 fois sur 6 ; pression
+  de 49 à 83 %, 81 % contre le Colosse ultime. Surprise du réglage : un lanceur **immobile**
+  est plus difficile qu'un lanceur en orbite (le haut de la spirale, caché derrière le trou
+  noir, devient inaccessible) : le niveau 1 a donc une gravité faible.
+- Terminer le Volcan ouvre la Singularité et débloque le plateau « Singularité » (puits
+  gravitationnel en anneaux, étoiles qui se raréfient vers le centre). Gagner le dernier
+  niveau affiche « Campagne terminée ».
+
 #### Modes et mécaniques (v0.1)
 
 Chaque mode est une **stratégie** branchée sur un moteur commun ; aucun mode ne modifie le
@@ -491,17 +540,19 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 
 **Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu) :
 
-| Emplacement        | Objets (prix en éclats)                                                                                                                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                                                                                                                  |
-| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                                                                                                                  |
-| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                                                                                                              |
-| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon), **Joaillerie** (en finissant les Abysses), **Volcan** (en finissant la Joaillerie) |
+| Emplacement        | Objets (prix en éclats)                                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                                                                                                                                                            |
+| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                                                                                                                                                            |
+| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                                                                                                                                                        |
+| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon), **Joaillerie** (en finissant les Abysses), **Volcan** (en finissant la Joaillerie), **Singularité** (en finissant le Volcan) |
 
 Un objet acheté est aussitôt équipé. Le plateau choisi habille tous les niveaux et le défi
 du jour ; « Celui du monde » suit le monde joué.
 
-**20 objectifs** (compteurs à vie ; au lot 9 : basculer 15 aiguillages, 50 éclats, et terminer
+**23 objectifs** (compteurs à vie ; au lot 10 : faire exploser des billes avec 10 tirs
+courbés d'au moins 45° par le trou noir, 70 éclats, terminer le Volcan, 350 éclats, et
+terminer la campagne, 500 éclats ; au lot 9 : basculer 15 aiguillages, 50 éclats, et terminer
 la Joaillerie, 300 éclats ; « tir en bande » ajouté au lot 6 : faire exploser un
 groupe après 2 rebonds, 60 éclats ; au lot 7 : aspirer 10 billes avec l'aimant, 50 éclats, et
 terminer Néon, 200 éclats ; au lot 8 : fusionner 20 fois, 60 éclats, et terminer les
@@ -805,6 +856,20 @@ le moteur de tracés.
 | `PathDefinition` « forked »                  | Tracé à aiguillages en données                                         |
 | `VolcanoTheme`                               | Fond du monde 5                                                        |
 
+### 5.12 Gravité et orbite (livrées au lot 10)
+
+| Élément                                             | Responsabilité                                                          |
+| --------------------------------------------------- | ----------------------------------------------------------------------- |
+| `Gravity` (`acceleration`, `swallows`)              | Attraction du trou noir, adoucie au centre ; horizon qui avale les tirs |
+| `Orbit`                                             | Anneau elliptique parcouru à vitesse angulaire constante                |
+| `Shooter.moveTo`, `Shooter.position`                | Lanceur mobile qui garde la visée sur le point visé                     |
+| `Projectile.accelerate`, `.age`, `.deflection`      | Trajectoire courbée, durée de vol, angle de déviation                   |
+| `Game.aimLine`, `Game.ring`                         | Ligne de visée courbe (même intégration que le vol), rebonds à part     |
+| Événement `swallowed`, `GameReport.curves`          | Tir avalé ; tirs courbés réussis (objectif « fronde gravitationnelle ») |
+| `TrackRecipe` spirale `portal`                      | Spirale sans tunnel d'entrée, dans l'anneau du lanceur                  |
+| `BlackHole`, `Destruction.setAttractor`, `.swallow` | Rendu du trou noir et de l'anneau, implosion des débris                 |
+| `SingularityTheme`                                  | Fond du monde 6                                                         |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -843,7 +908,7 @@ le moteur de tracés.
 | 7 ✅ | Monde 3 Abysses : aimant, charges, Colosse abyssal                                            |
 | 8 ✅ | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                |
 | 9 ✅ | Monde 5 Volcan : aiguillages, raccourcis en fusion, Colosse de lave                           |
-| 10   | Monde 6 (orbite), modes Arcade                                                                |
+| 10   | Monde 6 Singularité : gravité, orbite, Colosse ultime ✅ ; modes Arcade                       |
 | 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
 | 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
 | 13   | Démo portfolio                                                                                |
@@ -872,3 +937,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                               |
 | 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                           |
 | 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                          |
+| 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                       |

@@ -18,7 +18,9 @@ export type HintId =
   | 'alchemy'
   | 'alchemySecondary'
   | 'switch'
-  | 'hot';
+  | 'hot'
+  | 'gravity'
+  | 'orbit';
 
 /**
  * A mirror described in fractions of the board (0 to 1 on each axis), so it
@@ -60,6 +62,13 @@ export interface CampaignLevel {
    * into secondaries (specification § 3.2, alchemy).
    */
   readonly palette?: readonly number[];
+  /**
+   * Singularity world: strength of the black hole's pull (1 = reference),
+   * which bends every shot towards the centre.
+   */
+  readonly gravity?: number;
+  /** Singularity world: the shooter glides along a ring, at this many radians per second. */
+  readonly orbit?: number;
   /** Abyss world: pull balls out of the chain. */
   readonly magnet?: {
     readonly charges: number;
@@ -78,7 +87,13 @@ const spiral = (
   turns: number,
   start: number,
   clockwise: boolean,
-  extra: { squareness?: number; arms?: number; inner?: number; outer?: number } = {},
+  extra: {
+    squareness?: number;
+    arms?: number;
+    inner?: number;
+    outer?: number;
+    portal?: boolean;
+  } = {},
 ): TrackRecipe => ({
   kind: 'spiral',
   turns,
@@ -88,6 +103,7 @@ const spiral = (
   clockwise,
   ...(extra.squareness === undefined ? {} : { squareness: extra.squareness }),
   ...(extra.arms === undefined ? {} : { arms: extra.arms }),
+  ...(extra.portal ? { portal: true } : {}),
 });
 
 const levelOf =
@@ -103,6 +119,19 @@ const neon = levelOf('neon');
 const abyss = levelOf('abyss');
 const jewel = levelOf('jewel');
 const volcano = levelOf('volcano');
+const singularity = levelOf('singularity');
+
+/**
+ * A spiral around the black hole, inside the shooter's ring: balls come out
+ * of a portal and fall into the centre.
+ */
+const orbital = (
+  turns: number,
+  start: number,
+  clockwise: boolean,
+  extra: { squareness?: number; arms?: number } = {},
+): TrackRecipe =>
+  spiral(turns, start, clockwise, { outer: 0.6, inner: 0.2, portal: true, ...extra });
 
 /** A serpentine whose listed rows split into a hot shortcut and a slower detour. */
 const forked = (rows: number, ...forks: number[]): TrackRecipe => ({
@@ -679,14 +708,138 @@ const VOLCANO: readonly CampaignLevel[] = [
   }),
 ];
 
-/** The six worlds in order; the first five have their levels in this version. */
+/**
+ * World 6, Singularity: a black hole at the centre swallows the chain and
+ * bends every shot towards it; the aim line shows the curve. The shooter
+ * glides along a ring around it, so the player chooses the moment as much
+ * as the angle. The world gathers the earlier mechanics, and ends with the
+ * last Colossus.
+ */
+const SINGULARITY: readonly CampaignLevel[] = [
+  singularity(1, {
+    track: orbital(1.6, 0.75, true),
+    gravity: 0.45,
+    length: 30,
+    tones: 4,
+    repeatChance: 0.5,
+    speed: 28,
+    hint: 'gravity',
+  }),
+  singularity(2, {
+    track: orbital(1.8, 0.25, false),
+    gravity: 0.7,
+    orbit: 0.12,
+    length: 34,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 38,
+    hint: 'orbit',
+  }),
+  singularity(3, {
+    track: orbital(2, 0.75, true),
+    gravity: 0.8,
+    orbit: 0.15,
+    length: 38,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 38,
+  }),
+  singularity(4, {
+    track: orbital(1.3, 0.75, true, { arms: 2 }),
+    gravity: 0.8,
+    orbit: -0.15,
+    length: 24,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 32,
+  }),
+  singularity(5, {
+    track: orbital(2.2, 0.5, false),
+    gravity: 0.9,
+    orbit: 0.18,
+    length: 42,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 44,
+  }),
+  singularity(6, {
+    track: orbital(1.8, 0, true),
+    gravity: 0.8,
+    orbit: 0.12,
+    length: 34,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 38,
+  }),
+  singularity(7, {
+    track: orbital(2.2, 0.25, true),
+    gravity: 1,
+    orbit: -0.18,
+    magnet: magnet(2, 4),
+    length: 42,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 50,
+  }),
+  singularity(8, {
+    track: orbital(1.5, 0.25, false, { arms: 2 }),
+    gravity: 1,
+    orbit: 0.2,
+    length: 24,
+    tones: 5,
+    repeatChance: 0.42,
+    speed: 28,
+  }),
+  singularity(9, {
+    track: orbital(2.3, 0.75, false),
+    gravity: 1.1,
+    orbit: 0.2,
+    mirrors: CORNER_WALLS,
+    length: 44,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 46,
+  }),
+  singularity(10, {
+    track: orbital(1.8, 0.5, true),
+    gravity: 0.9,
+    orbit: 0.15,
+    palette: withSecondaries(1),
+    length: 34,
+    tones: 4,
+    repeatChance: 0.45,
+    speed: 26,
+  }),
+  singularity(11, {
+    track: orbital(2.5, 0, false),
+    gravity: 1.2,
+    orbit: -0.22,
+    length: 48,
+    tones: 5,
+    repeatChance: 0.38,
+    speed: 36,
+  }),
+  singularity(12, {
+    track: orbital(2, 0.75, true),
+    gravity: 1,
+    orbit: 0.15,
+    length: 30,
+    tones: 5,
+    repeatChance: 0.4,
+    speed: 18,
+    hint: 'colossus',
+    colossus: { hp: 44, spit: 6 },
+  }),
+];
+
+/** The six worlds in order. */
 export const WORLDS: readonly World[] = [
   { id: 'nebula', levels: NEBULA },
   { id: 'neon', levels: NEON },
   { id: 'abyss', levels: ABYSS },
   { id: 'jewel', levels: JEWEL },
   { id: 'volcano', levels: VOLCANO },
-  { id: 'singularity', levels: [] },
+  { id: 'singularity', levels: SINGULARITY },
 ];
 
 export const CAMPAIGN: readonly CampaignLevel[] = WORLDS.flatMap((world) => world.levels);

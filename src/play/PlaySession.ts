@@ -253,7 +253,14 @@ export class PlaySession {
   }
 
   private createDestruction(): Destruction {
-    return new Destruction(this.profile, this.game.setup.chain.ballRadius, this.look.shards);
+    const destruction = new Destruction(
+      this.profile,
+      this.game.setup.chain.ballRadius,
+      this.look.shards,
+    );
+    const gravity = this.game.gravity;
+    if (gravity) destruction.setAttractor(gravity.centre, gravity.setup.horizon);
+    return destruction;
   }
 
   private createGame(): Game {
@@ -280,6 +287,10 @@ export class PlaySession {
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
     });
     game.events.on('missed', () => (this.hud.streak = 0));
+    game.events.on('swallowed', ({ projectile }) => {
+      this.destruction.swallow(projectile.position, projectile.tone);
+      sound.swallow();
+    });
     game.events.on('switched', ({ branch }) => {
       sound.switch(branch === 'long');
       this.hud.switched = { branch, serial: ++this.switchSerial };
@@ -411,7 +422,7 @@ export class PlaySession {
       game: this.game,
       motion: this.motion,
       destruction: this.destruction,
-      aimPath: this.game.state === 'playing' ? this.game.aimPath() : null,
+      aim: this.game.state === 'playing' ? this.game.aimLine() : null,
       magnetArmed: this.hud.magnetArmed,
       time: this.time,
       colossusFlash: this.colossusFlash,

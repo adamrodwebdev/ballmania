@@ -31,5 +31,5 @@ describe('playability (casual bot: one shot every 1.2 s, imprecise)', () => {
     const average = stars.reduce((sum, value) => sum + value, 0) / stars.length;
     expect(average).toBeGreaterThan(1.2);
     expect(average).toBeLessThan(2.6);
-  });
+  }, 30_000);
 });

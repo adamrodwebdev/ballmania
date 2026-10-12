@@ -63,7 +63,8 @@
     "newBest": "Nouveau record !",
     "nextLevel": "Niveau suivant",
     "map": "Carte de la campagne",
-    "homeButton": "Accueil"
+    "homeButton": "Accueil",
+    "campaignDone": "Campagne terminée : les six mondes sont à vous !"
   },
   "effects": {
     "spectacular": {
@@ -130,14 +131,17 @@
     "alchemy": "La lumière se mélange : rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose. Tirez une couleur sur une autre pour les fusionner.",
     "alchemySecondary": "Les couleurs mélangées ne se tirent pas : fusionnez-en trois côte à côte pour les faire exploser.",
     "switch": "Touchez un aiguillage (ou appuyez sur S) pour envoyer la lave dans le détour : plus long, il vous donne du temps. On ne peut plus le changer une fois la chaîne arrivée.",
-    "hot": "Sur le raccourci, la lave est en fusion : les billes qui y explosent valent double. À vous de choisir entre points et temps."
+    "hot": "Sur le raccourci, la lave est en fusion : les billes qui y explosent valent double. À vous de choisir entre points et temps.",
+    "gravity": "Le trou noir attire vos tirs : la ligne de visée montre la courbe qu'ils suivront. Un tir qui passe trop près est avalé.",
+    "orbit": "Votre lanceur glisse autour du trou noir : attendez d'être bien placé avant de tirer."
   },
   "colossus": {
     "nebula": "Colosse stellaire",
     "neon": "Colosse prisme",
     "abyss": "Colosse abyssal",
     "jewel": "Colosse de cristal",
-    "volcano": "Colosse de lave"
+    "volcano": "Colosse de lave",
+    "singularity": "Colosse ultime"
   },
   "player": {
     "balance": "{count} éclats",
@@ -195,7 +199,8 @@
     "board-neon": "Néon",
     "board-abyss": "Abysses",
     "board-jewel": "Joaillerie",
-    "board-volcano": "Volcan"
+    "board-volcano": "Volcan",
+    "board-singularity": "Singularité"
   },
   "achievements": {
     "title": "Objectifs",
@@ -284,6 +289,18 @@
       "world-jewel": {
         "name": "Cœur de diamant",
         "text": "Terminer le monde Joaillerie."
+      },
+      "slingshot": {
+        "name": "Fronde gravitationnelle",
+        "text": "Faire exploser des billes avec {target} tirs courbés d'au moins 45° par le trou noir."
+      },
+      "world-volcano": {
+        "name": "Cœur de magma",
+        "text": "Terminer le monde Volcan."
+      },
+      "world-singularity": {
+        "name": "Au-delà de l'horizon",
+        "text": "Terminer la campagne."
       }
     }
   },

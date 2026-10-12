@@ -59,3 +59,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   chaîne ne les a pas atteints, entre un raccourci en fusion (billes ×2) et un détour qui
   donne du temps ; 12 niveaux mêlant aimant et miroirs, dont le Colosse de lave ; plateau
   « Volcan » ; objectifs « aiguilleur » et « cœur de diamant ».
+- Lot 10, monde 6 « Singularité » : trou noir central qui courbe les tirs (ligne de visée
+  courbe fidèle au vol) et avale ceux qui passent trop près, lanceur en orbite autour de
+  lui, chaînes qui sortent d'un portail ; implosion des débris ; 12 niveaux reprenant les
+  mécaniques précédentes, dont le Colosse ultime ; plateau « Singularité » ; objectifs
+  « fronde gravitationnelle », « cœur de magma » et « au-delà de l'horizon » ; message de
+  campagne terminée.

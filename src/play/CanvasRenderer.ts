@@ -3,6 +3,7 @@ import type { Game } from '@/engine/Game';
 import { mix } from '@/engine/chain/Alchemy';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
+import { BlackHole } from './BlackHole';
 import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
@@ -33,14 +34,20 @@ export interface Scene {
   readonly game: Game;
   readonly motion: BallMotion;
   readonly destruction: Destruction;
-  /** The aim line: shooter, each rebound, then the first ball it meets; null to hide it. */
-  readonly aimPath: readonly Vec2[] | null;
+  /** The aim line, from the shooter to the first ball it meets; null to hide it. */
+  readonly aim: AimLine | null;
   /** The magnet is armed: the next "shot" pulls the aimed ball instead. */
   readonly magnetArmed: boolean;
   /** Seconds since the session started, for pulsing details. */
   readonly time: number;
   /** White flash of the Colossus when it is hit, from 1 down to 0. */
   readonly colossusFlash: number;
+}
+
+/** The aim line: its points (curved by gravity) and where it bounces off mirrors. */
+export interface AimLine {
+  readonly points: readonly Vec2[];
+  readonly rebounds: readonly Vec2[];
 }
 
 /** Canvas 2D renderer: tracks, hole, chains, shots, shooter and effects. */
@@ -57,6 +64,8 @@ export class CanvasRenderer implements Renderer {
   private background: HTMLCanvasElement | null = null;
   private readonly trails = new Map<number, Vec2[]>();
   private time = 0;
+  /** Singularity world: the black hole and the shooter's ring. */
+  private readonly blackHole: BlackHole | null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -69,6 +78,7 @@ export class CanvasRenderer implements Renderer {
     this.ctx = ctx;
     this.palette = palette;
     this.sprites = new BallSprites(() => document.createElement('canvas'));
+    this.blackHole = game.gravity ? new BlackHole(game.gravity, game.ring) : null;
   }
 
   resize(width: number, height: number, pixelRatio: number): void {
@@ -141,9 +151,10 @@ export class CanvasRenderer implements Renderer {
     this.time = scene.time;
     const radius = game.setup.chain.ballRadius;
     for (const chain of game.chains) this.drawTrack(chain, radius);
+    this.blackHole?.drawRing(ctx, palette, scene.time);
     this.drawSwitches(radius, scene.time);
     this.drawReflectors(scene.time);
-    if (scene.aimPath) this.drawAim(scene.aimPath, radius, scene.magnetArmed, scene.time);
+    if (scene.aim) this.drawAim(scene.aim, radius, scene.magnetArmed, scene.time);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
     game.chains.forEach((chain) => this.drawColossus(chain, scene));
     this.drawTrails(radius);
@@ -152,6 +163,7 @@ export class CanvasRenderer implements Renderer {
     }
     // Entrances and holes cover the balls coming out of and going into them.
     for (const chain of game.chains) this.drawEnds(chain, radius, scene.time);
+    this.blackHole?.draw(ctx, palette, scene.time, this.danger());
     this.drawShooter(radius);
     scene.destruction.draw(ctx, palette, this.sprites);
 
@@ -198,6 +210,17 @@ export class CanvasRenderer implements Renderer {
     ctx.stroke(track);
   }
 
+  /** How close the nearest chain head is to its hole, from 0 (far) to 1 (in). */
+  private danger(): number {
+    return Math.max(
+      0,
+      ...this.game.chains.map((chain) => {
+        const head = chain.balls[chain.balls.length - 1];
+        return head ? Math.max(0, (head.s / chain.path.length - 0.75) / 0.25) : 0;
+      }),
+    );
+  }
+
   private drawEnds(chain: Chain, radius: number, time: number): void {
     const { ctx, palette } = this;
     const start = chain.path.pointAt(0);
@@ -205,6 +228,17 @@ export class CanvasRenderer implements Renderer {
     ctx.arc(start.x, start.y, radius * 1.3, 0, Math.PI * 2);
     ctx.fillStyle = palette.trackEdge;
     ctx.fill();
+    if (this.blackHole) {
+      // Singularity world: balls come out of a glowing portal; the black hole is the hole.
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = palette.accent;
+      ctx.globalAlpha = 0.6 + 0.3 * Math.sin(time * 3);
+      ctx.beginPath();
+      ctx.arc(start.x, start.y, radius * (1.3 + 0.1 * Math.sin(time * 3)), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      return;
+    }
 
     // The hole glows red as the head of the chain gets close.
     const head = chain.balls[chain.balls.length - 1];
@@ -301,8 +335,9 @@ export class CanvasRenderer implements Renderer {
     if (sprite) this.ctx.drawImage(sprite, at.x - radius, at.y - radius, radius * 2, radius * 2);
   }
 
-  private drawAim(path: readonly Vec2[], radius: number, magnet: boolean, time: number): void {
+  private drawAim(aim: AimLine, radius: number, magnet: boolean, time: number): void {
     const { ctx, palette } = this;
+    const path = aim.points;
     const from = this.game.shooter.position;
     ctx.save();
     ctx.setLineDash(magnet ? [18, 10] : [4, 18]);
@@ -315,12 +350,16 @@ export class CanvasRenderer implements Renderer {
     const start = from.add(Vec2.fromAngle(this.game.shooter.angle, SHOOTER_RADIUS + radius));
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
-    for (const point of path.slice(1)) ctx.lineTo(point.x, point.y);
+    // Curve samples still inside the barrel would make the line start backwards.
+    const barrel = SHOOTER_RADIUS + radius;
+    path.slice(1).forEach((point, i, rest) => {
+      if (i === rest.length - 1 || point.distanceTo(from) > barrel) ctx.lineTo(point.x, point.y);
+    });
     ctx.stroke();
     // A dot on each rebound, so a bank shot reads at a glance.
     ctx.setLineDash([]);
     ctx.fillStyle = palette.tone(this.game.shooter.current);
-    for (const point of path.slice(1, -1)) {
+    for (const point of aim.rebounds) {
       ctx.beginPath();
       ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
       ctx.fill();

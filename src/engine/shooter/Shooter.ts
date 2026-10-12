@@ -15,17 +15,25 @@ export class Shooter {
   private shots = 0;
   /** A ball pulled out of the chain keeps its colour, even if that colour left the track. */
   private pinned: 'current' | 'next' | null = null;
+  private positionValue: Vec2;
+  /** The point aimed at with `aimAt`, kept so a moving shooter keeps aiming at it. */
+  private target: Vec2 | null = null;
 
   constructor(
-    readonly position: Vec2,
+    position: Vec2,
     private readonly random: RandomSource,
     private readonly projectileSpeed: number,
     private readonly cooldown: number,
     available: readonly Tone[],
   ) {
     if (available.length === 0) throw new RangeError('The shooter needs at least one colour');
+    this.positionValue = position;
     this.currentTone = this.draw(available);
     this.nextTone = this.draw(available);
+  }
+
+  get position(): Vec2 {
+    return this.positionValue;
   }
 
   get angle(): number {
@@ -45,11 +53,19 @@ export class Shooter {
   }
 
   aimAt(target: Vec2): void {
+    this.target = target;
     if (target.distanceTo(this.position) > 0) this.angleValue = target.sub(this.position).angle();
   }
 
   aim(angle: number): void {
+    this.target = null;
     this.angleValue = angle;
+  }
+
+  /** Moves the shooter (Singularity world: it glides along its ring), still aiming at its target. */
+  moveTo(position: Vec2): void {
+    this.positionValue = position;
+    if (this.target) this.aimAt(this.target);
   }
 
   swap(): void {

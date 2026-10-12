@@ -7,6 +7,8 @@ import type { RandomSource } from './core/Random';
 import { Vec2 } from './geometry/Vec2';
 import { ColossusObjective, type ColossusSetup } from './objectives/ColossusObjective';
 import { ClearObjective, type Objective, type ObjectiveContext } from './objectives/Objective';
+import { Gravity, type GravitySetup } from './orbit/Gravity';
+import { Orbit, type OrbitSetup } from './orbit/Orbit';
 import type { Branch, ForkSpan, ForkedRoute } from './path/ForkedRoute';
 import type { Path } from './path/Path';
 import { Reflectors, type ReflectorSetup } from './reflectors/Reflectors';
@@ -54,6 +56,10 @@ export interface LevelSetup {
   readonly magnet?: MagnetSetup;
   /** Primaries fuse into secondaries instead of being inserted (Jewel world). */
   readonly alchemy?: boolean;
+  /** A black hole bends every shot (Singularity world). */
+  readonly gravity?: GravitySetup;
+  /** The shooter glides along a ring instead of standing still (Singularity world). */
+  readonly orbit?: OrbitSetup;
 }
 
 export interface MagnetSetup {
@@ -83,6 +89,8 @@ export interface GameReport {
   readonly fusions: number;
   /** Switches flipped (Volcano world). */
   readonly switches: number;
+  /** Shots bent by at least 45° by the black hole that exploded balls (Singularity world). */
+  readonly curves: number;
   /** Furthest any chain head got, as a share of its track (1 = the hole). */
   readonly danger: number;
   readonly colossusDefeated: boolean;
@@ -104,6 +112,8 @@ export interface GameEvents {
   };
   inserted: { readonly chain: number; readonly ball: BallView; readonly from: Vec2 };
   missed: { readonly projectile: ProjectileView };
+  /** A shot fell into the black hole (Singularity world); a miss as well. */
+  swallowed: { readonly projectile: ProjectileView };
   exploded: {
     readonly chain: number;
     readonly balls: readonly BallView[];
@@ -133,6 +143,11 @@ export const STEP = 1 / 120;
 /** A shot that bounced this many times shatters: no endless ping-pong. */
 export const MAX_BOUNCES = 6;
 
+/** Seconds a shot may fly before it is given up (one circling the black hole). */
+export const MAX_FLIGHT = 4;
+/** A shot bent at least this much by gravity is a curve (radians). */
+export const CURVE_ANGLE = Math.PI / 4;
+
 /** Longest frame simulated at once (a tab coming back from the background). */
 const MAX_FRAME = 0.25;
 
@@ -151,6 +166,9 @@ export class Game {
   private readonly context: ObjectiveContext;
   private readonly generator: ChainGenerator;
   readonly reflectors: Reflectors;
+  /** The black hole of the Singularity world, or null. */
+  readonly gravity: Gravity | null;
+  private readonly orbit: Orbit | null;
   private accumulator = 0;
   private elapsedValue = 0;
   private stateValue: GameState = 'playing';
@@ -158,6 +176,7 @@ export class Game {
   private pulls = 0;
   private fusions = 0;
   private flips = 0;
+  private curves = 0;
   /** Switch choices and fork spans of each chain with a forked route. */
   private readonly routes: ({ choices: Branch[]; spans: readonly ForkSpan[] } | null)[];
   private charges: number;
@@ -183,12 +202,14 @@ export class Game {
       return { choices, spans: route.build(choices).spans };
     });
     this.reflectors = new Reflectors(setup.reflectors ?? []);
+    this.gravity = setup.gravity ? new Gravity(setup.gravity) : null;
+    this.orbit = setup.orbit ? new Orbit(setup.orbit) : null;
     this.charges = setup.magnet?.charges ?? 0;
     this.context = this.createContext();
     this.objective = setup.colossus ? new ColossusObjective(setup.colossus) : new ClearObjective();
     this.objective.start(this.context);
     this.shooter = new Shooter(
-      setup.shooter,
+      this.orbit?.position ?? setup.shooter,
       random,
       setup.projectileSpeed,
       setup.fireCooldown,
@@ -236,6 +257,17 @@ export class Game {
    */
   aimPath(maxBounces = 2): Vec2[] {
     return this.trace(maxBounces).points;
+  }
+
+  /** The aim line and, apart, the points where it bounces off a mirror. */
+  aimLine(maxBounces = 2): { readonly points: Vec2[]; readonly rebounds: Vec2[] } {
+    const { points, rebounds } = this.trace(maxBounces);
+    return { points, rebounds };
+  }
+
+  /** The ring the shooter glides along, or null when it stands still. */
+  get ring(): OrbitSetup | null {
+    return this.orbit?.setup ?? null;
   }
 
   /** Every switch of the board, with its branch and whether the chain has reached it. */
@@ -320,37 +352,59 @@ export class Game {
     return true;
   }
 
-  /** Follows the aim, rebounds included, up to the first ball it meets. */
+  /**
+   * Follows the aim, rebounds and gravity included, up to the first ball it
+   * meets. Without gravity it walks the straight line in small steps; with
+   * gravity it integrates exactly like a flying projectile does.
+   */
   private trace(
     maxBounces: number,
     reach = 1800,
     step = 12,
     skip = 80,
-  ): { points: Vec2[]; target: { chain: number; index: number } | null } {
+  ): {
+    points: Vec2[];
+    rebounds: Vec2[];
+    target: { chain: number; index: number } | null;
+  } {
     const radius = this.setup.chain.ballRadius;
+    const gravity = this.gravity;
+    const speed = this.setup.projectileSpeed;
+    const dt = gravity ? STEP : step / speed;
     let position = this.shooter.position;
-    let velocity = Vec2.fromAngle(this.shooter.angle);
+    let velocity = Vec2.fromAngle(this.shooter.angle, speed);
     const points = [position];
-    let bounces = 0;
-    for (let travelled = 0; travelled < reach; travelled += step) {
-      position = position.add(velocity.scale(step));
+    const rebounds: Vec2[] = [];
+    let travelled = 0;
+    for (let k = 0; travelled < reach && k * dt < MAX_FLIGHT; k++) {
+      if (gravity) velocity = velocity.add(gravity.acceleration(position).scale(dt));
+      const move = velocity.scale(dt);
+      position = position.add(move);
+      travelled += move.length();
       const bounce = this.reflectors.bounce(position, velocity, radius);
       if (bounce) {
         position = bounce.position;
         velocity = bounce.velocity;
         points.push(position);
-        if (++bounces > maxBounces) return { points, target: null };
+        rebounds.push(position);
+        if (rebounds.length > maxBounces) return { points, rebounds, target: null };
+      } else if (gravity && k % 4 === 3) {
+        points.push(position);
+      }
+      if (gravity?.swallows(position)) {
+        points.push(position);
+        return { points, rebounds, target: null };
       }
       if (travelled <= skip) continue;
       for (let chain = 0; chain < this.chains.length; chain++) {
         const hit = this.chains[chain]!.hitTest(position);
         if (!hit) continue;
         points.push(position);
-        return { points, target: { chain, index: hit.index } };
+        return { points, rebounds, target: { chain, index: hit.index } };
       }
     }
     points.push(position);
-    return { points, target: null };
+    return { points, rebounds, target: null };
   }
 
   aimAt(target: Vec2): void {
@@ -371,6 +425,7 @@ export class Game {
       pulls: this.pulls,
       fusions: this.fusions,
       switches: this.flips,
+      curves: this.curves,
       danger: this.danger,
       colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
     };
@@ -404,6 +459,10 @@ export class Game {
 
   private step(dt: number): void {
     this.elapsedValue += dt;
+    if (this.orbit) {
+      this.orbit.advance(dt);
+      this.shooter.moveTo(this.orbit.position);
+    }
     this.shooter.tick(dt);
     this.reflectors.update(dt);
     this.moveProjectiles(dt);
@@ -422,6 +481,7 @@ export class Game {
   private moveProjectiles(dt: number): void {
     for (let i = this.flying.length - 1; i >= 0; i--) {
       const projectile = this.flying[i]!;
+      if (this.gravity) projectile.accelerate(this.gravity.acceleration(projectile.position), dt);
       projectile.move(dt);
       const bounce = this.reflectors.bounce(
         projectile.position,
@@ -438,7 +498,9 @@ export class Game {
           continue;
         }
       }
-      if (this.land(projectile) || this.leave(projectile)) this.flying.splice(i, 1);
+      if (this.land(projectile) || this.leave(projectile) || this.fall(projectile)) {
+        this.flying.splice(i, 1);
+      }
     }
   }
 
@@ -452,11 +514,32 @@ export class Game {
       const ball = this.balls.create(projectile.tone);
       const explosion = chain.insert(ball, hit);
       this.events.emit('inserted', { chain: index, ball, from: projectile.position });
-      if (explosion) this.report(index, chain, explosion, projectile.bounces);
-      else this.scoring.miss();
+      if (explosion) {
+        this.countCurve(projectile);
+        this.report(index, chain, explosion, projectile.bounces);
+      } else this.scoring.miss();
       return true;
     }
     return false;
+  }
+
+  /** A shot that exploded balls after gravity bent it hard enough counts as a curve. */
+  private countCurve(projectile: Projectile): void {
+    if (this.gravity && projectile.deflection >= CURVE_ANGLE) this.curves++;
+  }
+
+  /**
+   * Singularity world: true if the shot fell into the black hole or circled
+   * it for too long. Either way it is a miss.
+   */
+  private fall(projectile: Projectile): boolean {
+    if (!this.gravity) return false;
+    const swallowed = this.gravity.swallows(projectile.position);
+    if (!swallowed && projectile.age < MAX_FLIGHT) return false;
+    this.scoring.miss();
+    if (swallowed) this.events.emit('swallowed', { projectile });
+    this.events.emit('missed', { projectile });
+    return true;
   }
 
   /** Jewel world: a primary shot onto another primary fuses with it. True if it did. */
@@ -470,8 +553,10 @@ export class Game {
     const explosion = chain.recolour(ballIndex, mixed);
     this.fusions++;
     this.events.emit('fused', { chain: index, ball: touched, from, position });
-    if (explosion) this.report(index, chain, explosion, projectile.bounces);
-    else this.scoring.miss();
+    if (explosion) {
+      this.countCurve(projectile);
+      this.report(index, chain, explosion, projectile.bounces);
+    } else this.scoring.miss();
     return true;
   }
 

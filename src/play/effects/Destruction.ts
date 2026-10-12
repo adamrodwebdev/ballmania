@@ -33,6 +33,8 @@ const WAVE_LIFE = 0.55;
 const RING_LIFE = 0.4;
 const GLOW_LIFE = 0.35;
 const LABEL_LIFE = 0.9;
+/** Strength of the black hole's pull on debris (units³/s²). */
+const PULL = 4.5e7;
 
 interface Cracking {
   readonly x: number;
@@ -90,6 +92,8 @@ interface Fading {
   readonly ricochet?: boolean;
   /** Drawn in its tone rather than in the text colour. */
   readonly coloured?: boolean;
+  /** A ring that closes in instead of spreading (a shot swallowed by the black hole). */
+  readonly implode?: boolean;
 }
 
 /** A ball pulled out of the chain on its way to the shooter. */
@@ -131,6 +135,8 @@ export class Destruction {
   private flashAmount = 0;
   private flashColour = '';
   private nextGroup = 1;
+  /** Singularity world: the black hole every piece of debris drifts towards. */
+  private attractor: { readonly at: Vec2; readonly horizon: number } | null = null;
 
   constructor(
     private profile: EffectProfile,
@@ -184,6 +190,20 @@ export class Destruction {
         strength: wave.strength * (1 - t) * (1 - t),
       };
     });
+  }
+
+  /**
+   * Singularity world: from now on, shards and sparks drift towards the black
+   * hole and vanish into it (the world's implosion).
+   */
+  setAttractor(at: Vec2, horizon: number): void {
+    this.attractor = { at, horizon };
+  }
+
+  /** A shot falls into the black hole: a ring closing in, and a last glimmer. */
+  swallow(at: Vec2, tone: Tone): void {
+    this.rings.push({ x: at.x, y: at.y, life: 0.5, maxLife: 0.5, tone, size: 3, implode: true });
+    this.glows.push({ x: at.x, y: at.y, life: 0.3, maxLife: 0.3, tone, size: 2 });
   }
 
   /** A group starts cracking; it bursts `CRACK_TIME` later. */
@@ -278,6 +298,7 @@ export class Destruction {
       shard.angle += shard.spin * dt;
       shard.life -= dt;
     }
+    if (this.attractor) this.attract(dt, this.attractor.at, this.attractor.horizon);
     const sparkDrag = Math.exp(-5 * dt);
     for (const spark of this.sparks) {
       spark.x += spark.vx * dt;
@@ -305,6 +326,22 @@ export class Destruction {
     this.shaker.update(dt);
   }
 
+  /** Pulls debris towards the black hole; whatever reaches the horizon is gone. */
+  private attract(dt: number, at: Vec2, horizon: number): void {
+    for (const particle of [...this.shards, ...this.sparks]) {
+      const dx = at.x - particle.x;
+      const dy = at.y - particle.y;
+      const squared = dx * dx + dy * dy;
+      if (squared < horizon * horizon) {
+        particle.life = Math.min(particle.life, 0.04);
+        continue;
+      }
+      const pull = (PULL * dt) / (squared + 4900) / Math.sqrt(squared);
+      particle.vx += dx * pull;
+      particle.vy += dy * pull;
+    }
+  }
+
   draw(ctx: CanvasRenderingContext2D, palette: Palette, sprites: BallSprites): void {
     const base = ctx.getTransform();
     const additive = palette.dark ? 'lighter' : 'source-over';
@@ -327,7 +364,8 @@ export class Destruction {
       ctx.strokeStyle = palette.tone(ring.tone);
       ctx.lineWidth = 8 * (1 - t) + 1;
       ctx.beginPath();
-      ctx.arc(ring.x, ring.y, r * (0.9 + t * ring.size * 0.7), 0, Math.PI * 2);
+      const spread = ring.implode ? (1 - t) * ring.size : 0.9 + t * ring.size * 0.7;
+      ctx.arc(ring.x, ring.y, r * spread, 0, Math.PI * 2);
       ctx.stroke();
     }
     ctx.globalAlpha = 1;

@@ -261,6 +261,10 @@ const offerAssist = computed(
     !assisted.value &&
     player.failures(level.id) >= ASSIST_AFTER,
 );
+/** The last level of the campaign is won: the game is finished. */
+const campaignDone = computed(
+  () => hud.value?.over === 'won' && !daily && level.id === CAMPAIGN[CAMPAIGN.length - 1]?.id,
+);
 /** The result that counts for today: the first attempt. */
 const dailyRecord = computed(() => (daily && rewards.value ? player.daily(daily.day) : undefined));
 
@@ -430,6 +434,9 @@ const quit = () => emit('quit');
       <p class="result">{{ t('game.finalScore', { score: number.format(hud?.score ?? 0) }) }}</p>
       <p v-if="(hud?.bonus ?? 0) > 0" class="detail">
         {{ t('game.bonus', { points: number.format(hud?.bonus ?? 0) }) }}
+      </p>
+      <p v-if="campaignDone" class="record" data-testid="campaign-done">
+        {{ t('game.campaignDone') }}
       </p>
       <p v-if="result?.newBest" class="record">{{ t('game.newBest') }}</p>
       <p v-else-if="result" class="detail">

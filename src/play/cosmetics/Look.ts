@@ -2,6 +2,7 @@ import type { WorldId } from '@/levels/campaign';
 import type { CosmeticSlot } from '@/player/catalog';
 import { AbyssTheme } from '../themes/AbyssTheme';
 import { JewelTheme } from '../themes/JewelTheme';
+import { SingularityTheme } from '../themes/SingularityTheme';
 import { VolcanoTheme } from '../themes/VolcanoTheme';
 import { NeonTheme } from '../themes/NeonTheme';
 import { NebulaTheme, type WorldTheme } from '../themes/WorldTheme';
@@ -44,15 +45,17 @@ const BOARDS: Record<string, () => WorldTheme> = {
   'board-abyss': () => new AbyssTheme(),
   'board-jewel': () => new JewelTheme(),
   'board-volcano': () => new VolcanoTheme(),
+  'board-singularity': () => new SingularityTheme(),
 };
 
 /** The backdrop each world wears when the player keeps "the world's own". */
-const WORLD_BOARDS: Partial<Record<WorldId, string>> = {
+const WORLD_BOARDS: Record<WorldId, string> = {
   nebula: 'board-nebula',
   neon: 'board-neon',
   abyss: 'board-abyss',
   jewel: 'board-jewel',
   volcano: 'board-volcano',
+  singularity: 'board-singularity',
 };
 
 /** Builds the look from equipped cosmetic ids; unknown ids fall back to the defaults. */
@@ -60,8 +63,7 @@ export function resolveLook(
   equipped: Readonly<Record<CosmeticSlot, string>>,
   world: WorldId,
 ): Look {
-  const board =
-    equipped.board === 'board-world' ? (WORLD_BOARDS[world] ?? 'board-nebula') : equipped.board;
+  const board = equipped.board === 'board-world' ? WORLD_BOARDS[world] : equipped.board;
   return {
     shooter: (SHOOTERS[equipped.shooter] ?? SHOOTERS['shooter-orbit']!)(),
     trail: (TRAILS[equipped.trail] ?? TRAILS['trail-none']!)(),

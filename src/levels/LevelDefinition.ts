@@ -72,6 +72,19 @@ export interface LevelDefinition {
   readonly reflectors?: readonly ReflectorDefinition[];
   readonly magnet?: MagnetSetup;
   readonly alchemy?: boolean;
+  /** The black hole (Singularity world). */
+  readonly gravity?: {
+    readonly centre: Point;
+    readonly strength: number;
+    readonly horizon: number;
+  };
+  /** The ring the shooter glides along (Singularity world); `shooter` is then its start. */
+  readonly orbit?: {
+    readonly centre: Point;
+    readonly radius: Point;
+    readonly speed: number;
+    readonly start: number;
+  };
 }
 
 export const LEVEL_DEFAULTS = {
@@ -125,6 +138,26 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     ...(level.reflectors ? { reflectors: level.reflectors.map(toReflectorSetup) } : {}),
     ...(level.magnet ? { magnet: level.magnet } : {}),
     ...(level.alchemy ? { alchemy: true } : {}),
+    ...(level.gravity
+      ? {
+          gravity: {
+            centre: toVec(level.gravity.centre),
+            strength: level.gravity.strength,
+            horizon: level.gravity.horizon,
+          },
+        }
+      : {}),
+    ...(level.orbit
+      ? {
+          orbit: {
+            centre: toVec(level.orbit.centre),
+            radiusX: level.orbit.radius[0],
+            radiusY: level.orbit.radius[1],
+            speed: level.orbit.speed,
+            start: level.orbit.start,
+          },
+        }
+      : {}),
   };
 }
 

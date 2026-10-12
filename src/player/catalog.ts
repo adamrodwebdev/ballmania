@@ -37,6 +37,7 @@ export const COSMETICS: readonly Cosmetic[] = [
   { id: 'board-abyss', slot: 'board', price: 0, unlockedBy: 'neon' },
   { id: 'board-jewel', slot: 'board', price: 0, unlockedBy: 'abyss' },
   { id: 'board-volcano', slot: 'board', price: 0, unlockedBy: 'jewel' },
+  { id: 'board-singularity', slot: 'board', price: 0, unlockedBy: 'volcano' },
 ];
 
 /** What every new player owns and wears. */

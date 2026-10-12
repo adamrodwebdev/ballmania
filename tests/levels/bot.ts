@@ -32,6 +32,7 @@ export function playLevel(
   const hand = SeededRandom.fromString(`hand:${seed}`);
   const game = new Game(toLevelSetup(resolveLevel(level, frame)), SeededRandom.fromString(seed));
   const alchemy = game.setup.alchemy === true;
+  const gravity = game.gravity;
   let shots = 0;
   let danger = 0;
   interface Candidate {
@@ -82,11 +83,38 @@ export function playLevel(
     return found.sort((a, b) => b.score - a.score);
   };
   /**
+   * Singularity world: shots curve, so the bot sweeps the aim like a player
+   * watching the aim line bend, and remembers the middle angle that reaches
+   * each ball.
+   */
+  let reach = new Map<number, number>();
+  const sweep = () => {
+    reach = new Map();
+    if (!gravity) return;
+    const found = new Map<number, number[]>();
+    const saved = game.shooter.angle;
+    const base = gravity.centre.sub(game.shooter.position).angle();
+    for (let k = -70; k <= 70; k++) {
+      const angle = base + k * 0.015;
+      game.shooter.aim(angle);
+      const hit = game.aimTarget();
+      if (!hit) continue;
+      const angles = found.get(hit.ball.id) ?? [];
+      angles.push(angle);
+      found.set(hit.ball.id, angles);
+    }
+    game.shooter.aim(saved);
+    for (const [id, angles] of found) reach.set(id, angles[Math.floor(angles.length / 2)]!);
+  };
+
+  /**
    * The best candidate the shot would really reach, as a player reading the
-   * aim line would check (only where touching another ball matters: alchemy).
+   * aim line would check (only where touching another ball matters: alchemy,
+   * or where shots curve: gravity).
    */
   const target = (tone: number): Candidate | null => {
     const list = candidates(tone);
+    if (gravity) return list.find((candidate) => reach.has(candidate.id)) ?? null;
     if (!alchemy) return list[0] ?? null;
     const saved = game.shooter.angle;
     for (const candidate of list.slice(0, 8)) {
@@ -118,17 +146,18 @@ export function playLevel(
 
   /** A ball between two balls of one same colour: pulling it out makes them meet. */
   const separator = () => {
-    let best: { chain: number; s: number } | null = null;
+    let best: { chain: number; s: number; id: number } | null = null;
     game.chains.forEach((chain, index) => {
       const balls = chain.balls;
       for (let i = 1; i + 1 < balls.length; i++) {
         const ball = balls[i]!;
         if (ball.s < 0 || balls[i - 1]!.tone !== balls[i + 1]!.tone) continue;
         if (ball.tone === balls[i - 1]!.tone) continue;
-        if (!best || ball.s > best.s) best = { chain: index, s: ball.s };
+        if (gravity && !reach.has(ball.id)) continue;
+        if (!best || ball.s > best.s) best = { chain: index, s: ball.s, id: ball.id };
       }
     });
-    return best as { chain: number; s: number } | null;
+    return best as { chain: number; s: number; id: number } | null;
   };
 
   for (let frameIndex = 0; frameIndex < 60 * 300 && game.state === 'playing'; frameIndex++) {
@@ -139,10 +168,13 @@ export function playLevel(
       }
     }
     const magnet = game.magnet;
+    if (frameIndex % cadence === 0 && game.shooter.ready) sweep();
     if (frameIndex % cadence === 0 && game.shooter.ready && magnet && magnet.charges > 0) {
       const target = separator();
       if (target) {
-        game.aimAt(game.chains[target.chain]!.path.pointAt(target.s));
+        const angle = reach.get(target.id);
+        if (angle === undefined) game.aimAt(game.chains[target.chain]!.path.pointAt(target.s));
+        else game.shooter.aim(angle);
         if (game.pull()) {
           game.update(1 / 60);
           continue;
@@ -158,7 +190,11 @@ export function playLevel(
       }
       if (aim) {
         const chain = game.chains[aim.chain]!;
-        game.aimAt(chain.path.pointAt(aim.s + 6 + (hand.next() - 0.5) * 2 * sloppiness));
+        const angle = reach.get(aim.id);
+        const error = (hand.next() - 0.5) * 2 * sloppiness;
+        // Around the black hole, the error is on the angle: about as far off at the chain.
+        if (angle === undefined) game.aimAt(chain.path.pointAt(aim.s + 6 + error));
+        else game.shooter.aim(angle + error * 0.0006);
         if (game.fire()) shots++;
       } else if (alchemy && harmless()) {
         if (game.fire()) shots++;
