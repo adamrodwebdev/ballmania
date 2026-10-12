@@ -34,6 +34,10 @@ export interface HudState {
   colossus: { readonly hp: number; readonly maxHp: number } | null;
   /** End-of-level bonus included in the score. */
   bonus: number;
+  /** Magnet charges on an Abyss level, or null. */
+  magnet: { readonly charges: number; readonly max: number } | null;
+  /** The next shot pulls a ball out instead. */
+  magnetArmed: boolean;
 }
 
 export interface SessionOptions {
@@ -189,7 +193,21 @@ export class PlaySession {
 
   fire(): void {
     this.feedback.sound.unlock();
-    if (this.acceptsCommands && this.game.fire()) this.feedback.sound.shoot();
+    if (!this.acceptsCommands) return;
+    if (this.hud.magnetArmed) {
+      // Without a ball under the aim, the magnet stays armed: the player aims again.
+      if (this.game.pull()) this.hud.magnetArmed = false;
+      return;
+    }
+    if (this.game.fire()) this.feedback.sound.shoot();
+  }
+
+  /** Arms or disarms the magnet; only with a charge left. */
+  toggleMagnet(): void {
+    this.feedback.sound.unlock();
+    const magnet = this.game.magnet;
+    if (!this.acceptsCommands || !magnet) return;
+    this.hud.magnetArmed = !this.hud.magnetArmed && magnet.charges > 0;
   }
 
   swap(): void {
@@ -236,6 +254,17 @@ export class PlaySession {
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
     });
     game.events.on('missed', () => (this.hud.streak = 0));
+    game.events.on('pulled', ({ position, ball }) => {
+      this.destruction.pull(position, game.shooter.position, ball.tone);
+      this.hud.magnet = game.magnet;
+      sound.pull();
+      haptics.explosion(1);
+      this.syncTones();
+    });
+    game.events.on('magnetCharged', () => {
+      this.hud.magnet = game.magnet;
+      sound.charge();
+    });
     game.events.on('bounced', ({ projectile, position }) => {
       this.destruction.rebound(position, projectile.tone);
       sound.rebound(projectile.bounces);
@@ -286,6 +315,8 @@ export class PlaySession {
         maxHp: this.game.colossus.maxHp,
       },
       bonus: 0,
+      magnet: this.game.magnet,
+      magnetArmed: false,
     };
   }
 
@@ -346,6 +377,7 @@ export class PlaySession {
       motion: this.motion,
       destruction: this.destruction,
       aimPath: this.game.state === 'playing' ? this.game.aimPath() : null,
+      magnetArmed: this.hud.magnetArmed,
       time: this.time,
       colossusFlash: this.colossusFlash,
     });

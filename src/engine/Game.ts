@@ -33,6 +33,16 @@ export interface LevelSetup {
   readonly parTime?: number;
   /** Mirrors shots bounce off (Neon world). */
   readonly reflectors?: readonly ReflectorSetup[];
+  /** The magnet that pulls balls out of the chain (Abyss world). */
+  readonly magnet?: MagnetSetup;
+}
+
+export interface MagnetSetup {
+  /** Charges at the start of the level. */
+  readonly charges: number;
+  readonly max: number;
+  /** Explosions needed to earn one charge back. */
+  readonly rechargeEvery: number;
 }
 
 export type GameState = 'playing' | 'won' | 'lost';
@@ -48,6 +58,8 @@ export interface GameReport {
   /** Most mirrors a successful shot bounced off. */
   readonly bestBounce: number;
   readonly swaps: number;
+  /** Balls pulled out of the chain with the magnet. */
+  readonly pulls: number;
   /** Furthest any chain head got, as a share of its track (1 = the hole). */
   readonly danger: number;
   readonly colossusDefeated: boolean;
@@ -57,6 +69,8 @@ export interface GameReport {
 export interface GameEvents {
   fired: { readonly projectile: ProjectileView };
   bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
+  pulled: { readonly chain: number; readonly ball: BallView; readonly position: Vec2 };
+  magnetCharged: { readonly charges: number };
   inserted: { readonly chain: number; readonly ball: BallView; readonly from: Vec2 };
   missed: { readonly projectile: ProjectileView };
   exploded: {
@@ -108,6 +122,9 @@ export class Game {
   private elapsedValue = 0;
   private stateValue: GameState = 'playing';
   private swaps = 0;
+  private pulls = 0;
+  private charges: number;
+  private towardsCharge = 0;
   private danger = 0;
 
   constructor(
@@ -124,6 +141,7 @@ export class Game {
       ),
     );
     this.reflectors = new Reflectors(setup.reflectors ?? []);
+    this.charges = setup.magnet?.charges ?? 0;
     this.context = this.createContext();
     this.objective = setup.colossus ? new ColossusObjective(setup.colossus) : new ClearObjective();
     this.objective.start(this.context);
@@ -174,7 +192,41 @@ export class Game {
    * (up to `maxBounces`), and the point where it touches a ball or gives up.
    * Uses the projectiles' own bounce rule, so the line never lies.
    */
-  aimPath(maxBounces = 2, reach = 1800, step = 12, skip = 80): Vec2[] {
+  aimPath(maxBounces = 2): Vec2[] {
+    return this.trace(maxBounces).points;
+  }
+
+  /** Magnet charges left, or null on a level without a magnet. */
+  get magnet(): { readonly charges: number; readonly max: number } | null {
+    const setup = this.setup.magnet;
+    return setup ? { charges: this.charges, max: setup.max } : null;
+  }
+
+  /**
+   * Pulls the ball the aim line meets out of its chain and loads it into the
+   * shooter (Abyss world). False without a charge, a target, or while reloading.
+   */
+  pull(): boolean {
+    if (this.stateValue !== 'playing' || this.charges <= 0 || !this.shooter.ready) return false;
+    const target = this.trace(2).target;
+    if (!target) return false;
+    const chain = this.chains[target.chain]!;
+    const position = chain.positionOf(chain.balls[target.index]!);
+    const ball = chain.extract(target.index);
+    this.shooter.load(ball.tone);
+    this.charges--;
+    this.pulls++;
+    this.events.emit('pulled', { chain: target.chain, ball, position });
+    return true;
+  }
+
+  /** Follows the aim, rebounds included, up to the first ball it meets. */
+  private trace(
+    maxBounces: number,
+    reach = 1800,
+    step = 12,
+    skip = 80,
+  ): { points: Vec2[]; target: { chain: number; index: number } | null } {
     const radius = this.setup.chain.ballRadius;
     let position = this.shooter.position;
     let velocity = Vec2.fromAngle(this.shooter.angle);
@@ -187,15 +239,18 @@ export class Game {
         position = bounce.position;
         velocity = bounce.velocity;
         points.push(position);
-        if (++bounces > maxBounces) return points;
+        if (++bounces > maxBounces) return { points, target: null };
       }
-      if (travelled > skip && this.chains.some((chain) => chain.hitTest(position) !== null)) {
+      if (travelled <= skip) continue;
+      for (let chain = 0; chain < this.chains.length; chain++) {
+        const hit = this.chains[chain]!.hitTest(position);
+        if (!hit) continue;
         points.push(position);
-        return points;
+        return { points, target: { chain, index: hit.index } };
       }
     }
     points.push(position);
-    return points;
+    return { points, target: null };
   }
 
   aimAt(target: Vec2): void {
@@ -213,6 +268,7 @@ export class Game {
       bestStreak: this.scoring.bestStreak,
       bestBounce: this.scoring.bestBounce,
       swaps: this.swaps,
+      pulls: this.pulls,
       danger: this.danger,
       colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
     };
@@ -329,6 +385,17 @@ export class Game {
       bounces,
     });
     this.objective.onExplosion(this.context, index, explosion);
+    this.rechargeMagnet();
+  }
+
+  /** Every few explosions, the magnet gets a charge back. */
+  private rechargeMagnet(): void {
+    const setup = this.setup.magnet;
+    if (!setup || this.charges >= setup.max) return;
+    if (++this.towardsCharge < setup.rechargeEvery) return;
+    this.towardsCharge = 0;
+    this.charges++;
+    this.events.emit('magnetCharged', { charges: this.charges });
   }
 
   private checkEnd(): void {

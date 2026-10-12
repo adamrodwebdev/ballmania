@@ -87,6 +87,17 @@ interface Fading {
   readonly ricochet?: boolean;
 }
 
+/** A ball pulled out of the chain on its way to the shooter. */
+interface Tractor {
+  readonly from: Vec2;
+  readonly to: Vec2;
+  readonly tone: Tone;
+  age: number;
+}
+
+/** Seconds a pulled ball takes to reach the shooter. */
+export const TRACTOR_TIME = 0.28;
+
 interface LiveWave {
   readonly x: number;
   readonly y: number;
@@ -110,6 +121,7 @@ export class Destruction {
   private readonly glows: Fading[] = [];
   private readonly labels: Fading[] = [];
   private readonly liveWaves: LiveWave[] = [];
+  private readonly tractors: Tractor[] = [];
   private readonly shaker: Shake;
   private flashAmount = 0;
   private flashColour = '';
@@ -138,7 +150,8 @@ export class Destruction {
         this.rings.length +
         this.glows.length +
         this.labels.length +
-        this.liveWaves.length >
+        this.liveWaves.length +
+        this.tractors.length >
         0 || this.flashAmount > 0
     );
   }
@@ -235,6 +248,10 @@ export class Destruction {
   }
 
   update(dt: number): void {
+    for (const tractor of this.tractors) tractor.age += dt;
+    for (let i = this.tractors.length - 1; i >= 0; i--) {
+      if (this.tractors[i]!.age >= TRACTOR_TIME) this.tractors.splice(i, 1);
+    }
     for (const ball of this.cracking) ball.age += dt;
     for (let i = this.cracking.length - 1; i >= 0; i--) {
       const ball = this.cracking[i]!;
@@ -310,6 +327,7 @@ export class Destruction {
     ctx.globalAlpha = 1;
 
     this.drawCracking(ctx, palette, sprites, additive);
+    this.drawTractors(ctx, palette, sprites);
 
     for (const shard of this.shards) {
       const t = shard.life / shard.maxLife;
@@ -361,6 +379,39 @@ export class Destruction {
         this.drawReboundArrow(ctx, label.x - label.size * 1.2, label.y, label.size * 0.36);
     }
     ctx.globalAlpha = 1;
+  }
+
+  private drawTractors(
+    ctx: CanvasRenderingContext2D,
+    palette: Palette,
+    sprites: BallSprites,
+  ): void {
+    const r = this.ballRadius;
+    for (const tractor of this.tractors) {
+      const t = Math.min(1, tractor.age / TRACTOR_TIME);
+      const eased = t * t * (3 - 2 * t);
+      // A slight curve, as if sucked through water.
+      const bend = Math.sin(eased * Math.PI) * 60;
+      const direction = tractor.to.sub(tractor.from).normalize();
+      const side = new Vec2(-direction.y, direction.x);
+      const at = tractor.from.lerp(tractor.to, eased).add(side.scale(bend));
+      for (let k = 1; k <= 4; k++) {
+        const back = Math.max(0, eased - k * 0.07);
+        const bubble = tractor.from
+          .lerp(tractor.to, back)
+          .add(side.scale(Math.sin(back * Math.PI) * 60));
+        ctx.globalAlpha = 0.5 - k * 0.1;
+        ctx.strokeStyle = palette.tone(tractor.tone);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(bubble.x, bubble.y, r * (0.25 + 0.08 * k), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      const sprite = sprites.get(tractor.tone);
+      const size = r * (1 - 0.35 * eased);
+      if (sprite) ctx.drawImage(sprite, at.x - size, at.y - size, size * 2, size * 2);
+    }
   }
 
   /** A circular arrow: the sign of a bank shot, drawn rather than typed. */
@@ -546,6 +597,12 @@ export class Destruction {
         ricochet: true,
       });
     }
+  }
+
+  /** A ball pulled out by the magnet: it flies to the shooter, with a ring where it left. */
+  pull(from: Vec2, to: Vec2, tone: Tone): void {
+    this.tractors.push({ from, to, tone, age: 0 });
+    this.rings.push({ x: from.x, y: from.y, life: 0.35, maxLife: 0.35, tone, size: 2 });
   }
 
   /** A shot bounced off a mirror: a small flash where it touched. */

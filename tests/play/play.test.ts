@@ -104,6 +104,7 @@ describe('KeyboardControls', () => {
       swap: vi.fn(),
       turn: vi.fn(),
       togglePause: vi.fn(),
+      toggleMagnet: vi.fn(),
     } satisfies PlayCommands;
     new KeyboardControls(target, commands);
     const press = (type: 'keydown' | 'keyup', code: string, extra: Partial<KeyboardEvent> = {}) =>
@@ -124,6 +125,8 @@ describe('KeyboardControls', () => {
     press('keydown', 'Space', { repeat: true });
     press('keydown', 'KeyX');
     press('keydown', 'Escape');
+    press('keydown', 'KeyM');
+    expect(commands.toggleMagnet).toHaveBeenCalledTimes(1);
     expect(commands.fire).toHaveBeenCalledTimes(1);
     expect(commands.swap).toHaveBeenCalledTimes(1);
     expect(commands.togglePause).toHaveBeenCalledTimes(1);

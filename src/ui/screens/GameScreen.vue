@@ -97,6 +97,7 @@ onMounted(() => {
     swap: () => play.swap(),
     turn: (direction) => play.turn(direction),
     togglePause: () => play.togglePause(),
+    toggleMagnet: () => play.toggleMagnet(),
   };
   const pointer = new PointerControls(canvas.value, commands);
   const keyboard = new KeyboardControls(window, commands);
@@ -324,7 +325,38 @@ const quit = () => emit('quit');
         <span class="dot small" :class="`tone-${hud?.next ?? 0}`" aria-hidden="true"></span>
         <span>{{ t('game.swap') }}</span>
       </button>
+      <button
+        v-if="hud?.magnet"
+        class="btn magnet"
+        :class="{ armed: hud.magnetArmed }"
+        type="button"
+        :aria-pressed="hud.magnetArmed"
+        :aria-label="t('magnet.label', { count: hud.magnet.charges, max: hud.magnet.max })"
+        :disabled="hud.magnet.charges === 0 && !hud.magnetArmed"
+        data-testid="magnet"
+        @click="session?.toggleMagnet()"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path
+            d="M6 3v9a6 6 0 0 0 12 0V3h-4v9a2 2 0 0 1-4 0V3z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span aria-hidden="true">{{ t('magnet.button') }}</span>
+        <span class="charges" aria-hidden="true">
+          <span
+            v-for="index in hud.magnet.max"
+            :key="index"
+            class="charge"
+            :class="{ full: index <= hud.magnet.charges }"
+          ></span>
+        </span>
+      </button>
     </div>
+    <p v-if="hud?.magnetArmed" class="sr-only" role="status">{{ t('magnet.armed') }}</p>
     <p id="game-help" class="sr-only">{{ t('game.help') }}</p>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
 
@@ -642,12 +674,37 @@ const quit = () => emit('quit');
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: var(--space-2) var(--space-3);
   padding: var(--space-2) var(--space-4) max(var(--space-2), env(safe-area-inset-bottom));
 }
 
-.swap {
+.swap,
+.magnet {
   flex-direction: row;
+}
+
+.magnet.armed {
+  border-color: var(--orb-cyan);
+  background: var(--orb-cyan);
+  color: var(--on-accent);
+}
+
+.charges {
+  display: inline-flex;
+  gap: 0.2rem;
+}
+
+.charge {
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.charge.full {
+  background: currentColor;
 }
 
 .dot {

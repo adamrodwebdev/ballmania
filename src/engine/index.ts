@@ -17,6 +17,7 @@ export {
   type GameReport,
   type GameState,
   type LevelSetup,
+  type MagnetSetup,
 } from './Game';
 export { Vec2 } from './geometry/Vec2';
 export { Path, type CubicSegment } from './path/Path';

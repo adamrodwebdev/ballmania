@@ -7,6 +7,8 @@ export interface PlayerStats {
   readonly bestStreak: number;
   /** Most mirrors a successful shot bounced off. */
   readonly bestBounce: number;
+  /** Balls pulled out with the magnet, in total. */
+  readonly magnetPulls: number;
   readonly noSwapWins: number;
   /** Levels won after the chain came within 10 % of the hole. */
   readonly closeCalls: number;
@@ -25,6 +27,7 @@ export const EMPTY_STATS: PlayerStats = {
   bestDepth: 0,
   bestStreak: 0,
   bestBounce: 0,
+  magnetPulls: 0,
   noSwapWins: 0,
   closeCalls: 0,
   colossusDefeated: 0,
@@ -54,12 +57,14 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'balls-500', stat: 'ballsDestroyed', target: 500, reward: 50 },
   { id: 'balls-2000', stat: 'ballsDestroyed', target: 2000, reward: 120 },
   { id: 'bank-shot', stat: 'bestBounce', target: 2, reward: 60 },
+  { id: 'magnet-10', stat: 'magnetPulls', target: 10, reward: 50 },
   { id: 'no-swap', stat: 'noSwapWins', target: 1, reward: 40 },
   { id: 'close-call', stat: 'closeCalls', target: 1, reward: 50 },
   { id: 'three-stars-5', stat: 'threeStarLevels', target: 5, reward: 80 },
   { id: 'colossus', stat: 'colossusDefeated', target: 1, reward: 100 },
   { id: 'daily-3', stat: 'dailyPlayed', target: 3, reward: 60 },
   { id: 'world-nebula', stat: 'worldsCompleted', target: 1, reward: 150 },
+  { id: 'world-neon', stat: 'worldsCompleted', target: 2, reward: 200 },
 ];
 
 /** Progress towards an achievement, capped at its target. */

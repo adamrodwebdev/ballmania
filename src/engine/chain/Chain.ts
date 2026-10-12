@@ -124,6 +124,17 @@ export class Chain {
     this.resolveOverlaps();
   }
 
+  /**
+   * Takes one ball out of the chain (Abyss world, magnet). The gap it leaves
+   * behaves like any other: if both sides share a colour they pull together
+   * and may explode.
+   */
+  extract(index: number): Ball {
+    const [ball] = this.items.splice(index, 1);
+    if (!ball) throw new RangeError(`No ball at index ${index}`);
+    return ball;
+  }
+
   /** Removes every ball, for the final cascade of a level. */
   clear(): Ball[] {
     this.pusher = null;

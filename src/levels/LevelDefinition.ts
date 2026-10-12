@@ -1,6 +1,6 @@
 import type { ChainParams } from '@/engine/chain/Chain';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
-import type { LevelSetup } from '@/engine/Game';
+import type { LevelSetup, MagnetSetup } from '@/engine/Game';
 import type { ReflectorSetup } from '@/engine/reflectors/Reflectors';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Path } from '@/engine/path/Path';
@@ -54,6 +54,7 @@ export interface LevelDefinition {
   readonly parTime?: number;
   readonly colossus?: ColossusSetup;
   readonly reflectors?: readonly ReflectorDefinition[];
+  readonly magnet?: MagnetSetup;
 }
 
 export const LEVEL_DEFAULTS = {
@@ -97,6 +98,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     ...(level.parTime === undefined ? {} : { parTime: level.parTime }),
     ...(level.colossus ? { colossus: level.colossus } : {}),
     ...(level.reflectors ? { reflectors: level.reflectors.map(toReflectorSetup) } : {}),
+    ...(level.magnet ? { magnet: level.magnet } : {}),
   };
 }
 

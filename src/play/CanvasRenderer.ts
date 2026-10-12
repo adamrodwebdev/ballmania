@@ -30,6 +30,8 @@ export interface Scene {
   readonly destruction: Destruction;
   /** The aim line: shooter, each rebound, then the first ball it meets; null to hide it. */
   readonly aimPath: readonly Vec2[] | null;
+  /** The magnet is armed: the next "shot" pulls the aimed ball instead. */
+  readonly magnetArmed: boolean;
   /** Seconds since the session started, for pulsing details. */
   readonly time: number;
   /** White flash of the Colossus when it is hit, from 1 down to 0. */
@@ -134,7 +136,7 @@ export class CanvasRenderer implements Renderer {
     const radius = game.setup.chain.ballRadius;
     for (const chain of game.chains) this.drawTrack(chain, radius);
     this.drawReflectors(scene.time);
-    if (scene.aimPath) this.drawAim(scene.aimPath, radius);
+    if (scene.aimPath) this.drawAim(scene.aimPath, radius, scene.magnetArmed, scene.time);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
     game.chains.forEach((chain) => this.drawColossus(chain, scene));
     this.drawTrails(radius);
@@ -292,16 +294,17 @@ export class CanvasRenderer implements Renderer {
     if (sprite) this.ctx.drawImage(sprite, at.x - radius, at.y - radius, radius * 2, radius * 2);
   }
 
-  private drawAim(path: readonly Vec2[], radius: number): void {
+  private drawAim(path: readonly Vec2[], radius: number, magnet: boolean, time: number): void {
     const { ctx, palette } = this;
     const from = this.game.shooter.position;
     ctx.save();
-    ctx.setLineDash([4, 18]);
+    ctx.setLineDash(magnet ? [18, 10] : [4, 18]);
+    ctx.lineDashOffset = magnet ? time * 60 : 0;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = palette.tone(this.game.shooter.current);
-    ctx.globalAlpha = 0.6;
+    ctx.lineWidth = magnet ? 8 : 6;
+    ctx.strokeStyle = magnet ? palette.tone(3) : palette.tone(this.game.shooter.current);
+    ctx.globalAlpha = magnet ? 0.85 : 0.6;
     const start = from.add(Vec2.fromAngle(this.game.shooter.angle, SHOOTER_RADIUS + radius));
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
@@ -314,6 +317,15 @@ export class CanvasRenderer implements Renderer {
       ctx.beginPath();
       ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
       ctx.fill();
+    }
+    // Armed magnet: a pulsing ring around the ball it would pull.
+    const end = path[path.length - 1];
+    if (magnet && end) {
+      ctx.strokeStyle = palette.tone(3);
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(end.x, end.y, radius * (1.35 + 0.12 * Math.sin(time * 8)), 0, Math.PI * 2);
+      ctx.stroke();
     }
     ctx.restore();
   }

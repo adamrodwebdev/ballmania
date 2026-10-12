@@ -26,7 +26,7 @@ describe('campaign', () => {
       'volcano',
       'singularity',
     ]);
-    for (const world of WORLDS.slice(0, 2)) {
+    for (const world of WORLDS.slice(0, 3)) {
       expect(world.levels).toHaveLength(12);
       expect(world.levels.map((level) => level.number)).toEqual([
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
@@ -38,13 +38,16 @@ describe('campaign', () => {
     // Every Neon level has mirrors; Nebula has none.
     expect(WORLDS[1]!.levels.every((level) => (level.mirrors?.length ?? 0) > 0)).toBe(true);
     expect(WORLDS[0]!.levels.every((level) => !level.mirrors)).toBe(true);
+    // Every Abyss level has a magnet.
+    expect(WORLDS[2]!.levels.every((level) => level.magnet !== undefined)).toBe(true);
   });
 
   it('finds levels and their successor', () => {
     const first = findLevel('nebula-01')!;
     expect(nextLevel(first)?.id).toBe('nebula-02');
     expect(nextLevel(findLevel('nebula-12')!)?.id).toBe('neon-01');
-    expect(nextLevel(findLevel('neon-12')!)).toBeUndefined();
+    expect(nextLevel(findLevel('neon-12')!)?.id).toBe('abyss-01');
+    expect(nextLevel(findLevel('abyss-12')!)).toBeUndefined();
     expect(findLevel('nope')).toBeUndefined();
   });
 
