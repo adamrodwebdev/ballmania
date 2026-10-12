@@ -93,6 +93,22 @@ export class SoundEngine {
     });
   }
 
+  /** A blow on the Colossus: a heavy, metallic hit. */
+  colossusHit(): void {
+    this.play((ctx, out, now) => {
+      this.thump(ctx, out, now, 0.6);
+      this.bell(ctx, out, now, 196, 0.5, 0.15);
+    });
+  }
+
+  /** The Colossus enters a new phase: a low growl. */
+  roar(): void {
+    this.play((ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sawtooth', 70, 140, 0.5, 0.22, 500);
+      this.sweep(ctx, out, now + 0.25, 'sawtooth', 140, 55, 0.7, 0.2, 400);
+    });
+  }
+
   win(): void {
     this.play((ctx, out, now) => {
       [0, 4, 7, 12, 16].forEach((step, i) => {

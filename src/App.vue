@@ -2,17 +2,18 @@
 import { defineAsyncComponent, shallowRef, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
-import type { LevelDefinition } from '@/levels/LevelDefinition';
+import type { CampaignLevel } from '@/levels/campaign';
 import AppHeader from '@/ui/components/AppHeader.vue';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
 
-/** The game screen, the engine and the levels are downloaded only when a game starts. */
+/** The campaign map, the game screen and the engine are downloaded only when needed. */
+const CampaignScreen = defineAsyncComponent(() => import('@/ui/screens/CampaignScreen.vue'));
 const GameScreen = defineAsyncComponent(() => import('@/ui/screens/GameScreen.vue'));
-const loadDemo = async () => (await import('@/levels/demo')).DEMO_LEVEL;
 
 type Screen =
   | { readonly kind: 'home' }
-  | { readonly kind: 'game'; readonly level: LevelDefinition; readonly id: number };
+  | { readonly kind: 'campaign' }
+  | { readonly kind: 'game'; readonly level: CampaignLevel; readonly id: number };
 
 const { t, locale } = useI18n();
 const { settings } = useServices();
@@ -21,13 +22,13 @@ const version = __APP_VERSION__;
 const screen = shallowRef<Screen>({ kind: 'home' });
 let games = 0;
 
-const play = async () => {
-  screen.value = { kind: 'game', level: await loadDemo(), id: ++games };
+const show = (next: Screen) => {
+  screen.value = next;
   window.scrollTo(0, 0);
 };
-const home = () => {
-  screen.value = { kind: 'home' };
-};
+const home = () => show({ kind: 'home' });
+const campaign = () => show({ kind: 'campaign' });
+const play = (level: CampaignLevel) => show({ kind: 'game', level, id: ++games });
 
 // Language: interface, <html lang>, title and description follow the setting.
 watchEffect(() => {
@@ -45,14 +46,17 @@ watchEffect(() => {
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
     <AppHeader />
     <main id="main" tabindex="-1">
-      <HomeScreen @play="play" />
+      <HomeScreen @play="campaign" />
     </main>
     <footer class="footer">
       <p>{{ t('app.version', { version }) }}</p>
     </footer>
   </template>
+  <main v-else-if="screen.kind === 'campaign'" id="main" tabindex="-1">
+    <CampaignScreen @play="play" @home="home" />
+  </main>
   <main v-else id="main" tabindex="-1">
-    <GameScreen :key="screen.id" :level="screen.level" @quit="home" />
+    <GameScreen :key="screen.id" :level="screen.level" @quit="campaign" @next="play" />
   </main>
 </template>
 

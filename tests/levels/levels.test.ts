@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { Vec2 } from '@/engine/geometry/Vec2';
-import { DEMO_LEVEL } from '@/levels/demo';
 import {
   buildPath,
   LEVEL_DEFAULTS,
@@ -74,39 +73,5 @@ describe('LevelDefinition', () => {
     const points = spiral([0, 0], 100, 50, 1, 0);
     expect(points[0]![0]).toBeCloseTo(100);
     expect(Math.hypot(...points[points.length - 1]!)).toBeCloseTo(50);
-  });
-});
-
-describe('demo level', () => {
-  const setup = toLevelSetup(DEMO_LEVEL);
-  const path = setup.chains[0]!.path;
-  const radius = setup.chain.ballRadius;
-
-  it('keeps the visible track on the board', () => {
-    for (const point of path.sample(10)) {
-      if (point.y < 0) continue; // entrance tunnel, above the board
-      expect(point.x).toBeGreaterThanOrEqual(radius);
-      expect(point.x).toBeLessThanOrEqual(setup.board.width - radius);
-      expect(point.y).toBeLessThanOrEqual(setup.board.height - radius);
-    }
-  });
-
-  it('leaves room around the shooter', () => {
-    for (const point of path.sample(10)) {
-      expect(point.distanceTo(setup.shooter)).toBeGreaterThan(58 + radius * 2);
-    }
-  });
-
-  it('keeps the turns of the spiral apart', () => {
-    const samples = path.sample(10);
-    samples.forEach((point, i) => {
-      for (let j = i + 40; j < samples.length; j++) {
-        expect(point.distanceTo(samples[j]!), `${i}-${j}`).toBeGreaterThan(radius * 2);
-      }
-    });
-  });
-
-  it('is longer than its chain, so the player has time to play', () => {
-    expect(path.length).toBeGreaterThan(DEMO_LEVEL.chains[0]!.length * radius * 2);
   });
 });

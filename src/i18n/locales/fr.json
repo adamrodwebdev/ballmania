@@ -18,7 +18,7 @@
     "arcade": "Arcade",
     "soon": "Bientôt disponible",
     "play": "Jouer",
-    "demo": "Niveau de démonstration"
+    "demo": "Monde 1 : Nébuleuse"
   },
   "settings": {
     "language": "Langue",
@@ -56,10 +56,15 @@
     "finalScore": "Score : {score}",
     "bestDepth": "Meilleure réaction en chaîne : ×{depth}",
     "playAgain": "Rejouer",
-    "home": "Accueil",
     "reaction": "Réaction en chaîne ×{depth}",
     "loading": "Chargement du jeu…",
-    "settings": "Réglages"
+    "settings": "Réglages",
+    "starsLabel": "{count} étoile sur 3 | {count} étoile sur 3 | {count} étoiles sur 3",
+    "bonus": "Bonus de fin : +{points}",
+    "best": "Record : {score}",
+    "newBest": "Nouveau record !",
+    "nextLevel": "Niveau suivant",
+    "map": "Carte de la campagne"
   },
   "effects": {
     "spectacular": {
@@ -74,5 +79,52 @@
       "name": "Sobre",
       "hint": "L'essentiel, pour les petits téléphones"
     }
+  },
+  "campaign": {
+    "title": "Campagne",
+    "back": "Accueil",
+    "world": "Monde {number}",
+    "stars": "{count} / {total} étoiles",
+    "levelShort": "{world}-{number}",
+    "levelLabel": "Niveau {number}, {stars} étoile(s) sur 3",
+    "lockedLabel": "Niveau {number}, verrouillé",
+    "comingSoon": "Bientôt : terminez le monde précédent pour l'ouvrir."
+  },
+  "worlds": {
+    "nebula": {
+      "name": "Nébuleuse",
+      "tagline": "Orbes de verre et d'énergie au cœur des étoiles."
+    },
+    "neon": {
+      "name": "Néon",
+      "tagline": "Murs et prismes : faites ricocher vos tirs."
+    },
+    "abyss": {
+      "name": "Abysses",
+      "tagline": "Aspirez une bille et renvoyez-la ailleurs."
+    },
+    "jewel": {
+      "name": "Joaillerie",
+      "tagline": "Mélangez les couleurs pour en créer de nouvelles."
+    },
+    "volcano": {
+      "name": "Volcan",
+      "tagline": "Basculez les aiguillages pour dévier la lave."
+    },
+    "singularity": {
+      "name": "Singularité",
+      "tagline": "Un trou noir courbe chacun de vos tirs."
+    }
+  },
+  "hints": {
+    "aim": "Visez la chaîne et tirez : trois billes de la même couleur explosent.",
+    "swap": "Échangez la bille chargée avec la suivante : touchez le lanceur ou appuyez sur X.",
+    "reaction": "Quand deux morceaux de même couleur se rejoignent, ils explosent à leur tour : c'est la réaction en chaîne.",
+    "colours": "Une quatrième couleur entre en jeu.",
+    "twin": "Deux chaînes à la fois : surveillez les deux trous.",
+    "colossus": "Le Colosse pousse la chaîne : faites exploser des billes tout près de lui pour le blesser."
+  },
+  "colossus": {
+    "name": "Colosse stellaire"
   }
 }

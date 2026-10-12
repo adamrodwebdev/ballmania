@@ -33,3 +33,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   battement de cœur près du trou, victoire, défaite) ; vibrations ; trois intensités,
   respect de « réduire les animations », baisse automatique si l'affichage ralentit ;
   fenêtre de réglages (langue, thème, effets, volume, vibrations).
+- Lot 4, campagne : carte des six mondes, monde 1 « Nébuleuse » en 12 niveaux de difficulté
+  croissante (spirales, serpentins, double spirale), conseils d'introduction, plateau
+  portrait pour les téléphones, fond étoilé ; Colosse stellaire (boss qui pousse la chaîne,
+  barre de vie, phases, renforts, cascade finale) ; étoiles, records et déblocages
+  sauvegardés ; bonus de fin de niveau ; équilibrage vérifié par un robot joueur.

@@ -2,6 +2,10 @@
 export const POINTS_PER_BALL = 10;
 /** Bonus per shot of a streak beyond the second one. */
 export const STREAK_BONUS = 20;
+/** Bonus for finishing a level. */
+export const CLEAR_BONUS = 300;
+/** Bonus per second saved under the par time. */
+export const SPEED_BONUS = 10;
 
 /**
  * The score of a game. Rules (specification § 3.1):
@@ -40,6 +44,12 @@ export class Scoring {
   /** A shot that missed or did not explode anything. */
   miss(): void {
     this.streakValue = 0;
+  }
+
+  /** End-of-level bonus: a fixed reward, plus 10 points per second saved under par. */
+  static levelBonus(elapsed: number, parTime?: number): number {
+    const saved = parTime === undefined ? 0 : Math.max(0, parTime - elapsed);
+    return CLEAR_BONUS + Math.round(saved * SPEED_BONUS);
   }
 
   /** Points added outside explosions (end-of-level bonus…). */

@@ -15,6 +15,7 @@ import { TimeWarp } from './effects/TimeWarp';
 import { GameLoop } from './GameLoop';
 import type { Haptics } from './Haptics';
 import type { Palette } from './Palette';
+import type { WorldTheme } from './themes/WorldTheme';
 
 /** What the interface shows around the board; updated on events, not every frame. */
 export interface HudState {
@@ -29,6 +30,22 @@ export interface HudState {
   bestDepth: number;
   /** Latest chain reaction of depth 2 or more, for the screen reader announcement. */
   reaction: { readonly depth: number; readonly serial: number } | null;
+  /** Health of the Colossus on a boss level. */
+  colossus: { readonly hp: number; readonly maxHp: number } | null;
+  /** End-of-level bonus included in the score. */
+  bonus: number;
+}
+
+export interface SessionOptions {
+  readonly canvas: HTMLCanvasElement;
+  readonly distortion: DistortionLayer | null;
+  readonly level: LevelDefinition;
+  readonly palette: Palette;
+  readonly profile: EffectProfile;
+  readonly feedback: Feedback;
+  readonly theme: WorldTheme;
+  /** Seed of each game; a new one per game by default. */
+  readonly seed?: () => string;
 }
 
 /** Sound and vibrations, shared by every game of the visit. */
@@ -67,18 +84,29 @@ export class PlaySession {
   private turning = 0;
   private reactions = 0;
   private size = { width: 1, height: 1, pixelRatio: 1 };
+  private colossusFlash = 0;
+  private readonly canvas: HTMLCanvasElement;
+  private readonly distortion: DistortionLayer | null;
+  private readonly level: LevelDefinition;
+  private palette: Palette;
+  private profile: EffectProfile;
+  private readonly feedback: Feedback;
+  private readonly theme: WorldTheme;
+  private readonly seed: () => string;
 
-  constructor(
-    private readonly canvas: HTMLCanvasElement,
-    private readonly distortion: DistortionLayer | null,
-    private readonly level: LevelDefinition,
-    private palette: Palette,
-    private profile: EffectProfile,
-    private readonly feedback: Feedback,
-    private readonly seed: () => string = () => `${level.id}:${Date.now()}`,
-  ) {
+  constructor(options: SessionOptions) {
+    ({
+      canvas: this.canvas,
+      distortion: this.distortion,
+      level: this.level,
+      palette: this.palette,
+      profile: this.profile,
+      feedback: this.feedback,
+      theme: this.theme,
+    } = options);
+    this.seed = options.seed ?? (() => `${options.level.id}:${Date.now()}`);
     this.game = this.createGame();
-    this.renderer = new CanvasRenderer(canvas, this.game, palette);
+    this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.theme);
     this.destruction = this.createDestruction();
     this.hud = shallowReactive(this.initialHud());
     this.loop = new GameLoop((dt) => this.frame(dt));
@@ -116,7 +144,7 @@ export class PlaySession {
   restart(): void {
     this.game.events.clear();
     this.game = this.createGame();
-    this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette);
+    this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.theme);
     this.renderer.resize(this.size.width, this.size.height, this.size.pixelRatio);
     this.motion = new BallMotion();
     this.destruction = this.createDestruction();
@@ -203,9 +231,20 @@ export class PlaySession {
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
     });
     game.events.on('missed', () => (this.hud.streak = 0));
-    game.events.on('ended', ({ outcome }) => {
+    game.events.on('colossusHit', ({ hp, maxHp, position }) => {
+      this.hud.colossus = { hp, maxHp };
+      this.colossusFlash = 1;
+      this.destruction.impact(position, 0.35);
+      sound.colossusHit();
+    });
+    game.events.on('colossusPhase', () => {
+      sound.roar();
+      haptics.lose();
+    });
+    game.events.on('ended', ({ outcome, bonus }) => {
       this.hud.state = outcome;
       this.hud.score = game.score;
+      this.hud.bonus = bonus;
       this.hud.bestDepth = game.bestDepth;
       this.overIn = RESULT_DELAY;
       if (outcome === 'won') {
@@ -233,6 +272,11 @@ export class PlaySession {
       next: this.game.shooter.next,
       bestDepth: 0,
       reaction: null,
+      colossus: this.game.colossus && {
+        hp: this.game.colossus.hp,
+        maxHp: this.game.colossus.maxHp,
+      },
+      bonus: 0,
     };
   }
 
@@ -248,6 +292,7 @@ export class PlaySession {
     if (this.game.state === 'lost') this.motion.drain(DRAIN_SPEED, dt);
     this.motion.update(this.game.chains, dt);
     this.destruction.update(dt);
+    this.colossusFlash = Math.max(0, this.colossusFlash - 4 * dt);
     this.syncTones();
     this.beatHeart(realDt);
     if (this.overIn !== null) {
@@ -293,6 +338,7 @@ export class PlaySession {
       destruction: this.destruction,
       aimEnd: this.game.state === 'playing' ? this.aimEnd() : null,
       time: this.time,
+      colossusFlash: this.colossusFlash,
     });
     if (!this.distortion) return;
     const k = this.renderer.deviceScale;
