@@ -4,6 +4,10 @@ const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
 const GLASS_PARTIALS = [1, 2.76, 5.4];
 
 const semitones = (base: number, steps: number) => base * 2 ** (steps / 12);
+/** Bass line of Rhythm mode, in semitones above the song's root: one note per beat, two bars. */
+const BASS = [0, 0, 12, 10, 0, 0, 7, 5];
+/** Minor chord played at the start of every bar. */
+const CHORD = [0, 3, 7];
 
 /**
  * Every sound of the game, synthesised with Web Audio (specification § 3.5):
@@ -116,6 +120,44 @@ export class SoundEngine {
       this.sweep(ctx, out, now, 'sine', 620, 55, 0.5, 0.2);
       this.noiseBurst(ctx, out, now, 0.25, 600, 0.06);
     });
+  }
+
+  /**
+   * One beat of Rhythm mode's music, synthesised like everything else: a kick
+   * on the beat, a hi-hat between beats, the bass line, and a chord on every
+   * bar. `beat` is its length in seconds; `root` the song's key, in hertz.
+   */
+  beat(index: number, beat: number, root: number): void {
+    this.play((ctx, out, now) => {
+      this.thump(ctx, out, now, 0.45);
+      this.noiseBurst(ctx, out, now + beat / 2, 0.05, 7000, 0.07);
+      const note = semitones(root * 2, BASS[index % BASS.length]!);
+      this.sweep(ctx, out, now, 'sawtooth', note, note, beat * 0.8, 0.1, 500);
+      if (index % 4 === 0) {
+        for (const step of CHORD) this.bell(ctx, out, now, semitones(root * 8, step), beat, 0.04);
+      }
+    });
+  }
+
+  /** The groove goes up a notch (Rhythm mode). */
+  grooveUp(multiplier: number): void {
+    this.play((ctx, out, now) =>
+      this.bell(ctx, out, now, semitones(660, multiplier * 2), 0.4, 0.12),
+    );
+  }
+
+  /** A new stage of Endless mode: a rising fanfare. */
+  stageUp(): void {
+    this.play((ctx, out, now) => {
+      [0, 7, 12].forEach((step, i) => {
+        this.bell(ctx, out, now + i * 0.08, semitones(392, step), 0.7, 0.14);
+      });
+    });
+  }
+
+  /** The duel rival fires: a softer, lower shot than the player's. */
+  rivalShoot(): void {
+    this.play((ctx, out, now) => this.sweep(ctx, out, now, 'triangle', 600, 220, 0.09, 0.12));
   }
 
   locked(): void {

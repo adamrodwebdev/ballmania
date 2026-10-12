@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                      |
-| ------- | ---------- | ------------------------------------------- |
-| 0.13    | 12/10/2026 | Lot 10, monde 6 livré (Singularité, orbite) |
+| Version | Date       | Statut                                           |
+| ------- | ---------- | ------------------------------------------------ |
+| 0.14    | 12/10/2026 | Lot 10 livré (monde 6 Singularité, modes Arcade) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -395,6 +395,63 @@ Deux portes d'entrée depuis l'accueil :
   gravitationnel en anneaux, étoiles qui se raréfient vers le centre). Gagner le dernier
   niveau affiche « Campagne terminée ».
 
+#### Modes Arcade, livrés au lot 10
+
+Chaque mode s'ouvre en terminant un monde : **Infini** (Nébuleuse), **Énigmes** (Néon),
+**Rythme** (Abysses), **Duel** (Joaillerie). L'écran « Arcade » (bouton sur l'accueil, avec
+le nombre de modes ouverts) présente les quatre, verrouillés avec le monde à terminer.
+Chaque mode porte le décor d'un monde déjà débloqué à ce moment-là (Nébuleuse, Abysses, Néon,
+Volcan).
+
+- **Infini** : une seule spirale longue ; la chaîne est réalimentée par l'entrée dès que sa
+  queue sort du tunnel, et un tracé vidé se remplit à toute vitesse. **Paliers** à 0, 40, 90,
+  150, 220, 300 et 400 s : vitesse ×1 à ×2, de 3 à 6 couleurs (badge « Palier n », fanfare,
+  annonce aux lecteurs d'écran). Partie toujours perdue au bout du compte : le **record**
+  est le meilleur score. Éclats : 4 par millier de points, 40 au plus par partie.
+- **Énigmes** : chaîne **immobile**, posée au milieu d'une spirale autour du lanceur ;
+  **tirs comptés** ; le lanceur ne tire pas au hasard : **« Couleur suivante »** (bouton,
+  X ou toucher le lanceur) fait défiler les couleurs présentes. Gagner = tout effacer ;
+  perdu quand le dernier tir est retombé, réactions comprises. **30 énigmes** à ouvrir dans
+  l'ordre, en trois paliers (2 ou 3 tirs, 3 à 5, 5 à 7) ; tirs permis = minimum + 2 pour les
+  dix premières, + 1 ensuite ; 3 étoiles au minimum, 2 avec un tir de plus, 1 sinon.
+  **Énigme du jour** : tirée de la date, la même pour tous, de 4 à 6 tirs, le premier essai
+  compte. Éclats : 15 + 5 par étoile à la première résolution, 25 pour l'énigme du jour
+  résolue du premier coup.
+- **Décision : énigmes calculées, pas dessinées.** Un **solveur** joue la chaîne en
+  abstrait (une bille ajoutée à une suite de sa couleur ; trois et plus explosent ; les deux
+  côtés se rejoignent et peuvent exploser à leur tour) et donne le **nombre minimal de tirs**.
+  Les 30 énigmes ont été choisies parmi des milliers de chaînes tirées au hasard : celles où
+  les réactions en chaîne font gagner le plus de tirs. Les tests vérifient que le solveur
+  retrouve chaque minimum et que **le vrai moteur** résout chacune des 30 énigmes avec la
+  solution du solveur, en exactement ce nombre de tirs.
+- **Rythme** : trois morceaux, **Pulsation** (96 BPM), **Cavalcade** (112) et **Frénésie**
+  (128), sur trois tracés. La musique est **synthétisée** (grosse caisse sur le temps,
+  charleston entre les temps, ligne de basse sur deux mesures, accord à chaque mesure) et
+  pilotée par l'horloge du jeu, comme la chaîne : elle **bondit sur chaque temps** puis
+  ralentit (vitesse moyenne inchangée). Un tir à moins de 0,15 temps d'un battement est
+  « sur le temps » ; deux tirs de suite sur le temps montent le **groove** d'un cran (×1 à
+  ×4), un tir à contretemps le remet à ×1 ; les points sont multipliés par le groove
+  (« ♪×3 » sur l'explosion). Un **anneau** se referme sur le lanceur à l'approche du temps
+  et s'illumine dans la fenêtre. Record par morceau ; 15 éclats par morceau terminé.
+- **Duel** : une seule chaîne sur un tracé de trois rangées, entre **le trou du rival**
+  (début du tracé, en haut) et **le vôtre** (fin du tracé, en bas). Le rival, piloté par
+  l'ordinateur, tire depuis le haut. Chaque explosion **pousse la chaîne** vers le trou de
+  l'autre camp (10 unités par bille × profondeur de réaction) ; elle **regagne des billes
+  aux deux bouts** quand elle passe sous 14 billes, et toutes les 3 secondes pour faire
+  monter la pression. Gagné quand la queue tombe dans le trou du rival ; perdu quand la
+  tête atteint le vôtre. Jauge « Vous / Rival » de l'avantage et score du rival affichés.
+  Trois rivaux : **débutant** (un tir toutes les 2,2 s, visée large, peu concentré),
+  **aguerri** (1,5 s) et **redoutable** (1,05 s, visée précise, joue toujours son meilleur
+  coup). Éclats : 10, 20 ou 40 par victoire selon le rival.
+- **Équité du Duel** : faire jouer le rival **contre lui-même** a révélé deux biais du moteur
+  qui favorisaient le joueur, corrigés : une insertion poussait toute la chaîne vers le
+  trou du rival, et les trous se refermaient en tirant toujours l'avant de la chaîne vers
+  l'arrière. Une chaîne « compacte » referme désormais tout trou **des deux côtés à la fois**
+  et fait de la place pour une bille insérée des deux côtés de son tronçon. Le rival ne vise
+  que des billes qu'il voit (aucune autre bille sur la ligne) et défend son bout de chaîne.
+  Contre le robot d'équilibrage : rival débutant battu à chaque fois (en 20 à 120 s), aguerri
+  battu 15 fois sur 16, redoutable battu 3 fois sur 16.
+
 #### Modes et mécaniques (v0.1)
 
 Chaque mode est une **stratégie** branchée sur un moteur commun ; aucun mode ne modifie le
@@ -426,6 +483,7 @@ complet), puis un monde par lot, les modes Arcade s'intercalant.
 | Viser                           | Pointeur                     | Glisser le doigt (ligne de visée)            |
 | Tirer                           | Clic gauche, Espace          | Relâcher le doigt                            |
 | Échanger bille / suivante       | Clic droit, X, C             | Toucher le lanceur ou le bouton « Échanger » |
+| Couleur suivante (Énigmes)      | Clic droit, X, C             | Toucher le lanceur ou le bouton              |
 | Armer l'aimant (Abysses)        | M, bouton « Aimant »         | Bouton « Aimant »                            |
 | Basculer un aiguillage (Volcan) | Clic sur le levier, S        | Toucher le levier                            |
 | Pause                           | Échap, P                     | Bouton pause (≥ 44 × 44 px)                  |
@@ -450,6 +508,9 @@ Précisions du lot 2 :
   du système (`prefers-reduced-motion`). Livré au lot 3 : fenêtre « Réglages » accessible
   depuis l'accueil et le menu pause, appliquée en direct pendant la partie. Le volume de la
   musique viendra avec la musique.
+- Livré au lot 10 : `ArcadeProgress` (clé `ballmania:arcade`, version 1) garde le record
+  de l'Infini, les énigmes résolues (meilleures étoiles, moins de tirs), le premier essai de
+  chaque énigme du jour, le record de chaque morceau et les duels gagnés par rival.
 - Sauvegarde versionnée (migrations) : progression de campagne, étoiles, records, éclats,
   cosmétiques possédés, historique du défi du jour. Livré au lot 4 : `CampaignProgress`
   (clé `ballmania:progress`, version 1) garde par niveau les meilleures étoiles et le
@@ -531,12 +592,13 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 
 **Éclats** (monnaie gagnée uniquement en jouant) :
 
-| Source                        | Éclats                      |
-| ----------------------------- | --------------------------- |
-| Niveau de campagne gagné      | 10 + 15 par étoile nouvelle |
-| Défi du jour, 1er essai gagné | 20 + 10 par étoile          |
-| Défi du jour, 1er essai perdu | 10 (merci d'avoir joué)     |
-| Objectif atteint              | 20 à 150 selon l'objectif   |
+| Source                        | Éclats                       |
+| ----------------------------- | ---------------------------- |
+| Niveau de campagne gagné      | 10 + 15 par étoile nouvelle  |
+| Défi du jour, 1er essai gagné | 20 + 10 par étoile           |
+| Défi du jour, 1er essai perdu | 10 (merci d'avoir joué)      |
+| Objectif atteint              | 20 à 500 selon l'objectif    |
+| Arcade (lot 10)               | Voir les modes Arcade, § 3.2 |
 
 **Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu) :
 
@@ -550,7 +612,8 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 Un objet acheté est aussitôt équipé. Le plateau choisi habille tous les niveaux et le défi
 du jour ; « Celui du monde » suit le monde joué.
 
-**23 objectifs** (compteurs à vie ; au lot 10 : faire exploser des billes avec 10 tirs
+**27 objectifs** (compteurs à vie ; au lot 10, en Arcade : palier 5 de l'Infini, 80 éclats,
+10 énigmes résolues, 80, groove ×4, 60, battre le rival redoutable, 120 ; au lot 10 : faire exploser des billes avec 10 tirs
 courbés d'au moins 45° par le trou noir, 70 éclats, terminer le Volcan, 350 éclats, et
 terminer la campagne, 500 éclats ; au lot 9 : basculer 15 aiguillages, 50 éclats, et terminer
 la Joaillerie, 300 éclats ; « tir en bande » ajouté au lot 6 : faire exploser un
@@ -870,6 +933,22 @@ le moteur de tracés.
 | `BlackHole`, `Destruction.setAttractor`, `.swallow` | Rendu du trou noir et de l'anneau, implosion des débris                 |
 | `SingularityTheme`                                  | Fond du monde 6                                                         |
 
+### 5.13 Modes Arcade (livrés au lot 10)
+
+| Élément                                                                            | Responsabilité                                                                                                         |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `PlayMode`, `createMode` (`src/app/modes`)                                         | Une stratégie par façon de jouer : niveau, textes, récompenses, suite ; l'écran de jeu ne teste plus le type de partie |
+| `CampaignMode`, `DailyMode`, `EndlessMode`, `PuzzleMode`, `RhythmMode`, `DuelMode` | Les six modes                                                                                                          |
+| `EndlessObjective`, `PuzzleObjective`, `DuelObjective`                             | Objectifs : paliers sans fin ; tirs comptés (`isFailed`) ; tir à la corde                                              |
+| `Objective.isFailed`, `ObjectiveContext` (temps, tirs, billes en vol, paliers)     | Défaites autres que le trou                                                                                            |
+| `Tempo`, `Groove`                                                                  | Horloge musicale, pulsation de la chaîne, fenêtre du temps, multiplicateur                                             |
+| `Rival`                                                                            | Adversaire du Duel : cadence, erreur, concentration, ligne de vue, camp défendu                                        |
+| `Shooter` (`choosing`, `side`), `Projectile.by`                                    | Couleur au choix (Énigmes), tirs du rival distingués                                                                   |
+| `Chain.placed`, `.append`, `.shift`, `compact`                                     | Chaîne posée, regain en tête, poussée, trous refermés des deux côtés                                                   |
+| `PuzzleSolver`, `generatePuzzle`                                                   | Minimum de tirs, solution, tirage des énigmes                                                                          |
+| `ArcadeProgress`, `ArcadeScreen`                                                   | Records Arcade, écran des quatre modes                                                                                 |
+| `SoundEngine.beat`, `.grooveUp`, `.stageUp`, `.rivalShoot`                         | Musique du Rythme et sons des modes                                                                                    |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -896,22 +975,22 @@ le moteur de tracés.
 
 ## 9. Lots et planning (provisoire)
 
-| Lot  | Contenu                                                                                       |
-| ---- | --------------------------------------------------------------------------------------------- |
-| 0 ✅ | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)                       |
-| 1 ✅ | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine               |
-| 2 ✅ | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo              |
-| 3 ✅ | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités                |
-| 4 ✅ | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                |
-| 5 ✅ | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance |
-| 6 ✅ | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                     |
-| 7 ✅ | Monde 3 Abysses : aimant, charges, Colosse abyssal                                            |
-| 8 ✅ | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                |
-| 9 ✅ | Monde 5 Volcan : aiguillages, raccourcis en fusion, Colosse de lave                           |
-| 10   | Monde 6 Singularité : gravité, orbite, Colosse ultime ✅ ; modes Arcade                       |
-| 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
-| 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
-| 13   | Démo portfolio                                                                                |
+| Lot   | Contenu                                                                                            |
+| ----- | -------------------------------------------------------------------------------------------------- |
+| 0 ✅  | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)                            |
+| 1 ✅  | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine                    |
+| 2 ✅  | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo                   |
+| 3 ✅  | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités                     |
+| 4 ✅  | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                     |
+| 5 ✅  | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance      |
+| 6 ✅  | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                          |
+| 7 ✅  | Monde 3 Abysses : aimant, charges, Colosse abyssal                                                 |
+| 8 ✅  | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                     |
+| 9 ✅  | Monde 5 Volcan : aiguillages, raccourcis en fusion, Colosse de lave                                |
+| 10 ✅ | Monde 6 Singularité : gravité, orbite, Colosse ultime ; modes Arcade Infini, Énigmes, Rythme, Duel |
+| 11    | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                       |
+| 12    | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                |
+| 13    | Démo portfolio                                                                                     |
 
 ## 10. Hors périmètre (v1)
 
@@ -938,3 +1017,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                           |
 | 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                          |
 | 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                       |
+| 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                 |

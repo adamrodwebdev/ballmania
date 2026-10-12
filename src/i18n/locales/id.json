@@ -64,7 +64,8 @@
     "nextLevel": "Level berikutnya",
     "map": "Peta kampanye",
     "homeButton": "Beranda",
-    "campaignDone": "Kampanye selesai: keenam dunia milikmu!"
+    "campaignDone": "Kampanye selesai: keenam dunia milikmu!",
+    "arcadeButton": "Arkade"
   },
   "effects": {
     "spectacular": {
@@ -133,7 +134,11 @@
     "switch": "Sentuh persimpangan (atau tekan S) untuk mengalirkan lava ke jalan memutar: lebih panjang, memberimu waktu. Tidak bisa diubah lagi setelah rantai sampai.",
     "hot": "Di jalan pintas lava sedang membara: bola yang meledak di sana bernilai dua kali lipat. Poin atau waktu, kamu yang pilih.",
     "gravity": "Lubang hitam menarik tembakanmu: garis bidik menunjukkan lengkungan yang akan diikutinya. Tembakan yang lewat terlalu dekat akan ditelan.",
-    "orbit": "Penembakmu meluncur mengelilingi lubang hitam: tunggu posisi yang tepat sebelum menembak."
+    "orbit": "Penembakmu meluncur mengelilingi lubang hitam: tunggu posisi yang tepat sebelum menembak.",
+    "endless": "Rantai tak pernah berhenti: setiap tahap mempercepatnya dan bisa menambah warna. Bertahanlah selama mungkin.",
+    "puzzle": "Rantai diam dan tembakanmu terbatas. \"Warna berikutnya\" (atau X) memilih warna: manfaatkan reaksi berantai.",
+    "rhythm": "Rantai bergerak mengikuti musik. Tembak saat cincin menutup pada penembak: groove melipatgandakan poin hingga ×4.",
+    "duel": "Setiap ledakan mendorong rantai ke lubang lawan. Jatuhkan ke lubang lawan sebelum mencapai lubangmu."
   },
   "colossus": {
     "nebula": "Kolosus Bintang",
@@ -301,6 +306,22 @@
       "world-singularity": {
         "name": "Melampaui cakrawala",
         "text": "Selesaikan kampanye."
+      },
+      "endless-5": {
+        "name": "Daya tahan",
+        "text": "Capai tahap {target} di mode Tanpa Akhir."
+      },
+      "puzzles-10": {
+        "name": "Pikiran tajam",
+        "text": "Pecahkan {target} teka-teki."
+      },
+      "groove-4": {
+        "name": "Larut dalam groove",
+        "text": "Capai groove ×{target} di mode Irama."
+      },
+      "duel-hard": {
+        "name": "Jagoan duel",
+        "text": "Kalahkan lawan tangguh."
       }
     }
   },
@@ -334,5 +355,67 @@
     "long": "jalan memutar",
     "locked": "terkunci",
     "flipped": "Persimpangan diarahkan ke {branch}"
+  },
+  "arcade": {
+    "title": "Arkade",
+    "intro": "Empat mode untuk bermain dengan cara lain. Masing-masing terbuka setelah kamu menyelesaikan satu dunia kampanye.",
+    "open": "{count} / {total} mode terbuka",
+    "locked": "Selesaikan dunia {world} untuk membukanya.",
+    "start": "Main",
+    "endless": {
+      "name": "Tanpa Akhir",
+      "tagline": "Rantai tanpa ujung, makin cepat dan makin berwarna.",
+      "best": "Rekor: {score}",
+      "over": "Permainan selesai",
+      "stage": "Tahap {stage}",
+      "reached": "Tahap tercapai: {stage}"
+    },
+    "puzzle": {
+      "name": "Teka-teki",
+      "tagline": "Rantai diam, sedikit tembakan: temukan reaksi berantai yang sempurna.",
+      "short": "Teka-teki {number}",
+      "daily": "Teka-teki hari ini",
+      "dailyTodo": "Sama untuk semua, hari ini",
+      "dailyDone": "Terpecahkan dengan {shots} tembakan",
+      "dailyTried": "Sudah dicoba hari ini",
+      "solvedCount": "{count} / {total} teka-teki terpecahkan",
+      "solved": "Teka-teki terpecahkan!",
+      "failed": "Tembakan habis",
+      "next": "Teka-teki berikutnya",
+      "nextColour": "Warna berikutnya",
+      "shotsLeft": "{count} tembakan | {count} tembakan | {count} tembakan",
+      "result": "{shots} tembakan, minimal {par}",
+      "tileLabel": "Teka-teki {number}, {stars} bintang dari 3",
+      "lockedLabel": "Teka-teki {number}, terkunci"
+    },
+    "rhythm": {
+      "name": "Irama",
+      "tagline": "Rantai menari mengikuti tempo: tembak tepat ketukan untuk menaikkan groove.",
+      "songs": {
+        "pulse": "Denyut",
+        "drive": "Derap",
+        "rush": "Gelora"
+      },
+      "bpm": "{bpm} BPM",
+      "groove": "Groove ×{multiplier}",
+      "next": "Lagu berikutnya"
+    },
+    "duel": {
+      "name": "Duel",
+      "tagline": "Satu rantai, dua lubang, satu lawan: tarik tambang.",
+      "levels": {
+        "easy": "Lawan pemula",
+        "normal": "Lawan berpengalaman",
+        "hard": "Lawan tangguh"
+      },
+      "won": "Menang!",
+      "lost": "Kalah",
+      "you": "Kamu",
+      "rival": "Lawan · {score}",
+      "rope": "Keunggulanmu dalam tarik tambang",
+      "final": "Skor lawan: {score}",
+      "wins": "Belum ada kemenangan | {count} kemenangan | {count} kemenangan",
+      "harder": "Lawan lebih kuat"
+    }
   }
 }

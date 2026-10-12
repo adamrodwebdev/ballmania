@@ -3,7 +3,7 @@ import { SeededRandom } from '@/engine/core/Random';
 import { Game } from '@/engine/Game';
 import type { CampaignLevel } from '@/levels/campaign';
 import { resolveLevel } from '@/levels/resolveLevel';
-import { toLevelSetup } from '@/levels/LevelDefinition';
+import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
 
 export interface BotResult {
@@ -13,6 +13,8 @@ export interface BotResult {
   readonly shots: number;
   /** Furthest the head of a chain got, as a share of its track (1 = the hole). */
   readonly danger: number;
+  /** Points of the computer rival (Duel mode). */
+  readonly rivalScore: number;
 }
 
 /**
@@ -29,8 +31,18 @@ export function playLevel(
   /** Aim error, in board units along the track. */
   sloppiness = 18,
 ): BotResult {
+  return playDefinition(resolveLevel(level, frame), seed, cadence, sloppiness);
+}
+
+/** The same player, on any level given as data (Arcade modes). */
+export function playDefinition(
+  definition: LevelDefinition,
+  seed: string,
+  cadence = 54,
+  sloppiness = 18,
+): BotResult {
   const hand = SeededRandom.fromString(`hand:${seed}`);
-  const game = new Game(toLevelSetup(resolveLevel(level, frame)), SeededRandom.fromString(seed));
+  const game = new Game(toLevelSetup(definition), SeededRandom.fromString(seed));
   const alchemy = game.setup.alchemy === true;
   const gravity = game.gravity;
   let shots = 0;
@@ -212,5 +224,6 @@ export function playLevel(
     seconds: Math.round(game.elapsed),
     shots,
     danger: Math.round(danger * 100) / 100,
+    rivalScore: game.rivalScore,
   };
 }

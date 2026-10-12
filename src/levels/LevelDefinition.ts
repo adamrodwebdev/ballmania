@@ -2,6 +2,9 @@ import type { ChainParams } from '@/engine/chain/Chain';
 import { SECONDARIES } from '@/engine/chain/Alchemy';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import type { LevelSetup, MagnetSetup } from '@/engine/Game';
+import type { DuelSetup } from '@/engine/objectives/DuelObjective';
+import type { EndlessSetup } from '@/engine/objectives/EndlessObjective';
+import type { RhythmSetup } from '@/engine/rhythm/Tempo';
 import { ForkedRoute, type RoutePart } from '@/engine/path/ForkedRoute';
 import type { ReflectorSetup } from '@/engine/reflectors/Reflectors';
 import { Vec2 } from '@/engine/geometry/Vec2';
@@ -49,6 +52,10 @@ export interface ChainDefinition {
   readonly repeatChance: number;
   /** The colours to draw from (Jewel world), instead of the first `tones` ones. */
   readonly palette?: readonly number[];
+  /** The exact colours, tail first (Puzzle); `length` and `tones` are then ignored. */
+  readonly sequence?: readonly number[];
+  /** Arc length of the tail when the chain starts on the track (Puzzle, Duel). */
+  readonly tail?: number;
 }
 
 /**
@@ -78,6 +85,23 @@ export interface LevelDefinition {
     readonly strength: number;
     readonly horizon: number;
   };
+  /** Endless mode: stages of speed and colours. */
+  readonly endless?: EndlessSetup;
+  /** Puzzle mode: shots allowed. */
+  readonly puzzle?: { readonly shots: number };
+  /** Rhythm mode: the music's tempo. */
+  readonly rhythm?: RhythmSetup;
+  /** Duel mode: the tug of war and the rival. */
+  readonly duel?: DuelSetup & {
+    readonly rival: {
+      readonly at: Point;
+      readonly cadence: number;
+      readonly error: number;
+      readonly focus: number;
+    };
+  };
+  /** Every gap of the chain closes (Duel). */
+  readonly compact?: boolean;
   /** The ring the shooter glides along (Singularity world); `shooter` is then its start. */
   readonly orbit?: {
     readonly centre: Point;
@@ -115,13 +139,16 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     rushDistance: level.rushDistance ?? 0,
     retreatSpeed: level.retreatSpeed ?? LEVEL_DEFAULTS.retreatSpeed,
     minMatch: LEVEL_DEFAULTS.minMatch,
+    ...(level.compact ? { compact: true } : {}),
   };
   return {
     board: level.board,
     shooter: toVec(level.shooter),
-    chains: level.chains.map(({ path, length, tones, repeatChance, palette }) => ({
+    chains: level.chains.map(({ path, length, tones, repeatChance, palette, sequence, tail }) => ({
       path: buildPath(path),
       ...(path.kind === 'forked' ? { route: buildRoute(path) } : {}),
+      ...(sequence ? { tones: sequence } : {}),
+      ...(tail === undefined ? {} : { tail }),
       recipe: {
         length,
         tones,
@@ -144,6 +171,25 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
             centre: toVec(level.gravity.centre),
             strength: level.gravity.strength,
             horizon: level.gravity.horizon,
+          },
+        }
+      : {}),
+    ...(level.endless ? { endless: level.endless } : {}),
+    ...(level.puzzle ? { puzzle: level.puzzle } : {}),
+    ...(level.rhythm ? { rhythm: level.rhythm } : {}),
+    ...(level.duel
+      ? {
+          duel: {
+            push: level.duel.push,
+            minimum: level.duel.minimum,
+            regrow: level.duel.regrow,
+            growEvery: level.duel.growEvery,
+            rival: {
+              position: toVec(level.duel.rival.at),
+              cadence: level.duel.rival.cadence,
+              error: level.duel.rival.error,
+              focus: level.duel.rival.focus,
+            },
           },
         }
       : {}),

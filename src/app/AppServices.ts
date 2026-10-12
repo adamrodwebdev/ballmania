@@ -1,6 +1,7 @@
 import { inject, type InjectionKey } from 'vue';
 import { detectLocale } from '@/i18n/locales';
 import { PlayerProfile } from '@/player/PlayerProfile';
+import { ArcadeProgress } from '@/services/ArcadeProgress';
 import { CampaignProgress } from '@/services/CampaignProgress';
 import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage';
 import { SettingsService } from '@/services/SettingsService';
@@ -12,6 +13,7 @@ export interface AppServices {
   readonly settings: SettingsService;
   readonly theme: ThemeController;
   readonly progress: CampaignProgress;
+  readonly arcade: ArcadeProgress;
   readonly player: PlayerProfile;
   readonly share: ShareService;
   /** Today, for the daily challenge (a function so tests can fix it). */
@@ -36,6 +38,7 @@ export function createBrowserServices(
       window.matchMedia(query),
     ),
     progress: new CampaignProgress(storage),
+    arcade: new ArcadeProgress(storage),
     player: new PlayerProfile(storage),
     share: new ShareService(navigator),
     today: () => new Date(),

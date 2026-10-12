@@ -40,6 +40,19 @@ export interface HudState {
   magnetArmed: boolean;
   /** Latest switch flipped, for the screen reader announcement. */
   switched: { readonly branch: 'short' | 'long'; readonly serial: number } | null;
+  /** Shots left in Puzzle mode, or null. */
+  shotsLeft: number | null;
+  /** Groove multiplier in Rhythm mode, or null. */
+  groove: number | null;
+  /** Stage reached in Endless mode, or null. */
+  stage: number | null;
+  /** The rival's score in Duel mode, or null. */
+  rivalScore: number | null;
+  /**
+   * Duel mode: where the chain stands between the two holes, from 0 (in the
+   * rival's hole: won) to 1 (in the player's: lost); null elsewhere.
+   */
+  tug: number | null;
 }
 
 export interface SessionOptions {
@@ -52,6 +65,8 @@ export interface SessionOptions {
   readonly look: Look;
   /** Seed of each game; a new one per game by default. */
   readonly seed?: () => string;
+  /** Key of the music in Rhythm mode, in hertz. */
+  readonly root?: number;
 }
 
 /** Sound and vibrations, shared by every game of the visit. */
@@ -66,6 +81,8 @@ const RESULT_DELAY = 1.6;
 const DRAIN_SPEED = 1400;
 /** Share of the track from which the heart starts beating. */
 const DANGER_FROM = 0.8;
+/** Real seconds between two updates of the tug-of-war gauge. */
+const TUG_REFRESH = 0.1;
 
 /**
  * A level being played: owns the game, the loop, the renderer, the visual
@@ -87,6 +104,7 @@ export class PlaySession {
   private turning = 0;
   private reactions = 0;
   private switchSerial = 0;
+  private tugIn = 0;
   private size = { width: 1, height: 1, pixelRatio: 1 };
   private colossusFlash = 0;
   private readonly canvas: HTMLCanvasElement;
@@ -97,6 +115,7 @@ export class PlaySession {
   private readonly feedback: Feedback;
   private readonly look: Look;
   private readonly seed: () => string;
+  private readonly root: number;
 
   constructor(options: SessionOptions) {
     ({
@@ -109,6 +128,7 @@ export class PlaySession {
       look: this.look,
     } = options);
     this.seed = options.seed ?? (() => `${options.level.id}:${Date.now()}`);
+    this.root = options.root ?? 55;
     this.game = this.createGame();
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.destruction = this.createDestruction();
@@ -224,7 +244,10 @@ export class PlaySession {
       if (this.game.pull()) this.hud.magnetArmed = false;
       return;
     }
-    if (this.game.fire()) this.feedback.sound.shoot();
+    if (this.game.fire()) {
+      this.feedback.sound.shoot();
+      this.hud.shotsLeft = this.game.shotsLeft;
+    }
   }
 
   /** Arms or disarms the magnet; only with a charge left. */
@@ -271,6 +294,7 @@ export class PlaySession {
       sound.land();
     });
     game.events.on('exploded', (event) => {
+      const rival = event.by === 'rival';
       this.destruction.explode({
         positions: event.positions,
         tones: event.balls.map((ball) => ball.tone),
@@ -278,7 +302,14 @@ export class PlaySession {
         depth: event.depth,
         bounces: event.bounces,
         hot: event.hot,
+        groove: rival ? 1 : game.grooveMultiplier,
+        rival,
       });
+      if (rival) {
+        this.hud.rivalScore = game.rivalScore;
+        sound.explode(event.balls.length, 1);
+        return;
+      }
       sound.explode(event.balls.length, event.depth);
       haptics.explosion(event.depth);
       if (event.depth >= 3 && this.profile.slowMotion) this.warp.trigger(0.3, 0.12, 0.25);
@@ -286,7 +317,23 @@ export class PlaySession {
       this.hud.streak = event.streak;
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
     });
-    game.events.on('missed', () => (this.hud.streak = 0));
+    game.events.on('missed', ({ projectile }) => {
+      if (projectile.by === 'player') this.hud.streak = 0;
+    });
+    game.events.on('fired', ({ projectile }) => {
+      if (projectile.by === 'rival') sound.rivalShoot();
+    });
+    game.events.on('beat', ({ index }) => {
+      if (game.tempo) sound.beat(index, game.tempo.beat, this.root);
+    });
+    game.events.on('groove', ({ multiplier, onBeat }) => {
+      if (onBeat && multiplier > (this.hud.groove ?? 1)) sound.grooveUp(multiplier);
+      this.hud.groove = multiplier;
+    });
+    game.events.on('stage', ({ stage }) => {
+      this.hud.stage = stage;
+      sound.stageUp();
+    });
     game.events.on('swallowed', ({ projectile }) => {
       this.destruction.swallow(projectile.position, projectile.tone);
       sound.swallow();
@@ -363,7 +410,21 @@ export class PlaySession {
       magnet: this.game.magnet,
       magnetArmed: false,
       switched: null,
+      shotsLeft: this.game.shotsLeft,
+      groove: this.game.tempo ? 1 : null,
+      stage: this.game.stage,
+      rivalScore: this.game.rival ? 0 : null,
+      tug: this.tug(),
     };
+  }
+
+  /** Duel mode: the chain's place between the two holes, 0 to 1 (see `HudState.tug`). */
+  private tug(): number | null {
+    const chain = this.game.chains[0];
+    if (!this.game.rival || !chain) return null;
+    const tail = chain.tail ?? 0;
+    const room = tail + (chain.path.length - (chain.balls[chain.balls.length - 1]?.s ?? tail));
+    return room > 0 ? 1 - tail / room : 0.5;
   }
 
   private frame(realDt: number): void {
@@ -381,6 +442,13 @@ export class PlaySession {
     this.colossusFlash = Math.max(0, this.colossusFlash - 4 * dt);
     this.syncTones();
     this.beatHeart(realDt);
+    if (this.game.rival) {
+      this.tugIn -= realDt;
+      if (this.tugIn <= 0) {
+        this.tugIn = TUG_REFRESH;
+        this.hud.tug = this.tug();
+      }
+    }
     if (this.overIn !== null) {
       this.overIn -= realDt;
       if (this.overIn <= 0) {

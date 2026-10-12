@@ -164,6 +164,8 @@ export class CanvasRenderer implements Renderer {
     // Entrances and holes cover the balls coming out of and going into them.
     for (const chain of game.chains) this.drawEnds(chain, radius, scene.time);
     this.blackHole?.draw(ctx, palette, scene.time, this.danger());
+    this.drawTempo(radius);
+    this.drawRival(radius);
     this.drawShooter(radius);
     scene.destruction.draw(ctx, palette, this.sprites);
 
@@ -222,6 +224,8 @@ export class CanvasRenderer implements Renderer {
   }
 
   private drawEnds(chain: Chain, radius: number, time: number): void {
+    // Puzzle mode: the chain never moves, so neither entrance nor hole.
+    if (this.game.setup.puzzle) return;
     const { ctx, palette } = this;
     const start = chain.path.pointAt(0);
     ctx.beginPath();
@@ -243,16 +247,27 @@ export class CanvasRenderer implements Renderer {
     // The hole glows red as the head of the chain gets close.
     const head = chain.balls[chain.balls.length - 1];
     const danger = head ? Math.max(0, (head.s / chain.path.length - 0.75) / 0.25) : 0;
-    const end = chain.path.end;
+    this.drawHole(chain.path.end, radius, time, danger, palette.danger);
+    if (this.game.rival) {
+      // Duel: the start is the rival's hole; it glows as the tail is pushed towards it.
+      const tail = chain.tail ?? chain.path.length;
+      const near = Math.max(0, 1 - tail / (chain.path.length * 0.25));
+      this.drawHole(start, radius, time, near, palette.tone(2));
+    }
+  }
+
+  /** A hole, its glow pulsing in `colour` as `danger` (0 to 1) rises. */
+  private drawHole(at: Vec2, radius: number, time: number, danger: number, colour: string): void {
+    const { ctx, palette } = this;
     const glow = radius * (1.7 + 0.25 * danger * Math.sin(time * 10));
     ctx.beginPath();
-    ctx.arc(end.x, end.y, glow, 0, Math.PI * 2);
-    ctx.fillStyle = danger > 0 ? palette.danger : palette.accent;
+    ctx.arc(at.x, at.y, glow, 0, Math.PI * 2);
+    ctx.fillStyle = danger > 0 ? colour : palette.accent;
     ctx.globalAlpha = 0.25 + 0.5 * danger;
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.beginPath();
-    ctx.arc(end.x, end.y, radius * 1.25, 0, Math.PI * 2);
+    ctx.arc(at.x, at.y, radius * 1.25, 0, Math.PI * 2);
     ctx.fillStyle = palette.hole;
     ctx.fill();
   }
@@ -512,6 +527,48 @@ export class CanvasRenderer implements Renderer {
       this.look.trail.draw(this.ctx, this.palette, projectile.tone, history, radius);
     }
     for (const id of this.trails.keys()) if (!flying.has(id)) this.trails.delete(id);
+  }
+
+  /**
+   * Rhythm mode: a ring closes in on the shooter as the next beat comes, and
+   * flashes while a shot would be on the beat.
+   */
+  private drawTempo(radius: number): void {
+    const tempo = this.game.tempo;
+    if (!tempo || this.game.state !== 'playing') return;
+    const { ctx, palette } = this;
+    const { x, y } = this.game.shooter.position;
+    const phase = tempo.phase(this.game.elapsed);
+    const onBeat = tempo.onBeat(this.game.elapsed);
+    ctx.save();
+    ctx.lineWidth = onBeat ? 8 : 4;
+    ctx.strokeStyle = onBeat ? palette.tone(3) : palette.accent;
+    ctx.globalAlpha = onBeat ? 0.95 : 0.25 + 0.5 * phase;
+    ctx.beginPath();
+    ctx.arc(x, y, SHOOTER_RADIUS + radius + 70 * (1 - phase), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Duel mode: the rival's shooter, the player's skin ringed in the danger colour. */
+  private drawRival(radius: number): void {
+    const rival = this.game.rival;
+    if (!rival) return;
+    const { ctx, palette } = this;
+    ctx.save();
+    ctx.translate(rival.position.x, rival.position.y);
+    this.look.shooter.draw(ctx, palette, rival.angle, radius, this.time);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = palette.danger;
+    ctx.beginPath();
+    ctx.arc(0, 0, SHOOTER_RADIUS * 0.75, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    this.drawBall(
+      rival.current,
+      rival.position.add(Vec2.fromAngle(rival.angle, SHOOTER_RADIUS)),
+      radius,
+    );
   }
 
   private drawShooter(radius: number): void {

@@ -12,6 +12,7 @@ import HomeScreen from '@/ui/screens/HomeScreen.vue';
 const CampaignScreen = defineAsyncComponent(() => import('@/ui/screens/CampaignScreen.vue'));
 const GameScreen = defineAsyncComponent(() => import('@/ui/screens/GameScreen.vue'));
 const ShopScreen = defineAsyncComponent(() => import('@/ui/screens/ShopScreen.vue'));
+const ArcadeScreen = defineAsyncComponent(() => import('@/ui/screens/ArcadeScreen.vue'));
 const AchievementsScreen = defineAsyncComponent(
   () => import('@/ui/screens/AchievementsScreen.vue'),
 );
@@ -19,6 +20,7 @@ const AchievementsScreen = defineAsyncComponent(
 type Screen =
   | { readonly kind: 'home' }
   | { readonly kind: 'campaign' }
+  | { readonly kind: 'arcade' }
   | { readonly kind: 'shop' }
   | { readonly kind: 'achievements' }
   | { readonly kind: 'game'; readonly request: PlayRequest; readonly id: number };
@@ -37,10 +39,15 @@ const show = (next: Screen) => {
 };
 const home = () => show({ kind: 'home' });
 const campaign = () => show({ kind: 'campaign' });
+const arcade = () => show({ kind: 'arcade' });
 const play = (request: PlayRequest) => show({ kind: 'game', request, id: ++games });
 const playLevel = (level: CampaignLevel) => play({ kind: 'campaign', level });
-/** After a game: the map for the campaign, home for the daily challenge. */
-const leave = (request: PlayRequest) => (request.kind === 'daily' ? home() : campaign());
+/** After a game: the map for the campaign, home for the daily challenge, else the Arcade. */
+const leave = (request: PlayRequest) => {
+  if (request.kind === 'campaign') campaign();
+  else if (request.kind === 'daily') home();
+  else arcade();
+};
 
 // Language: the messages are downloaded on first use, then the interface,
 // <html lang>, title and description follow.
@@ -69,6 +76,7 @@ watchEffect(() => {
     <main id="main" tabindex="-1">
       <HomeScreen
         @play="campaign"
+        @arcade="arcade"
         @daily="(challenge) => play({ kind: 'daily', challenge })"
         @shop="show({ kind: 'shop' })"
         @achievements="show({ kind: 'achievements' })"
@@ -80,6 +88,9 @@ watchEffect(() => {
   </template>
   <main v-else-if="screen.kind === 'campaign'" id="main" tabindex="-1">
     <CampaignScreen @play="playLevel" @home="home" />
+  </main>
+  <main v-else-if="screen.kind === 'arcade'" id="main" tabindex="-1">
+    <ArcadeScreen @play="play" @home="home" />
   </main>
   <main v-else-if="screen.kind === 'shop'" id="main" tabindex="-1">
     <ShopScreen @home="home" />

@@ -22,6 +22,14 @@ export interface PlayerStats {
   readonly threeStarLevels: number;
   readonly dailyPlayed: number;
   readonly worldsCompleted: number;
+  /** Arcade: last stage reached in Endless mode, at best. */
+  readonly endlessStage: number;
+  /** Arcade: different puzzles solved. */
+  readonly puzzlesSolved: number;
+  /** Arcade: highest groove multiplier reached in Rhythm mode. */
+  readonly bestGroove: number;
+  /** Arcade: duels won against the hard rival. */
+  readonly hardDuelsWon: number;
 }
 
 export type StatName = keyof PlayerStats;
@@ -43,6 +51,10 @@ export const EMPTY_STATS: PlayerStats = {
   threeStarLevels: 0,
   dailyPlayed: 0,
   worldsCompleted: 0,
+  endlessStage: 0,
+  puzzlesSolved: 0,
+  bestGroove: 0,
+  hardDuelsWon: 0,
 };
 
 /**
@@ -75,6 +87,10 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'three-stars-5', stat: 'threeStarLevels', target: 5, reward: 80 },
   { id: 'colossus', stat: 'colossusDefeated', target: 1, reward: 100 },
   { id: 'daily-3', stat: 'dailyPlayed', target: 3, reward: 60 },
+  { id: 'endless-5', stat: 'endlessStage', target: 5, reward: 80 },
+  { id: 'puzzles-10', stat: 'puzzlesSolved', target: 10, reward: 80 },
+  { id: 'groove-4', stat: 'bestGroove', target: 4, reward: 60 },
+  { id: 'duel-hard', stat: 'hardDuelsWon', target: 1, reward: 120 },
   { id: 'world-nebula', stat: 'worldsCompleted', target: 1, reward: 150 },
   { id: 'world-neon', stat: 'worldsCompleted', target: 2, reward: 200 },
   { id: 'world-abyss', stat: 'worldsCompleted', target: 3, reward: 250 },

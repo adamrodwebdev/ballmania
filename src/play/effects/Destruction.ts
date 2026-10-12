@@ -16,6 +16,10 @@ export interface Burst {
   readonly bounces?: number;
   /** It happened on a hot shortcut (Volcano world): points doubled. */
   readonly hot?: boolean;
+  /** Groove multiplier of the points (Rhythm mode), shown from ×2. */
+  readonly groove?: number;
+  /** The rival's explosion (Duel mode): its points are shown in the danger colour. */
+  readonly rival?: boolean;
 }
 
 /** A shock wave, in board units, for the distortion pass. */
@@ -53,6 +57,8 @@ interface Group {
   readonly points: number;
   readonly bounces: number;
   readonly hot: boolean;
+  readonly groove: number;
+  readonly rival: boolean;
   shattered: boolean;
 }
 
@@ -94,6 +100,8 @@ interface Fading {
   readonly coloured?: boolean;
   /** A ring that closes in instead of spreading (a shot swallowed by the black hole). */
   readonly implode?: boolean;
+  /** Drawn in the danger colour (the rival's points in a duel). */
+  readonly danger?: boolean;
 }
 
 /** A ball pulled out of the chain on its way to the shooter. */
@@ -218,6 +226,8 @@ export class Destruction {
       points: burst.points,
       bounces: burst.bounces ?? 0,
       hot: burst.hot ?? false,
+      groove: burst.groove ?? 1,
+      rival: burst.rival ?? false,
       shattered: false,
     });
     burst.positions.forEach((position, i) => {
@@ -416,7 +426,11 @@ export class Destruction {
     for (const label of this.labels) {
       ctx.globalAlpha = Math.min(1, label.life / (LABEL_LIFE * 0.5));
       ctx.font = `800 ${label.size}px system-ui, sans-serif`;
-      ctx.fillStyle = label.ricochet || label.coloured ? palette.tone(label.tone) : palette.text;
+      ctx.fillStyle = label.danger
+        ? palette.danger
+        : label.ricochet || label.coloured
+          ? palette.tone(label.tone)
+          : palette.text;
       ctx.strokeText(label.text ?? '', label.x, label.y);
       ctx.fillText(label.text ?? '', label.x, label.y);
       if (label.ricochet)
@@ -617,7 +631,20 @@ export class Destruction {
       tone: ball.tone,
       size: 34,
       text: `+${group.points}`,
+      danger: group.rival,
     });
+    if (group.groove > 1) {
+      this.labels.push({
+        x: group.centre.x + 74,
+        y: group.centre.y - 34,
+        life: LABEL_LIFE,
+        maxLife: LABEL_LIFE,
+        tone: 3,
+        size: 34,
+        text: `♪×${group.groove}`,
+        coloured: true,
+      });
+    }
     if (depth > 1) {
       this.labels.push({
         x: group.centre.x,

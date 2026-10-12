@@ -1,7 +1,18 @@
 import type { RandomSource } from '../core/Random';
 import type { Tone } from '../chain/Ball';
 import { Vec2 } from '../geometry/Vec2';
+import type { Side } from '../objectives/Objective';
 import { Projectile } from './Projectile';
+
+export interface ShooterOptions {
+  /**
+   * The player picks the colour (Puzzle): "swap" goes to the next colour on
+   * the track, and the loaded colour stays loaded after a shot.
+   */
+  readonly choosing?: boolean;
+  /** Whose shooter it is; its projectiles carry it. */
+  readonly side?: Side;
+}
 
 /**
  * The launcher: where it stands, where it aims, the ball loaded and the next
@@ -25,11 +36,27 @@ export class Shooter {
     private readonly projectileSpeed: number,
     private readonly cooldown: number,
     available: readonly Tone[],
+    private readonly options: ShooterOptions = {},
   ) {
     if (available.length === 0) throw new RangeError('The shooter needs at least one colour');
     this.positionValue = position;
-    this.currentTone = this.draw(available);
-    this.nextTone = this.draw(available);
+    if (options.choosing) {
+      this.currentTone = available[0]!;
+      this.nextTone = Shooter.following(this.currentTone, available);
+    } else {
+      this.currentTone = this.draw(available);
+      this.nextTone = this.draw(available);
+    }
+  }
+
+  /** The colour after `tone` among those available, in order, wrapping around. */
+  private static following(tone: Tone, available: readonly Tone[]): Tone {
+    const index = available.indexOf(tone);
+    return available[(index + 1) % available.length] ?? tone;
+  }
+
+  get side(): Side {
+    return this.options.side ?? 'player';
   }
 
   get position(): Vec2 {
@@ -68,7 +95,13 @@ export class Shooter {
     if (this.target) this.aimAt(this.target);
   }
 
-  swap(): void {
+  /** Swaps the loaded and next balls; when choosing, loads the next colour on the track. */
+  swap(available: readonly Tone[] = []): void {
+    if (this.options.choosing && available.length > 0) {
+      this.currentTone = Shooter.following(this.currentTone, available);
+      this.nextTone = Shooter.following(this.currentTone, available);
+      return;
+    }
     [this.currentTone, this.nextTone] = [this.nextTone, this.currentTone];
     if (this.pinned) this.pinned = this.pinned === 'current' ? 'next' : 'current';
   }
@@ -91,22 +124,34 @@ export class Shooter {
   /** Launches the loaded ball, or returns null while reloading. */
   fire(available: readonly Tone[]): Projectile | null {
     if (!this.ready) return null;
+    // The rival's shots count down, so no two projectiles share an id.
+    const id = this.side === 'rival' ? -++this.shots : ++this.shots;
     const projectile = new Projectile(
-      ++this.shots,
+      id,
       this.currentTone,
       this.position,
       Vec2.fromAngle(this.angleValue, this.projectileSpeed),
+      this.side,
     );
+    this.cooldownLeft = this.cooldown;
+    if (this.options.choosing) {
+      this.refresh(available);
+      return projectile;
+    }
     this.currentTone = this.nextTone;
     this.nextTone = this.draw(available);
     this.pinned = this.pinned === 'next' ? 'current' : null;
-    this.cooldownLeft = this.cooldown;
     return projectile;
   }
 
   /** Replaces loaded colours that have left the track. */
   refresh(available: readonly Tone[]): void {
     if (available.length === 0) return;
+    if (this.options.choosing) {
+      if (!available.includes(this.currentTone)) this.currentTone = available[0]!;
+      this.nextTone = Shooter.following(this.currentTone, available);
+      return;
+    }
     if (this.pinned !== 'current' && !available.includes(this.currentTone)) {
       this.currentTone = this.draw(available);
     }
