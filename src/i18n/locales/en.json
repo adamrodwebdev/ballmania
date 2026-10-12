@@ -121,10 +121,14 @@
     "reaction": "When two pieces of the same colour meet, they explode in turn: that's a chain reaction.",
     "colours": "A fourth colour joins the game.",
     "twin": "Two chains at once: watch both holes.",
-    "colossus": "The Colossus pushes the chain: blow up balls right next to it to hurt it."
+    "colossus": "The Colossus pushes the chain: blow up balls right next to it to hurt it.",
+    "ricochet": "Walls bounce your shots back. A ball hit after one rebound is worth ×2, after two ×3.",
+    "prism": "Prisms bounce shots too: follow the aim line, it shows every rebound.",
+    "spin": "These prisms turn: wait for the right angle before you shoot."
   },
   "colossus": {
-    "name": "Stellar Colossus"
+    "nebula": "Stellar Colossus",
+    "neon": "Prism Colossus"
   },
   "player": {
     "balance": "{count} shards",
@@ -216,6 +220,10 @@
       "balls-2000": {
         "name": "Wrecker",
         "text": "Destroy {target} balls in total."
+      },
+      "bank-shot": {
+        "name": "Bank shot",
+        "text": "Blow up a group after {target} bounces."
       },
       "no-swap": {
         "name": "No safety net",

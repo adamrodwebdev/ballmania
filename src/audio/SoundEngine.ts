@@ -93,6 +93,13 @@ export class SoundEngine {
     });
   }
 
+  /** A shot bouncing off a mirror: a glassy ping, higher at each rebound. */
+  rebound(bounces: number): void {
+    this.play((ctx, out, now) => {
+      this.bell(ctx, out, now, semitones(1318, 3 * Math.min(bounces - 1, 4)), 0.25, 0.12);
+    });
+  }
+
   /** A blow on the Colossus: a heavy, metallic hit. */
   colossusHit(): void {
     this.play((ctx, out, now) => {

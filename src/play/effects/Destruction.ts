@@ -12,6 +12,8 @@ export interface Burst {
   readonly tones: readonly Tone[];
   readonly points: number;
   readonly depth: number;
+  /** Mirrors the shot bounced off (0 when none). */
+  readonly bounces?: number;
 }
 
 /** A shock wave, in board units, for the distortion pass. */
@@ -45,6 +47,7 @@ interface Group {
   readonly size: number;
   readonly centre: Vec2;
   readonly points: number;
+  readonly bounces: number;
   shattered: boolean;
 }
 
@@ -80,6 +83,8 @@ interface Fading {
   readonly tone: Tone;
   readonly size: number;
   readonly text?: string;
+  /** A bank-shot multiplier, drawn with a rebound arrow. */
+  readonly ricochet?: boolean;
 }
 
 interface LiveWave {
@@ -173,6 +178,7 @@ export class Destruction {
       size: burst.positions.length,
       centre: middle,
       points: burst.points,
+      bounces: burst.bounces ?? 0,
       shattered: false,
     });
     burst.positions.forEach((position, i) => {
@@ -348,10 +354,33 @@ export class Destruction {
     for (const label of this.labels) {
       ctx.globalAlpha = Math.min(1, label.life / (LABEL_LIFE * 0.5));
       ctx.font = `800 ${label.size}px system-ui, sans-serif`;
+      ctx.fillStyle = label.ricochet ? palette.tone(label.tone) : palette.text;
       ctx.strokeText(label.text ?? '', label.x, label.y);
       ctx.fillText(label.text ?? '', label.x, label.y);
+      if (label.ricochet)
+        this.drawReboundArrow(ctx, label.x - label.size * 1.2, label.y, label.size * 0.36);
     }
     ctx.globalAlpha = 1;
+  }
+
+  /** A circular arrow: the sign of a bank shot, drawn rather than typed. */
+  private drawReboundArrow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+    ctx.save();
+    ctx.lineWidth = r * 0.45;
+    ctx.strokeStyle = ctx.fillStyle;
+    ctx.beginPath();
+    ctx.arc(x, y, r, Math.PI * 0.2, Math.PI * 1.7);
+    ctx.stroke();
+    const tip = Math.PI * 1.7;
+    const tx = x + Math.cos(tip) * r;
+    const ty = y + Math.sin(tip) * r;
+    ctx.beginPath();
+    ctx.moveTo(tx + r * 0.55, ty - r * 0.05);
+    ctx.lineTo(tx - r * 0.1, ty - r * 0.55);
+    ctx.lineTo(tx - r * 0.1, ty + r * 0.45);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 
   /** Swelling balls with white cracks, bound by flickering arcs. */
@@ -505,6 +534,25 @@ export class Destruction {
         text: `×${depth}`,
       });
     }
+    if (group.bounces > 0) {
+      this.labels.push({
+        x: group.centre.x + 70,
+        y: group.centre.y - 34,
+        life: LABEL_LIFE,
+        maxLife: LABEL_LIFE,
+        tone: 3,
+        size: 34,
+        text: `×${group.bounces + 1}`,
+        ricochet: true,
+      });
+    }
+  }
+
+  /** A shot bounced off a mirror: a small flash where it touched. */
+  rebound(at: Vec2, tone: Tone): void {
+    this.rings.push({ x: at.x, y: at.y, life: 0.25, maxLife: 0.25, tone, size: 1.2 });
+    const count = Math.min(4, this.budget());
+    for (let i = 0; i < count; i++) this.addSpark(at.x, at.y, tone, 0.6);
   }
 
   private addSpark(x: number, y: number, tone: Tone, power: number): void {

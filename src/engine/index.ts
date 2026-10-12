@@ -20,6 +20,15 @@ export {
 } from './Game';
 export { Vec2 } from './geometry/Vec2';
 export { Path, type CubicSegment } from './path/Path';
+export { Segment } from './geometry/Segment';
+export {
+  Prism,
+  Reflectors,
+  Wall,
+  type Bounce,
+  type Reflector,
+  type ReflectorSetup,
+} from './reflectors/Reflectors';
 export { ColossusObjective, type ColossusSetup } from './objectives/ColossusObjective';
 export { ClearObjective, type Objective, type ObjectiveContext } from './objectives/Objective';
 export { Scoring } from './Scoring';

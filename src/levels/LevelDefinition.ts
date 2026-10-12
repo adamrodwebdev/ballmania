@@ -1,6 +1,7 @@
 import type { ChainParams } from '@/engine/chain/Chain';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import type { LevelSetup } from '@/engine/Game';
+import type { ReflectorSetup } from '@/engine/reflectors/Reflectors';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Path } from '@/engine/path/Path';
 
@@ -13,6 +14,18 @@ export type PathDefinition =
       readonly kind: 'curves';
       readonly start: Point;
       readonly segments: readonly (readonly [c1: Point, c2: Point, to: Point])[];
+    };
+
+/** A mirror as data, in board units (Neon world). */
+export type ReflectorDefinition =
+  | { readonly kind: 'wall'; readonly from: Point; readonly to: Point }
+  | {
+      readonly kind: 'prism';
+      readonly at: Point;
+      readonly radius: number;
+      readonly sides: number;
+      readonly angle: number;
+      readonly spin: number;
     };
 
 export interface ChainDefinition {
@@ -40,6 +53,7 @@ export interface LevelDefinition {
   readonly fireCooldown?: number;
   readonly parTime?: number;
   readonly colossus?: ColossusSetup;
+  readonly reflectors?: readonly ReflectorDefinition[];
 }
 
 export const LEVEL_DEFAULTS = {
@@ -82,7 +96,16 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     fireCooldown: level.fireCooldown ?? LEVEL_DEFAULTS.fireCooldown,
     ...(level.parTime === undefined ? {} : { parTime: level.parTime }),
     ...(level.colossus ? { colossus: level.colossus } : {}),
+    ...(level.reflectors ? { reflectors: level.reflectors.map(toReflectorSetup) } : {}),
   };
+}
+
+function toReflectorSetup(reflector: ReflectorDefinition): ReflectorSetup {
+  if (reflector.kind === 'wall') {
+    return { kind: 'wall', from: toVec(reflector.from), to: toVec(reflector.to) };
+  }
+  const { radius, sides, angle, spin } = reflector;
+  return { kind: 'prism', centre: toVec(reflector.at), radius, sides, angle, spin };
 }
 
 /**

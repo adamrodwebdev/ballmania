@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                  |
-| ------- | ---------- | --------------------------------------- |
-| 0.8     | 12/10/2026 | Lot 5 livré (progression, défi du jour) |
+| Version | Date       | Statut                               |
+| ------- | ---------- | ------------------------------------ |
+| 0.9     | 12/10/2026 | Lot 6 livré (monde 2 Néon, ricochet) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -95,6 +95,8 @@ Différenciation :
   plateau ou ne fait rien exploser casse la série. **Bonus de fin de niveau** (lot 4) :
   300 points, plus 10 points par seconde gagnée sous le temps de référence du niveau (55 %
   du temps que mettrait la chaîne à atteindre le trou sans être touchée).
+  **Ricochet** (lot 6) : un tir qui a rebondi sur n miroirs multiplie les points de ses
+  billes par n + 1 (la série s'ajoute ensuite sans multiplicateur).
 - La chaîne générée ne contient jamais de groupe déjà explosif (suites limitées à 2 billes
   de même couleur) : chaque explosion est l'œuvre du joueur.
 - Tout l'aléatoire passe par un **générateur à graine** : une partie se rejoue à l'identique
@@ -180,8 +182,43 @@ Deux portes d'entrée depuis l'accueil :
   billes × 48 + 700, arrondis à 50 (le Colosse compte pour un tiers de ses points de vie en
   billes). Le robot obtient en moyenne entre 1 et 2 étoiles ; la 3ᵉ demande des réactions
   en chaîne. **À affiner en tests joueurs.**
-- La carte de campagne présente les six mondes ; les mondes 2 à 6 sont annoncés
+- La carte de campagne présente les six mondes ; les mondes 3 à 6 sont annoncés
   (« bientôt ») avec leur mécanique.
+
+#### Monde 2 « Néon », livré au lot 6
+
+- **Miroirs** : murs (segments) et prismes (polygones réguliers, fixes ou tournants) qui
+  renvoient les tirs selon la loi de la réflexion. Ils sont décrits en fractions du
+  plateau et placés **hors du tracé** (coins des spirales, côtés et coins bas des
+  serpentins) : un tir direct reste toujours possible, le tir en bande est la récompense.
+  Les tests de géométrie vérifient, sur les deux plateaux, qu'ils restent dans le plateau,
+  à distance du tracé (y compris le disque balayé par un prisme qui tourne) et du lanceur.
+- **Ligne de visée** : elle suit les rebonds (jusqu'à 2) et marque chaque point d'impact ;
+  elle est calculée par la même règle de rebond que les tirs, elle ne ment jamais.
+- Au-delà de 6 rebonds, la bille se brise (tir manqué) : pas de ping-pong sans fin.
+- Retour visuel et sonore : étincelles et anneau au rebond, « ping » qui monte d'un cran à
+  chaque rebond, étiquette « ×n » avec flèche de rebond sur l'explosion.
+
+| Niveau | Tracé                          | Miroirs                             | Billes        | Couleurs | Vitesse | Conseil            |
+| ------ | ------------------------------ | ----------------------------------- | ------------- | -------- | ------- | ------------------ |
+| 1      | Spirale 1,3 tour               | 4 murs d'angle                      | 34            | 4        | 34      | Ricochet           |
+| 2      | Serpentin 3 rangées            | Murs latéraux                       | 38            | 4        | 38      | —                  |
+| 3      | Spirale arrondie, sens inverse | 4 prismes carrés fixes              | 40            | 4        | 46      | Prismes            |
+| 4      | Double spirale                 | 4 murs d'angle                      | 2 × 26        | 4        | 40      | —                  |
+| 5      | Serpentin 4 rangées            | Murs latéraux + 2 prismes tournants | 48            | 4        | 50      | Prismes tournants  |
+| 6      | Spirale 1,4 tour (respiration) | 4 murs d'angle                      | 40            | 4        | 38      | —                  |
+| 7      | Spirale carrée, sens inverse   | 4 prismes tournants                 | 48            | 4        | 60      | —                  |
+| 8      | Serpentin 3 rangées            | Murs latéraux + 2 prismes tournants | 40            | 5        | 44      | —                  |
+| 9      | Double spirale                 | 4 prismes tournants                 | 2 × 30        | 4        | 46      | —                  |
+| 10     | Spirale arrondie (respiration) | 4 murs d'angle                      | 46            | 4        | 44      | —                  |
+| 11     | Spirale carrée 1,7 tour        | 4 prismes triangulaires tournants   | 56            | 5        | 62      | —                  |
+| 12     | Spirale + **Colosse prisme**   | 4 prismes tournants                 | 28 + renforts | 4        | 24      | Blesser le Colosse |
+
+- **Équilibrage** (robot occasionnel, qui ne cherche jamais le rebond) : tous les niveaux
+  gagnés au moins 4 fois sur 6 ; pression de 40 à 78 % selon les niveaux, respirations
+  aux niveaux 6 et 10 ; le Colosse prisme (66 points de vie) reste le niveau le plus tendu
+  du jeu. Les joueurs qui exploitent les rebonds marquent nettement plus.
+- Terminer la Nébuleuse ouvre le monde Néon (et débloque son plateau, § 3.6).
 
 #### Modes et mécaniques (v0.1)
 
@@ -336,7 +373,8 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 Un objet acheté est aussitôt équipé. Le plateau choisi habille tous les niveaux et le défi
 du jour ; « Celui du monde » suit le monde joué.
 
-**13 objectifs** (compteurs à vie) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
+**14 objectifs** (compteurs à vie ; « tir en bande » ajouté au lot 6 : faire exploser un
+groupe après 2 rebonds, 60 éclats) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
 5 et 10 tirs réussis d'affilée (40, 100), 500 et 2 000 billes détruites (50, 120), gagner
 sans échanger (40), gagner alors que la chaîne a dépassé 90 % du tracé (50), 3 étoiles sur
 5 niveaux (80), vaincre le Colosse (100), jouer le défi 3 jours (60), terminer la Nébuleuse
@@ -589,6 +627,17 @@ Le son et les vibrations sont partagés par toutes les parties de la visite
 `resolveLevel` (géométrie d'un niveau) a quitté `campaign.ts` : l'accueil n'embarque plus
 le moteur de tracés.
 
+### 5.8 Miroirs (livrés au lot 6)
+
+| Élément                                                   | Responsabilité                                                                       |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `Segment`                                                 | Segment immuable : point le plus proche, distance, normale                           |
+| `Reflector`, `Wall`, `Prism`                              | Miroirs ; le prisme se reconstruit quand il tourne                                   |
+| `Reflectors`                                              | Ensemble des miroirs ; `bounce` (cercle contre segments) sert aux tirs et à la visée |
+| `Projectile` (ajouts)                                     | Vitesse modifiable, nombre de rebonds                                                |
+| `Game.aimPath`                                            | Ligne de visée avec rebonds, calculée par le moteur                                  |
+| `MirrorRecipe` → `ReflectorDefinition` → `ReflectorSetup` | Miroirs en fractions du plateau, puis en unités, puis pour le moteur                 |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -623,7 +672,8 @@ le moteur de tracés.
 | 3 ✅ | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités                |
 | 4 ✅ | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                |
 | 5 ✅ | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance |
-| 6–10 | Mondes 2 à 6 (une mécanique et un thème par lot), modes Arcade intercalés                     |
+| 6 ✅ | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                     |
+| 7–10 | Mondes 3 à 6 (une mécanique et un thème par lot), modes Arcade intercalés                     |
 | 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
 | 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
 | 13   | Démo portfolio                                                                                |
@@ -648,3 +698,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                |
 | 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                       |
 | 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7). |
+| 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                               |

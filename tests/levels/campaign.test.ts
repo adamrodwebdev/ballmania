@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Game } from '@/engine/Game';
+import { Prism } from '@/engine/reflectors/Reflectors';
 import { SeededRandom } from '@/engine/core/Random';
 import {
   CAMPAIGN,
@@ -16,7 +17,7 @@ import { FRAMES, frameFor } from '@/levels/tracks';
 const SHOOTER_RADIUS = 58;
 
 describe('campaign', () => {
-  it('has six worlds; the first one has twelve levels ending with a Colossus', () => {
+  it('has six worlds; Nebula and Neon have twelve levels ending with a Colossus', () => {
     expect(WORLDS.map((world) => world.id)).toEqual([
       'nebula',
       'neon',
@@ -25,17 +26,25 @@ describe('campaign', () => {
       'volcano',
       'singularity',
     ]);
-    const nebula = WORLDS[0]!.levels;
-    expect(nebula).toHaveLength(12);
-    expect(nebula.map((level) => level.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    expect(nebula[11]!.colossus).toBeDefined();
-    expect(nebula.slice(0, 11).every((level) => !level.colossus)).toBe(true);
+    for (const world of WORLDS.slice(0, 2)) {
+      expect(world.levels).toHaveLength(12);
+      expect(world.levels.map((level) => level.number)).toEqual([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+      ]);
+      expect(world.levels.every((level) => level.world === world.id)).toBe(true);
+      expect(world.levels[11]!.colossus).toBeDefined();
+      expect(world.levels.slice(0, 11).every((level) => !level.colossus)).toBe(true);
+    }
+    // Every Neon level has mirrors; Nebula has none.
+    expect(WORLDS[1]!.levels.every((level) => (level.mirrors?.length ?? 0) > 0)).toBe(true);
+    expect(WORLDS[0]!.levels.every((level) => !level.mirrors)).toBe(true);
   });
 
   it('finds levels and their successor', () => {
     const first = findLevel('nebula-01')!;
     expect(nextLevel(first)?.id).toBe('nebula-02');
-    expect(nextLevel(findLevel('nebula-12')!)).toBeUndefined();
+    expect(nextLevel(findLevel('nebula-12')!)?.id).toBe('neon-01');
+    expect(nextLevel(findLevel('neon-12')!)).toBeUndefined();
     expect(findLevel('nope')).toBeUndefined();
   });
 
@@ -94,6 +103,36 @@ describe.each(Object.values(FRAMES))('geometry on the $kind board', (frame) => {
           a.point.distanceTo(b.point),
           `${a.track}:${a.i} / ${b.track}:${b.i}`,
         ).toBeGreaterThan(radius * 2 + 10);
+      }
+    }
+
+    // Mirrors stay on the board, clear of the tracks and of the shooter.
+    const game = new Game(setup, SeededRandom.fromString('mirrors'));
+    for (const reflector of game.reflectors.items) {
+      for (const segment of reflector.segments) {
+        for (const end of [segment.a, segment.b]) {
+          expect(end.x).toBeGreaterThanOrEqual(0);
+          expect(end.x).toBeLessThanOrEqual(frame.width);
+          expect(end.y).toBeGreaterThanOrEqual(0);
+          expect(end.y).toBeLessThanOrEqual(frame.height);
+        }
+        expect(segment.distanceTo(setup.shooter)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
+        for (const points of samples) {
+          for (const point of points.slice(16)) {
+            expect(segment.distanceTo(point), reflector.kind).toBeGreaterThan(radius * 2 + 10);
+          }
+        }
+      }
+    }
+    // A turning prism sweeps a disc: keep that disc clear too.
+    for (const reflector of game.reflectors.items) {
+      if (!(reflector instanceof Prism) || reflector.spin === 0) continue;
+      for (const points of samples) {
+        for (const point of points.slice(16)) {
+          expect(point.distanceTo(reflector.centre)).toBeGreaterThan(
+            reflector.radius + radius + 10,
+          );
+        }
       }
     }
 

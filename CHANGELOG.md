@@ -43,3 +43,6 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   Nébuleuse) avec aperçus ; 13 objectifs ; défi du jour identique pour tous, premier essai
   compté, résultat partageable ; aide proposée après 3 défaites d'affilée ; accueil
   remanié (solde, défi, atelier, objectifs) ; langues chargées à la demande.
+- Lot 6, monde 2 « Néon » : murs et prismes (fixes ou tournants) qui renvoient les tirs,
+  points multipliés par 1 + rebonds, ligne de visée qui suit les rebonds, 12 niveaux dont
+  le Colosse prisme, objectif « tir en bande », sons et étincelles de rebond.

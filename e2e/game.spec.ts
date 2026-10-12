@@ -188,7 +188,7 @@ test.describe('progression', () => {
 
   test('lists the goals with their progress', async ({ page }) => {
     await page.goto('./');
-    await expect(page.getByTestId('achievements')).toContainText('1 / 13 reached');
+    await expect(page.getByTestId('achievements')).toContainText('1 / 14 reached');
     await page.getByTestId('achievements').click();
     await expect(page.getByTestId('achievement-first-win')).toContainText('Reached');
     await expect(page.getByTestId('achievement-colossus')).toContainText('+100 shards');
@@ -234,4 +234,24 @@ test('offers help after three failures in a row on a level', async ({ page }) =>
   await dialog.getByTestId('assist').click();
   await expect(dialog).toBeHidden();
   await expect(page.getByTestId('assisted')).toHaveText('Help on');
+});
+
+test('opens the Neon world once the Nebula is finished, up to the Prism Colossus', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+    const levels: Record<string, { stars: number; best: number }> = {};
+    for (let i = 1; i <= 12; i++) {
+      levels[`nebula-${String(i).padStart(2, '0')}`] = { stars: 1, best: 1 };
+      if (i < 12) levels[`neon-${String(i).padStart(2, '0')}`] = { stars: 1, best: 1 };
+    }
+    localStorage.setItem('ballmania:progress', JSON.stringify({ version: 1, levels }));
+  });
+  await page.goto('./');
+  await page.getByTestId('play').click();
+  await expect(page.getByTestId('level-neon-01')).toBeEnabled();
+  await page.getByTestId('level-neon-12').click();
+  await expect(page.getByTestId('level')).toHaveText('2-12');
+  await expect(page.getByText('Prism Colossus')).toBeVisible();
 });

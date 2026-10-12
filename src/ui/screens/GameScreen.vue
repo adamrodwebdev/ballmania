@@ -291,7 +291,7 @@ const quit = () => emit('quit');
         </svg>
       </button>
       <label v-if="hud?.colossus" class="colossus">
-        <span>{{ t('colossus.name') }}</span>
+        <span>{{ t(`colossus.${level.world}`) }}</span>
         <progress
           class="health"
           :max="hud.colossus.maxHp"
