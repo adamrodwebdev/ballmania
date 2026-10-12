@@ -28,8 +28,8 @@ export interface Scene {
   readonly game: Game;
   readonly motion: BallMotion;
   readonly destruction: Destruction;
-  /** Where the aim line stops (first ball it meets), or null to hide it. */
-  readonly aimEnd: Vec2 | null;
+  /** The aim line: shooter, each rebound, then the first ball it meets; null to hide it. */
+  readonly aimPath: readonly Vec2[] | null;
   /** Seconds since the session started, for pulsing details. */
   readonly time: number;
   /** White flash of the Colossus when it is hit, from 1 down to 0. */
@@ -133,7 +133,8 @@ export class CanvasRenderer implements Renderer {
     this.time = scene.time;
     const radius = game.setup.chain.ballRadius;
     for (const chain of game.chains) this.drawTrack(chain, radius);
-    if (scene.aimEnd) this.drawAim(scene.aimEnd, radius);
+    this.drawReflectors(scene.time);
+    if (scene.aimPath) this.drawAim(scene.aimPath, radius);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
     game.chains.forEach((chain) => this.drawColossus(chain, scene));
     this.drawTrails(radius);
@@ -291,20 +292,68 @@ export class CanvasRenderer implements Renderer {
     if (sprite) this.ctx.drawImage(sprite, at.x - radius, at.y - radius, radius * 2, radius * 2);
   }
 
-  private drawAim(end: Vec2, radius: number): void {
+  private drawAim(path: readonly Vec2[], radius: number): void {
     const { ctx, palette } = this;
     const from = this.game.shooter.position;
     ctx.save();
     ctx.setLineDash([4, 18]);
     ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.lineWidth = 6;
     ctx.strokeStyle = palette.tone(this.game.shooter.current);
     ctx.globalAlpha = 0.6;
     const start = from.add(Vec2.fromAngle(this.game.shooter.angle, SHOOTER_RADIUS + radius));
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
-    ctx.lineTo(end.x, end.y);
+    for (const point of path.slice(1)) ctx.lineTo(point.x, point.y);
     ctx.stroke();
+    // A dot on each rebound, so a bank shot reads at a glance.
+    ctx.setLineDash([]);
+    ctx.fillStyle = palette.tone(this.game.shooter.current);
+    for (const point of path.slice(1, -1)) {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /** Mirrors as glowing neon tubes; prisms as lit glass. */
+  private drawReflectors(time: number): void {
+    const { ctx, palette } = this;
+    const items = this.game.reflectors.items;
+    if (items.length === 0) return;
+    const glow = palette.tone(3);
+    const prismTone = palette.tone(5);
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const item of items) {
+      const colour = item.kind === 'wall' ? glow : prismTone;
+      ctx.beginPath();
+      item.segments.forEach((segment, i) => {
+        if (i === 0) ctx.moveTo(segment.a.x, segment.a.y);
+        ctx.lineTo(segment.b.x, segment.b.y);
+      });
+      if (item.kind === 'prism') {
+        ctx.closePath();
+        ctx.globalAlpha = 0.18 + 0.06 * Math.sin(time * 3);
+        ctx.fillStyle = colour;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = colour;
+      ctx.lineWidth = 16;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ctx.strokeStyle = palette.dark ? '#ffffff' : colour;
+      ctx.globalAlpha = palette.dark ? 0.85 : 1;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
     ctx.restore();
   }
 

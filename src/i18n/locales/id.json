@@ -121,10 +121,14 @@
     "reaction": "Saat dua bagian berwarna sama bertemu, keduanya ikut meledak: itulah reaksi berantai.",
     "colours": "Warna keempat ikut bermain.",
     "twin": "Dua rantai sekaligus: awasi kedua lubang.",
-    "colossus": "Kolosus mendorong rantai: ledakkan bola tepat di dekatnya untuk melukainya."
+    "colossus": "Kolosus mendorong rantai: ledakkan bola tepat di dekatnya untuk melukainya.",
+    "ricochet": "Dinding memantulkan tembakanmu. Bola yang kena setelah satu pantulan bernilai ×2, setelah dua pantulan ×3.",
+    "prism": "Prisma juga memantulkan tembakan: ikuti garis bidik, garis itu menunjukkan setiap pantulan.",
+    "spin": "Prisma ini berputar: tunggu sudut yang tepat sebelum menembak."
   },
   "colossus": {
-    "name": "Kolosus Bintang"
+    "nebula": "Kolosus Bintang",
+    "neon": "Kolosus Prisma"
   },
   "player": {
     "balance": "{count} kepingan",
@@ -216,6 +220,10 @@
       "balls-2000": {
         "name": "Perusak",
         "text": "Hancurkan total {target} bola."
+      },
+      "bank-shot": {
+        "name": "Tembakan pantul",
+        "text": "Ledakkan satu kelompok setelah {target} pantulan."
       },
       "no-swap": {
         "name": "Tanpa jaring",

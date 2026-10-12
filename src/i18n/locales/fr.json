@@ -121,10 +121,14 @@
     "reaction": "Quand deux morceaux de même couleur se rejoignent, ils explosent à leur tour : c'est la réaction en chaîne.",
     "colours": "Une quatrième couleur entre en jeu.",
     "twin": "Deux chaînes à la fois : surveillez les deux trous.",
-    "colossus": "Le Colosse pousse la chaîne : faites exploser des billes tout près de lui pour le blesser."
+    "colossus": "Le Colosse pousse la chaîne : faites exploser des billes tout près de lui pour le blesser.",
+    "ricochet": "Les murs renvoient vos tirs. Une bille touchée après un rebond vaut ×2, après deux rebonds ×3.",
+    "prism": "Les prismes renvoient aussi les tirs : suivez la ligne de visée, elle montre chaque rebond.",
+    "spin": "Ces prismes tournent : attendez le bon angle avant de tirer."
   },
   "colossus": {
-    "name": "Colosse stellaire"
+    "nebula": "Colosse stellaire",
+    "neon": "Colosse prisme"
   },
   "player": {
     "balance": "{count} éclats",
@@ -216,6 +220,10 @@
       "balls-2000": {
         "name": "Démolisseur",
         "text": "Détruire {target} billes en tout."
+      },
+      "bank-shot": {
+        "name": "Tir en bande",
+        "text": "Faire exploser un groupe après {target} rebonds."
       },
       "no-swap": {
         "name": "Sans filet",

@@ -3,10 +3,11 @@ import { Chain, type ChainParams, type Explosion, type ExplosionCause } from './
 import { ChainGenerator, type ChainRecipe } from './chain/ChainGenerator';
 import { Emitter } from './core/Emitter';
 import type { RandomSource } from './core/Random';
-import type { Vec2 } from './geometry/Vec2';
+import { Vec2 } from './geometry/Vec2';
 import { ColossusObjective, type ColossusSetup } from './objectives/ColossusObjective';
 import { ClearObjective, type Objective, type ObjectiveContext } from './objectives/Objective';
 import type { Path } from './path/Path';
+import { Reflectors, type ReflectorSetup } from './reflectors/Reflectors';
 import { Scoring } from './Scoring';
 import type { Projectile, ProjectileView } from './shooter/Projectile';
 import { Shooter } from './shooter/Shooter';
@@ -30,6 +31,8 @@ export interface LevelSetup {
   readonly colossus?: ColossusSetup;
   /** Seconds under which finishing earns a speed bonus. */
   readonly parTime?: number;
+  /** Mirrors shots bounce off (Neon world). */
+  readonly reflectors?: readonly ReflectorSetup[];
 }
 
 export type GameState = 'playing' | 'won' | 'lost';
@@ -42,6 +45,8 @@ export interface GameReport {
   readonly ballsDestroyed: number;
   readonly bestDepth: number;
   readonly bestStreak: number;
+  /** Most mirrors a successful shot bounced off. */
+  readonly bestBounce: number;
   readonly swaps: number;
   /** Furthest any chain head got, as a share of its track (1 = the hole). */
   readonly danger: number;
@@ -51,6 +56,7 @@ export interface GameReport {
 /** Domain events: rendering, sound and vibrations subscribe; the engine knows none of them. */
 export interface GameEvents {
   fired: { readonly projectile: ProjectileView };
+  bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
   inserted: { readonly chain: number; readonly ball: BallView; readonly from: Vec2 };
   missed: { readonly projectile: ProjectileView };
   exploded: {
@@ -62,6 +68,8 @@ export interface GameEvents {
     readonly depth: number;
     readonly points: number;
     readonly streak: number;
+    /** Mirrors the shot bounced off before landing (0 for chain reactions). */
+    readonly bounces: number;
   };
   colossusHit: {
     readonly hp: number;
@@ -75,6 +83,9 @@ export interface GameEvents {
 
 /** Fixed simulation step: the same inputs always give the same game, at any frame rate. */
 export const STEP = 1 / 120;
+/** A shot that bounced this many times shatters: no endless ping-pong. */
+export const MAX_BOUNCES = 6;
+
 /** Longest frame simulated at once (a tab coming back from the background). */
 const MAX_FRAME = 0.25;
 
@@ -92,6 +103,7 @@ export class Game {
   private readonly objective: Objective;
   private readonly context: ObjectiveContext;
   private readonly generator: ChainGenerator;
+  readonly reflectors: Reflectors;
   private accumulator = 0;
   private elapsedValue = 0;
   private stateValue: GameState = 'playing';
@@ -111,6 +123,7 @@ export class Game {
         setup.chain,
       ),
     );
+    this.reflectors = new Reflectors(setup.reflectors ?? []);
     this.context = this.createContext();
     this.objective = setup.colossus ? new ColossusObjective(setup.colossus) : new ClearObjective();
     this.objective.start(this.context);
@@ -156,6 +169,35 @@ export class Game {
     return this.flying;
   }
 
+  /**
+   * Where the loaded ball would go: the shooter, each mirror it bounces off
+   * (up to `maxBounces`), and the point where it touches a ball or gives up.
+   * Uses the projectiles' own bounce rule, so the line never lies.
+   */
+  aimPath(maxBounces = 2, reach = 1800, step = 12, skip = 80): Vec2[] {
+    const radius = this.setup.chain.ballRadius;
+    let position = this.shooter.position;
+    let velocity = Vec2.fromAngle(this.shooter.angle);
+    const points = [position];
+    let bounces = 0;
+    for (let travelled = 0; travelled < reach; travelled += step) {
+      position = position.add(velocity.scale(step));
+      const bounce = this.reflectors.bounce(position, velocity, radius);
+      if (bounce) {
+        position = bounce.position;
+        velocity = bounce.velocity;
+        points.push(position);
+        if (++bounces > maxBounces) return points;
+      }
+      if (travelled > skip && this.chains.some((chain) => chain.hitTest(position) !== null)) {
+        points.push(position);
+        return points;
+      }
+    }
+    points.push(position);
+    return points;
+  }
+
   aimAt(target: Vec2): void {
     this.shooter.aimAt(target);
   }
@@ -169,6 +211,7 @@ export class Game {
       ballsDestroyed: this.scoring.ballsDestroyed,
       bestDepth: this.scoring.bestDepth,
       bestStreak: this.scoring.bestStreak,
+      bestBounce: this.scoring.bestBounce,
       swaps: this.swaps,
       danger: this.danger,
       colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
@@ -204,6 +247,7 @@ export class Game {
   private step(dt: number): void {
     this.elapsedValue += dt;
     this.shooter.tick(dt);
+    this.reflectors.update(dt);
     this.moveProjectiles(dt);
     this.chains.forEach((chain, index) => {
       for (const explosion of chain.advance(dt)) this.report(index, chain, explosion);
@@ -221,6 +265,21 @@ export class Game {
     for (let i = this.flying.length - 1; i >= 0; i--) {
       const projectile = this.flying[i]!;
       projectile.move(dt);
+      const bounce = this.reflectors.bounce(
+        projectile.position,
+        projectile.velocity,
+        this.setup.chain.ballRadius,
+      );
+      if (bounce) {
+        projectile.bounce(bounce.position, bounce.velocity);
+        this.events.emit('bounced', { projectile, position: bounce.position });
+        if (projectile.bounces > MAX_BOUNCES) {
+          this.flying.splice(i, 1);
+          this.scoring.miss();
+          this.events.emit('missed', { projectile });
+          continue;
+        }
+      }
       if (this.land(projectile) || this.leave(projectile)) this.flying.splice(i, 1);
     }
   }
@@ -234,7 +293,7 @@ export class Game {
       const ball = this.balls.create(projectile.tone);
       const explosion = chain.insert(ball, hit);
       this.events.emit('inserted', { chain: index, ball, from: projectile.position });
-      if (explosion) this.report(index, chain, explosion);
+      if (explosion) this.report(index, chain, explosion, projectile.bounces);
       else this.scoring.miss();
       return true;
     }
@@ -252,11 +311,12 @@ export class Game {
     return true;
   }
 
-  private report(index: number, chain: Chain, explosion: Explosion): void {
+  private report(index: number, chain: Chain, explosion: Explosion, bounces = 0): void {
     const points = this.scoring.explosion(
       explosion.balls.length,
       explosion.depth,
       explosion.cause === 'shot',
+      bounces,
     );
     this.events.emit('exploded', {
       chain: index,
@@ -266,6 +326,7 @@ export class Game {
       depth: explosion.depth,
       points,
       streak: this.scoring.streak,
+      bounces,
     });
     this.objective.onExplosion(this.context, index, explosion);
   }

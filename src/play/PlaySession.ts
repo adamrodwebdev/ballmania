@@ -58,9 +58,6 @@ export interface Feedback {
 const RESULT_DELAY = 1.6;
 /** Speed at which a lost chain is swallowed by the hole, in units per second. */
 const DRAIN_SPEED = 1400;
-/** Longest aim line, in board units. */
-const AIM_REACH = 1600;
-const AIM_STEP = 12;
 /** Share of the track from which the heart starts beating. */
 const DANGER_FROM = 0.8;
 
@@ -229,6 +226,7 @@ export class PlaySession {
         tones: event.balls.map((ball) => ball.tone),
         points: event.points,
         depth: event.depth,
+        bounces: event.bounces,
       });
       sound.explode(event.balls.length, event.depth);
       haptics.explosion(event.depth);
@@ -238,6 +236,10 @@ export class PlaySession {
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
     });
     game.events.on('missed', () => (this.hud.streak = 0));
+    game.events.on('bounced', ({ projectile, position }) => {
+      this.destruction.rebound(position, projectile.tone);
+      sound.rebound(projectile.bounces);
+    });
     game.events.on('colossusHit', ({ hp, maxHp, position }) => {
       this.hud.colossus = { hp, maxHp };
       this.colossusFlash = 1;
@@ -343,7 +345,7 @@ export class PlaySession {
       game: this.game,
       motion: this.motion,
       destruction: this.destruction,
-      aimEnd: this.game.state === 'playing' ? this.aimEnd() : null,
+      aimPath: this.game.state === 'playing' ? this.game.aimPath() : null,
       time: this.time,
       colossusFlash: this.colossusFlash,
     });
@@ -363,17 +365,5 @@ export class PlaySession {
     const { current, next } = this.game.shooter;
     if (this.hud.current !== current) this.hud.current = current;
     if (this.hud.next !== next) this.hud.next = next;
-  }
-
-  /** First point along the aim where the shot would touch a ball, or the end of its reach. */
-  private aimEnd(): Vec2 {
-    const { shooter, chains } = this.game;
-    const direction = Vec2.fromAngle(shooter.angle);
-    let point = shooter.position;
-    for (let travelled = 0; travelled < AIM_REACH; travelled += AIM_STEP) {
-      point = shooter.position.add(direction.scale(travelled));
-      if (travelled > 80 && chains.some((chain) => chain.hitTest(point) !== null)) return point;
-    }
-    return point;
   }
 }

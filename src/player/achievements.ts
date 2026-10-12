@@ -5,6 +5,8 @@ export interface PlayerStats {
   readonly ballsDestroyed: number;
   readonly bestDepth: number;
   readonly bestStreak: number;
+  /** Most mirrors a successful shot bounced off. */
+  readonly bestBounce: number;
   readonly noSwapWins: number;
   /** Levels won after the chain came within 10 % of the hole. */
   readonly closeCalls: number;
@@ -22,6 +24,7 @@ export const EMPTY_STATS: PlayerStats = {
   ballsDestroyed: 0,
   bestDepth: 0,
   bestStreak: 0,
+  bestBounce: 0,
   noSwapWins: 0,
   closeCalls: 0,
   colossusDefeated: 0,
@@ -50,6 +53,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'streak-10', stat: 'bestStreak', target: 10, reward: 100 },
   { id: 'balls-500', stat: 'ballsDestroyed', target: 500, reward: 50 },
   { id: 'balls-2000', stat: 'ballsDestroyed', target: 2000, reward: 120 },
+  { id: 'bank-shot', stat: 'bestBounce', target: 2, reward: 60 },
   { id: 'no-swap', stat: 'noSwapWins', target: 1, reward: 40 },
   { id: 'close-call', stat: 'closeCalls', target: 1, reward: 50 },
   { id: 'three-stars-5', stat: 'threeStarLevels', target: 5, reward: 80 },
