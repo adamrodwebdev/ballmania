@@ -21,3 +21,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   tir et insertion, score avec profondeur de réaction et série, partie à pas fixe
   reproductible par graine, événements de domaine. 42 tests dont des invariants sur des
   parties aléatoires.
+- Lot 2, jeu jouable : écran de jeu chargé à la demande, rendu Canvas 2D (billes de verre
+  à symbole gravé, tracé, trou qui rougit à l'approche de la chaîne, lanceur, ligne de
+  visée), commandes souris, tactile (viser en glissant, tirer en relâchant, toucher le
+  lanceur pour échanger) et clavier, score et série, pause (aussi automatique en arrière-
+  plan), écran de fin, niveau de démonstration en données, annonces pour lecteurs d'écran.

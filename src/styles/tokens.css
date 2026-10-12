@@ -33,6 +33,13 @@
   --orb-rose: #e04fbf;
   --orb-shine: #ffffff;
 
+  --board-bg: #ebe7f8;
+  --track: #d9d2f0;
+  --track-edge: #c3b9e6;
+  --hole: #16122b;
+  --shooter: #ffffff;
+  --danger: #d4183d;
+
   --radius: 0.75rem;
   --radius-sm: 0.5rem;
   --shadow: 0 0.5rem 1.5rem rgb(22 18 43 / 0.12);
@@ -69,5 +76,32 @@
   --orb-violet: #9d7bff;
   --orb-rose: #f472d0;
 
+  --board-bg: #0c0a1c;
+  --track: #1a1636;
+  --track-edge: #2b2552;
+  --hole: #000000;
+  --shooter: #1d1a3a;
+  --danger: #ff4d6d;
+
   --shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.5);
+}
+
+/* Swatches of the ball colours, for the interface around the board. */
+.tone-0 {
+  background: var(--orb-ruby);
+}
+.tone-1 {
+  background: var(--orb-amber);
+}
+.tone-2 {
+  background: var(--orb-lime);
+}
+.tone-3 {
+  background: var(--orb-cyan);
+}
+.tone-4 {
+  background: var(--orb-violet);
+}
+.tone-5 {
+  background: var(--orb-rose);
 }

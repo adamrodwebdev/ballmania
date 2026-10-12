@@ -16,7 +16,9 @@
     "pitch": "Six worlds to conquer, chain explosions and modes you have never played.",
     "campaign": "Campaign",
     "arcade": "Arcade",
-    "soon": "Coming soon"
+    "soon": "Coming soon",
+    "play": "Play",
+    "demo": "Demo level"
   },
   "settings": {
     "language": "Language",
@@ -31,5 +33,25 @@
     "fr": "Français",
     "en": "English",
     "id": "Bahasa Indonesia"
+  },
+  "game": {
+    "board": "Game board",
+    "help": "Aim with the mouse or your finger, shoot by clicking or releasing. Keyboard: arrows to aim (Shift for precision), Space to shoot, X to swap, Escape to pause.",
+    "score": "Score",
+    "streak": "Streak ×{count}",
+    "pause": "Pause",
+    "swap": "Swap the balls",
+    "paused": "Game paused",
+    "resume": "Resume",
+    "restart": "Restart",
+    "quit": "Quit",
+    "won": "Chain destroyed!",
+    "lost": "The chain reached the hole",
+    "finalScore": "Score: {score}",
+    "bestDepth": "Best chain reaction: ×{depth}",
+    "playAgain": "Play again",
+    "home": "Home",
+    "reaction": "Chain reaction ×{depth}",
+    "loading": "Loading the game…"
   }
 }

@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut               |
-| ------- | ---------- | -------------------- |
-| 0.4     | 12/10/2026 | Lot 1 livré (moteur) |
+| Version | Date       | Statut                    |
+| ------- | ---------- | ------------------------- |
+| 0.5     | 12/10/2026 | Lot 2 livré (jeu jouable) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -160,16 +160,25 @@ complet), puis un monde par lot, les modes Arcade s'intercalant.
 
 ### 3.3 Commandes
 
-| Action                    | Souris / clavier             | Tactile                           |
-| ------------------------- | ---------------------------- | --------------------------------- |
-| Viser                     | Pointeur                     | Glisser le doigt (ligne de visée) |
-| Tirer                     | Clic gauche, Espace          | Relâcher le doigt                 |
-| Échanger bille / suivante | Clic droit, Tab, X           | Toucher le lanceur                |
-| Pause                     | Échap, P                     | Bouton pause (≥ 44 × 44 px)       |
-| Viser au clavier (a11y)   | Flèches gauche/droite (+Maj) | —                                 |
+| Action                    | Souris / clavier             | Tactile                                      |
+| ------------------------- | ---------------------------- | -------------------------------------------- |
+| Viser                     | Pointeur                     | Glisser le doigt (ligne de visée)            |
+| Tirer                     | Clic gauche, Espace          | Relâcher le doigt                            |
+| Échanger bille / suivante | Clic droit, X, C             | Toucher le lanceur ou le bouton « Échanger » |
+| Pause                     | Échap, P                     | Bouton pause (≥ 44 × 44 px)                  |
+| Viser au clavier (a11y)   | Flèches gauche/droite (+Maj) | —                                            |
 
 La visée tactile se fait **en relâchant**, jamais au toucher, pour qu'on puisse corriger
 avant de tirer. Aucune action n'est réservée au survol.
+
+Précisions du lot 2 :
+
+- **Tab n'échange pas** les billes : la touche reste réservée à la navigation au clavier.
+- Une **ligne de visée** pointillée, de la couleur de la bille chargée, s'arrête sur la
+  première bille qu'elle touche.
+- Les touches du jeu sont ignorées quand un champ ou un bouton a le focus (Espace active
+  alors le bouton, comme partout ailleurs).
+- Le jeu se met en **pause automatiquement** quand l'onglet passe en arrière-plan.
 
 ### 3.4 Paramètres et données
 
@@ -377,6 +386,30 @@ Règles de simulation :
 - Événements : `fired`, `inserted` (avec point de départ, pour l'animation), `missed`,
   `exploded` (billes, positions, cause, profondeur, points, série), `ended`.
 
+### 5.4 Couche de jeu (livrée au lot 2)
+
+Dans `src/play/`, entre le moteur et Vue :
+
+| Classe                                | Responsabilité                                                                                                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `PlaySession`                         | Partie en cours : jeu, boucle, rendu, mouvement affiché ; commandes du joueur ; état du HUD                                      |
+| `Renderer` / `CanvasRenderer`         | Interface de rendu et implémentation Canvas 2D (le WebGL2 des effets arrive au lot 3)                                            |
+| `BallSprites`                         | Billes de verre pré-rendues par couleur à la résolution de l'écran, avec leur **symbole gravé**                                  |
+| `BallMotion`                          | Lissage visuel sans toucher la simulation : glissement des billes poussées, arrivée de la bille tirée, chaîne avalée par le trou |
+| `Effects`                             | Retour d'explosion provisoire (anneau, étincelles, points, « ×N ») ; remplacé au lot 3                                           |
+| `PointerControls`, `KeyboardControls` | Souris, tactile, stylet et clavier vers les commandes `PlayCommands`                                                             |
+| `GameLoop`                            | Boucle `requestAnimationFrame`, durée d'image plafonnée                                                                          |
+| `Palette`                             | Couleurs lues dans les jetons CSS : le plateau suit les thèmes clair et sombre                                                   |
+
+- Les **niveaux sont des données** (`src/levels/LevelDefinition.ts`) : tracés en polylignes
+  ou courbes de Bézier, paramètres de difficulté, valeurs par défaut. Niveau de
+  démonstration : spirale de 1,55 tour vers un trou proche du lanceur, 48 billes, 4 couleurs.
+- Le plateau logique (1000 × 1000) est mis à l'échelle et centré dans l'espace disponible.
+  **À améliorer au lot 4** : en portrait sur téléphone, il reste de la place au-dessus et
+  au-dessous ; les niveaux de campagne pourront proposer un plateau plus haut que large.
+- L'écran de jeu, le moteur et les niveaux sont **chargés à la demande** : l'accueil reste à
+  47 Ko de JS compressé, l'écran de jeu en ajoute 10.
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -407,7 +440,7 @@ Règles de simulation :
 | ---- | -------------------------------------------------------------------------------- |
 | 0 ✅ | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)          |
 | 1 ✅ | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine  |
-| 2    | Interface jouable : accueil, écran de jeu, rendu, commandes, i18n, thèmes        |
+| 2 ✅ | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo |
 | 3    | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités   |
 | 4    | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse   |
 | 5    | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour |
@@ -432,3 +465,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus. |
 | 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                      |
 | 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                      |
+| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                  |

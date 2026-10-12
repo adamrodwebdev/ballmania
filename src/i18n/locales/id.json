@@ -16,7 +16,9 @@
     "pitch": "Enam dunia untuk ditaklukkan, ledakan berantai, dan mode yang belum pernah kamu mainkan.",
     "campaign": "Kampanye",
     "arcade": "Arkade",
-    "soon": "Segera hadir"
+    "soon": "Segera hadir",
+    "play": "Main",
+    "demo": "Level demo"
   },
   "settings": {
     "language": "Bahasa",
@@ -31,5 +33,25 @@
     "fr": "Français",
     "en": "English",
     "id": "Bahasa Indonesia"
+  },
+  "game": {
+    "board": "Papan permainan",
+    "help": "Bidik dengan mouse atau jari, tembak dengan klik atau saat jari dilepas. Keyboard: panah untuk membidik (Shift agar lebih presisi), Spasi untuk menembak, X untuk menukar, Escape untuk jeda.",
+    "score": "Skor",
+    "streak": "Beruntun ×{count}",
+    "pause": "Jeda",
+    "swap": "Tukar bola",
+    "paused": "Permainan dijeda",
+    "resume": "Lanjutkan",
+    "restart": "Ulangi",
+    "quit": "Keluar",
+    "won": "Rantai dihancurkan!",
+    "lost": "Rantai mencapai lubang",
+    "finalScore": "Skor: {score}",
+    "bestDepth": "Reaksi berantai terbaik: ×{depth}",
+    "playAgain": "Main lagi",
+    "home": "Beranda",
+    "reaction": "Reaksi berantai ×{depth}",
+    "loading": "Memuat permainan…"
   }
 }

@@ -16,7 +16,9 @@
     "pitch": "Six mondes à conquérir, des explosions en chaîne et des modes que vous n'avez jamais joués.",
     "campaign": "Campagne",
     "arcade": "Arcade",
-    "soon": "Bientôt disponible"
+    "soon": "Bientôt disponible",
+    "play": "Jouer",
+    "demo": "Niveau de démonstration"
   },
   "settings": {
     "language": "Langue",
@@ -31,5 +33,25 @@
     "fr": "Français",
     "en": "English",
     "id": "Bahasa Indonesia"
+  },
+  "game": {
+    "board": "Plateau de jeu",
+    "help": "Visez avec la souris ou le doigt, tirez en cliquant ou en relâchant. Au clavier : flèches pour viser (Maj pour affiner), Espace pour tirer, X pour échanger, Échap pour la pause.",
+    "score": "Score",
+    "streak": "Série ×{count}",
+    "pause": "Pause",
+    "swap": "Échanger les billes",
+    "paused": "Jeu en pause",
+    "resume": "Reprendre",
+    "restart": "Recommencer",
+    "quit": "Quitter",
+    "won": "Chaîne détruite !",
+    "lost": "La chaîne a atteint le trou",
+    "finalScore": "Score : {score}",
+    "bestDepth": "Meilleure réaction en chaîne : ×{depth}",
+    "playAgain": "Rejouer",
+    "home": "Accueil",
+    "reaction": "Réaction en chaîne ×{depth}",
+    "loading": "Chargement du jeu…"
   }
 }
