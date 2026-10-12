@@ -1,8 +1,24 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useServices } from '@/app/AppServices';
+import { WORLDS } from '@/levels/campaign';
+import { ACHIEVEMENTS } from '@/player/achievements';
+import { DailyChallenge } from '@/player/DailyChallenge';
 
-const { t } = useI18n();
-const emit = defineEmits<{ play: [] }>();
+const { t, locale } = useI18n();
+const { player, today } = useServices();
+const emit = defineEmits<{
+  play: [];
+  daily: [challenge: DailyChallenge];
+  shop: [];
+  achievements: [];
+}>();
+
+const challenge = DailyChallenge.of(today());
+const record = computed(() => player.daily(challenge.day));
+const number = computed(() => new Intl.NumberFormat(locale.value));
+const worldOf = (id: string) => WORLDS.findIndex((world) => world.id === id) + 1;
 
 /** A decorative chain of orbs along a wave: position and colour of each orb. */
 const ORBS = [
@@ -37,14 +53,47 @@ const ORBS = [
     <h1 id="home-title" class="title">{{ t('app.name') }}</h1>
     <p class="tagline">{{ t('home.tagline') }}</p>
     <p class="pitch">{{ t('home.pitch') }}</p>
+    <p class="wallet" data-testid="wallet">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path fill="currentColor" d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z" />
+      </svg>
+      {{ t('player.balance', { count: number.format(player.view.shards) }) }}
+    </p>
     <div class="actions">
-      <button class="btn btn-primary" type="button" data-testid="play" @click="emit('play')">
+      <button class="btn btn-primary main" type="button" data-testid="play" @click="emit('play')">
         <span>{{ t('home.play') }}</span>
         <small>{{ t('home.demo') }}</small>
       </button>
-      <button class="btn" type="button" disabled>
-        <span>{{ t('home.arcade') }}</span>
-        <small>{{ t('home.soon') }}</small>
+      <button class="btn" type="button" data-testid="daily" @click="emit('daily', challenge)">
+        <span>{{ t('daily.title') }}</span>
+        <small v-if="record">
+          {{ t('daily.done', { score: number.format(record.score) }) }}
+        </small>
+        <small v-else>
+          {{
+            t('daily.todo', {
+              level: t('campaign.levelShort', {
+                world: worldOf(challenge.level.world),
+                number: challenge.level.number,
+              }),
+            })
+          }}
+        </small>
+      </button>
+      <button class="btn" type="button" data-testid="shop" @click="emit('shop')">
+        <span>{{ t('shop.title') }}</span>
+        <small>{{ t('shop.pitch') }}</small>
+      </button>
+      <button class="btn" type="button" data-testid="achievements" @click="emit('achievements')">
+        <span>{{ t('achievements.title') }}</span>
+        <small>
+          {{
+            t('achievements.count', {
+              done: player.view.achievements.length,
+              total: ACHIEVEMENTS.length,
+            })
+          }}
+        </small>
       </button>
     </div>
   </section>
@@ -120,12 +169,33 @@ const ORBS = [
   color: var(--text-muted);
 }
 
+.wallet {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 800;
+}
+
+.wallet svg {
+  color: var(--star-edge);
+}
+
 .actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
   gap: var(--space-3);
-  width: min(100%, 26rem);
-  margin-top: var(--space-4);
+  width: min(100%, 34rem);
+  margin-top: var(--space-2);
+}
+
+.main {
+  grid-column: 1 / -1;
+  font-size: 1.15rem;
 }
 
 @keyframes float {

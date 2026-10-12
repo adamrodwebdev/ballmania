@@ -38,3 +38,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   portrait pour les téléphones, fond étoilé ; Colosse stellaire (boss qui pousse la chaîne,
   barre de vie, phases, renforts, cascade finale) ; étoiles, records et déblocages
   sauvegardés ; bonus de fin de niveau ; équilibrage vérifié par un robot joueur.
+- Lot 5, progression : éclats gagnés en jouant ; atelier de cosmétiques (4 lanceurs,
+  4 traînées de tir, 4 signatures de bris, plateaux dont « Néon » débloqué en finissant la
+  Nébuleuse) avec aperçus ; 13 objectifs ; défi du jour identique pour tous, premier essai
+  compté, résultat partageable ; aide proposée après 3 défaites d'affilée ; accueil
+  remanié (solde, défi, atelier, objectifs) ; langues chargées à la demande.

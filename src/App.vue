@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { defineAsyncComponent, shallowRef, watchEffect } from 'vue';
+import { defineAsyncComponent, shallowRef, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
+import { loadMessages } from '@/i18n';
+import type { PlayRequest } from '@/app/PlayRequest';
 import type { CampaignLevel } from '@/levels/campaign';
 import AppHeader from '@/ui/components/AppHeader.vue';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
@@ -9,13 +11,20 @@ import HomeScreen from '@/ui/screens/HomeScreen.vue';
 /** The campaign map, the game screen and the engine are downloaded only when needed. */
 const CampaignScreen = defineAsyncComponent(() => import('@/ui/screens/CampaignScreen.vue'));
 const GameScreen = defineAsyncComponent(() => import('@/ui/screens/GameScreen.vue'));
+const ShopScreen = defineAsyncComponent(() => import('@/ui/screens/ShopScreen.vue'));
+const AchievementsScreen = defineAsyncComponent(
+  () => import('@/ui/screens/AchievementsScreen.vue'),
+);
 
 type Screen =
   | { readonly kind: 'home' }
   | { readonly kind: 'campaign' }
-  | { readonly kind: 'game'; readonly level: CampaignLevel; readonly id: number };
+  | { readonly kind: 'shop' }
+  | { readonly kind: 'achievements' }
+  | { readonly kind: 'game'; readonly request: PlayRequest; readonly id: number };
 
-const { t, locale } = useI18n();
+const i18n = useI18n();
+const { t, locale } = i18n;
 const { settings } = useServices();
 const version = __APP_VERSION__;
 
@@ -28,12 +37,24 @@ const show = (next: Screen) => {
 };
 const home = () => show({ kind: 'home' });
 const campaign = () => show({ kind: 'campaign' });
-const play = (level: CampaignLevel) => show({ kind: 'game', level, id: ++games });
+const play = (request: PlayRequest) => show({ kind: 'game', request, id: ++games });
+const playLevel = (level: CampaignLevel) => play({ kind: 'campaign', level });
+/** After a game: the map for the campaign, home for the daily challenge. */
+const leave = (request: PlayRequest) => (request.kind === 'daily' ? home() : campaign());
 
-// Language: interface, <html lang>, title and description follow the setting.
+// Language: the messages are downloaded on first use, then the interface,
+// <html lang>, title and description follow.
+watch(
+  () => settings.current.locale,
+  async (code) => {
+    if (!i18n.availableLocales.includes(code)) {
+      i18n.setLocaleMessage(code, await loadMessages(code));
+    }
+    locale.value = code;
+  },
+);
 watchEffect(() => {
-  locale.value = settings.current.locale;
-  document.documentElement.lang = settings.current.locale;
+  document.documentElement.lang = locale.value;
   document.title = t('meta.title');
   document
     .querySelector('meta[name="description"]')
@@ -46,17 +67,33 @@ watchEffect(() => {
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
     <AppHeader />
     <main id="main" tabindex="-1">
-      <HomeScreen @play="campaign" />
+      <HomeScreen
+        @play="campaign"
+        @daily="(challenge) => play({ kind: 'daily', challenge })"
+        @shop="show({ kind: 'shop' })"
+        @achievements="show({ kind: 'achievements' })"
+      />
     </main>
     <footer class="footer">
       <p>{{ t('app.version', { version }) }}</p>
     </footer>
   </template>
   <main v-else-if="screen.kind === 'campaign'" id="main" tabindex="-1">
-    <CampaignScreen @play="play" @home="home" />
+    <CampaignScreen @play="playLevel" @home="home" />
+  </main>
+  <main v-else-if="screen.kind === 'shop'" id="main" tabindex="-1">
+    <ShopScreen @home="home" />
+  </main>
+  <main v-else-if="screen.kind === 'achievements'" id="main" tabindex="-1">
+    <AchievementsScreen @home="home" />
   </main>
   <main v-else id="main" tabindex="-1">
-    <GameScreen :key="screen.id" :level="screen.level" @quit="campaign" @next="play" />
+    <GameScreen
+      :key="screen.id"
+      :request="screen.request"
+      @quit="leave(screen.request)"
+      @play="play"
+    />
   </main>
 </template>
 

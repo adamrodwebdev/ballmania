@@ -6,8 +6,6 @@ import './styles/tokens.css';
 import './styles/base.css';
 
 const services = createBrowserServices();
+const i18n = await createAppI18n(services.settings.current.locale);
 
-createApp(App)
-  .provide(APP_SERVICES, services)
-  .use(createAppI18n(services.settings.current.locale))
-  .mount('#app');
+createApp(App).provide(APP_SERVICES, services).use(i18n).mount('#app');

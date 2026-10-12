@@ -34,6 +34,20 @@ export interface LevelSetup {
 
 export type GameState = 'playing' | 'won' | 'lost';
 
+/** What a finished (or abandoned) game says about how it was played; feeds progression. */
+export interface GameReport {
+  readonly outcome: GameState;
+  readonly score: number;
+  readonly seconds: number;
+  readonly ballsDestroyed: number;
+  readonly bestDepth: number;
+  readonly bestStreak: number;
+  readonly swaps: number;
+  /** Furthest any chain head got, as a share of its track (1 = the hole). */
+  readonly danger: number;
+  readonly colossusDefeated: boolean;
+}
+
 /** Domain events: rendering, sound and vibrations subscribe; the engine knows none of them. */
 export interface GameEvents {
   fired: { readonly projectile: ProjectileView };
@@ -81,6 +95,8 @@ export class Game {
   private accumulator = 0;
   private elapsedValue = 0;
   private stateValue: GameState = 'playing';
+  private swaps = 0;
+  private danger = 0;
 
   constructor(
     readonly setup: LevelSetup,
@@ -144,8 +160,25 @@ export class Game {
     this.shooter.aimAt(target);
   }
 
+  /** Everything progression needs to know about this game so far. */
+  summary(): GameReport {
+    return {
+      outcome: this.stateValue,
+      score: this.scoring.score,
+      seconds: this.elapsedValue,
+      ballsDestroyed: this.scoring.ballsDestroyed,
+      bestDepth: this.scoring.bestDepth,
+      bestStreak: this.scoring.bestStreak,
+      swaps: this.swaps,
+      danger: this.danger,
+      colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
+    };
+  }
+
   swap(): void {
-    if (this.stateValue === 'playing') this.shooter.swap();
+    if (this.stateValue !== 'playing') return;
+    this.shooter.swap();
+    this.swaps++;
   }
 
   /** Fires the loaded ball; false while reloading or once the game is over. */
@@ -176,6 +209,10 @@ export class Game {
       for (const explosion of chain.advance(dt)) this.report(index, chain, explosion);
     });
     this.objective.update(this.context, dt);
+    for (const chain of this.chains) {
+      const head = chain.balls[chain.balls.length - 1];
+      if (head) this.danger = Math.max(this.danger, head.s / chain.path.length);
+    }
     this.shooter.refresh(this.availableTones());
     this.checkEnd();
   }

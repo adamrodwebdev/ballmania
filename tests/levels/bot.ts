@@ -1,7 +1,7 @@
 import { SeededRandom } from '@/engine/core/Random';
 import { Game } from '@/engine/Game';
 import type { CampaignLevel } from '@/levels/campaign';
-import { resolveLevel } from '@/levels/campaign';
+import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
 

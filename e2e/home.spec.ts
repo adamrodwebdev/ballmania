@@ -19,7 +19,7 @@ test.describe('home', () => {
     await page.goto('./');
     await page.getByTestId('locale').selectOption('id');
     await expect(page.locator('html')).toHaveAttribute('lang', 'id');
-    await expect(page.getByText('Segera hadir').first()).toBeVisible();
+    await expect(page.getByText('Tantangan harian').first()).toBeVisible();
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('lang', 'id');
     await expect(page).toHaveTitle(/tembak bola/);

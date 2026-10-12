@@ -1,6 +1,7 @@
 import type { Tone } from '@/engine/chain/Ball';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import type { BallSprites } from '../BallSprites';
+import { GlassShards, type ShardShape } from '../cosmetics/ShardShapes';
 import type { Palette } from '../Palette';
 import type { EffectProfile } from './EffectProfile';
 import { Shake } from './Shake';
@@ -57,7 +58,7 @@ interface Shard {
   life: number;
   readonly maxLife: number;
   readonly tone: Tone;
-  /** Triangle around the centre, in board units. */
+  /** Polygon around the centre, in board units (x0, y0, x1, y1…). */
   readonly shape: readonly number[];
 }
 
@@ -112,6 +113,7 @@ export class Destruction {
   constructor(
     private profile: EffectProfile,
     private readonly ballRadius: number,
+    private readonly shardShape: ShardShape = new GlassShards(),
     private readonly random: () => number = Math.random,
   ) {
     this.shaker = new Shake(profile.shake);
@@ -311,18 +313,10 @@ export class Destruction {
       const scale = 0.55 + 0.45 * t;
       ctx.scale(scale, scale);
       ctx.globalAlpha = Math.min(1, t * 1.6);
-      const [ax, ay, bx, by, cx, cy] = shard.shape as [
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-      ];
+      const shape = shard.shape;
       ctx.beginPath();
-      ctx.moveTo(ax, ay);
-      ctx.lineTo(bx, by);
-      ctx.lineTo(cx, cy);
+      ctx.moveTo(shape[0]!, shape[1]!);
+      for (let k = 2; k + 1 < shape.length; k += 2) ctx.lineTo(shape[k]!, shape[k + 1]!);
       ctx.closePath();
       ctx.fillStyle = palette.tone(shard.tone);
       ctx.fill();
@@ -440,7 +434,6 @@ export class Destruction {
       const speed = (260 + this.random() * 420) * power;
       const life = 0.55 + this.random() * 0.55;
       const size = r * (0.3 + this.random() * 0.3);
-      const a = this.random() * Math.PI * 2;
       this.shards.push({
         x: ball.x + Math.cos(angle) * r * 0.4,
         y: ball.y + Math.sin(angle) * r * 0.4,
@@ -451,14 +444,7 @@ export class Destruction {
         life,
         maxLife: life,
         tone: ball.tone,
-        shape: [
-          Math.cos(a) * size,
-          Math.sin(a) * size,
-          Math.cos(a + 2.2) * size * 0.7,
-          Math.sin(a + 2.2) * size * 0.7,
-          Math.cos(a + 4.1) * size * 0.85,
-          Math.sin(a + 4.1) * size * 0.85,
-        ],
+        shape: this.shardShape.outline(this.random, size),
       });
     }
     const sparks = Math.min(this.profile.sparksPerBall, this.budget());

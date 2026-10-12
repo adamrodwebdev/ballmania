@@ -2,30 +2,43 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
-import { CAMPAIGN, nextLevel, resolveLevel, starsFor, type CampaignLevel } from '@/levels/campaign';
-import { frameFor } from '@/levels/tracks';
+import type { PlayRequest } from '@/app/PlayRequest';
+import { CAMPAIGN, nextLevel, starsFor, WORLDS } from '@/levels/campaign';
+import { resolveLevel } from '@/levels/resolveLevel';
+import type { LevelDefinition } from '@/levels/LevelDefinition';
+import { frameFor, type Frame } from '@/levels/tracks';
+import { ASSIST_AFTER, ASSIST_SPEED } from '@/player/rewards';
+import type { Rewards } from '@/player/PlayerProfile';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
+import { resolveLook } from '@/play/cosmetics/Look';
 import { DistortionLayer } from '@/play/effects/DistortionLayer';
 import { EffectProfile } from '@/play/effects/EffectProfile';
 import { sharedFeedback } from '@/play/feedback';
 import { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
-import { NebulaTheme } from '@/play/themes/WorldTheme';
 import type { RecordResult } from '@/services/CampaignProgress';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 
-const props = defineProps<{ level: CampaignLevel }>();
-const emit = defineEmits<{ quit: []; next: [level: CampaignLevel] }>();
+const props = defineProps<{ request: PlayRequest }>();
+const emit = defineEmits<{ quit: []; play: [request: PlayRequest] }>();
 
 const { t, locale } = useI18n();
-const { theme, settings, progress } = useServices();
+const { theme, settings, progress, player, share } = useServices();
 
-const worldNumber = 1;
-const following = nextLevel(props.level);
+const request = props.request;
+const level = request.kind === 'daily' ? request.challenge.level : request.level;
+const daily = request.kind === 'daily' ? request.challenge : null;
+const worldNumber = WORLDS.findIndex((world) => world.id === level.world) + 1;
+const following = request.kind === 'campaign' ? nextLevel(level) : undefined;
+const order = CAMPAIGN.map((candidate) => candidate.id);
+
 const result = shallowRef<RecordResult | null>(null);
+const rewards = shallowRef<Rewards | null>(null);
 const earned = ref(0);
-const hintVisible = ref(props.level.hint !== undefined);
+const assisted = ref(request.kind === 'campaign' && request.assisted === true);
+const shareOutcome = ref<'shared' | 'copied' | 'cancelled' | 'unavailable' | null>(null);
+const hintVisible = ref(level.hint !== undefined && daily === null);
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const overlay = ref<HTMLCanvasElement | null>(null);
@@ -38,6 +51,9 @@ const announcement = ref('');
 
 const hud = computed(() => session.value?.hud ?? null);
 const number = computed(() => new Intl.NumberFormat(locale.value));
+const dayLabel = computed(() =>
+  daily ? new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(daily.date) : '',
+);
 
 const readPalette = () => Palette.fromStyle(getComputedStyle(document.documentElement));
 
@@ -48,19 +64,28 @@ motionQuery.addEventListener('change', onMotionChange);
 const profile = () => EffectProfile.for(settings.current.effects, reducedMotion.value);
 const feedback = sharedFeedback(settings.current.volume, settings.current.vibration);
 
+let frame: Frame | null = null;
+/** The level for this board shape, slowed down when the assistance is on. */
+const definition = (): LevelDefinition => {
+  const resolved = resolveLevel(level, frame!);
+  return assisted.value ? { ...resolved, speed: resolved.speed * ASSIST_SPEED } : resolved;
+};
+
 let cleanups: (() => void)[] = [];
 
 onMounted(() => {
   if (!canvas.value || !surface.value) return;
   const box = surface.value.getBoundingClientRect();
+  frame = frameFor(box.width, box.height);
   const play = new PlaySession({
     canvas: canvas.value,
     distortion: overlay.value ? DistortionLayer.create(overlay.value) : null,
-    level: resolveLevel(props.level, frameFor(box.width, box.height)),
+    level: definition(),
     palette: readPalette(),
     profile: profile(),
     feedback,
-    theme: new NebulaTheme(),
+    look: resolveLook(player.view.equipped, level.world),
+    ...(daily ? { seed: () => daily.seed } : {}),
   });
   session.value = play;
   if (hintVisible.value) window.setTimeout(() => (hintVisible.value = false), 6000);
@@ -141,13 +166,43 @@ watch(
   },
 );
 
-// A won level is saved at once, even if the player leaves before the dialog.
+/** The world this win finishes, if it is the last level of its world. */
+const worldFinished = () => {
+  const world = WORLDS.find((candidate) => candidate.id === level.world);
+  const last = world?.levels[world.levels.length - 1];
+  return last?.id === level.id ? level.world : undefined;
+};
+
+// A finished game is saved at once, even if the player leaves before the dialog.
 watch(
   () => hud.value?.state,
   (state) => {
-    if (state !== 'won' || !hud.value) return;
-    earned.value = starsFor(props.level, hud.value.score, true);
-    result.value = progress.record(props.level.id, hud.value.score, earned.value);
+    const play = session.value;
+    if (!play || !hud.value || state === undefined || state === 'playing') return;
+    const won = state === 'won';
+    const summary = play.summary();
+    earned.value = starsFor(level, summary.score, won);
+    if (daily) {
+      rewards.value = player.recordGame(summary, {
+        kind: 'daily',
+        levelId: level.id,
+        stars: earned.value,
+        starsGained: 0,
+        threeStarLevels: progress.threeStarCount(order),
+        day: daily.day,
+      });
+      return;
+    }
+    result.value = won ? progress.record(level.id, summary.score, earned.value) : null;
+    const world = won ? worldFinished() : undefined;
+    rewards.value = player.recordGame(summary, {
+      kind: 'campaign',
+      levelId: level.id,
+      stars: earned.value,
+      starsGained: result.value?.starsGained ?? 0,
+      threeStarLevels: progress.threeStarCount(order),
+      ...(world ? { worldCompleted: world } : {}),
+    });
   },
 );
 
@@ -161,22 +216,47 @@ watch(
 const resume = () => session.value?.resume();
 const restart = () => {
   result.value = null;
+  rewards.value = null;
   earned.value = 0;
-  session.value?.restart();
+  shareOutcome.value = null;
+  session.value?.restart(definition());
   canvas.value?.focus();
 };
+const restartWithAssist = () => {
+  assisted.value = true;
+  restart();
+};
 const goNext = () => {
-  if (following) emit('next', following);
+  if (following) emit('play', { kind: 'campaign', level: following });
 };
 const canGoNext = computed(
   () =>
     hud.value?.over === 'won' &&
     following !== undefined &&
-    progress.isUnlocked(
-      CAMPAIGN.map((level) => level.id),
-      following.id,
-    ),
+    progress.isUnlocked(order, following.id),
 );
+const offerAssist = computed(
+  () =>
+    request.kind === 'campaign' &&
+    hud.value?.over === 'lost' &&
+    !assisted.value &&
+    player.failures(level.id) >= ASSIST_AFTER,
+);
+/** The result that counts for today: the first attempt. */
+const dailyRecord = computed(() => (daily && rewards.value ? player.daily(daily.day) : undefined));
+
+const shareResult = async () => {
+  const record = dailyRecord.value;
+  if (!daily || !record) return;
+  const stars = '★'.repeat(record.stars) + '☆'.repeat(3 - record.stars);
+  const text = t('daily.shareText', {
+    date: dayLabel.value,
+    score: number.value.format(record.score),
+    stars,
+    url: `${window.location.origin}${window.location.pathname}`,
+  });
+  shareOutcome.value = await share.share(text);
+};
 const quit = () => emit('quit');
 </script>
 
@@ -184,8 +264,13 @@ const quit = () => emit('quit');
   <section class="game" :aria-label="t('game.board')">
     <div class="bar">
       <p class="level" data-testid="level">
-        {{ t('campaign.levelShort', { world: worldNumber, number: level.number }) }}
+        {{
+          daily
+            ? t('daily.short')
+            : t('campaign.levelShort', { world: worldNumber, number: level.number })
+        }}
       </p>
+      <p v-if="assisted" class="assisted" data-testid="assisted">{{ t('assist.active') }}</p>
       <p class="score">
         <span class="label">{{ t('game.score') }}</span>
         <span class="value" data-testid="score">{{ number.format(hud?.score ?? 0) }}</span>
@@ -264,6 +349,7 @@ const quit = () => emit('quit');
     <SettingsDialog ref="settingsDialog" />
 
     <dialog ref="endDialog" class="dialog" aria-labelledby="end-title" @cancel.prevent="quit">
+      <p v-if="daily" class="eyebrow">{{ t('daily.title') }} · {{ dayLabel }}</p>
       <h2 id="end-title">{{ t(hud?.over === 'won' ? 'game.won' : 'game.lost') }}</h2>
       <StarRow
         v-if="hud?.over === 'won'"
@@ -284,6 +370,22 @@ const quit = () => emit('quit');
       <p v-if="(hud?.bestDepth ?? 0) > 1" class="detail">
         {{ t('game.bestDepth', { depth: hud?.bestDepth ?? 0 }) }}
       </p>
+      <p v-if="daily && rewards && !rewards.firstDailyAttempt && dailyRecord" class="detail">
+        {{ t('daily.counted', { score: number.format(dailyRecord.score) }) }}
+      </p>
+
+      <ul v-if="rewards && (rewards.shards > 0 || rewards.unlocked.length > 0)" class="gains">
+        <li v-if="rewards.shards > 0" class="shards" data-testid="shards-earned">
+          {{ t('player.earned', { count: number.format(rewards.shards) }) }}
+        </li>
+        <li v-for="achievement in rewards.achievements" :key="achievement.id">
+          {{ t('achievements.reached', { name: t(`achievements.list.${achievement.id}.name`) }) }}
+        </li>
+        <li v-for="item in rewards.unlocked" :key="item.id" class="unlock">
+          {{ t('shop.unlocked', { name: t(`cosmetics.${item.id}`) }) }}
+        </li>
+      </ul>
+
       <div class="actions">
         <button
           v-if="canGoNext"
@@ -296,17 +398,41 @@ const quit = () => emit('quit');
           {{ t('game.nextLevel') }}
         </button>
         <button
-          class="btn"
-          :class="{ 'btn-primary': !canGoNext }"
+          v-if="daily && dailyRecord"
+          class="btn btn-primary"
           type="button"
-          :autofocus="!canGoNext"
+          autofocus
+          data-testid="share"
+          @click="shareResult"
+        >
+          {{ t('daily.share') }}
+        </button>
+        <p v-if="shareOutcome" class="detail" role="status">
+          {{ t(`daily.shareOutcome.${shareOutcome}`) }}
+        </p>
+        <button
+          v-if="offerAssist"
+          class="btn btn-primary"
+          type="button"
+          autofocus
+          data-testid="assist"
+          @click="restartWithAssist"
+        >
+          <span>{{ t('assist.retry') }}</span>
+          <small>{{ t('assist.detail') }}</small>
+        </button>
+        <button
+          class="btn"
+          :class="{ 'btn-primary': !canGoNext && !offerAssist && !daily }"
+          type="button"
+          :autofocus="!canGoNext && !offerAssist && !daily"
           data-testid="replay"
           @click="restart"
         >
           {{ t('game.playAgain') }}
         </button>
         <button class="btn" type="button" data-testid="map" @click="quit">
-          {{ t('game.map') }}
+          {{ t(daily ? 'game.homeButton' : 'game.map') }}
         </button>
       </div>
     </dialog>
@@ -401,6 +527,39 @@ const quit = () => emit('quit');
   100% {
     opacity: 0;
   }
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.assisted {
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.gains {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  list-style: none;
+}
+
+.shards {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.unlock {
+  font-weight: 700;
 }
 
 .earned {

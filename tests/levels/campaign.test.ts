@@ -5,11 +5,11 @@ import {
   CAMPAIGN,
   findLevel,
   nextLevel,
-  resolveLevel,
   starsFor,
   starThresholds,
   WORLDS,
 } from '@/levels/campaign';
+import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup } from '@/levels/LevelDefinition';
 import { FRAMES, frameFor } from '@/levels/tracks';
 

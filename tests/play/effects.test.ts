@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { SoundEngine } from '@/audio/SoundEngine';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { CRACK_TIME, Destruction, type Burst } from '@/play/effects/Destruction';
+import { GlassShards } from '@/play/cosmetics/ShardShapes';
 import { EffectProfile } from '@/play/effects/EffectProfile';
 import { FrameMonitor } from '@/play/effects/FrameMonitor';
 import { Shake } from '@/play/effects/Shake';
@@ -92,7 +93,7 @@ describe('Shake', () => {
 
 describe('Destruction', () => {
   const create = (level: 'spectacular' | 'balanced' | 'subtle' = 'spectacular') =>
-    new Destruction(EffectProfile.for(level, false), 26, () => 0.5);
+    new Destruction(EffectProfile.for(level, false), 26, new GlassShards(), () => 0.5);
 
   it('cracks first, then bursts into shards', () => {
     const destruction = create();

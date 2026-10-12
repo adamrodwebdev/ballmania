@@ -14,6 +14,7 @@ export {
   STEP,
   type ChainSetup,
   type GameEvents,
+  type GameReport,
   type GameState,
   type LevelSetup,
 } from './Game';

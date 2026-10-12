@@ -18,6 +18,8 @@ export class Scoring {
   private total = 0;
   private streakValue = 0;
   private bestDepthValue = 0;
+  private bestStreakValue = 0;
+  private destroyed = 0;
 
   get score(): number {
     return this.total;
@@ -31,10 +33,21 @@ export class Scoring {
     return this.bestDepthValue;
   }
 
+  get bestStreak(): number {
+    return this.bestStreakValue;
+  }
+
+  /** Balls destroyed so far. */
+  get ballsDestroyed(): number {
+    return this.destroyed;
+  }
+
   /** Records an explosion and returns the points it earned. */
   explosion(balls: number, depth: number, fromShot: boolean): number {
     if (fromShot) this.streakValue++;
     this.bestDepthValue = Math.max(this.bestDepthValue, depth);
+    this.bestStreakValue = Math.max(this.bestStreakValue, this.streakValue);
+    this.destroyed += balls;
     const streakBonus = fromShot ? Math.max(0, this.streakValue - 2) * STREAK_BONUS : 0;
     const points = balls * POINTS_PER_BALL * depth + streakBonus;
     this.total += points;
