@@ -1,5 +1,6 @@
 import type { Chain } from '@/engine/chain/Chain';
 import type { Game } from '@/engine/Game';
+import { mix } from '@/engine/chain/Alchemy';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import type { BallMotion } from './BallMotion';
@@ -318,8 +319,22 @@ export class CanvasRenderer implements Renderer {
       ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
       ctx.fill();
     }
-    // Armed magnet: a pulsing ring around the ball it would pull.
+    // Jewel world: the touched ball would turn into the mix; show its colour.
     const end = path[path.length - 1];
+    if (!magnet && end && this.game.setup.alchemy) {
+      const target = this.game.aimTarget();
+      const mixed = target ? mix(this.game.shooter.current, target.ball.tone) : null;
+      if (mixed !== null) {
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.95;
+        ctx.strokeStyle = palette.tone(mixed);
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, radius * (1.3 + 0.08 * Math.sin(time * 6)), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    // Armed magnet: a pulsing ring around the ball it would pull.
     if (magnet && end) {
       ctx.strokeStyle = palette.tone(3);
       ctx.lineWidth = 5;

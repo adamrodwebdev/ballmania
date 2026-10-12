@@ -1,4 +1,5 @@
 import type { ChainParams } from '@/engine/chain/Chain';
+import { SECONDARIES } from '@/engine/chain/Alchemy';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import type { LevelSetup, MagnetSetup } from '@/engine/Game';
 import type { ReflectorSetup } from '@/engine/reflectors/Reflectors';
@@ -33,6 +34,8 @@ export interface ChainDefinition {
   readonly length: number;
   readonly tones: number;
   readonly repeatChance: number;
+  /** The colours to draw from (Jewel world), instead of the first `tones` ones. */
+  readonly palette?: readonly number[];
 }
 
 /**
@@ -55,6 +58,7 @@ export interface LevelDefinition {
   readonly colossus?: ColossusSetup;
   readonly reflectors?: readonly ReflectorDefinition[];
   readonly magnet?: MagnetSetup;
+  readonly alchemy?: boolean;
 }
 
 export const LEVEL_DEFAULTS = {
@@ -88,9 +92,15 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
   return {
     board: level.board,
     shooter: toVec(level.shooter),
-    chains: level.chains.map(({ path, length, tones, repeatChance }) => ({
+    chains: level.chains.map(({ path, length, tones, repeatChance, palette }) => ({
       path: buildPath(path),
-      recipe: { length, tones, repeatChance },
+      recipe: {
+        length,
+        tones,
+        repeatChance,
+        // Jewel world: mixed colours come in pairs.
+        ...(palette ? { palette, paired: SECONDARIES } : {}),
+      },
     })),
     chain,
     projectileSpeed: level.projectileSpeed ?? LEVEL_DEFAULTS.projectileSpeed,
@@ -99,6 +109,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     ...(level.colossus ? { colossus: level.colossus } : {}),
     ...(level.reflectors ? { reflectors: level.reflectors.map(toReflectorSetup) } : {}),
     ...(level.magnet ? { magnet: level.magnet } : {}),
+    ...(level.alchemy ? { alchemy: true } : {}),
   };
 }
 

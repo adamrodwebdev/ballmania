@@ -599,6 +599,16 @@ export class Destruction {
     }
   }
 
+  /** Two primaries fuse (Jewel world): a ring of the new colour, sparks of both old ones. */
+  fuse(at: Vec2, from: readonly [Tone, Tone], result: Tone): void {
+    this.rings.push({ x: at.x, y: at.y, life: 0.45, maxLife: 0.45, tone: result, size: 2.4 });
+    if (this.profile.glow) {
+      this.glows.push({ x: at.x, y: at.y, life: 0.3, maxLife: 0.3, tone: result, size: 2 });
+    }
+    const count = Math.min(6, this.budget());
+    for (let i = 0; i < count; i++) this.addSpark(at.x, at.y, from[i % 2]!, 0.7);
+  }
+
   /** A ball pulled out by the magnet: it flies to the shooter, with a ring where it left. */
   pull(from: Vec2, to: Vec2, tone: Tone): void {
     this.tractors.push({ from, to, tone, age: 0 });

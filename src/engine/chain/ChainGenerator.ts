@@ -7,6 +7,13 @@ export interface ChainRecipe {
   readonly tones: number;
   /** Chance that a ball repeats the colour of the previous one, in [0, 1). */
   readonly repeatChance: number;
+  /** The colours to draw from, instead of the first `tones` ones (Jewel world). */
+  readonly palette?: readonly Tone[];
+  /**
+   * Colours that always come as a pair (Jewel world: mixed colours, so that one
+   * fusion next to them completes a group of three).
+   */
+  readonly paired?: readonly Tone[];
 }
 
 /**
@@ -20,7 +27,8 @@ export class ChainGenerator {
   ) {}
 
   tones(recipe: ChainRecipe): Tone[] {
-    if (recipe.tones < 2) throw new RangeError('A chain needs at least two colours');
+    const palette = recipe.palette ?? Array.from({ length: recipe.tones }, (_, tone) => tone);
+    if (palette.length < 2) throw new RangeError('A chain needs at least two colours');
     const tones: Tone[] = [];
     let run = 0;
     for (let i = 0; i < recipe.length; i++) {
@@ -33,17 +41,22 @@ export class ChainGenerator {
         tones.push(previous);
         run++;
       } else {
-        tones.push(this.other(previous, recipe.tones));
+        const tone = this.other(previous, palette);
+        tones.push(tone);
         run = 1;
+        if (recipe.paired?.includes(tone) && this.minMatch > 2 && i + 1 < recipe.length) {
+          tones.push(tone);
+          run = 2;
+          i++;
+        }
       }
     }
     return tones;
   }
 
-  /** A colour different from `previous` (any colour when there is none). */
-  private other(previous: Tone | undefined, count: number): Tone {
-    if (previous === undefined) return this.random.nextInt(count);
-    const tone = this.random.nextInt(count - 1);
-    return tone >= previous ? tone + 1 : tone;
+  /** A colour of the palette different from `previous` (any colour when there is none). */
+  private other(previous: Tone | undefined, palette: readonly Tone[]): Tone {
+    const choices = palette.filter((tone) => tone !== previous);
+    return choices[this.random.nextInt(choices.length)]!;
   }
 }

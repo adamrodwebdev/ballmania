@@ -100,6 +100,15 @@ export class SoundEngine {
     });
   }
 
+  /** Two colours fuse: two glass notes sliding into one. */
+  fuse(): void {
+    this.play((ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sine', 660, 880, 0.18, 0.12);
+      this.sweep(ctx, out, now, 'sine', 1100, 880, 0.18, 0.12);
+      this.bell(ctx, out, now + 0.16, 880, 0.6, 0.16);
+    });
+  }
+
   /** The magnet pulls a ball: a watery suction sweeping upwards. */
   pull(): void {
     this.play((ctx, out, now) => {

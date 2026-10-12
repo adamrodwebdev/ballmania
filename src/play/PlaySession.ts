@@ -254,6 +254,10 @@ export class PlaySession {
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
     });
     game.events.on('missed', () => (this.hud.streak = 0));
+    game.events.on('fused', ({ position, from, ball }) => {
+      this.destruction.fuse(position, from, ball.tone);
+      sound.fuse();
+    });
     game.events.on('pulled', ({ position, ball }) => {
       this.destruction.pull(position, game.shooter.position, ball.tone);
       this.hud.magnet = game.magnet;

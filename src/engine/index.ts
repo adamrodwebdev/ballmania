@@ -1,3 +1,4 @@
+export { ingredients, isPrimary, mix, PRIMARIES, SECONDARIES } from './chain/Alchemy';
 export { Ball, BallFactory, MAX_TONES, type BallView, type Tone } from './chain/Ball';
 export {
   Chain,

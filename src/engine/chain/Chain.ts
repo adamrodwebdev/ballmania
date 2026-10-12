@@ -135,6 +135,17 @@ export class Chain {
     return ball;
   }
 
+  /**
+   * Gives a ball another colour (Jewel world: a primary shot onto another
+   * primary fuses with it) and returns the explosion it causes, if any.
+   */
+  recolour(index: number, tone: Tone): Explosion | null {
+    const ball = this.items[index];
+    if (!ball) throw new RangeError(`No ball at index ${index}`);
+    ball.recolour(tone);
+    return this.explodeAround(index, 'shot');
+  }
+
   /** Removes every ball, for the final cascade of a level. */
   clear(): Ball[] {
     this.pusher = null;

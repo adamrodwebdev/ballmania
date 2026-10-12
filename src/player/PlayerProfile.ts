@@ -124,6 +124,7 @@ export class PlayerProfile {
     stats.bestStreak = Math.max(stats.bestStreak, report.bestStreak);
     stats.bestBounce = Math.max(stats.bestBounce, report.bestBounce);
     stats.magnetPulls += report.pulls;
+    stats.fusions += report.fusions;
     stats.threeStarLevels = Math.max(stats.threeStarLevels, context.threeStarLevels);
     if (won) {
       stats.levelsWon++;
