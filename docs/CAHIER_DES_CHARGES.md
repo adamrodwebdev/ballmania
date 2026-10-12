@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                |
-| ------- | ---------- | ------------------------------------- |
-| 0.1     | 12/10/2026 | Proposition initiale, modes à valider |
+| Version | Date       | Statut                              |
+| ------- | ---------- | ----------------------------------- |
+| 0.2     | 12/10/2026 | Campagne et monétisation, à valider |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -19,13 +19,16 @@ niveau en spirale. **Ballmania** garde la prise en main connue de tous et ajoute
 Objectifs :
 
 1. **Prise en main immédiate** : on joue en moins de 5 secondes, en un clic ou un toucher.
-2. **Rejouabilité** : des modes qui changent la façon de viser et de penser la chaîne, et un
+2. **Progression** : une campagne de mondes à difficulté croissante, chacun avec son thème
+   à débloquer.
+3. **Rejouabilité** : des modes qui changent la façon de viser et de penser la chaîne, et un
    **défi du jour** identique pour tous les joueurs.
-3. **Effet « waouh » mémorable** : chaque explosion est une récompense visuelle et sonore ;
+4. **Effet « waouh » mémorable** : chaque explosion est une récompense visuelle et sonore ;
    les grosses réactions en chaîne deviennent des moments que l'on a envie de partager.
-4. **Viralité** : le résultat du défi du jour se partage en un geste (texte court + lien).
-5. **Qualité web exemplaire** : Lighthouse ≥ 95 dans les quatre catégories, sur mobile.
-6. **International dès le lancement** : français, anglais et indonésien.
+5. **Viralité** : le résultat du défi du jour se partage en un geste (texte court + lien).
+6. **Qualité web exemplaire** : Lighthouse ≥ 95 dans les quatre catégories, sur mobile.
+7. **International dès le lancement** : français, anglais et indonésien.
+8. **Monétisable** : prêt pour les portails de jeux web, avec publicités respectueuses.
 
 ## 2. Positionnement marketing
 
@@ -90,10 +93,46 @@ Différenciation :
 - Tout l'aléatoire passe par un **générateur à graine** : une partie se rejoue à l'identique
   avec la même graine (défi du jour, tests, replays).
 
-### 3.2 Modes de jeu (proposition v0.1, à valider)
+### 3.2 Structure du jeu (v0.2)
+
+Deux portes d'entrée depuis l'accueil :
+
+- **Campagne** (porte principale) : une suite de **mondes** de difficulté croissante. Chaque
+  monde a son **thème visuel** et **introduit une mécanique** issue des modes ci-dessous ; il
+  se termine par un **Colosse** (boss). Terminer un monde **débloque le suivant et son
+  thème**.
+- **Arcade** : les modes autonomes (Défi du jour, Duel, Énigme, Rythme, Infini), débloqués
+  au fil de la campagne pour donner au joueur de nouvelles raisons de revenir.
+
+#### Campagne (proposition)
+
+| Monde | Thème (univers visuel)          | Mécanique introduite         | Boss               |
+| ----- | ------------------------------- | ---------------------------- | ------------------ |
+| 1     | **Nébuleuse** (orbes cosmiques) | Règles de base, bonus        | Colosse stellaire  |
+| 2     | **Néon** (arcade synthwave)     | Ricochet (murs, prismes)     | Colosse prisme     |
+| 3     | **Abysses** (bioluminescence)   | Aimant (aspirer, renvoyer)   | Colosse abyssal    |
+| 4     | **Joaillerie** (gemmes, or)     | Alchimie (fusion de teintes) | Colosse de cristal |
+| 5     | **Volcan** (magma, obsidienne)  | Aiguillages                  | Colosse de lave    |
+| 6     | **Singularité** (trou noir)     | Orbite (tirs courbés)        | Colosse final      |
+
+- **12 niveaux par monde** (11 niveaux + boss), soit **72 niveaux** en v1.0 ; mondes
+  supplémentaires possibles après lancement (contenu frais pour les portails).
+- Chaque niveau = **chemin dessiné à la main** + **paramètres de difficulté** (vitesse,
+  longueur de chaîne, nombre de couleurs, nombre de chaînes, fréquence des bonus), décrits en
+  données (JSON typé, validé au chargement), jamais en code.
+- **Courbe de difficulté** : progression en dents de scie (monte sur 3–4 niveaux, puis un
+  niveau « respiration ») ; une mécanique nouvelle est d'abord présentée seule, sans
+  pression, puis combinée.
+- **1 à 3 étoiles** par niveau selon le score ; les étoiles débloquent les cosmétiques (§ 3.6)
+  et les mondes bonus. Rejouer un niveau pour la 3ᵉ étoile = rejouabilité.
+- **Assistance discrète** : après 3 échecs d'affilée sur un niveau, proposition d'un
+  ralentissement léger (le joueur garde le choix) ; aucune difficulté cachée qui triche.
+
+#### Modes et mécaniques (v0.1)
 
 Chaque mode est une **stratégie** branchée sur un moteur commun ; aucun mode ne modifie le
-moteur.
+moteur. En v0.2, Ricochet, Aimant, Alchimie, Aiguillages, Orbite et Colosse deviennent des
+mécaniques de campagne ; les autres sont les modes Arcade.
 
 | #   | Mode             | Idée                                                                                                                                              | Ce que ça change                         |
 | --- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
@@ -110,8 +149,8 @@ moteur.
 | 11  | **Colosse**      | Un gardien géant pousse la chaîne ; les explosions à son contact lui retirent des points de vie ; il change de comportement par phases.           | Combats de boss, objectifs clairs        |
 | 12  | **Infini**       | Chaîne sans fin, vitesse et nombre de couleurs croissants ; record personnel.                                                                     | Score pur, longues sessions              |
 
-Recommandation : livrer **Classique** et **Défi du jour** en premier (le moteur complet),
-puis les modes validés par lots, les plus différenciants d'abord.
+Recommandation : livrer le **monde 1** et le **Défi du jour** en premier (le moteur
+complet), puis un monde par lot, les modes Arcade s'intercalant.
 
 ### 3.3 Commandes
 
@@ -130,12 +169,19 @@ avant de tirer. Aucune action n'est réservée au survol.
 
 - Langue, thème (clair / sombre / système), volume musique et effets, vibrations, intensité
   des effets (Spectaculaire / Équilibré / Sobre), réduction des mouvements.
-- Sauvegarde locale (`localStorage`, versionnée) : records par mode, progression des niveaux,
-  historique du défi du jour. Aucune donnée ne quitte l'appareil.
+- Sauvegarde versionnée (migrations) : progression de campagne, étoiles, records, éclats,
+  cosmétiques possédés, historique du défi du jour. Stockée via une abstraction
+  (`SaveStore`) : `localStorage` sur notre site, stockage du SDK sur les portails qui
+  l'imposent. Aucune donnée personnelle.
 
-### 3.5 Direction artistique et destruction (pistes, à valider)
+### 3.5 Direction artistique et destruction
 
-Principe : **chaque bille est un objet physique** qui réagit quand on la détruit.
+Principe : **chaque bille est un objet physique** qui réagit quand on la détruit. Chaque
+monde a sa **matière** et donc sa façon d'exploser : verre et énergie (Nébuleuse), pixels et
+traînées lumineuses (Néon), bulles et nuages de lumière (Abysses), éclats facettés
+(Joaillerie), roche en fusion (Volcan), aspiration et implosion (Singularité). Le thème
+visuel est indépendant du **thème d'interface** clair/sombre : chaque univers a ses deux
+variantes.
 
 - **Bris** : la bille se fissure (≈ 80 ms), puis éclate en fragments avec vitesse, rotation et
   rebond ; un éclat de lumière de sa couleur.
@@ -150,10 +196,61 @@ Principe : **chaque bille est un objet physique** qui réagit quand on la détru
   _Sobre_ ; bascule automatique si la fréquence d'images chute ; `prefers-reduced-motion`
   supprime tremblements, ralentis et distorsions.
 
-### 3.6 Distribution
+### 3.6 Progression et thèmes à débloquer (v0.2)
 
-Version de base sur notre propre site d'abord. Builds pour portails de jeux et démo pour le
-portfolio une fois le jeu terminé.
+- **Thèmes de monde** : débloqués en terminant le monde précédent. Une fois débloqué, un
+  thème peut **habiller n'importe quel mode** (Arcade compris).
+- **Éclats** : monnaie gagnée en jouant (niveaux, étoiles, défi du jour, objectifs). Ils
+  achètent des **cosmétiques** : lanceurs, traînées de tir, « signatures de bris »
+  (style d'explosion), fonds animés.
+- **Règle d'or** : tout ce qui se débloque est **cosmétique ou du confort**, jamais un
+  avantage qui rend un niveau ou un classement plus facile. Tout s'obtient en jouant.
+- **Objectifs** (« faire un combo ×5 », « finir un niveau sans échange »…) qui donnent des
+  éclats et guident la découverte des mécaniques.
+
+### 3.7 Monétisation et plateformes (v0.2)
+
+Modèle visé : **distribution sur portails de jeux web** (CrazyGames, Poki, GameDistribution,
+GamePix…) rémunérés au **partage des revenus publicitaires** servis par leur SDK, plus notre
+propre site.
+
+**Emplacements publicitaires** (uniquement aux pauses naturelles, jamais pendant le jeu) :
+
+| Type                   | Moment                                                     | Contrepartie pour le joueur               |
+| ---------------------- | ---------------------------------------------------------- | ----------------------------------------- |
+| Interstitielle         | Entre deux niveaux, au plus une fois toutes les ~3 minutes | —                                         |
+| Récompensée (au choix) | Après une défaite                                          | **Continuer** une fois (la chaîne recule) |
+| Récompensée (au choix) | Écran de fin de niveau                                     | **Éclats doublés**                        |
+| Récompensée (au choix) | Énigme bloquée                                             | Un **indice**                             |
+| Récompensée (au choix) | Boutique de cosmétiques                                    | **Essayer** un cosmétique pour une partie |
+
+- Une publicité récompensée est **toujours un choix**, jamais imposée, et le jeu reste
+  entièrement terminable sans en regarder aucune.
+- Pendant une publicité : jeu en pause, son coupé, puis reprise propre.
+- Bloqueur de publicité : le jeu fonctionne, la récompense est simplement indisponible.
+
+**Exigences techniques des portails** (à vérifier précisément pour chacun au lot portails) :
+intégration du SDK, signalement début/fin de partie et des pauses, aucun lien sortant,
+aucune publicité tierce, chargement rapide, contrôles tactiles, sauvegarde via le SDK quand
+c'est demandé, parfois exclusivité web (Poki) à arbitrer.
+
+**Architecture** : une interface `PlatformAdapter` (publicités, sauvegarde, événements de
+partie, langue imposée, invitation au partage) avec une implémentation par cible :
+`StandalonePlatform` (notre site, **aucune publicité**, aucun SDK), `CrazyGamesPlatform`,
+`PokiPlatform`, `GameDistributionPlatform`… L'implémentation est choisie **au build**
+(`vite build --mode crazygames`) : le SDK d'un portail n'est jamais embarqué dans les autres
+builds, et la version de notre site garde Lighthouse ≥ 95 sans traceur.
+
+**Notre site** : sans publicité en v1.0 (vitrine, référencement, Lighthouse). Pistes
+ultérieures : don volontaire, version premium sans pub sur magasins d'applis (PWA/TWA).
+
+**Arguments de vente auprès des portails** : temps de jeu par session (campagne + objectifs),
+rétention J1/J7 (défi du jour, mondes à débloquer), trois langues dont l'indonésien, poids
+léger, effets visuels qui se remarquent dans les vignettes et vidéos de présentation.
+
+### 3.8 Distribution
+
+Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 
 ## 4. Exigences non fonctionnelles
 
@@ -192,7 +289,8 @@ portfolio une fois le jeu terminé.
 
 ### 4.6 Confidentialité et sécurité
 
-- Aucun cookie, aucun traceur, aucun appel réseau tiers.
+- Sur notre site : aucun cookie, aucun traceur, aucun appel réseau tiers. Sur les portails,
+  seul le SDK du portail (régie et consentement gérés par lui) est chargé.
 - Politique de sécurité du contenu (CSP) stricte, pas de script en ligne.
 
 ### 4.7 Compatibilité
@@ -223,6 +321,14 @@ portfolio une fois le jeu terminé.
   rendu, le son et les vibrations s'abonnent ; le moteur ne connaît aucun d'eux.
 - **Rendu derrière une interface** (`Renderer`) : implémentations WebGL2 et Canvas 2D.
 - Registre des modes avec chargement paresseux par mode.
+- **Campagne en données** : `World`, `LevelDefinition` (chemin + paramètres de difficulté),
+  `LevelCatalog` chargé par monde ; `Progression` (étoiles, déblocages) et `Wallet`
+  (éclats) ne dépendent que de `SaveStore`.
+- **Plateforme derrière une interface** (`PlatformAdapter`, § 3.7) : publicités, sauvegarde
+  et événements de partie ; le jeu ne connaît aucun SDK. `AdPolicy` décide _quand_ une
+  publicité est permise (fréquence, pauses naturelles), séparée de _comment_ elle s'affiche.
+- **Thèmes de monde = stratégies** (`WorldTheme`) : palette, matière des billes, signature
+  de bris, fond ; chargés à la demande.
 
 ## 6. Qualité et tests
 
@@ -240,26 +346,32 @@ portfolio une fois le jeu terminé.
 
 ## 8. Critères d'acceptation (v1.0)
 
-- Tous les modes retenus jouables de bout en bout, au clavier, à la souris et au doigt.
+- Les 6 mondes (72 niveaux) et les modes Arcade jouables de bout en bout, au clavier, à la
+  souris et au doigt ; campagne entièrement terminable sans regarder de publicité.
+- Build « site » sans aucun SDK ni publicité ; builds portails conformes aux exigences de
+  chaque portail.
 - Lighthouse ≥ 95 × 4 sur mobile ; aucun défilement horizontal de 320 à 1920 px.
 - Trois langues complètes ; thèmes clair et sombre conformes.
 - Effets de destruction aux trois niveaux d'intensité, respect de `prefers-reduced-motion`.
 
 ## 9. Lots et planning (provisoire)
 
-| Lot | Contenu                                                                         |
-| --- | ------------------------------------------------------------------------------- |
-| 0   | Dépôt, outillage, cahier des charges                                            |
-| 1   | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine |
-| 2   | Interface jouable : accueil, écran de jeu, rendu, commandes, i18n, thèmes       |
-| 3   | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités  |
-| 4   | Classique (niveaux) et Défi du jour                                             |
-| 5+  | Modes validés, par lots de deux                                                 |
-| n   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0                 |
+| Lot  | Contenu                                                                          |
+| ---- | -------------------------------------------------------------------------------- |
+| 0    | Dépôt, outillage, cahier des charges                                             |
+| 1    | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine  |
+| 2    | Interface jouable : accueil, écran de jeu, rendu, commandes, i18n, thèmes        |
+| 3    | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités   |
+| 4    | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse   |
+| 5    | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour |
+| 6–10 | Mondes 2 à 6 (une mécanique et un thème par lot), modes Arcade intercalés        |
+| 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)     |
+| 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés              |
+| 13   | Démo portfolio                                                                   |
 
 ## 10. Hors périmètre (v1)
 
-Comptes, classements en ligne, multijoueur en réseau, achats.
+Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 
 ## 11. Évolutions envisagées
 
@@ -267,6 +379,7 @@ Comptes, classements en ligne, multijoueur en réseau, achats.
 
 ## 12. Journal des versions du document
 
-| Version | Date       | Changements                                                      |
-| ------- | ---------- | ---------------------------------------------------------------- |
-| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés. |
+| Version | Date       | Changements                                                                                                                            |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                       |
+| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus. |
