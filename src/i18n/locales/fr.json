@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "title": "Ballmania — le tir de billes réinventé",
+    "description": "Tir de billes en chaîne réinventé : campagne de six mondes, nouveaux modes, explosions spectaculaires. Gratuit, sans inscription, sur mobile et ordinateur."
+  },
+  "app": {
+    "name": "Ballmania",
+    "version": "Version {version}"
+  },
+  "nav": {
+    "skip": "Aller au contenu",
+    "home": "Accueil Ballmania"
+  },
+  "home": {
+    "tagline": "Le tir de billes réinventé",
+    "pitch": "Six mondes à conquérir, des explosions en chaîne et des modes que vous n'avez jamais joués.",
+    "campaign": "Campagne",
+    "arcade": "Arcade",
+    "soon": "Bientôt disponible"
+  },
+  "settings": {
+    "language": "Langue",
+    "theme": "Thème"
+  },
+  "theme": {
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  }
+}

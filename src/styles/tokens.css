@@ -1,0 +1,73 @@
+/*
+ * Design tokens. Colours are only ever used through these variables.
+ * `data-theme` is set on <html> before the first paint (public/theme-boot.js),
+ * so the dark theme never flashes.
+ *
+ * Orb colours (--orb-*) are the game's own palette, shared by the interface
+ * and, from lot 2, by the renderer.
+ */
+:root {
+  color-scheme: light;
+
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --font-display: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+
+  --bg: #f4f2fb;
+  --bg-glow: rgb(123 60 255 / 0.12);
+  --surface: #ffffff;
+  --surface-2: #e9e5f7;
+  --border: #cfc8e6;
+  --text: #16122b;
+  --text-muted: #4d4766;
+  --accent: #5b21d6;
+  --accent-strong: #4a17b5;
+  --on-accent: #ffffff;
+  --focus: #0a62d0;
+  --path: rgb(22 18 43 / 0.14);
+
+  --orb-ruby: #e8264f;
+  --orb-amber: #f29a00;
+  --orb-lime: #22b864;
+  --orb-cyan: #0fb5d4;
+  --orb-violet: #7c4dff;
+  --orb-rose: #e04fbf;
+  --orb-shine: #ffffff;
+
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --shadow: 0 0.5rem 1.5rem rgb(22 18 43 / 0.12);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --touch: 2.75rem;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #07060f;
+  --bg-glow: rgb(123 60 255 / 0.28);
+  --surface: #13112a;
+  --surface-2: #1d1a3a;
+  --border: #36305e;
+  --text: #eeebff;
+  --text-muted: #b1abd3;
+  --accent: #b69bff;
+  --accent-strong: #cdb9ff;
+  --on-accent: #10062e;
+  --focus: #7cc4ff;
+  --path: rgb(238 235 255 / 0.16);
+
+  --orb-ruby: #ff3b6b;
+  --orb-amber: #ffb020;
+  --orb-lime: #3ddc84;
+  --orb-cyan: #22d3ee;
+  --orb-violet: #9d7bff;
+  --orb-rose: #f472d0;
+
+  --shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.5);
+}

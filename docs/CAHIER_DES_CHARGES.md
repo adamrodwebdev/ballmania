@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                              |
-| ------- | ---------- | ----------------------------------- |
-| 0.2     | 12/10/2026 | Campagne et monétisation, à valider |
+| Version | Date       | Statut                  |
+| ------- | ---------- | ----------------------- |
+| 0.3     | 12/10/2026 | Lot 0 livré (outillage) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -302,11 +302,20 @@ Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 
 ### 5.1 Pile
 
-- **Vue 3.5** (version stable maintenue), **TypeScript** strict, **Vite**.
-- `vue-i18n` (messages précompilés), pas de routeur ni de Pinia au départ : services
-  orientés objet injectés par `provide/inject`.
-- Qualité : ESLint (règles typées + interdiction du texte en dur dans les gabarits),
-  Prettier, `vue-tsc`, Vitest, Playwright.
+- **Vue 3.5.43** (version stable maintenue), **TypeScript 6.0.3** strict, **Vite 8.3.4**.
+  TypeScript 7 (compilateur natif) n'est pas retenu tant que `vue-tsc` ne le prend pas en
+  charge.
+- `vue-i18n` 11 (messages précompilés au build : pas de compilateur à l'exécution, pas
+  d'`eval`), pas de routeur ni de Pinia au départ : services orientés objet injectés par
+  `provide/inject` (`AppServices`).
+- Qualité : ESLint 10 (règles typées strictes + `vue/no-bare-strings-in-template`), Prettier,
+  `vue-tsc`, Vitest 5, Playwright 1.64, Lighthouse 13 (`npm run lighthouse`).
+- **Socle livré au lot 0** : `KeyValueStorage` (stockage qui ne lève jamais, repli mémoire),
+  `SettingsService` (langue, thème, intensité des effets, validés à la lecture),
+  `ThemeController` (préférence système / clair / sombre), script `theme-boot.js` qui
+  applique thème et langue avant le premier affichage, sans script en ligne.
+- **CSP** stricte ajoutée à la page construite (`default-src 'self'`, ni script ni style en
+  ligne) ; les gabarits n'utilisent donc jamais d'attribut `style`.
 
 ### 5.2 Principes orientés objet
 
@@ -358,7 +367,7 @@ Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 
 | Lot  | Contenu                                                                          |
 | ---- | -------------------------------------------------------------------------------- |
-| 0    | Dépôt, outillage, cahier des charges                                             |
+| 0 ✅ | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)          |
 | 1    | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine  |
 | 2    | Interface jouable : accueil, écran de jeu, rendu, commandes, i18n, thèmes        |
 | 3    | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités   |
@@ -383,3 +392,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                       |
 | 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus. |
+| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                      |

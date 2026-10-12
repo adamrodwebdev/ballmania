@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "title": "Ballmania — marble shooting reinvented",
+    "description": "Chain marble shooting reinvented: a six-world campaign, new modes, spectacular explosions. Free, no sign-up, on mobile and desktop."
+  },
+  "app": {
+    "name": "Ballmania",
+    "version": "Version {version}"
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "home": "Ballmania home"
+  },
+  "home": {
+    "tagline": "Marble shooting, reinvented",
+    "pitch": "Six worlds to conquer, chain explosions and modes you have never played.",
+    "campaign": "Campaign",
+    "arcade": "Arcade",
+    "soon": "Coming soon"
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  }
+}
