@@ -1,4 +1,5 @@
 import type { ChainParams } from '@/engine/chain/Chain';
+import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import type { LevelSetup } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Path } from '@/engine/path/Path';
@@ -37,6 +38,8 @@ export interface LevelDefinition {
   readonly ballRadius?: number;
   readonly projectileSpeed?: number;
   readonly fireCooldown?: number;
+  readonly parTime?: number;
+  readonly colossus?: ColossusSetup;
 }
 
 export const LEVEL_DEFAULTS = {
@@ -77,6 +80,8 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     chain,
     projectileSpeed: level.projectileSpeed ?? LEVEL_DEFAULTS.projectileSpeed,
     fireCooldown: level.fireCooldown ?? LEVEL_DEFAULTS.fireCooldown,
+    ...(level.parTime === undefined ? {} : { parTime: level.parTime }),
+    ...(level.colossus ? { colossus: level.colossus } : {}),
   };
 }
 

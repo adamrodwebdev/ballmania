@@ -7,6 +7,7 @@ test.describe('game', () => {
     );
     await page.goto('./');
     await page.getByTestId('play').click();
+    await page.getByTestId('level-nebula-01').click();
     await expect(page.getByTestId('board')).toBeVisible();
   });
 
@@ -40,7 +41,7 @@ test.describe('game', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Quit' }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'Ballmania' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
   });
 
   test('keeps touch targets large enough', async ({ page }) => {
@@ -78,8 +79,69 @@ test.describe('settings', () => {
   test('opens from the pause menu', async ({ page }) => {
     await page.goto('./');
     await page.getByTestId('play').click();
+    await page.getByTestId('level-nebula-01').click();
     await page.getByTestId('pause').click();
     await page.getByRole('dialog').getByTestId('open-settings').click();
     await expect(page.getByTestId('settings')).toBeVisible();
+  });
+});
+
+test.describe('campaign', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() =>
+      localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' })),
+    );
+  });
+
+  test('opens the first level only, then the next one once finished', async ({ page }) => {
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    await expect(page.getByTestId('level-nebula-01')).toBeEnabled();
+    await expect(page.getByTestId('level-nebula-02')).toBeDisabled();
+
+    await page.evaluate(() =>
+      localStorage.setItem(
+        'ballmania:progress',
+        JSON.stringify({ version: 1, levels: { 'nebula-01': { stars: 2, best: 900 } } }),
+      ),
+    );
+    await page.reload();
+    await page.getByTestId('play').click();
+    await expect(page.getByTestId('level-nebula-02')).toBeEnabled();
+    await expect(page.getByText('2 / 36 stars')).toBeVisible();
+  });
+
+  test('shows the result when the chain reaches the hole, and goes back to the map', async ({
+    page,
+  }) => {
+    // Simulating a whole level frame by frame takes a while.
+    test.setTimeout(90_000);
+    await page.clock.install();
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    await page.getByTestId('level-nebula-01').click();
+    await expect(page.getByTestId('board')).toBeVisible();
+    await expect(page.getByTestId('level')).toHaveText('1-1');
+    // Nobody shoots: the chain reaches the hole.
+    await page.clock.runFor(100_000);
+    const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId('map').click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
+  });
+
+  test('shows the health of the Colossus on the boss level', async ({ page }) => {
+    await page.addInitScript(() => {
+      const levels: Record<string, { stars: number; best: number }> = {};
+      for (let i = 1; i <= 11; i++) {
+        levels[`nebula-${String(i).padStart(2, '0')}`] = { stars: 1, best: 1 };
+      }
+      localStorage.setItem('ballmania:progress', JSON.stringify({ version: 1, levels }));
+    });
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    await page.getByTestId('level-nebula-12').click();
+    await expect(page.getByTestId('colossus')).toHaveAttribute('max', '60');
+    await expect(page.getByTestId('hint')).toBeVisible();
   });
 });

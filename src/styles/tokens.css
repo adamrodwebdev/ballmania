@@ -39,6 +39,8 @@
   --hole: #16122b;
   --shooter: #ffffff;
   --danger: #d4183d;
+  --star: #f5b301;
+  --star-edge: #b07c00;
 
   --radius: 0.75rem;
   --radius-sm: 0.5rem;
@@ -82,6 +84,8 @@
   --hole: #000000;
   --shooter: #1d1a3a;
   --danger: #ff4d6d;
+  --star: #ffc93c;
+  --star-edge: #ffe39a;
 
   --shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.5);
 }

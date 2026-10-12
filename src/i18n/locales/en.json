@@ -18,7 +18,7 @@
     "arcade": "Arcade",
     "soon": "Coming soon",
     "play": "Play",
-    "demo": "Demo level"
+    "demo": "World 1: Nebula"
   },
   "settings": {
     "language": "Language",
@@ -56,10 +56,15 @@
     "finalScore": "Score: {score}",
     "bestDepth": "Best chain reaction: ×{depth}",
     "playAgain": "Play again",
-    "home": "Home",
     "reaction": "Chain reaction ×{depth}",
     "loading": "Loading the game…",
-    "settings": "Settings"
+    "settings": "Settings",
+    "starsLabel": "{count} star out of 3 | {count} star out of 3 | {count} stars out of 3",
+    "bonus": "End bonus: +{points}",
+    "best": "Best: {score}",
+    "newBest": "New record!",
+    "nextLevel": "Next level",
+    "map": "Campaign map"
   },
   "effects": {
     "spectacular": {
@@ -74,5 +79,52 @@
       "name": "Subtle",
       "hint": "The essentials, for modest phones"
     }
+  },
+  "campaign": {
+    "title": "Campaign",
+    "back": "Home",
+    "world": "World {number}",
+    "stars": "{count} / {total} stars",
+    "levelShort": "{world}-{number}",
+    "levelLabel": "Level {number}, {stars} star(s) out of 3",
+    "lockedLabel": "Level {number}, locked",
+    "comingSoon": "Coming soon: finish the previous world to open it."
+  },
+  "worlds": {
+    "nebula": {
+      "name": "Nebula",
+      "tagline": "Orbs of glass and energy at the heart of the stars."
+    },
+    "neon": {
+      "name": "Neon",
+      "tagline": "Walls and prisms: bounce your shots."
+    },
+    "abyss": {
+      "name": "Abyss",
+      "tagline": "Pull a ball out and send it elsewhere."
+    },
+    "jewel": {
+      "name": "Jewels",
+      "tagline": "Mix colours to create new ones."
+    },
+    "volcano": {
+      "name": "Volcano",
+      "tagline": "Flip the switches to divert the lava."
+    },
+    "singularity": {
+      "name": "Singularity",
+      "tagline": "A black hole bends every shot."
+    }
+  },
+  "hints": {
+    "aim": "Aim at the chain and shoot: three balls of the same colour explode.",
+    "swap": "Swap the loaded ball with the next one: tap the shooter or press X.",
+    "reaction": "When two pieces of the same colour meet, they explode in turn: that's a chain reaction.",
+    "colours": "A fourth colour joins the game.",
+    "twin": "Two chains at once: watch both holes.",
+    "colossus": "The Colossus pushes the chain: blow up balls right next to it to hurt it."
+  },
+  "colossus": {
+    "name": "Stellar Colossus"
   }
 }

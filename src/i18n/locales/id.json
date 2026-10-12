@@ -18,7 +18,7 @@
     "arcade": "Arkade",
     "soon": "Segera hadir",
     "play": "Main",
-    "demo": "Level demo"
+    "demo": "Dunia 1: Nebula"
   },
   "settings": {
     "language": "Bahasa",
@@ -56,10 +56,15 @@
     "finalScore": "Skor: {score}",
     "bestDepth": "Reaksi berantai terbaik: ×{depth}",
     "playAgain": "Main lagi",
-    "home": "Beranda",
     "reaction": "Reaksi berantai ×{depth}",
     "loading": "Memuat permainan…",
-    "settings": "Pengaturan"
+    "settings": "Pengaturan",
+    "starsLabel": "{count} dari 3 bintang | {count} dari 3 bintang | {count} dari 3 bintang",
+    "bonus": "Bonus akhir: +{points}",
+    "best": "Rekor: {score}",
+    "newBest": "Rekor baru!",
+    "nextLevel": "Level berikutnya",
+    "map": "Peta kampanye"
   },
   "effects": {
     "spectacular": {
@@ -74,5 +79,52 @@
       "name": "Sederhana",
       "hint": "Yang penting saja, untuk ponsel sederhana"
     }
+  },
+  "campaign": {
+    "title": "Kampanye",
+    "back": "Beranda",
+    "world": "Dunia {number}",
+    "stars": "{count} / {total} bintang",
+    "levelShort": "{world}-{number}",
+    "levelLabel": "Level {number}, {stars} dari 3 bintang",
+    "lockedLabel": "Level {number}, terkunci",
+    "comingSoon": "Segera hadir: selesaikan dunia sebelumnya untuk membukanya."
+  },
+  "worlds": {
+    "nebula": {
+      "name": "Nebula",
+      "tagline": "Bola kaca dan energi di jantung bintang."
+    },
+    "neon": {
+      "name": "Neon",
+      "tagline": "Dinding dan prisma: pantulkan tembakanmu."
+    },
+    "abyss": {
+      "name": "Samudra Dalam",
+      "tagline": "Sedot satu bola lalu tembakkan ke tempat lain."
+    },
+    "jewel": {
+      "name": "Permata",
+      "tagline": "Campur warna untuk menciptakan warna baru."
+    },
+    "volcano": {
+      "name": "Gunung Api",
+      "tagline": "Ubah persimpangan untuk membelokkan lava."
+    },
+    "singularity": {
+      "name": "Singularitas",
+      "tagline": "Lubang hitam membelokkan setiap tembakan."
+    }
+  },
+  "hints": {
+    "aim": "Bidik rantai lalu tembak: tiga bola berwarna sama akan meledak.",
+    "swap": "Tukar bola yang siap dengan bola berikutnya: sentuh penembak atau tekan X.",
+    "reaction": "Saat dua bagian berwarna sama bertemu, keduanya ikut meledak: itulah reaksi berantai.",
+    "colours": "Warna keempat ikut bermain.",
+    "twin": "Dua rantai sekaligus: awasi kedua lubang.",
+    "colossus": "Kolosus mendorong rantai: ledakkan bola tepat di dekatnya untuk melukainya."
+  },
+  "colossus": {
+    "name": "Kolosus Bintang"
   }
 }

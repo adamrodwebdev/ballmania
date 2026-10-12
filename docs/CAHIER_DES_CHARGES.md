@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                           |
-| ------- | ---------- | -------------------------------- |
-| 0.6     | 12/10/2026 | Lot 3 livré (destruction et son) |
+| Version | Date       | Statut                          |
+| ------- | ---------- | ------------------------------- |
+| 0.7     | 12/10/2026 | Lot 4 livré (campagne, monde 1) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -92,8 +92,9 @@ Différenciation :
   la réaction en chaîne (1 pour la première explosion, +1 pour chaque explosion qui en
   découle). Une explosion provoquée directement par un tir prolonge la **série** ; à partir
   du 3ᵉ tir réussi consécutif, chaque tir ajoute **20 × (série − 2)**. Un tir qui sort du
-  plateau ou ne fait rien exploser casse la série. Bonus de fin de manche : défini par les
-  modes (lot 4).
+  plateau ou ne fait rien exploser casse la série. **Bonus de fin de niveau** (lot 4) :
+  300 points, plus 10 points par seconde gagnée sous le temps de référence du niveau (55 %
+  du temps que mettrait la chaîne à atteindre le trou sans être touchée).
 - La chaîne générée ne contient jamais de groupe déjà explosif (suites limitées à 2 billes
   de même couleur) : chaque explosion est l'œuvre du joueur.
 - Tout l'aléatoire passe par un **générateur à graine** : une partie se rejoue à l'identique
@@ -133,6 +134,51 @@ Deux portes d'entrée depuis l'accueil :
   et les mondes bonus. Rejouer un niveau pour la 3ᵉ étoile = rejouabilité.
 - **Assistance discrète** : après 3 échecs d'affilée sur un niveau, proposition d'un
   ralentissement léger (le joueur garde le choix) ; aucune difficulté cachée qui triche.
+  _Reportée au lot 5._
+
+#### Monde 1 « Nébuleuse », livré au lot 4
+
+- **Tracés par recette** plutôt qu'en coordonnées : spirale (nombre de tours, rayons de
+  départ et d'arrivée, angle de départ, sens, « carré » de 1 = ellipse à 3 = rectangle
+  arrondi, 1 ou 2 bras entrelacés) ou serpentin (rangées en lacets, lanceur en bas). Une
+  même recette produit **deux plateaux** : carré (1000 × 1000) pour les écrans larges et
+  **portrait (1000 × 1400)** pour les téléphones tenus droits (hauteur ≥ 1,2 × largeur). En
+  portrait, les billes gardent la même taille et le plateau occupe tout l'écran.
+- Chaque niveau est vérifié automatiquement sur les deux plateaux : tracé dans le plateau,
+  aucun chevauchement entre deux portions de tracé, place autour du lanceur, longueur
+  suffisante, partie qui démarre.
+
+| Niveau | Tracé                                    | Billes        | Couleurs | Vitesse | Conseil affiché          |
+| ------ | ---------------------------------------- | ------------- | -------- | ------- | ------------------------ |
+| 1      | Spirale 1,25 tour                        | 28            | 3        | 30      | Viser et tirer           |
+| 2      | Spirale 1,35 tour, sens inverse          | 34            | 3        | 34      | Échanger les billes      |
+| 3      | Serpentin 3 rangées                      | 36            | 3        | 38      | Réaction en chaîne       |
+| 4      | Spirale 1,5 tour                         | 40            | 4        | 44      | Quatrième couleur        |
+| 5      | Spirale « carrée » 1,45 tour             | 44            | 4        | 50      | —                        |
+| 6      | Serpentin 3 rangées (respiration)        | 38            | 4        | 42      | —                        |
+| 7      | Double spirale, 2 chaînes                | 2 × 22        | 4        | 44      | Deux chaînes, deux trous |
+| 8      | Spirale 1,7 tour, sens inverse           | 50            | 4        | 58      | —                        |
+| 9      | Serpentin 4 rangées                      | 52            | 4        | 48      | —                        |
+| 10     | Spirale arrondie (respiration)           | 46            | 4        | 50      | —                        |
+| 11     | Spirale carrée 1,65 tour                 | 54            | 5        | 68      | —                        |
+| 12     | Spirale 1,6 tour + **Colosse stellaire** | 26 + renforts | 4        | 26      | Blesser le Colosse       |
+
+- **Colosse** : il pousse la chaîne par l'arrière (c'est lui qui avance, pas la queue de
+  chaîne). Une explosion à moins de 3 diamètres de bille de son corps lui retire
+  « billes × profondeur » points de vie (60 au total). À chaque tiers de sa vie, il accélère
+  (× 1,25 puis × 1,5), crache 6 billes devant lui et rugit ; une chaîne vide repousse
+  aussitôt. Quand il tombe, toutes les billes restantes explosent en cascade. S'il atteint
+  le trou, la partie est perdue.
+- **Équilibrage** : un robot « joueur occasionnel » (un tir toutes les 1,2 s, visée
+  imprécise, stratégie gloutonne) joue chaque niveau 6 fois à chaque vérification. Il doit
+  gagner au moins 4 parties sur 6 ; la pression (avancée maximale de la tête de chaîne)
+  monte en dents de scie d'environ 40 % au niveau 1 à 75 % contre le Colosse.
+- **Étoiles** : 1 pour finir ; 2 et 3 selon le score, seuils = billes × 30 + 300 et
+  billes × 48 + 700, arrondis à 50 (le Colosse compte pour un tiers de ses points de vie en
+  billes). Le robot obtient en moyenne entre 1 et 2 étoiles ; la 3ᵉ demande des réactions
+  en chaîne. **À affiner en tests joueurs.**
+- La carte de campagne présente les six mondes ; les mondes 2 à 6 sont annoncés
+  (« bientôt ») avec leur mécanique.
 
 #### Modes et mécaniques (v0.1)
 
@@ -188,7 +234,10 @@ Précisions du lot 2 :
   depuis l'accueil et le menu pause, appliquée en direct pendant la partie. Le volume de la
   musique viendra avec la musique.
 - Sauvegarde versionnée (migrations) : progression de campagne, étoiles, records, éclats,
-  cosmétiques possédés, historique du défi du jour. Stockée via une abstraction
+  cosmétiques possédés, historique du défi du jour. Livré au lot 4 : `CampaignProgress`
+  (clé `ballmania:progress`, version 1) garde par niveau les meilleures étoiles et le
+  meilleur score ; un niveau s'ouvre quand le précédent est fini ; une sauvegarde abîmée
+  ou d'une version inconnue repart de zéro. Stockée via une abstraction
   (`SaveStore`) : `localStorage` sur notre site, stockage du SDK sur les portails qui
   l'imposent. Aucune donnée personnelle.
 
@@ -464,6 +513,20 @@ Dans `src/play/`, entre le moteur et Vue :
 Le son et les vibrations sont partagés par toutes les parties de la visite
 (`sharedFeedback`) et ne sont téléchargés qu'avec l'écran de jeu.
 
+### 5.6 Campagne et objectifs (livrés au lot 4)
+
+| Élément                     | Responsabilité                                                                               |
+| --------------------------- | -------------------------------------------------------------------------------------------- |
+| `Objective` (interface)     | Ce qui fait gagner un niveau ; le jeu l'interroge, l'objectif ne termine jamais la partie    |
+| `ClearObjective`            | Détruire toutes les billes                                                                   |
+| `ColossusObjective`         | Combat de boss : poussée, dégâts de proximité, phases, renforts                              |
+| `Chain` (ajouts)            | Pousseur à l'arrière, `feed` (billes ajoutées), `clear` (cascade finale), facteur de vitesse |
+| `TrackRecipe`, `buildTrack` | Tracés par recette, pour les plateaux carré et portrait                                      |
+| `CampaignLevel`, `WORLDS`   | Monde 1 en données ; `resolveLevel` le traduit en géométrie pour un plateau                  |
+| `CampaignProgress`          | Étoiles, records, déblocages, sauvegarde versionnée                                          |
+| `WorldTheme`, `NebulaTheme` | Fond du monde (nébuleuses, étoiles), peint une fois par taille et par thème                  |
+| `CampaignScreen`, `StarRow` | Carte de campagne, chargée à la demande                                                      |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -490,18 +553,18 @@ Le son et les vibrations sont partagés par toutes les parties de la visite
 
 ## 9. Lots et planning (provisoire)
 
-| Lot  | Contenu                                                                          |
-| ---- | -------------------------------------------------------------------------------- |
-| 0 ✅ | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)          |
-| 1 ✅ | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine  |
-| 2 ✅ | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo |
-| 3 ✅ | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités   |
-| 4    | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse   |
-| 5    | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour |
-| 6–10 | Mondes 2 à 6 (une mécanique et un thème par lot), modes Arcade intercalés        |
-| 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)     |
-| 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés              |
-| 13   | Démo portfolio                                                                   |
+| Lot  | Contenu                                                                                       |
+| ---- | --------------------------------------------------------------------------------------------- |
+| 0 ✅ | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)                       |
+| 1 ✅ | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine               |
+| 2 ✅ | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo              |
+| 3 ✅ | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités                |
+| 4 ✅ | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                |
+| 5    | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance |
+| 6–10 | Mondes 2 à 6 (une mécanique et un thème par lot), modes Arcade intercalés                     |
+| 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
+| 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
+| 13   | Démo portfolio                                                                                |
 
 ## 10. Hors périmètre (v1)
 
@@ -521,3 +584,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                      |
 | 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                  |
 | 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                  |
+| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).         |

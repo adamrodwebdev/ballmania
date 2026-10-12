@@ -5,6 +5,7 @@ import { BallSprites } from './BallSprites';
 import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
+import type { WorldTheme } from './themes/WorldTheme';
 
 /** What every renderer offers the play session. */
 export interface Renderer {
@@ -29,6 +30,8 @@ export interface Scene {
   readonly aimEnd: Vec2 | null;
   /** Seconds since the session started, for pulsing details. */
   readonly time: number;
+  /** White flash of the Colossus when it is hit, from 1 down to 0. */
+  readonly colossusFlash: number;
 }
 
 const SHOOTER_RADIUS = 58;
@@ -43,11 +46,13 @@ export class CanvasRenderer implements Renderer {
   private offsetY = 0;
   private pixelRatio = 1;
   private readonly tracks = new Map<Chain, Path2D>();
+  private background: HTMLCanvasElement | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly game: Game,
     palette: Palette,
+    private readonly theme: WorldTheme,
   ) {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('Canvas 2D is not available');
@@ -65,11 +70,23 @@ export class CanvasRenderer implements Renderer {
     this.offsetX = (width - board.width * this.scale) / 2;
     this.offsetY = (height - board.height * this.scale) / 2;
     this.rebuildSprites();
+    this.repaintBackground();
   }
 
   setPalette(palette: Palette): void {
     this.palette = palette;
     this.rebuildSprites();
+    this.repaintBackground();
+  }
+
+  private repaintBackground(): void {
+    const background = this.background ?? document.createElement('canvas');
+    background.width = this.canvas.width;
+    background.height = this.canvas.height;
+    const ctx = background.getContext('2d');
+    if (!ctx) return;
+    this.theme.paintBackground(ctx, background.width, background.height, this.palette);
+    this.background = background;
   }
 
   toBoard(x: number, y: number): Vec2 {
@@ -94,8 +111,11 @@ export class CanvasRenderer implements Renderer {
   draw(scene: Scene): void {
     const { ctx, palette } = this;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = palette.board;
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    if (this.background) ctx.drawImage(this.background, 0, 0);
+    else {
+      ctx.fillStyle = palette.board;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
     const k = this.scale * this.pixelRatio;
     const shake = scene.destruction.shakeOffset;
     ctx.setTransform(
@@ -112,6 +132,7 @@ export class CanvasRenderer implements Renderer {
     for (const chain of game.chains) this.drawTrack(chain, radius);
     if (scene.aimEnd) this.drawAim(scene.aimEnd, radius);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
+    game.chains.forEach((chain) => this.drawColossus(chain, scene));
     for (const projectile of game.projectiles) {
       this.drawBall(projectile.tone, projectile.position, radius);
     }
@@ -194,6 +215,71 @@ export class CanvasRenderer implements Renderer {
       if (s < -radius || s > chain.path.length) continue;
       this.drawBall(ball.tone, motion.positionOf(chain, ball), radius);
     }
+  }
+
+  /** The Colossus: a dark star with a burning rim, orbiting runes and one eye on the chain. */
+  private drawColossus(chain: Chain, scene: Scene): void {
+    const arc = chain.pusherArc;
+    const setup = this.game.setup.colossus;
+    if (arc === null || !setup || arc < -setup.radius) return;
+    const { ctx, palette } = this;
+    const at = chain.path.pointAt(arc);
+    const ahead = chain.path.tangentAt(arc);
+    const r = setup.radius;
+    const pulse = 0.5 + 0.5 * Math.sin(scene.time * 4);
+
+    ctx.save();
+    ctx.translate(at.x, at.y);
+    const halo = ctx.createRadialGradient(0, 0, r * 0.6, 0, 0, r * 1.6);
+    halo.addColorStop(0, palette.danger);
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = 0.35 + 0.25 * pulse;
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    const body = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.1, 0, 0, r);
+    body.addColorStop(0, palette.accent);
+    body.addColorStop(0.55, palette.hole);
+    body.addColorStop(1, palette.hole);
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = palette.danger;
+    ctx.stroke();
+
+    // Six runes orbiting the body.
+    ctx.fillStyle = palette.accent;
+    for (let i = 0; i < 6; i++) {
+      const angle = scene.time * 0.8 + (i / 6) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(Math.cos(angle) * r * 1.22, Math.sin(angle) * r * 1.22, r * 0.09, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // The eye looks along the track, at the chain it pushes.
+    const eye = ahead.scale(r * 0.38);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(eye.x, eye.y, r * 0.3, r * 0.2, ahead.angle(), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = palette.danger;
+    ctx.beginPath();
+    ctx.arc(eye.x + ahead.x * r * 0.08, eye.y + ahead.y * r * 0.08, r * 0.11, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (scene.colossusFlash > 0) {
+      ctx.globalAlpha = scene.colossusFlash * 0.8;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   private drawBall(tone: number, at: Vec2, radius: number): void {

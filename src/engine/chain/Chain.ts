@@ -35,6 +35,12 @@ export interface Hit {
 /** Tolerance on "touching", to absorb floating-point drift. */
 const EPSILON = 1e-6;
 
+/** Something big behind the tail that pushes the chain instead of the tail itself (the Colossus). */
+interface Pusher {
+  s: number;
+  readonly radius: number;
+}
+
 /**
  * A line of balls travelling along a path towards the hole.
  *
@@ -47,6 +53,8 @@ const EPSILON = 1e-6;
 export class Chain {
   private readonly items: Ball[];
   private reaction = 0;
+  private pusher: Pusher | null = null;
+  private speedFactor = 1;
 
   constructor(
     readonly path: Path,
@@ -78,10 +86,48 @@ export class Chain {
     return this.params.ballRadius * 2;
   }
 
-  /** True once a ball has reached the hole: the game is lost. */
+  /** True once a ball (or the pusher) has reached the hole: the game is lost. */
   get reachedHole(): boolean {
     const head = this.items[this.items.length - 1];
-    return head !== undefined && head.s >= this.path.length;
+    if (head !== undefined && head.s >= this.path.length) return true;
+    return this.pusher !== null && this.pusher.s >= this.path.length;
+  }
+
+  /** Arc length of the pusher's centre, or null without one. */
+  get pusherArc(): number | null {
+    return this.pusher?.s ?? null;
+  }
+
+  /**
+   * From now on, a body of `radius` behind the tail pushes the chain; the tail
+   * only moves when it touches it.
+   */
+  attachPusher(radius: number): void {
+    const tail = this.items[0];
+    const s = tail ? tail.s - this.params.ballRadius - radius : -radius;
+    this.pusher = { s, radius };
+  }
+
+  /** Multiplies the pushing speed (a Colossus getting angry). */
+  setSpeedFactor(factor: number): void {
+    this.speedFactor = factor;
+  }
+
+  /** New balls appear just in front of the pusher (or behind the tail) and push the rest. */
+  feed(balls: readonly Ball[]): void {
+    const r = this.params.ballRadius;
+    const first = this.pusher
+      ? this.pusher.s + this.pusher.radius + r
+      : (this.items[0]?.s ?? 0) - balls.length * this.diameter;
+    balls.forEach((ball, i) => (ball.s = first + i * this.diameter));
+    this.items.unshift(...balls);
+    this.resolveOverlaps();
+  }
+
+  /** Removes every ball, for the final cascade of a level. */
+  clear(): Ball[] {
+    this.pusher = null;
+    return this.items.splice(0, this.items.length);
   }
 
   /** True when no segment is being pulled back: the current chain reaction is over. */
@@ -103,12 +149,21 @@ export class Chain {
 
   /** Moves the chain by `dt` seconds and returns the explosions caused by joins. */
   advance(dt: number): Explosion[] {
+    const head = this.items[this.items.length - 1];
+    const front = head?.s ?? this.pusher?.s ?? 0;
+    const speed =
+      (front < this.params.rushDistance ? this.params.rushSpeed : this.params.speed) *
+      this.speedFactor;
+    if (this.pusher) this.pusher.s += speed * dt;
     if (this.isEmpty) return [];
     const wasTouching = this.items.slice(0, -1).map((_, i) => this.touching(i));
 
-    const head = this.items[this.items.length - 1]!;
-    const speed = head.s < this.params.rushDistance ? this.params.rushSpeed : this.params.speed;
-    this.items[0]!.s += speed * dt;
+    if (this.pusher) {
+      const contact = this.pusher.s + this.pusher.radius + this.params.ballRadius;
+      if (this.items[0]!.s < contact) this.items[0]!.s = contact;
+    } else {
+      this.items[0]!.s += speed * dt;
+    }
 
     // Segments are found before anything moves: moving one changes the gaps.
     const pulled = wasTouching.flatMap((_, i) =>

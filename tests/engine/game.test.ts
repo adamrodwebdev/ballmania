@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SeededRandom } from '@/engine/core/Random';
 import { Game, STEP, type GameEvents, type LevelSetup } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
-import { POINTS_PER_BALL, Scoring, STREAK_BONUS } from '@/engine/Scoring';
+import { CLEAR_BONUS, POINTS_PER_BALL, Scoring, SPEED_BONUS, STREAK_BONUS } from '@/engine/Scoring';
 import { Shooter } from '@/engine/shooter/Shooter';
 import { FixedRandom, PARAMS, straightPath } from './helpers';
 
@@ -47,6 +47,8 @@ describe('Scoring', () => {
     expect(scoring.streak).toBe(3);
     scoring.miss();
     expect(scoring.streak).toBe(0);
+    expect(Scoring.levelBonus(50, 80)).toBe(CLEAR_BONUS + 30 * SPEED_BONUS);
+    expect(Scoring.levelBonus(90, 80)).toBe(CLEAR_BONUS);
     scoring.bonus(100);
     expect(scoring.score).toBe(3 * 3 * POINTS_PER_BALL + STREAK_BONUS + 100);
   });
@@ -104,7 +106,7 @@ describe('Game', () => {
     until(game, () => game.state !== 'playing', 5);
     expect(game.state).toBe('won');
     expect(log).toEqual(['fired', 'inserted', 'exploded', 'ended']);
-    expect(game.score).toBe(3 * POINTS_PER_BALL);
+    expect(game.score).toBe(3 * POINTS_PER_BALL + CLEAR_BONUS);
   });
 
   it('counts a shot out of the board as a miss', () => {

@@ -211,6 +211,14 @@ export class Destruction {
     }
   }
 
+  /** A blow on something big (the Colossus): shake and a shock wave. */
+  impact(at: Vec2, strength: number): void {
+    this.shaker.add(strength);
+    if (this.profile.distortion) {
+      this.liveWaves.push({ x: at.x, y: at.y, strength: 40 * strength + 10, age: 0 });
+    }
+  }
+
   /** The chain reached the hole: a dull red jolt. */
   defeat(colour: string): void {
     this.flashAmount = Math.max(this.flashAmount, 0.35);

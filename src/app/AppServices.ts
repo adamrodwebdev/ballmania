@@ -1,5 +1,6 @@
 import { inject, type InjectionKey } from 'vue';
 import { detectLocale } from '@/i18n/locales';
+import { CampaignProgress } from '@/services/CampaignProgress';
 import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage';
 import { SettingsService } from '@/services/SettingsService';
 import { ThemeController } from '@/services/ThemeController';
@@ -8,6 +9,7 @@ import { ThemeController } from '@/services/ThemeController';
 export interface AppServices {
   readonly settings: SettingsService;
   readonly theme: ThemeController;
+  readonly progress: CampaignProgress;
 }
 
 export const APP_SERVICES: InjectionKey<AppServices> = Symbol('AppServices');
@@ -27,6 +29,7 @@ export function createBrowserServices(
     theme: new ThemeController(settings, document.documentElement, (query) =>
       window.matchMedia(query),
     ),
+    progress: new CampaignProgress(storage),
   };
 }
 

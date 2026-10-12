@@ -4,6 +4,8 @@ import { ChainGenerator, type ChainRecipe } from './chain/ChainGenerator';
 import { Emitter } from './core/Emitter';
 import type { RandomSource } from './core/Random';
 import type { Vec2 } from './geometry/Vec2';
+import { ColossusObjective, type ColossusSetup } from './objectives/ColossusObjective';
+import { ClearObjective, type Objective, type ObjectiveContext } from './objectives/Objective';
 import type { Path } from './path/Path';
 import { Scoring } from './Scoring';
 import type { Projectile, ProjectileView } from './shooter/Projectile';
@@ -24,6 +26,10 @@ export interface LevelSetup {
   readonly projectileSpeed: number;
   /** Seconds between two shots. */
   readonly fireCooldown: number;
+  /** A boss level: the Colossus pushes one of the chains. */
+  readonly colossus?: ColossusSetup;
+  /** Seconds under which finishing earns a speed bonus. */
+  readonly parTime?: number;
 }
 
 export type GameState = 'playing' | 'won' | 'lost';
@@ -43,7 +49,14 @@ export interface GameEvents {
     readonly points: number;
     readonly streak: number;
   };
-  ended: { readonly outcome: 'won' | 'lost'; readonly score: number };
+  colossusHit: {
+    readonly hp: number;
+    readonly maxHp: number;
+    readonly damage: number;
+    readonly position: Vec2;
+  };
+  colossusPhase: { readonly phase: number };
+  ended: { readonly outcome: 'won' | 'lost'; readonly score: number; readonly bonus: number };
 }
 
 /** Fixed simulation step: the same inputs always give the same game, at any frame rate. */
@@ -62,6 +75,9 @@ export class Game {
   private readonly scoring = new Scoring();
   private readonly balls = new BallFactory();
   private readonly flying: Projectile[] = [];
+  private readonly objective: Objective;
+  private readonly context: ObjectiveContext;
+  private readonly generator: ChainGenerator;
   private accumulator = 0;
   private elapsedValue = 0;
   private stateValue: GameState = 'playing';
@@ -71,6 +87,7 @@ export class Game {
     random: RandomSource,
   ) {
     const generator = new ChainGenerator(random, setup.chain.minMatch);
+    this.generator = generator;
     this.chains = setup.chains.map(({ path, recipe }) =>
       Chain.queued(
         path,
@@ -78,6 +95,9 @@ export class Game {
         setup.chain,
       ),
     );
+    this.context = this.createContext();
+    this.objective = setup.colossus ? new ColossusObjective(setup.colossus) : new ClearObjective();
+    this.objective.start(this.context);
     this.shooter = new Shooter(
       setup.shooter,
       random,
@@ -85,6 +105,13 @@ export class Game {
       setup.fireCooldown,
       this.availableTones(),
     );
+  }
+
+  /** Health of the Colossus of a boss level, or null. */
+  get colossus(): { readonly hp: number; readonly maxHp: number; readonly phase: number } | null {
+    if (!(this.objective instanceof ColossusObjective)) return null;
+    const { hp, phase, setup } = this.objective;
+    return { hp, maxHp: setup.hp, phase };
   }
 
   get state(): GameState {
@@ -148,6 +175,7 @@ export class Game {
     this.chains.forEach((chain, index) => {
       for (const explosion of chain.advance(dt)) this.report(index, chain, explosion);
     });
+    this.objective.update(this.context, dt);
     this.shooter.refresh(this.availableTones());
     this.checkEnd();
   }
@@ -202,17 +230,41 @@ export class Game {
       points,
       streak: this.scoring.streak,
     });
+    this.objective.onExplosion(this.context, index, explosion);
   }
 
   private checkEnd(): void {
     if (this.chains.some((chain) => chain.reachedHole)) this.end('lost');
-    else if (this.chains.every((chain) => chain.isEmpty)) this.end('won');
+    else if (this.objective.isComplete(this.context)) this.end('won');
   }
 
   private end(outcome: 'won' | 'lost'): void {
     this.stateValue = outcome;
     this.flying.length = 0;
-    this.events.emit('ended', { outcome, score: this.scoring.score });
+    let bonus = 0;
+    if (outcome === 'won') {
+      // Whatever is left on the track goes up in one final cascade.
+      this.chains.forEach((chain, index) => {
+        const balls = chain.clear();
+        if (balls.length > 0) this.report(index, chain, { balls, cause: 'reaction', depth: 1 });
+      });
+      bonus = Scoring.levelBonus(this.elapsedValue, this.setup.parTime);
+      this.scoring.bonus(bonus);
+    }
+    this.events.emit('ended', { outcome, score: this.scoring.score, bonus });
+  }
+
+  private createContext(): ObjectiveContext {
+    const tones = Math.max(2, ...this.setup.chains.map(({ recipe }) => recipe.tones));
+    return {
+      chains: this.chains,
+      createBalls: (count) =>
+        this.generator
+          .tones({ length: count, tones, repeatChance: 0.35 })
+          .map((tone) => this.balls.create(tone)),
+      colossusHit: (event) => this.events.emit('colossusHit', event),
+      colossusPhase: (event) => this.events.emit('colossusPhase', event),
+    };
   }
 
   private availableTones(): Tone[] {

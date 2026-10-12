@@ -19,6 +19,8 @@ export {
 } from './Game';
 export { Vec2 } from './geometry/Vec2';
 export { Path, type CubicSegment } from './path/Path';
+export { ColossusObjective, type ColossusSetup } from './objectives/ColossusObjective';
+export { ClearObjective, type Objective, type ObjectiveContext } from './objectives/Objective';
 export { Scoring } from './Scoring';
 export { Projectile, type ProjectileView } from './shooter/Projectile';
 export { Shooter } from './shooter/Shooter';
