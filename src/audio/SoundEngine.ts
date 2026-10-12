@@ -100,6 +100,22 @@ export class SoundEngine {
     });
   }
 
+  /** The magnet pulls a ball: a watery suction sweeping upwards. */
+  pull(): void {
+    this.play((ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sine', 160, 720, 0.26, 0.22, 1400);
+      this.noiseBurst(ctx, out, now, 0.2, 900, 0.1);
+    });
+  }
+
+  /** The magnet gets a charge back: two soft rising notes. */
+  charge(): void {
+    this.play((ctx, out, now) => {
+      this.bell(ctx, out, now, 880, 0.3, 0.1);
+      this.bell(ctx, out, now + 0.08, 1320, 0.35, 0.1);
+    });
+  }
+
   /** A blow on the Colossus: a heavy, metallic hit. */
   colossusHit(): void {
     this.play((ctx, out, now) => {

@@ -46,3 +46,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 - Lot 6, monde 2 « Néon » : murs et prismes (fixes ou tournants) qui renvoient les tirs,
   points multipliés par 1 + rebonds, ligne de visée qui suit les rebonds, 12 niveaux dont
   le Colosse prisme, objectif « tir en bande », sons et étincelles de rebond.
+- Lot 7, monde 3 « Abysses » : aimant qui aspire la bille visée et la charge dans le
+  lanceur (bouton, touche M), charges rechargées par les explosions, ligne de visée en
+  crochet, animation de succion, 12 niveaux dont le Colosse abyssal, plateau « Abysses »
+  débloqué en finissant Néon, objectifs « pêcheur des profondeurs » et « lumière noire ».

@@ -13,6 +13,8 @@ export class Shooter {
   private nextTone: Tone;
   private cooldownLeft = 0;
   private shots = 0;
+  /** A ball pulled out of the chain keeps its colour, even if that colour left the track. */
+  private pinned: 'current' | 'next' | null = null;
 
   constructor(
     readonly position: Vec2,
@@ -52,6 +54,18 @@ export class Shooter {
 
   swap(): void {
     [this.currentTone, this.nextTone] = [this.nextTone, this.currentTone];
+    if (this.pinned) this.pinned = this.pinned === 'current' ? 'next' : 'current';
+  }
+
+  /**
+   * Loads a ball pulled out of the chain (Abyss world, magnet): it becomes the
+   * loaded ball, the loaded one becomes the next, the next one is dropped.
+   */
+  load(tone: Tone): void {
+    this.nextTone = this.currentTone;
+    this.currentTone = tone;
+    this.pinned = 'current';
+    this.cooldownLeft = this.cooldown;
   }
 
   tick(dt: number): void {
@@ -69,6 +83,7 @@ export class Shooter {
     );
     this.currentTone = this.nextTone;
     this.nextTone = this.draw(available);
+    this.pinned = this.pinned === 'next' ? 'current' : null;
     this.cooldownLeft = this.cooldown;
     return projectile;
   }
@@ -76,8 +91,12 @@ export class Shooter {
   /** Replaces loaded colours that have left the track. */
   refresh(available: readonly Tone[]): void {
     if (available.length === 0) return;
-    if (!available.includes(this.currentTone)) this.currentTone = this.draw(available);
-    if (!available.includes(this.nextTone)) this.nextTone = this.draw(available);
+    if (this.pinned !== 'current' && !available.includes(this.currentTone)) {
+      this.currentTone = this.draw(available);
+    }
+    if (this.pinned !== 'next' && !available.includes(this.nextTone)) {
+      this.nextTone = this.draw(available);
+    }
   }
 
   private draw(available: readonly Tone[]): Tone {

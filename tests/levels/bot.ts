@@ -46,7 +46,33 @@ export function playLevel(
     return best as { score: number; chain: number; s: number } | null;
   };
 
+  /** A ball between two balls of one same colour: pulling it out makes them meet. */
+  const separator = () => {
+    let best: { chain: number; s: number } | null = null;
+    game.chains.forEach((chain, index) => {
+      const balls = chain.balls;
+      for (let i = 1; i + 1 < balls.length; i++) {
+        const ball = balls[i]!;
+        if (ball.s < 0 || balls[i - 1]!.tone !== balls[i + 1]!.tone) continue;
+        if (ball.tone === balls[i - 1]!.tone) continue;
+        if (!best || ball.s > best.s) best = { chain: index, s: ball.s };
+      }
+    });
+    return best as { chain: number; s: number } | null;
+  };
+
   for (let frameIndex = 0; frameIndex < 60 * 300 && game.state === 'playing'; frameIndex++) {
+    const magnet = game.magnet;
+    if (frameIndex % cadence === 0 && game.shooter.ready && magnet && magnet.charges > 0) {
+      const target = separator();
+      if (target) {
+        game.aimAt(game.chains[target.chain]!.path.pointAt(target.s));
+        if (game.pull()) {
+          game.update(1 / 60);
+          continue;
+        }
+      }
+    }
     if (frameIndex % cadence === 0 && game.shooter.ready) {
       let aim = target(game.shooter.current);
       const other = target(game.shooter.next);

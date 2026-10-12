@@ -6,6 +6,8 @@ export interface PlayCommands {
   swap(): void;
   turn(direction: number): void;
   togglePause(): void;
+  /** Arms or disarms the magnet (Abyss world). */
+  toggleMagnet(): void;
 }
 
 /**
@@ -118,6 +120,10 @@ export class KeyboardControls {
       case 'KeyC':
         if (event.repeat) return;
         this.commands.swap();
+        break;
+      case 'KeyM':
+        if (event.repeat) return;
+        this.commands.toggleMagnet();
         break;
       case 'Escape':
       case 'KeyP':

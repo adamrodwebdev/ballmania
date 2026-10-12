@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                               |
-| ------- | ---------- | ------------------------------------ |
-| 0.9     | 12/10/2026 | Lot 6 livré (monde 2 Néon, ricochet) |
+| Version | Date       | Statut                                |
+| ------- | ---------- | ------------------------------------- |
+| 0.10    | 12/10/2026 | Lot 7 livré (monde 3 Abysses, aimant) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -182,7 +182,7 @@ Deux portes d'entrée depuis l'accueil :
   billes × 48 + 700, arrondis à 50 (le Colosse compte pour un tiers de ses points de vie en
   billes). Le robot obtient en moyenne entre 1 et 2 étoiles ; la 3ᵉ demande des réactions
   en chaîne. **À affiner en tests joueurs.**
-- La carte de campagne présente les six mondes ; les mondes 3 à 6 sont annoncés
+- La carte de campagne présente les six mondes ; les mondes 4 à 6 sont annoncés
   (« bientôt ») avec leur mécanique.
 
 #### Monde 2 « Néon », livré au lot 6
@@ -220,6 +220,47 @@ Deux portes d'entrée depuis l'accueil :
   du jeu. Les joueurs qui exploitent les rebonds marquent nettement plus.
 - Terminer la Nébuleuse ouvre le monde Néon (et débloque son plateau, § 3.6).
 
+#### Monde 3 « Abysses », livré au lot 7
+
+- **Aimant** : on l'arme (bouton « Aimant » ou touche M ; un second appui le désarme),
+  puis le prochain « tir » (clic, relâcher le doigt, Espace) **aspire** la bille que vise
+  la ligne de visée au lieu d'en lancer une. Aucun geste nouveau à apprendre, sur aucun
+  appareil. Armé, la ligne devient un trait cyan animé terminé par un anneau autour de la
+  bille ciblée ; sans bille visée, l'aimant reste armé.
+- La bille aspirée **rejoint le lanceur** (animation courbe avec bulles, son de succion) :
+  elle devient la bille chargée, l'ancienne devient la suivante, la suivante est perdue.
+  Elle garde sa couleur même si c'était la dernière de cette couleur sur le tracé.
+- Le trou laissé se comporte comme tout autre : si les billes de part et d'autre ont la
+  même couleur, elles se rejoignent et peuvent exploser. **Retirer la bille qui sépare
+  deux couleurs identiques** est le cœur stratégique du monde.
+- **Charges** : 1 à 3 au départ selon le niveau, 3 au maximum ; une charge revient toutes
+  les 3 à 6 explosions (réactions comprises). Affichées sur le bouton (pastilles) et
+  annoncées aux lecteurs d'écran.
+
+| Niveau | Tracé                          | Charges / recharge | Billes        | Couleurs | Vitesse | Conseil               |
+| ------ | ------------------------------ | ------------------ | ------------- | -------- | ------- | --------------------- |
+| 1      | Spirale 1,3 tour               | 3 / 3 explosions   | 36            | 4        | 40      | Aimant                |
+| 2      | Serpentin 3 rangées            | 3 / 3              | 38            | 4        | 46      | Séparer deux couleurs |
+| 3      | Spirale arrondie, sens inverse | 2 / 4              | 44            | 4        | 54      | —                     |
+| 4      | Double spirale                 | 2 / 4              | 2 × 28        | 4        | 48      | —                     |
+| 5      | Serpentin 4 rangées            | 2 / 4              | 50            | 5        | 52      | —                     |
+| 6      | Spirale 1,4 tour (respiration) | 3 / 3              | 42            | 4        | 44      | —                     |
+| 7      | Spirale carrée, sens inverse   | 2 / 5              | 52            | 5        | 64      | —                     |
+| 8      | Serpentin 3 rangées            | 1 / 5              | 40            | 5        | 54      | —                     |
+| 9      | Double spirale                 | 2 / 5              | 2 × 30        | 4        | 50      | —                     |
+| 10     | Spirale arrondie (respiration) | 3 / 4              | 46            | 4        | 50      | —                     |
+| 11     | Spirale 1,75 tour              | 1 / 6              | 54            | 5        | 70      | —                     |
+| 12     | Spirale + **Colosse abyssal**  | 2 / 4              | 30 + renforts | 5        | 26      | Blesser le Colosse    |
+
+- **Équilibrage** : le robot apprend à se servir de l'aimant (il aspire la bille qui sépare
+  deux couleurs identiques, la plus proche du trou) ; il gagne chaque niveau au moins 5 fois
+  sur 6. L'aimant est un outil puissant : sur les spirales, où le lanceur central voit
+  presque toute la chaîne, la pression reste modérée (35 à 45 %) malgré des vitesses plus
+  élevées ; elle monte à 55-70 % sur les serpentins et doubles spirales et à 85 % contre le
+  Colosse. **À confirmer en tests joueurs**, qui n'auront pas l'efficacité du robot.
+- Terminer Néon ouvre les Abysses et débloque le plateau « Abysses » (rayons de lumière,
+  plancton luminescent, fond rocheux).
+
 #### Modes et mécaniques (v0.1)
 
 Chaque mode est une **stratégie** branchée sur un moteur commun ; aucun mode ne modifie le
@@ -251,6 +292,7 @@ complet), puis un monde par lot, les modes Arcade s'intercalant.
 | Viser                     | Pointeur                     | Glisser le doigt (ligne de visée)            |
 | Tirer                     | Clic gauche, Espace          | Relâcher le doigt                            |
 | Échanger bille / suivante | Clic droit, X, C             | Toucher le lanceur ou le bouton « Échanger » |
+| Armer l'aimant (Abysses)  | M, bouton « Aimant »         | Bouton « Aimant »                            |
 | Pause                     | Échap, P                     | Bouton pause (≥ 44 × 44 px)                  |
 | Viser au clavier (a11y)   | Flèches gauche/droite (+Maj) | —                                            |
 
@@ -363,18 +405,19 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 
 **Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu) :
 
-| Emplacement        | Objets (prix en éclats)                                                               |
-| ------------------ | ------------------------------------------------------------------------------------- |
-| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                      |
-| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                      |
-| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                  |
-| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (débloqué en finissant la Nébuleuse) |
+| Emplacement        | Objets (prix en éclats)                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                              |
+| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                              |
+| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                          |
+| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon) |
 
 Un objet acheté est aussitôt équipé. Le plateau choisi habille tous les niveaux et le défi
 du jour ; « Celui du monde » suit le monde joué.
 
-**14 objectifs** (compteurs à vie ; « tir en bande » ajouté au lot 6 : faire exploser un
-groupe après 2 rebonds, 60 éclats) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
+**16 objectifs** (compteurs à vie ; « tir en bande » ajouté au lot 6 : faire exploser un
+groupe après 2 rebonds, 60 éclats ; au lot 7 : aspirer 10 billes avec l'aimant, 50 éclats, et
+terminer Néon, 200 éclats) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
 5 et 10 tirs réussis d'affilée (40, 100), 500 et 2 000 billes détruites (50, 120), gagner
 sans échanger (40), gagner alors que la chaîne a dépassé 90 % du tracé (50), 3 étoiles sur
 5 niveaux (80), vaincre le Colosse (100), jouer le défi 3 jours (60), terminer la Nébuleuse
@@ -638,6 +681,18 @@ le moteur de tracés.
 | `Game.aimPath`                                            | Ligne de visée avec rebonds, calculée par le moteur                                  |
 | `MirrorRecipe` → `ReflectorDefinition` → `ReflectorSetup` | Miroirs en fractions du plateau, puis en unités, puis pour le moteur                 |
 
+### 5.9 Aimant (livré au lot 7)
+
+| Élément                              | Responsabilité                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------- |
+| `MagnetSetup`                        | Charges de départ, maximum, explosions par recharge                                 |
+| `Game.pull`, `Game.magnet`           | Aspire la bille visée (même trajet que la ligne de visée, rebonds compris), charges |
+| `Game.trace` (privé)                 | Trajet commun à la ligne de visée et à l'aimant : points et bille touchée           |
+| `Chain.extract`                      | Retire une bille ; le trou suit les règles habituelles (rappel, réaction)           |
+| `Shooter.load`                       | Charge la bille aspirée et protège sa couleur jusqu'à son tir                       |
+| Événements `pulled`, `magnetCharged` | Animation, son, vibration, interface                                                |
+| `AbyssTheme`                         | Fond du monde 3                                                                     |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -673,7 +728,8 @@ le moteur de tracés.
 | 4 ✅ | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                |
 | 5 ✅ | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance |
 | 6 ✅ | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                     |
-| 7–10 | Mondes 3 à 6 (une mécanique et un thème par lot), modes Arcade intercalés                     |
+| 7 ✅ | Monde 3 Abysses : aimant, charges, Colosse abyssal                                            |
+| 8–10 | Mondes 4 à 6 (une mécanique et un thème par lot), modes Arcade intercalés                     |
 | 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
 | 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
 | 13   | Démo portfolio                                                                                |
@@ -699,3 +755,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                       |
 | 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7). |
 | 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                               |
+| 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                               |

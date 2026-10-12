@@ -39,6 +39,7 @@ export function resolveLevel(level: CampaignLevel, frame: Frame): LevelDefinitio
     ...(level.mirrors
       ? { reflectors: level.mirrors.map((mirror) => placeMirror(mirror, frame)) }
       : {}),
+    ...(level.magnet ? { magnet: level.magnet } : {}),
   };
 }
 
