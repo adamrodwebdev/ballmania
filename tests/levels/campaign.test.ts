@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Game } from '@/engine/Game';
-import type { Vec2 } from '@/engine/geometry/Vec2';
+import { Vec2 } from '@/engine/geometry/Vec2';
 import { Prism } from '@/engine/reflectors/Reflectors';
 import { SeededRandom } from '@/engine/core/Random';
 import {
@@ -18,7 +18,7 @@ import { FRAMES, frameFor } from '@/levels/tracks';
 const SHOOTER_RADIUS = 58;
 
 describe('campaign', () => {
-  it('has six worlds; Nebula and Neon have twelve levels ending with a Colossus', () => {
+  it('has six worlds of twelve levels, each ending with a Colossus', () => {
     expect(WORLDS.map((world) => world.id)).toEqual([
       'nebula',
       'neon',
@@ -27,7 +27,7 @@ describe('campaign', () => {
       'volcano',
       'singularity',
     ]);
-    for (const world of WORLDS.slice(0, 5)) {
+    for (const world of WORLDS) {
       expect(world.levels).toHaveLength(12);
       expect(world.levels.map((level) => level.number)).toEqual([
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
@@ -49,6 +49,15 @@ describe('campaign', () => {
     for (const level of WORLDS[3]!.levels) {
       expect(level.palette!.slice(0, 3)).toEqual([0, 2, 4]);
     }
+    // Every Singularity level has a black hole and spirals coming out of a portal;
+    // the first one introduces gravity alone, the shooter starts gliding at the second.
+    for (const level of WORLDS[5]!.levels) {
+      expect(level.gravity).toBeGreaterThan(0);
+      expect(level.track.kind === 'spiral' && level.track.portal).toBe(true);
+    }
+    expect(WORLDS[5]!.levels[0]!.orbit).toBeUndefined();
+    expect(WORLDS[5]!.levels.slice(1).every((level) => level.orbit !== undefined)).toBe(true);
+    expect(CAMPAIGN).toHaveLength(72);
   });
 
   it('finds levels and their successor', () => {
@@ -58,7 +67,8 @@ describe('campaign', () => {
     expect(nextLevel(findLevel('neon-12')!)?.id).toBe('abyss-01');
     expect(nextLevel(findLevel('abyss-12')!)?.id).toBe('jewel-01');
     expect(nextLevel(findLevel('jewel-12')!)?.id).toBe('volcano-01');
-    expect(nextLevel(findLevel('volcano-12')!)).toBeUndefined();
+    expect(nextLevel(findLevel('volcano-12')!)?.id).toBe('singularity-01');
+    expect(nextLevel(findLevel('singularity-12')!)).toBeUndefined();
     expect(findLevel('nope')).toBeUndefined();
   });
 
@@ -168,6 +178,29 @@ describe.each(Object.values(FRAMES))('geometry on the $kind board', (frame) => {
           expect(point.distanceTo(reflector.centre)).toBeGreaterThan(
             reflector.radius + radius + 10,
           );
+        }
+      }
+    }
+
+    // The shooter's ring stays clear of the tracks and of the mirrors, all the way round.
+    if (setup.orbit) {
+      const { centre, radiusX, radiusY } = setup.orbit;
+      const ring = Array.from({ length: 96 }, (_, i) => {
+        const angle = (i / 96) * Math.PI * 2;
+        return centre.add(new Vec2(Math.cos(angle) * radiusX, Math.sin(angle) * radiusY));
+      });
+      for (const at of ring) {
+        expect(at.x).toBeGreaterThanOrEqual(SHOOTER_RADIUS);
+        expect(at.x).toBeLessThanOrEqual(frame.width - SHOOTER_RADIUS);
+        for (const points of samples) {
+          for (const point of points) {
+            expect(point.distanceTo(at)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
+          }
+        }
+        for (const reflector of game.reflectors.items) {
+          for (const segment of reflector.segments) {
+            expect(segment.distanceTo(at)).toBeGreaterThan(SHOOTER_RADIUS + radius);
+          }
         }
       }
     }

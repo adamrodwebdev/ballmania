@@ -330,3 +330,32 @@ test('flips the switches of the Volcano world by touch and by keyboard', async (
   await page.keyboard.press('KeyS');
   await expect(live).toHaveText('Switch set to the shortcut');
 });
+
+test('plays around the black hole of the Singularity world', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+    const levels: Record<string, { stars: number; best: number }> = {};
+    for (const world of ['nebula', 'neon', 'abyss', 'jewel', 'volcano']) {
+      for (let i = 1; i <= 12; i++)
+        levels[`${world}-${String(i).padStart(2, '0')}`] = { stars: 1, best: 1 };
+    }
+    levels['singularity-01'] = { stars: 1, best: 1 };
+    localStorage.setItem('ballmania:progress', JSON.stringify({ version: 1, levels }));
+  });
+  await page.goto('./');
+  await page.getByTestId('play').click();
+  await expect(page.getByRole('heading', { name: 'Singularity' })).toBeVisible();
+  await page.getByTestId('level-singularity-02').click();
+  await expect(page.getByTestId('hint')).toContainText('glides around the black hole');
+  const board = page.getByTestId('board');
+  const box = (await board.boundingBox())!;
+  for (let i = 0; i < 4; i++) {
+    await board.click({ position: { x: box.width * (0.25 + i * 0.15), y: box.height * 0.3 } });
+  }
+  await page.keyboard.press('Space');
+  expect(errors).toEqual([]);
+});

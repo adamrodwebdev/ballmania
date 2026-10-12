@@ -39,6 +39,11 @@ export type TrackRecipe =
       readonly squareness?: number;
       /** Number of interleaved chains (2 = double spiral). */
       readonly arms?: number;
+      /**
+       * Balls come out of a portal on the board instead of an entrance
+       * tunnel (Singularity world: the tunnel would cross the shooter's ring).
+       */
+      readonly portal?: boolean;
     }
   | {
       readonly kind: 'serpentine';
@@ -87,7 +92,7 @@ function spiralTrack(recipe: Extract<TrackRecipe, { kind: 'spiral' }>, frame: Fr
         cy + signedPower(Math.sin(angle), power) * radius * cy,
       ];
     });
-    return [entrance(points[0]!, frame), ...points];
+    return recipe.portal ? points : [entrance(points[0]!, frame), ...points];
   });
   return { paths, shooter: [cx, cy] };
 }

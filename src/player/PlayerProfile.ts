@@ -126,6 +126,7 @@ export class PlayerProfile {
     stats.magnetPulls += report.pulls;
     stats.fusions += report.fusions;
     stats.switches += report.switches;
+    stats.curves += report.curves;
     stats.threeStarLevels = Math.max(stats.threeStarLevels, context.threeStarLevels);
     if (won) {
       stats.levelsWon++;

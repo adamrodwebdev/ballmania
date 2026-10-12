@@ -19,6 +19,7 @@ const report = (overrides: Partial<GameReport> = {}): GameReport => ({
   pulls: 0,
   fusions: 0,
   switches: 0,
+  curves: 0,
   danger: 0.5,
   colossusDefeated: false,
   ...overrides,
@@ -93,6 +94,21 @@ describe('PlayerProfile', () => {
     expect(profile.view.achievements).toEqual(
       expect.arrayContaining(['no-swap', 'close-call', 'colossus']),
     );
+  });
+
+  it('counts curved shots around the black hole', () => {
+    const profile = new PlayerProfile(new MemoryStorage());
+    profile.recordGame(report({ curves: 6 }), campaign());
+    expect(profile.view.achievements).not.toContain('slingshot');
+    profile.recordGame(report({ curves: 4 }), campaign());
+    expect(profile.view.stats.curves).toBe(10);
+    expect(profile.view.achievements).toContain('slingshot');
+  });
+
+  it('unlocks the Singularity backdrop by finishing the Volcano', () => {
+    const profile = new PlayerProfile(new MemoryStorage());
+    const rewards = profile.recordGame(report(), campaign({ worldCompleted: 'volcano' }));
+    expect(rewards.unlocked.map((item) => item.id)).toEqual(['board-singularity']);
   });
 
   it('unlocks the theme of a finished world once', () => {

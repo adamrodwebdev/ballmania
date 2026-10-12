@@ -15,6 +15,9 @@ export class Projectile implements ProjectileView {
   private positionValue: Vec2;
   private velocityValue: Vec2;
   private bouncesValue = 0;
+  private ageValue = 0;
+  /** Direction it was fired in, to measure how far gravity bent it. */
+  readonly launch: Vec2;
 
   constructor(
     readonly id: number,
@@ -24,6 +27,7 @@ export class Projectile implements ProjectileView {
   ) {
     this.positionValue = origin;
     this.velocityValue = velocity;
+    this.launch = velocity.normalize();
   }
 
   get position(): Vec2 {
@@ -38,8 +42,25 @@ export class Projectile implements ProjectileView {
     return this.bouncesValue;
   }
 
+  /** Seconds in flight. */
+  get age(): number {
+    return this.ageValue;
+  }
+
+  /** Angle between the direction it was fired in and its direction now, in radians. */
+  get deflection(): number {
+    const now = this.velocityValue.normalize();
+    return Math.acos(Math.min(1, Math.max(-1, now.dot(this.launch))));
+  }
+
   move(dt: number): void {
     this.positionValue = this.positionValue.add(this.velocityValue.scale(dt));
+    this.ageValue += dt;
+  }
+
+  /** Bends its course (Singularity world: the black hole's pull). */
+  accelerate(acceleration: Vec2, dt: number): void {
+    this.velocityValue = this.velocityValue.add(acceleration.scale(dt));
   }
 
   /** Bounces off a mirror: new position and direction, one more rebound. */

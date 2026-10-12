@@ -63,7 +63,8 @@
     "newBest": "Rekor baru!",
     "nextLevel": "Level berikutnya",
     "map": "Peta kampanye",
-    "homeButton": "Beranda"
+    "homeButton": "Beranda",
+    "campaignDone": "Kampanye selesai: keenam dunia milikmu!"
   },
   "effects": {
     "spectacular": {
@@ -130,14 +131,17 @@
     "alchemy": "Cahaya bercampur: rubi + limau = amber, limau + ungu = sian, rubi + ungu = merah muda. Tembakkan satu warna ke warna lain untuk menyatukannya.",
     "alchemySecondary": "Warna campuran tidak bisa ditembakkan: satukan tiga berdampingan untuk meledakkannya.",
     "switch": "Sentuh persimpangan (atau tekan S) untuk mengalirkan lava ke jalan memutar: lebih panjang, memberimu waktu. Tidak bisa diubah lagi setelah rantai sampai.",
-    "hot": "Di jalan pintas lava sedang membara: bola yang meledak di sana bernilai dua kali lipat. Poin atau waktu, kamu yang pilih."
+    "hot": "Di jalan pintas lava sedang membara: bola yang meledak di sana bernilai dua kali lipat. Poin atau waktu, kamu yang pilih.",
+    "gravity": "Lubang hitam menarik tembakanmu: garis bidik menunjukkan lengkungan yang akan diikutinya. Tembakan yang lewat terlalu dekat akan ditelan.",
+    "orbit": "Penembakmu meluncur mengelilingi lubang hitam: tunggu posisi yang tepat sebelum menembak."
   },
   "colossus": {
     "nebula": "Kolosus Bintang",
     "neon": "Kolosus Prisma",
     "abyss": "Kolosus Samudra",
     "jewel": "Kolosus Kristal",
-    "volcano": "Kolosus Lava"
+    "volcano": "Kolosus Lava",
+    "singularity": "Kolosus Pamungkas"
   },
   "player": {
     "balance": "{count} kepingan",
@@ -195,7 +199,8 @@
     "board-neon": "Neon",
     "board-abyss": "Samudra Dalam",
     "board-jewel": "Permata",
-    "board-volcano": "Gunung Api"
+    "board-volcano": "Gunung Api",
+    "board-singularity": "Singularitas"
   },
   "achievements": {
     "title": "Target",
@@ -284,6 +289,18 @@
       "world-jewel": {
         "name": "Hati berlian",
         "text": "Selesaikan dunia Permata."
+      },
+      "slingshot": {
+        "name": "Ketapel gravitasi",
+        "text": "Ledakkan bola dengan {target} tembakan yang dibelokkan lubang hitam minimal 45°."
+      },
+      "world-volcano": {
+        "name": "Jantung magma",
+        "text": "Selesaikan dunia Gunung Api."
+      },
+      "world-singularity": {
+        "name": "Melampaui cakrawala",
+        "text": "Selesaikan kampanye."
       }
     }
   },

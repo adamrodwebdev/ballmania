@@ -63,7 +63,8 @@
     "newBest": "New record!",
     "nextLevel": "Next level",
     "map": "Campaign map",
-    "homeButton": "Home"
+    "homeButton": "Home",
+    "campaignDone": "Campaign complete: all six worlds are yours!"
   },
   "effects": {
     "spectacular": {
@@ -130,14 +131,17 @@
     "alchemy": "Light mixes: ruby + lime = amber, lime + violet = cyan, ruby + violet = rose. Shoot one colour onto another to fuse them.",
     "alchemySecondary": "Mixed colours cannot be shot: fuse three of them side by side to blow them up.",
     "switch": "Tap a switch (or press S) to send the lava into the detour: longer, it buys you time. It can no longer change once the chain gets there.",
-    "hot": "On the shortcut the lava is molten: balls blown up there are worth double. Points or time: your call."
+    "hot": "On the shortcut the lava is molten: balls blown up there are worth double. Points or time: your call.",
+    "gravity": "The black hole pulls your shots: the aim line shows the curve they will follow. A shot passing too close is swallowed.",
+    "orbit": "Your shooter glides around the black hole: wait until you are well placed before you fire."
   },
   "colossus": {
     "nebula": "Stellar Colossus",
     "neon": "Prism Colossus",
     "abyss": "Abyssal Colossus",
     "jewel": "Crystal Colossus",
-    "volcano": "Lava Colossus"
+    "volcano": "Lava Colossus",
+    "singularity": "Ultimate Colossus"
   },
   "player": {
     "balance": "{count} shards",
@@ -195,7 +199,8 @@
     "board-neon": "Neon",
     "board-abyss": "Abyss",
     "board-jewel": "Jewels",
-    "board-volcano": "Volcano"
+    "board-volcano": "Volcano",
+    "board-singularity": "Singularity"
   },
   "achievements": {
     "title": "Goals",
@@ -284,6 +289,18 @@
       "world-jewel": {
         "name": "Diamond heart",
         "text": "Finish the Jewels world."
+      },
+      "slingshot": {
+        "name": "Gravity slingshot",
+        "text": "Explode balls with {target} shots bent by at least 45° by the black hole."
+      },
+      "world-volcano": {
+        "name": "Heart of magma",
+        "text": "Finish the Volcano world."
+      },
+      "world-singularity": {
+        "name": "Beyond the horizon",
+        "text": "Finish the campaign."
       }
     }
   },
