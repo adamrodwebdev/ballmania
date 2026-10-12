@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const emit = defineEmits<{ play: [] }>();
 
 /** A decorative chain of orbs along a wave: position and colour of each orb. */
 const ORBS = [
@@ -37,9 +38,9 @@ const ORBS = [
     <p class="tagline">{{ t('home.tagline') }}</p>
     <p class="pitch">{{ t('home.pitch') }}</p>
     <div class="actions">
-      <button class="btn btn-primary" type="button" disabled>
-        <span>{{ t('home.campaign') }}</span>
-        <small>{{ t('home.soon') }}</small>
+      <button class="btn btn-primary" type="button" data-testid="play" @click="emit('play')">
+        <span>{{ t('home.play') }}</span>
+        <small>{{ t('home.demo') }}</small>
       </button>
       <button class="btn" type="button" disabled>
         <span>{{ t('home.arcade') }}</span>
