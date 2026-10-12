@@ -64,7 +64,8 @@
     "nextLevel": "Niveau suivant",
     "map": "Carte de la campagne",
     "homeButton": "Accueil",
-    "campaignDone": "Campagne terminée : les six mondes sont à vous !"
+    "campaignDone": "Campagne terminée : les six mondes sont à vous !",
+    "arcadeButton": "Arcade"
   },
   "effects": {
     "spectacular": {
@@ -133,7 +134,11 @@
     "switch": "Touchez un aiguillage (ou appuyez sur S) pour envoyer la lave dans le détour : plus long, il vous donne du temps. On ne peut plus le changer une fois la chaîne arrivée.",
     "hot": "Sur le raccourci, la lave est en fusion : les billes qui y explosent valent double. À vous de choisir entre points et temps.",
     "gravity": "Le trou noir attire vos tirs : la ligne de visée montre la courbe qu'ils suivront. Un tir qui passe trop près est avalé.",
-    "orbit": "Votre lanceur glisse autour du trou noir : attendez d'être bien placé avant de tirer."
+    "orbit": "Votre lanceur glisse autour du trou noir : attendez d'être bien placé avant de tirer.",
+    "endless": "La chaîne ne s'arrête jamais : chaque palier l'accélère et peut ajouter une couleur. Tenez le plus longtemps possible.",
+    "puzzle": "La chaîne est immobile et vos tirs sont comptés. « Couleur suivante » (ou X) choisit la couleur : pensez aux réactions en chaîne.",
+    "rhythm": "La chaîne avance au rythme de la musique. Tirez quand l'anneau se referme sur le lanceur : le groove multiplie vos points jusqu'à ×4.",
+    "duel": "Chaque explosion pousse la chaîne vers le trou de l'adversaire. Faites-la tomber dans le sien avant qu'elle n'atteigne le vôtre."
   },
   "colossus": {
     "nebula": "Colosse stellaire",
@@ -301,6 +306,22 @@
       "world-singularity": {
         "name": "Au-delà de l'horizon",
         "text": "Terminer la campagne."
+      },
+      "endless-5": {
+        "name": "Endurance",
+        "text": "Atteindre le palier {target} du mode Infini."
+      },
+      "puzzles-10": {
+        "name": "Esprit vif",
+        "text": "Résoudre {target} énigmes."
+      },
+      "groove-4": {
+        "name": "En plein groove",
+        "text": "Atteindre le groove ×{target} en mode Rythme."
+      },
+      "duel-hard": {
+        "name": "Maître du duel",
+        "text": "Battre le rival redoutable."
       }
     }
   },
@@ -334,5 +355,67 @@
     "long": "détour",
     "locked": "verrouillé",
     "flipped": "Aiguillage vers le {branch}"
+  },
+  "arcade": {
+    "title": "Arcade",
+    "intro": "Quatre modes pour jouer autrement. Chacun s'ouvre en terminant un monde de la campagne.",
+    "open": "{count} / {total} modes ouverts",
+    "locked": "Terminez le monde « {world} » pour l'ouvrir.",
+    "start": "Jouer",
+    "endless": {
+      "name": "Infini",
+      "tagline": "Une chaîne sans fin, de plus en plus rapide et colorée.",
+      "best": "Record : {score}",
+      "over": "Partie terminée",
+      "stage": "Palier {stage}",
+      "reached": "Palier atteint : {stage}"
+    },
+    "puzzle": {
+      "name": "Énigmes",
+      "tagline": "Une chaîne immobile, peu de tirs : trouvez la réaction parfaite.",
+      "short": "Énigme {number}",
+      "daily": "Énigme du jour",
+      "dailyTodo": "La même pour tous, aujourd'hui",
+      "dailyDone": "Résolue en {shots} tirs",
+      "dailyTried": "Tentée aujourd'hui",
+      "solvedCount": "{count} / {total} énigmes résolues",
+      "solved": "Énigme résolue !",
+      "failed": "Plus de tirs",
+      "next": "Énigme suivante",
+      "nextColour": "Couleur suivante",
+      "shotsLeft": "{count} tir | {count} tir | {count} tirs",
+      "result": "{shots} tirs pour un minimum de {par}",
+      "tileLabel": "Énigme {number}, {stars} étoile(s) sur 3",
+      "lockedLabel": "Énigme {number}, verrouillée"
+    },
+    "rhythm": {
+      "name": "Rythme",
+      "tagline": "La chaîne danse sur le tempo : tirez sur le temps pour faire monter le groove.",
+      "songs": {
+        "pulse": "Pulsation",
+        "drive": "Cavalcade",
+        "rush": "Frénésie"
+      },
+      "bpm": "{bpm} BPM",
+      "groove": "Groove ×{multiplier}",
+      "next": "Morceau suivant"
+    },
+    "duel": {
+      "name": "Duel",
+      "tagline": "Une chaîne, deux trous, un adversaire : le tir à la corde.",
+      "levels": {
+        "easy": "Rival débutant",
+        "normal": "Rival aguerri",
+        "hard": "Rival redoutable"
+      },
+      "won": "Victoire !",
+      "lost": "Défaite",
+      "you": "Vous",
+      "rival": "Rival · {score}",
+      "rope": "Votre avantage dans le tir à la corde",
+      "final": "Score du rival : {score}",
+      "wins": "Aucune victoire | {count} victoire | {count} victoires",
+      "harder": "Rival plus fort"
+    }
   }
 }

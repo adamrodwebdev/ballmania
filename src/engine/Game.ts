@@ -5,8 +5,18 @@ import { ChainGenerator, type ChainRecipe } from './chain/ChainGenerator';
 import { Emitter } from './core/Emitter';
 import type { RandomSource } from './core/Random';
 import { Vec2 } from './geometry/Vec2';
+import { Rival, type RivalSetup } from './duel/Rival';
 import { ColossusObjective, type ColossusSetup } from './objectives/ColossusObjective';
-import { ClearObjective, type Objective, type ObjectiveContext } from './objectives/Objective';
+import { DuelObjective, type DuelSetup } from './objectives/DuelObjective';
+import { EndlessObjective, type EndlessSetup } from './objectives/EndlessObjective';
+import {
+  ClearObjective,
+  type Objective,
+  type ObjectiveContext,
+  type Side,
+} from './objectives/Objective';
+import { PuzzleObjective } from './objectives/PuzzleObjective';
+import { Groove, Tempo, type RhythmSetup } from './rhythm/Tempo';
 import { Gravity, type GravitySetup } from './orbit/Gravity';
 import { Orbit, type OrbitSetup } from './orbit/Orbit';
 import type { Branch, ForkSpan, ForkedRoute } from './path/ForkedRoute';
@@ -21,6 +31,10 @@ export interface ChainSetup {
   readonly recipe: ChainRecipe;
   /** A track with switches (Volcano world); `path` is then its all-short version. */
   readonly route?: ForkedRoute;
+  /** The exact colours, tail first, instead of drawing them from the recipe (Puzzle). */
+  readonly tones?: readonly Tone[];
+  /** The chain starts on the track with its tail at this arc length, instead of in the tunnel. */
+  readonly tail?: number;
 }
 
 /** A switch of the board, as the interface needs it. */
@@ -60,6 +74,14 @@ export interface LevelSetup {
   readonly gravity?: GravitySetup;
   /** The shooter glides along a ring instead of standing still (Singularity world). */
   readonly orbit?: OrbitSetup;
+  /** Endless mode: the chain never runs out and speeds up by stages. */
+  readonly endless?: EndlessSetup;
+  /** Puzzle mode: a limited number of shots, and the player picks each colour. */
+  readonly puzzle?: { readonly shots: number };
+  /** Rhythm mode: the chain moves on the beat; shots on the beat feed the groove. */
+  readonly rhythm?: RhythmSetup;
+  /** Duel mode: a computer rival shares the chain, which explosions push to and fro. */
+  readonly duel?: DuelSetup & { readonly rival: RivalSetup };
 }
 
 export interface MagnetSetup {
@@ -91,6 +113,14 @@ export interface GameReport {
   readonly switches: number;
   /** Shots bent by at least 45° by the black hole that exploded balls (Singularity world). */
   readonly curves: number;
+  /** Shots the player fired. */
+  readonly shots: number;
+  /** Highest groove multiplier reached (Rhythm mode; 1 elsewhere). */
+  readonly bestGroove: number;
+  /** Last stage reached (Endless mode; 0 elsewhere). */
+  readonly stage: number;
+  /** The rival's score (Duel mode; 0 elsewhere). */
+  readonly rivalScore: number;
   /** Furthest any chain head got, as a share of its track (1 = the hole). */
   readonly danger: number;
   readonly colossusDefeated: boolean;
@@ -99,6 +129,12 @@ export interface GameReport {
 /** Domain events: rendering, sound and vibrations subscribe; the engine knows none of them. */
 export interface GameEvents {
   fired: { readonly projectile: ProjectileView };
+  /** Rhythm mode: a beat of the music. */
+  beat: { readonly index: number };
+  /** Rhythm mode: a shot was judged on or off the beat. */
+  groove: { readonly onBeat: boolean; readonly multiplier: number };
+  /** Endless mode: a new stage, faster and maybe with one more colour. */
+  stage: { readonly stage: number; readonly tones: number };
   bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
   pulled: { readonly chain: number; readonly ball: BallView; readonly position: Vec2 };
   magnetCharged: { readonly charges: number };
@@ -127,6 +163,8 @@ export interface GameEvents {
     readonly bounces: number;
     /** The explosion happened on a hot short branch (Volcano world). */
     readonly hot: boolean;
+    /** Who caused it (Duel mode: the rival's explosions push the other way). */
+    readonly by: Side;
   };
   colossusHit: {
     readonly hp: number;
@@ -160,6 +198,18 @@ export class Game {
   readonly chains: readonly Chain[];
   readonly shooter: Shooter;
   private readonly scoring = new Scoring();
+  /** Duel mode: the rival's shooter and its points; null elsewhere. */
+  readonly rival: Shooter | null;
+  private readonly rivalBrain: Rival | null;
+  private readonly rivalScoring = new Scoring();
+  /** Who shot each chain last: chain reactions are theirs. */
+  private readonly lastShooter: Side[];
+  /** Rhythm mode. */
+  readonly tempo: Tempo | null;
+  private readonly groove = new Groove();
+  private bestGroove = 1;
+  private beatIndex = 0;
+  private shotsFired = 0;
   private readonly balls = new BallFactory();
   private readonly flying: Projectile[] = [];
   private readonly objective: Objective;
@@ -189,13 +239,14 @@ export class Game {
   ) {
     const generator = new ChainGenerator(random, setup.chain.minMatch);
     this.generator = generator;
-    this.chains = setup.chains.map(({ path, recipe }) =>
-      Chain.queued(
-        path,
-        generator.tones(recipe).map((tone) => this.balls.create(tone)),
-        setup.chain,
-      ),
-    );
+    this.chains = setup.chains.map(({ path, recipe, tones, tail }) => {
+      const balls = (tones ?? generator.tones(recipe)).map((tone) => this.balls.create(tone));
+      return tail === undefined
+        ? Chain.queued(path, balls, setup.chain)
+        : Chain.placed(path, balls, setup.chain, tail);
+    });
+    this.lastShooter = this.chains.map(() => 'player');
+    this.tempo = setup.rhythm ? new Tempo(setup.rhythm) : null;
     this.routes = setup.chains.map(({ route }) => {
       if (!route) return null;
       const choices: Branch[] = Array.from({ length: route.forkCount }, () => 'short');
@@ -206,7 +257,7 @@ export class Game {
     this.orbit = setup.orbit ? new Orbit(setup.orbit) : null;
     this.charges = setup.magnet?.charges ?? 0;
     this.context = this.createContext();
-    this.objective = setup.colossus ? new ColossusObjective(setup.colossus) : new ClearObjective();
+    this.objective = Game.objectiveFor(setup);
     this.objective.start(this.context);
     this.shooter = new Shooter(
       this.orbit?.position ?? setup.shooter,
@@ -214,7 +265,44 @@ export class Game {
       setup.projectileSpeed,
       setup.fireCooldown,
       this.shooterTones(),
+      { choosing: setup.puzzle !== undefined },
     );
+    const rival = setup.duel?.rival;
+    this.rival = rival
+      ? new Shooter(rival.position, random, setup.projectileSpeed, 0, this.shooterTones(), {
+          side: 'rival',
+        })
+      : null;
+    this.rivalBrain = rival ? new Rival(rival, random) : null;
+  }
+
+  /** What wins (or loses) this level, from its setup. */
+  private static objectiveFor(setup: LevelSetup): Objective {
+    if (setup.colossus) return new ColossusObjective(setup.colossus);
+    if (setup.endless) return new EndlessObjective(setup.endless);
+    if (setup.puzzle) return new PuzzleObjective();
+    if (setup.duel) return new DuelObjective(setup.duel);
+    return new ClearObjective();
+  }
+
+  /** Shots left in Puzzle mode, or null without a limit. */
+  get shotsLeft(): number | null {
+    return this.setup.puzzle ? Math.max(0, this.setup.puzzle.shots - this.shotsFired) : null;
+  }
+
+  /** The groove multiplier of Rhythm mode (1 elsewhere). */
+  get grooveMultiplier(): number {
+    return this.groove.multiplier;
+  }
+
+  /** The rival's score in Duel mode. */
+  get rivalScore(): number {
+    return this.rivalScoring.score;
+  }
+
+  /** Current stage of Endless mode, or null. */
+  get stage(): number | null {
+    return this.objective instanceof EndlessObjective ? this.objective.stage : null;
   }
 
   /** Health of the Colossus of a boss level, or null. */
@@ -426,6 +514,10 @@ export class Game {
       fusions: this.fusions,
       switches: this.flips,
       curves: this.curves,
+      shots: this.shotsFired,
+      bestGroove: this.bestGroove,
+      stage: this.stage ?? 0,
+      rivalScore: this.rivalScoring.score,
       danger: this.danger,
       colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
     };
@@ -433,18 +525,54 @@ export class Game {
 
   swap(): void {
     if (this.stateValue !== 'playing') return;
-    this.shooter.swap();
+    this.shooter.swap(this.shooterTones());
     this.swaps++;
   }
 
-  /** Fires the loaded ball; false while reloading or once the game is over. */
+  /** Fires the loaded ball; false while reloading, out of shots or once the game is over. */
   fire(): boolean {
-    if (this.stateValue !== 'playing') return false;
+    if (this.stateValue !== 'playing' || this.shotsLeft === 0) return false;
     const projectile = this.shooter.fire(this.shooterTones());
     if (!projectile) return false;
+    this.shotsFired++;
     this.flying.push(projectile);
     this.events.emit('fired', { projectile });
+    if (this.tempo) {
+      const onBeat = this.tempo.onBeat(this.elapsedValue);
+      this.groove.shot(onBeat);
+      this.bestGroove = Math.max(this.bestGroove, this.groove.multiplier);
+      this.events.emit('groove', { onBeat, multiplier: this.groove.multiplier });
+    }
     return true;
+  }
+
+  /** Duel mode: the rival plays its turn when it is ready. */
+  private playRival(dt: number): void {
+    const rival = this.rival;
+    const brain = this.rivalBrain;
+    if (!rival || !brain) return;
+    rival.tick(dt);
+    rival.refresh(this.shooterTones());
+    const move = brain.think(dt, this.chains, rival.current, rival.next);
+    if (!move) return;
+    if (move.swap) rival.swap();
+    rival.aimAt(move.target);
+    const projectile = rival.fire(this.shooterTones());
+    if (!projectile) return;
+    this.flying.push(projectile);
+    this.events.emit('fired', { projectile });
+  }
+
+  /** Rhythm mode: the chain moves to the music, and every beat is announced. */
+  private followTempo(): void {
+    if (!this.tempo) return;
+    const pulse = this.tempo.pulse(this.elapsedValue);
+    for (const chain of this.chains) chain.setSpeedFactor(pulse);
+    const beat = Math.floor(this.tempo.beats(this.elapsedValue));
+    if (beat > this.beatIndex) {
+      this.beatIndex = beat;
+      this.events.emit('beat', { index: beat });
+    }
   }
 
   /** Advances the game by a real frame duration, in seconds. */
@@ -464,6 +592,8 @@ export class Game {
       this.shooter.moveTo(this.orbit.position);
     }
     this.shooter.tick(dt);
+    this.followTempo();
+    this.playRival(dt);
     this.reflectors.update(dt);
     this.moveProjectiles(dt);
     this.chains.forEach((chain, index) => {
@@ -493,7 +623,7 @@ export class Game {
         this.events.emit('bounced', { projectile, position: bounce.position });
         if (projectile.bounces > MAX_BOUNCES) {
           this.flying.splice(i, 1);
-          this.scoring.miss();
+          this.scoringOf(projectile.by).miss();
           this.events.emit('missed', { projectile });
           continue;
         }
@@ -511,13 +641,14 @@ export class Game {
       const hit = chain.hitTest(projectile.position);
       if (!hit) continue;
       if (this.fuse(index, chain, hit.index, projectile)) return true;
+      this.lastShooter[index] = projectile.by;
       const ball = this.balls.create(projectile.tone);
       const explosion = chain.insert(ball, hit);
       this.events.emit('inserted', { chain: index, ball, from: projectile.position });
       if (explosion) {
         this.countCurve(projectile);
         this.report(index, chain, explosion, projectile.bounces);
-      } else this.scoring.miss();
+      } else this.scoringOf(projectile.by).miss();
       return true;
     }
     return false;
@@ -536,7 +667,7 @@ export class Game {
     if (!this.gravity) return false;
     const swallowed = this.gravity.swallows(projectile.position);
     if (!swallowed && projectile.age < MAX_FLIGHT) return false;
-    this.scoring.miss();
+    this.scoringOf(projectile.by).miss();
     if (swallowed) this.events.emit('swallowed', { projectile });
     this.events.emit('missed', { projectile });
     return true;
@@ -549,6 +680,7 @@ export class Game {
     const mixed = mix(projectile.tone, touched.tone);
     if (mixed === null) return false;
     const from: readonly [Tone, Tone] = [projectile.tone, touched.tone];
+    this.lastShooter[index] = projectile.by;
     const position = chain.positionOf(touched);
     const explosion = chain.recolour(ballIndex, mixed);
     this.fusions++;
@@ -556,7 +688,7 @@ export class Game {
     if (explosion) {
       this.countCurve(projectile);
       this.report(index, chain, explosion, projectile.bounces);
-    } else this.scoring.miss();
+    } else this.scoringOf(projectile.by).miss();
     return true;
   }
 
@@ -566,19 +698,25 @@ export class Game {
     const { x, y } = projectile.position;
     const { width, height } = this.setup.board;
     if (x > -margin && y > -margin && x < width + margin && y < height + margin) return false;
-    this.scoring.miss();
+    this.scoringOf(projectile.by).miss();
     this.events.emit('missed', { projectile });
     return true;
   }
 
+  private scoringOf(side: Side): Scoring {
+    return side === 'rival' ? this.rivalScoring : this.scoring;
+  }
+
   private report(index: number, chain: Chain, explosion: Explosion, bounces = 0): void {
     const hot = this.isHot(index, explosion.balls);
-    const points = this.scoring.explosion(
+    const by = this.lastShooter[index] ?? 'player';
+    const groove = by === 'player' && this.tempo ? this.groove.multiplier : 1;
+    const points = this.scoringOf(by).explosion(
       explosion.balls.length,
       explosion.depth,
       explosion.cause === 'shot',
       bounces,
-      hot ? HOT_MULTIPLIER : 1,
+      (hot ? HOT_MULTIPLIER : 1) * groove,
     );
     this.events.emit('exploded', {
       chain: index,
@@ -587,12 +725,13 @@ export class Game {
       cause: explosion.cause,
       depth: explosion.depth,
       points,
-      streak: this.scoring.streak,
+      streak: this.scoringOf(by).streak,
       bounces,
       hot,
+      by,
     });
-    this.objective.onExplosion(this.context, index, explosion);
-    this.rechargeMagnet();
+    this.objective.onExplosion(this.context, index, explosion, by);
+    if (by === 'player') this.rechargeMagnet();
   }
 
   /** Every few explosions, the magnet gets a charge back. */
@@ -608,6 +747,7 @@ export class Game {
   private checkEnd(): void {
     if (this.chains.some((chain) => chain.reachedHole)) this.end('lost');
     else if (this.objective.isComplete(this.context)) this.end('won');
+    else if (this.objective.isFailed?.(this.context)) this.end('lost');
   }
 
   private end(outcome: 'won' | 'lost'): void {
@@ -615,7 +755,8 @@ export class Game {
     this.flying.length = 0;
     let bonus = 0;
     if (outcome === 'won') {
-      // Whatever is left on the track goes up in one final cascade.
+      // Whatever is left on the track goes up in one final cascade, the player's.
+      this.lastShooter.fill('player');
       this.chains.forEach((chain, index) => {
         const balls = chain.clear();
         if (balls.length > 0) this.report(index, chain, { balls, cause: 'reaction', depth: 1 });
@@ -629,13 +770,24 @@ export class Game {
   private createContext(): ObjectiveContext {
     const tones = Math.max(2, ...this.setup.chains.map(({ recipe }) => recipe.tones));
     const palette = this.setup.chains[0]?.recipe.palette;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- getters below read the game
+    const game = this;
     return {
       chains: this.chains,
-      createBalls: (count) =>
+      get elapsed() {
+        return game.elapsedValue;
+      },
+      get shotsLeft() {
+        return game.shotsLeft;
+      },
+      get inFlight() {
+        return game.flying.length;
+      },
+      createBalls: (count, colours = tones) =>
         this.generator
           .tones({
             length: count,
-            tones,
+            tones: colours,
             repeatChance: 0.35,
             ...(palette ? { palette } : {}),
             ...(this.setup.alchemy ? { paired: SECONDARIES } : {}),
@@ -643,6 +795,7 @@ export class Game {
           .map((tone) => this.balls.create(tone)),
       colossusHit: (event) => this.events.emit('colossusHit', event),
       colossusPhase: (event) => this.events.emit('colossusPhase', event),
+      stageReached: (event) => this.events.emit('stage', event),
     };
   }
 

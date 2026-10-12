@@ -73,7 +73,11 @@ describe('ColossusObjective', () => {
     const events: string[] = [];
     const ctx: ObjectiveContext = {
       chains: [chain],
+      elapsed: 0,
+      shotsLeft: null,
+      inFlight: 0,
       createBalls: (count) => Array.from({ length: count }, () => new Ball(id++, 5, 0)),
+      stageReached: () => undefined,
       colossusHit: ({ damage, hp }) => events.push(`hit ${damage} → ${hp}`),
       colossusPhase: ({ phase }) => events.push(`phase ${phase}`),
     };

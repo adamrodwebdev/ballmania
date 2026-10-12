@@ -65,3 +65,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   mécaniques précédentes, dont le Colosse ultime ; plateau « Singularité » ; objectifs
   « fronde gravitationnelle », « cœur de magma » et « au-delà de l'horizon » ; message de
   campagne terminée.
+- Lot 10, modes Arcade, ouverts monde après monde : **Infini** (chaîne sans fin à paliers,
+  record), **Énigmes** (chaîne immobile, tirs comptés, couleur au choix ; 30 énigmes
+  calculées par un solveur et une énigme du jour), **Rythme** (trois morceaux synthétisés,
+  chaîne qui bondit sur le temps, groove jusqu'à ×4) et **Duel** (tir à la corde contre un
+  rival en trois niveaux) ; écran Arcade, records sauvegardés, quatre objectifs ; l'écran
+  de jeu passe par des modes de jeu (stratégies) au lieu de tester le type de partie.

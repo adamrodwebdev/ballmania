@@ -14,6 +14,11 @@ export interface ChainParams {
   readonly retreatSpeed: number;
   /** Smallest group that explodes. */
   readonly minMatch: number;
+  /**
+   * Every gap closes, whatever the colours on each side, both sides moving
+   * towards each other (Duel: a still chain must stay in one piece).
+   */
+  readonly compact?: boolean;
 }
 
 /** Why balls exploded: a shot inserted into a group, or two segments joining. */
@@ -71,6 +76,16 @@ export class Chain {
   static queued(path: Path, balls: readonly Ball[], params: ChainParams): Chain {
     const diameter = params.ballRadius * 2;
     balls.forEach((ball, i) => (ball.s = (i + 1 - balls.length) * diameter));
+    return new Chain(path, balls, params);
+  }
+
+  /**
+   * A chain already on the track (Puzzle, Duel): the tail at arc length
+   * `tail`, every other ball touching the one behind it.
+   */
+  static placed(path: Path, balls: readonly Ball[], params: ChainParams, tail: number): Chain {
+    const diameter = params.ballRadius * 2;
+    balls.forEach((ball, i) => (ball.s = tail + i * diameter));
     return new Chain(path, balls, params);
   }
 
@@ -142,6 +157,28 @@ export class Chain {
   }
 
   /**
+   * New balls appear just ahead of the head, touching it (Duel: the chain
+   * regrows at both ends); on an empty chain, from arc length `from`.
+   */
+  append(balls: readonly Ball[], from = 0): void {
+    const head = this.items[this.items.length - 1];
+    const first = head ? head.s + this.diameter : from;
+    balls.forEach((ball, i) => (ball.s = first + i * this.diameter));
+    this.items.push(...balls);
+  }
+
+  /** Moves every ball along the track, backwards if negative (Duel: the tug of war). */
+  shift(distance: number): void {
+    for (const ball of this.items) ball.s += distance;
+    if (this.pusher) this.pusher.s += distance;
+  }
+
+  /** Arc length of the tail, or null when empty. */
+  get tail(): number | null {
+    return this.items[0]?.s ?? null;
+  }
+
+  /**
    * Takes one ball out of the chain (Abyss world, magnet). The gap it leaves
    * behaves like any other: if both sides share a colour they pull together
    * and may explode.
@@ -205,12 +242,14 @@ export class Chain {
     }
 
     // Segments are found before anything moves: moving one changes the gaps.
-    const pulled = wasTouching.flatMap((_, i) =>
-      this.attracts(i) ? [this.segmentFrom(i + 1)] : [],
-    );
+    // A compact chain closes every gap from both sides instead (see `compact`).
+    const pulled = this.params.compact
+      ? []
+      : wasTouching.flatMap((_, i) => (this.attracts(i) ? [this.segmentFrom(i + 1)] : []));
     for (const [start, end] of pulled) {
       for (let i = start; i <= end; i++) this.items[i]!.s -= this.params.retreatSpeed * dt;
     }
+    if (this.params.compact) this.compact(wasTouching, dt);
     this.resolveOverlaps();
 
     const joins = wasTouching.flatMap((was, i) => (!was && this.touching(i) ? [i] : []));
@@ -226,6 +265,38 @@ export class Chain {
 
     if (this.settled) this.reaction = 0;
     return explosions;
+  }
+
+  /**
+   * A compact chain makes room for an inserted ball on both sides alike
+   * (Duel: neither hole is favoured): the balls pushed forwards and the
+   * segment behind the new ball move back by half a ball.
+   */
+  private makeRoomBothWays(index: number, before: readonly number[]): void {
+    let last = index;
+    while (last + 1 < this.items.length && this.items[last + 1]!.s !== before[last + 1]) last++;
+    let first = index;
+    while (first > 0 && this.touching(first - 1)) first--;
+    for (let i = first; i <= last; i++) this.items[i]!.s -= this.diameter / 2;
+    this.resolveOverlaps();
+  }
+
+  /** Closes every gap: both sides move towards each other at half the retreat speed. */
+  private compact(wasTouching: readonly boolean[], dt: number): void {
+    const step = (this.params.retreatSpeed * dt) / 2;
+    const moves = new Array<number>(this.items.length).fill(0);
+    wasTouching.forEach((touching, i) => {
+      if (touching) return;
+      const gap = this.items[i + 1]!.s - this.items[i]!.s - this.diameter;
+      const move = Math.max(0, Math.min(step, gap / 2));
+      let end = i + 1;
+      while (end < wasTouching.length && wasTouching[end]) end++;
+      for (let k = i + 1; k <= end; k++) moves[k]! -= move;
+      let first = i;
+      while (first > 0 && wasTouching[first - 1]) first--;
+      for (let k = first; k <= i; k++) moves[k]! += move;
+    });
+    moves.forEach((move, i) => (this.items[i]!.s += move));
   }
 
   /**
@@ -257,7 +328,9 @@ export class Chain {
     const index = hit.after ? hit.index + 1 : hit.index;
     ball.s = hit.after ? touched.s + this.diameter : touched.s - this.diameter;
     this.items.splice(index, 0, ball);
+    const before = this.items.map((item) => item.s);
     this.resolveOverlaps();
+    if (this.params.compact) this.makeRoomBothWays(index, before);
     return this.explodeAround(index, 'shot');
   }
 

@@ -64,7 +64,8 @@
     "nextLevel": "Next level",
     "map": "Campaign map",
     "homeButton": "Home",
-    "campaignDone": "Campaign complete: all six worlds are yours!"
+    "campaignDone": "Campaign complete: all six worlds are yours!",
+    "arcadeButton": "Arcade"
   },
   "effects": {
     "spectacular": {
@@ -133,7 +134,11 @@
     "switch": "Tap a switch (or press S) to send the lava into the detour: longer, it buys you time. It can no longer change once the chain gets there.",
     "hot": "On the shortcut the lava is molten: balls blown up there are worth double. Points or time: your call.",
     "gravity": "The black hole pulls your shots: the aim line shows the curve they will follow. A shot passing too close is swallowed.",
-    "orbit": "Your shooter glides around the black hole: wait until you are well placed before you fire."
+    "orbit": "Your shooter glides around the black hole: wait until you are well placed before you fire.",
+    "endless": "The chain never stops: each stage speeds it up and may add a colour. Hold on as long as you can.",
+    "puzzle": "The chain stands still and your shots are counted. \"Next colour\" (or X) picks the colour: think chain reactions.",
+    "rhythm": "The chain moves to the music. Fire as the ring closes on the shooter: the groove multiplies your points up to ×4.",
+    "duel": "Every explosion pushes the chain towards the other hole. Make it fall into your rival's before it reaches yours."
   },
   "colossus": {
     "nebula": "Stellar Colossus",
@@ -301,6 +306,22 @@
       "world-singularity": {
         "name": "Beyond the horizon",
         "text": "Finish the campaign."
+      },
+      "endless-5": {
+        "name": "Stamina",
+        "text": "Reach stage {target} in Endless mode."
+      },
+      "puzzles-10": {
+        "name": "Sharp mind",
+        "text": "Solve {target} puzzles."
+      },
+      "groove-4": {
+        "name": "In the groove",
+        "text": "Reach a ×{target} groove in Rhythm mode."
+      },
+      "duel-hard": {
+        "name": "Duel master",
+        "text": "Beat the fearsome rival."
       }
     }
   },
@@ -334,5 +355,67 @@
     "long": "detour",
     "locked": "locked",
     "flipped": "Switch set to the {branch}"
+  },
+  "arcade": {
+    "title": "Arcade",
+    "intro": "Four modes to play differently. Each one opens when you finish a world of the campaign.",
+    "open": "{count} / {total} modes open",
+    "locked": "Finish the {world} world to open it.",
+    "start": "Play",
+    "endless": {
+      "name": "Endless",
+      "tagline": "A chain without end, faster and more colourful all the time.",
+      "best": "Best: {score}",
+      "over": "Game over",
+      "stage": "Stage {stage}",
+      "reached": "Stage reached: {stage}"
+    },
+    "puzzle": {
+      "name": "Puzzles",
+      "tagline": "A still chain, few shots: find the perfect chain reaction.",
+      "short": "Puzzle {number}",
+      "daily": "Puzzle of the day",
+      "dailyTodo": "The same for everyone, today",
+      "dailyDone": "Solved in {shots} shots",
+      "dailyTried": "Tried today",
+      "solvedCount": "{count} / {total} puzzles solved",
+      "solved": "Puzzle solved!",
+      "failed": "Out of shots",
+      "next": "Next puzzle",
+      "nextColour": "Next colour",
+      "shotsLeft": "{count} shots | {count} shot | {count} shots",
+      "result": "{shots} shots, {par} at best",
+      "tileLabel": "Puzzle {number}, {stars} star(s) out of 3",
+      "lockedLabel": "Puzzle {number}, locked"
+    },
+    "rhythm": {
+      "name": "Rhythm",
+      "tagline": "The chain dances to the beat: fire on the beat to raise the groove.",
+      "songs": {
+        "pulse": "Pulse",
+        "drive": "Drive",
+        "rush": "Frenzy"
+      },
+      "bpm": "{bpm} BPM",
+      "groove": "Groove ×{multiplier}",
+      "next": "Next song"
+    },
+    "duel": {
+      "name": "Duel",
+      "tagline": "One chain, two holes, one rival: a tug of war.",
+      "levels": {
+        "easy": "Rookie rival",
+        "normal": "Seasoned rival",
+        "hard": "Fearsome rival"
+      },
+      "won": "Victory!",
+      "lost": "Defeat",
+      "you": "You",
+      "rival": "Rival · {score}",
+      "rope": "Your edge in the tug of war",
+      "final": "Rival's score: {score}",
+      "wins": "No wins | {count} win | {count} wins",
+      "harder": "Stronger rival"
+    }
   }
 }

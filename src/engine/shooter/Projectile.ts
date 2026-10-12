@@ -1,5 +1,6 @@
 import type { Tone } from '../chain/Ball';
 import type { Vec2 } from '../geometry/Vec2';
+import type { Side } from '../objectives/Objective';
 
 /** What the outside world may read of a ball in flight. */
 export interface ProjectileView {
@@ -8,6 +9,8 @@ export interface ProjectileView {
   readonly position: Vec2;
   /** Mirrors it has bounced off so far. */
   readonly bounces: number;
+  /** Who fired it: the player, or the rival of a duel. */
+  readonly by: Side;
 }
 
 /** A ball in flight, from the shooter to the chain or out of the board. */
@@ -24,6 +27,7 @@ export class Projectile implements ProjectileView {
     readonly tone: Tone,
     origin: Vec2,
     velocity: Vec2,
+    readonly by: Side = 'player',
   ) {
     this.positionValue = origin;
     this.velocityValue = velocity;

@@ -2,14 +2,13 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
+import { createMode, type Message, type Settlement } from '@/app/modes';
 import type { PlayRequest } from '@/app/PlayRequest';
 import { ingredients, SECONDARIES } from '@/engine/chain/Alchemy';
-import { CAMPAIGN, nextLevel, starsFor, WORLDS } from '@/levels/campaign';
-import { resolveLevel } from '@/levels/resolveLevel';
+import { CAMPAIGN } from '@/levels/campaign';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { frameFor, type Frame } from '@/levels/tracks';
-import { ASSIST_AFTER, ASSIST_SPEED } from '@/player/rewards';
-import type { Rewards } from '@/player/PlayerProfile';
+import { ASSIST_AFTER } from '@/player/rewards';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
 import { resolveLook } from '@/play/cosmetics/Look';
 import { DistortionLayer } from '@/play/effects/DistortionLayer';
@@ -17,7 +16,6 @@ import { EffectProfile } from '@/play/effects/EffectProfile';
 import { sharedFeedback } from '@/play/feedback';
 import { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
-import type { RecordResult } from '@/services/CampaignProgress';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 
@@ -25,27 +23,31 @@ const props = defineProps<{ request: PlayRequest }>();
 const emit = defineEmits<{ quit: []; play: [request: PlayRequest] }>();
 
 const { t, locale } = useI18n();
-const { theme, settings, progress, player, share } = useServices();
+const services = useServices();
+const { theme, settings, player, share } = services;
 
 const request = props.request;
-const level = request.kind === 'daily' ? request.challenge.level : request.level;
+/** What kind of game this is decides the level, the texts and the records (§ 3.2). */
+const mode = createMode(request);
 const daily = request.kind === 'daily' ? request.challenge : null;
-const worldNumber = WORLDS.findIndex((world) => world.id === level.world) + 1;
-const following = request.kind === 'campaign' ? nextLevel(level) : undefined;
-const order = CAMPAIGN.map((candidate) => candidate.id);
+const say = (message: Message) => t(message.key, { ...message.params });
 
-const result = shallowRef<RecordResult | null>(null);
-const rewards = shallowRef<Rewards | null>(null);
-const earned = ref(0);
+const settlement = shallowRef<Settlement | null>(null);
 const assisted = ref(request.kind === 'campaign' && request.assisted === true);
 const shareOutcome = ref<'shared' | 'copied' | 'cancelled' | 'unavailable' | null>(null);
-const hintVisible = ref(level.hint !== undefined && daily === null);
+const hintVisible = ref(mode.hint !== null);
 /** Jewel world: the three mixes, always on screen. */
-const alchemy = level.palette !== undefined;
+const alchemy = mode.alchemy;
 const RECIPES = SECONDARIES.map((result) => {
   const [a, b] = ingredients(result)!;
   return { a, b, result };
 });
+/** Where "back" leads, as the end dialog's button says it. */
+const HOME_LABELS = {
+  campaign: 'game.map',
+  home: 'game.homeButton',
+  arcade: 'game.arcadeButton',
+} as const;
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const overlay = ref<HTMLCanvasElement | null>(null);
@@ -73,10 +75,7 @@ const feedback = sharedFeedback(settings.current.volume, settings.current.vibrat
 
 let frame: Frame | null = null;
 /** The level for this board shape, slowed down when the assistance is on. */
-const definition = (): LevelDefinition => {
-  const resolved = resolveLevel(level, frame!);
-  return assisted.value ? { ...resolved, speed: resolved.speed * ASSIST_SPEED } : resolved;
-};
+const definition = (): LevelDefinition => mode.definition(frame!, assisted.value);
 
 let cleanups: (() => void)[] = [];
 
@@ -84,6 +83,7 @@ onMounted(() => {
   if (!canvas.value || !surface.value) return;
   const box = surface.value.getBoundingClientRect();
   frame = frameFor(box.width, box.height);
+  const seed = mode.seed;
   const play = new PlaySession({
     canvas: canvas.value,
     distortion: overlay.value ? DistortionLayer.create(overlay.value) : null,
@@ -91,8 +91,9 @@ onMounted(() => {
     palette: readPalette(),
     profile: profile(),
     feedback,
-    look: resolveLook(player.view.equipped, level.world),
-    ...(daily ? { seed: () => daily.seed } : {}),
+    look: resolveLook(player.view.equipped, mode.world),
+    ...(seed === null ? {} : { seed: () => seed }),
+    ...(request.kind === 'rhythm' ? { root: request.song.root } : {}),
   });
   session.value = play;
   if (hintVisible.value) window.setTimeout(() => (hintVisible.value = false), 6000);
@@ -170,49 +171,19 @@ watch(
   () => hud.value?.over,
   (over) => {
     if (over) {
-      announcement.value = t(over === 'won' ? 'game.won' : 'game.lost');
+      announcement.value = say(mode.outcome(over === 'won'));
       endDialog.value?.showModal();
     } else if (endDialog.value?.open) endDialog.value.close();
   },
 );
-
-/** The world this win finishes, if it is the last level of its world. */
-const worldFinished = () => {
-  const world = WORLDS.find((candidate) => candidate.id === level.world);
-  const last = world?.levels[world.levels.length - 1];
-  return last?.id === level.id ? level.world : undefined;
-};
 
 // A finished game is saved at once, even if the player leaves before the dialog.
 watch(
   () => hud.value?.state,
   (state) => {
     const play = session.value;
-    if (!play || !hud.value || state === undefined || state === 'playing') return;
-    const won = state === 'won';
-    const summary = play.summary();
-    earned.value = starsFor(level, summary.score, won);
-    if (daily) {
-      rewards.value = player.recordGame(summary, {
-        kind: 'daily',
-        levelId: level.id,
-        stars: earned.value,
-        starsGained: 0,
-        threeStarLevels: progress.threeStarCount(order),
-        day: daily.day,
-      });
-      return;
-    }
-    result.value = won ? progress.record(level.id, summary.score, earned.value) : null;
-    const world = won ? worldFinished() : undefined;
-    rewards.value = player.recordGame(summary, {
-      kind: 'campaign',
-      levelId: level.id,
-      stars: earned.value,
-      starsGained: result.value?.starsGained ?? 0,
-      threeStarLevels: progress.threeStarCount(order),
-      ...(world ? { worldCompleted: world } : {}),
-    });
+    if (!play || state === undefined || state === 'playing') return;
+    settlement.value = mode.settle(play.summary(), services);
   },
 );
 
@@ -232,11 +203,16 @@ watch(
   },
 );
 
+watch(
+  () => hud.value?.stage,
+  (stage) => {
+    if (stage) announcement.value = t('arcade.endless.stage', { stage: stage + 1 });
+  },
+);
+
 const resume = () => session.value?.resume();
 const restart = () => {
-  result.value = null;
-  rewards.value = null;
-  earned.value = 0;
+  settlement.value = null;
   shareOutcome.value = null;
   session.value?.restart(definition());
   canvas.value?.focus();
@@ -245,28 +221,38 @@ const restartWithAssist = () => {
   assisted.value = true;
   restart();
 };
-const goNext = () => {
-  if (following) emit('play', { kind: 'campaign', level: following });
-};
-const canGoNext = computed(
-  () =>
-    hud.value?.over === 'won' &&
-    following !== undefined &&
-    progress.isUnlocked(order, following.id),
+/** What to play after a win: the next level, puzzle, song or rival, when it is open. */
+const following = computed(() =>
+  hud.value?.over === 'won' && settlement.value ? mode.next(services) : null,
 );
+const goNext = () => {
+  if (following.value) emit('play', following.value.request);
+};
 const offerAssist = computed(
   () =>
     request.kind === 'campaign' &&
     hud.value?.over === 'lost' &&
     !assisted.value &&
-    player.failures(level.id) >= ASSIST_AFTER,
+    player.failures(request.level.id) >= ASSIST_AFTER,
 );
 /** The last level of the campaign is won: the game is finished. */
 const campaignDone = computed(
-  () => hud.value?.over === 'won' && !daily && level.id === CAMPAIGN[CAMPAIGN.length - 1]?.id,
+  () =>
+    hud.value?.over === 'won' &&
+    request.kind === 'campaign' &&
+    request.level.id === CAMPAIGN[CAMPAIGN.length - 1]?.id,
 );
 /** The result that counts for today: the first attempt. */
-const dailyRecord = computed(() => (daily && rewards.value ? player.daily(daily.day) : undefined));
+const dailyRecord = computed(() =>
+  daily && settlement.value ? player.daily(daily.day) : undefined,
+);
+/** Puzzle mode: shots used against par, once the game is over. */
+const puzzleResult = computed(() =>
+  request.kind === 'puzzle' && settlement.value && session.value
+    ? { shots: session.value.summary().shots, par: request.puzzle.par }
+    : null,
+);
+const primaryReplay = computed(() => !following.value && !offerAssist.value && !daily);
 
 const shareResult = async () => {
   const record = dailyRecord.value;
@@ -286,13 +272,7 @@ const quit = () => emit('quit');
 <template>
   <section class="game" :aria-label="t('game.board')">
     <div class="bar">
-      <p class="level" data-testid="level">
-        {{
-          daily
-            ? t('daily.short')
-            : t('campaign.levelShort', { world: worldNumber, number: level.number })
-        }}
-      </p>
+      <p class="level" data-testid="level">{{ say(mode.label) }}</p>
       <p v-if="assisted" class="assisted" data-testid="assisted">{{ t('assist.active') }}</p>
       <p class="score">
         <span class="label">{{ t('game.score') }}</span>
@@ -300,6 +280,15 @@ const quit = () => emit('quit');
       </p>
       <p v-if="(hud?.streak ?? 0) >= 2" class="streak">
         {{ t('game.streak', { count: hud?.streak ?? 0 }) }}
+      </p>
+      <p v-if="hud && hud.shotsLeft !== null" class="badge" data-testid="shots">
+        {{ t('arcade.puzzle.shotsLeft', { count: hud.shotsLeft }, hud.shotsLeft) }}
+      </p>
+      <p v-if="hud?.groove" class="badge groove" data-testid="groove">
+        {{ t('arcade.rhythm.groove', { multiplier: hud.groove }) }}
+      </p>
+      <p v-if="hud && hud.stage !== null" class="badge" data-testid="stage">
+        {{ t('arcade.endless.stage', { stage: hud.stage + 1 }) }}
       </p>
       <button
         class="btn icon"
@@ -332,7 +321,7 @@ const quit = () => emit('quit');
         </span>
       </p>
       <label v-if="hud?.colossus" class="colossus">
-        <span>{{ t(`colossus.${level.world}`) }}</span>
+        <span>{{ t(`colossus.${mode.world}`) }}</span>
         <progress
           class="health"
           :max="hud.colossus.maxHp"
@@ -340,6 +329,23 @@ const quit = () => emit('quit');
           data-testid="colossus"
         ></progress>
       </label>
+      <div v-if="hud && hud.tug !== null" class="duel" data-testid="duel">
+        <span class="side">{{ t('arcade.duel.you') }}</span>
+        <meter
+          class="rope"
+          min="0"
+          max="1"
+          low="0.3"
+          high="0.7"
+          optimum="1"
+          :value="1 - hud.tug"
+          :aria-label="t('arcade.duel.rope')"
+          data-testid="tug"
+        ></meter>
+        <span class="side rival">
+          {{ t('arcade.duel.rival', { score: number.format(hud.rivalScore ?? 0) }) }}
+        </span>
+      </div>
     </div>
 
     <div class="stage">
@@ -353,8 +359,8 @@ const quit = () => emit('quit');
           data-testid="board"
         ></canvas>
         <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
-        <p v-if="hintVisible && level.hint" class="hint" role="status" data-testid="hint">
-          {{ t(`hints.${level.hint}`) }}
+        <p v-if="hintVisible && mode.hint" class="hint" role="status" data-testid="hint">
+          {{ t(`hints.${mode.hint}`) }}
         </p>
       </div>
     </div>
@@ -363,7 +369,7 @@ const quit = () => emit('quit');
       <button class="btn swap" type="button" data-testid="swap" @click="session?.swap()">
         <span class="dot" :class="`tone-${hud?.current ?? 0}`" aria-hidden="true"></span>
         <span class="dot small" :class="`tone-${hud?.next ?? 0}`" aria-hidden="true"></span>
-        <span>{{ t('game.swap') }}</span>
+        <span>{{ t(request.kind === 'puzzle' ? 'arcade.puzzle.nextColour' : 'game.swap') }}</span>
       </button>
       <button
         v-if="hud?.magnet"
@@ -422,13 +428,13 @@ const quit = () => emit('quit');
 
     <dialog ref="endDialog" class="dialog" aria-labelledby="end-title" @cancel.prevent="quit">
       <p v-if="daily" class="eyebrow">{{ t('daily.title') }} · {{ dayLabel }}</p>
-      <h2 id="end-title">{{ t(hud?.over === 'won' ? 'game.won' : 'game.lost') }}</h2>
+      <h2 id="end-title">{{ say(mode.outcome(hud?.over === 'won')) }}</h2>
       <StarRow
-        v-if="hud?.over === 'won'"
+        v-if="hud?.over === 'won' && settlement?.stars"
         class="earned"
         size="large"
-        :count="earned"
-        :label="t('game.starsLabel', { count: earned }, earned)"
+        :count="settlement.stars"
+        :label="t('game.starsLabel', { count: settlement.stars }, settlement.stars)"
         data-testid="stars"
       />
       <p class="result">{{ t('game.finalScore', { score: number.format(hud?.score ?? 0) }) }}</p>
@@ -438,39 +444,61 @@ const quit = () => emit('quit');
       <p v-if="campaignDone" class="record" data-testid="campaign-done">
         {{ t('game.campaignDone') }}
       </p>
-      <p v-if="result?.newBest" class="record">{{ t('game.newBest') }}</p>
-      <p v-else-if="result" class="detail">
-        {{ t('game.best', { score: number.format(result.best) }) }}
+      <p v-if="puzzleResult" class="detail" data-testid="puzzle-result">
+        {{ t('arcade.puzzle.result', { shots: puzzleResult.shots, par: puzzleResult.par }) }}
+      </p>
+      <p v-if="hud && hud.stage !== null" class="detail">
+        {{ t('arcade.endless.reached', { stage: hud.stage + 1 }) }}
+      </p>
+      <p v-if="hud && hud.rivalScore !== null" class="detail">
+        {{ t('arcade.duel.final', { score: number.format(hud.rivalScore) }) }}
+      </p>
+      <p v-if="settlement?.record?.newBest" class="record" data-testid="new-best">
+        {{ t('game.newBest') }}
+      </p>
+      <p v-else-if="settlement?.record?.unit === 'wins'" class="detail" data-testid="wins">
+        {{ t('arcade.duel.wins', { count: settlement.record.value }, settlement.record.value) }}
+      </p>
+      <p v-else-if="settlement?.record && settlement.record.value > 0" class="detail">
+        {{ t('game.best', { score: number.format(settlement.record.value) }) }}
       </p>
       <p v-if="(hud?.bestDepth ?? 0) > 1" class="detail">
         {{ t('game.bestDepth', { depth: hud?.bestDepth ?? 0 }) }}
       </p>
-      <p v-if="daily && rewards && !rewards.firstDailyAttempt && dailyRecord" class="detail">
+      <p
+        v-if="daily && settlement && !settlement.rewards.firstDailyAttempt && dailyRecord"
+        class="detail"
+      >
         {{ t('daily.counted', { score: number.format(dailyRecord.score) }) }}
       </p>
 
-      <ul v-if="rewards && (rewards.shards > 0 || rewards.unlocked.length > 0)" class="gains">
-        <li v-if="rewards.shards > 0" class="shards" data-testid="shards-earned">
-          {{ t('player.earned', { count: number.format(rewards.shards) }) }}
+      <ul
+        v-if="
+          settlement && (settlement.rewards.shards > 0 || settlement.rewards.unlocked.length > 0)
+        "
+        class="gains"
+      >
+        <li v-if="settlement.rewards.shards > 0" class="shards" data-testid="shards-earned">
+          {{ t('player.earned', { count: number.format(settlement.rewards.shards) }) }}
         </li>
-        <li v-for="achievement in rewards.achievements" :key="achievement.id">
+        <li v-for="achievement in settlement.rewards.achievements" :key="achievement.id">
           {{ t('achievements.reached', { name: t(`achievements.list.${achievement.id}.name`) }) }}
         </li>
-        <li v-for="item in rewards.unlocked" :key="item.id" class="unlock">
+        <li v-for="item in settlement.rewards.unlocked" :key="item.id" class="unlock">
           {{ t('shop.unlocked', { name: t(`cosmetics.${item.id}`) }) }}
         </li>
       </ul>
 
       <div class="actions">
         <button
-          v-if="canGoNext"
+          v-if="following"
           class="btn btn-primary"
           type="button"
           autofocus
           data-testid="next"
           @click="goNext"
         >
-          {{ t('game.nextLevel') }}
+          {{ say(following.label) }}
         </button>
         <button
           v-if="daily && dailyRecord"
@@ -498,16 +526,16 @@ const quit = () => emit('quit');
         </button>
         <button
           class="btn"
-          :class="{ 'btn-primary': !canGoNext && !offerAssist && !daily }"
+          :class="{ 'btn-primary': primaryReplay }"
           type="button"
-          :autofocus="!canGoNext && !offerAssist && !daily"
+          :autofocus="primaryReplay"
           data-testid="replay"
           @click="restart"
         >
           {{ t('game.playAgain') }}
         </button>
         <button class="btn" type="button" data-testid="map" @click="quit">
-          {{ t(daily ? 'game.homeButton' : 'game.map') }}
+          {{ t(HOME_LABELS[mode.home]) }}
         </button>
       </div>
     </dialog>
@@ -692,6 +720,35 @@ const quit = () => emit('quit');
 .streak {
   color: var(--accent);
   font-weight: 800;
+}
+
+.badge {
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.groove {
+  color: var(--orb-cyan);
+}
+
+.duel {
+  display: flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 800;
+}
+
+.rope {
+  flex: 1;
+  height: 0.75rem;
+}
+
+.side.rival {
+  color: var(--danger);
 }
 
 .icon {

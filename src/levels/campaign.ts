@@ -20,7 +20,11 @@ export type HintId =
   | 'switch'
   | 'hot'
   | 'gravity'
-  | 'orbit';
+  | 'orbit'
+  | 'endless'
+  | 'puzzle'
+  | 'rhythm'
+  | 'duel';
 
 /**
  * A mirror described in fractions of the board (0 to 1 on each axis), so it

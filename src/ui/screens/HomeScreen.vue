@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { WORLDS } from '@/levels/campaign';
 import { ACHIEVEMENTS } from '@/player/achievements';
+import { ARCADE_MODES } from '@/levels/arcade/modes';
 import { DailyChallenge } from '@/player/DailyChallenge';
 
 const { t, locale } = useI18n();
@@ -11,6 +12,7 @@ const { player, today } = useServices();
 const emit = defineEmits<{
   play: [];
   daily: [challenge: DailyChallenge];
+  arcade: [];
   shop: [];
   achievements: [];
 }>();
@@ -19,6 +21,9 @@ const challenge = DailyChallenge.of(today());
 const record = computed(() => player.daily(challenge.day));
 const number = computed(() => new Intl.NumberFormat(locale.value));
 const worldOf = (id: string) => WORLDS.findIndex((world) => world.id === id) + 1;
+const openModes = computed(
+  () => ARCADE_MODES.filter((mode) => player.view.worlds.includes(mode.unlockedBy)).length,
+);
 
 /** A decorative chain of orbs along a wave: position and colour of each orb. */
 const ORBS = [
@@ -78,6 +83,12 @@ const ORBS = [
               }),
             })
           }}
+        </small>
+      </button>
+      <button class="btn" type="button" data-testid="arcade" @click="emit('arcade')">
+        <span>{{ t('arcade.title') }}</span>
+        <small>
+          {{ t('arcade.open', { count: openModes, total: ARCADE_MODES.length }) }}
         </small>
       </button>
       <button class="btn" type="button" data-testid="shop" @click="emit('shop')">

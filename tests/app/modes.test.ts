@@ -1,0 +1,136 @@
+import { describe, expect, it } from 'vitest';
+import type { AppServices } from '@/app/AppServices';
+import { createMode, type Settlement } from '@/app/modes';
+import type { GameReport } from '@/engine/Game';
+import { PUZZLES } from '@/levels/arcade/puzzles';
+import { SONGS } from '@/levels/arcade/rhythm';
+import { CAMPAIGN, findLevel } from '@/levels/campaign';
+import { FRAMES } from '@/levels/tracks';
+import { DailyChallenge } from '@/player/DailyChallenge';
+import { PlayerProfile } from '@/player/PlayerProfile';
+import { REWARDS } from '@/player/rewards';
+import { ArcadeProgress } from '@/services/ArcadeProgress';
+import { CampaignProgress } from '@/services/CampaignProgress';
+import { MemoryStorage } from '@/services/KeyValueStorage';
+
+/** The services the modes use, on memory storage. */
+const services = (): AppServices => {
+  const storage = new MemoryStorage();
+  return {
+    progress: new CampaignProgress(storage),
+    arcade: new ArcadeProgress(storage),
+    player: new PlayerProfile(storage),
+  } as unknown as AppServices;
+};
+
+/** Shards a game paid, without those of the achievements it reached. */
+const paid = ({ rewards }: Settlement) =>
+  rewards.shards - rewards.achievements.reduce((sum, achievement) => sum + achievement.reward, 0);
+
+const report = (overrides: Partial<GameReport> = {}): GameReport => ({
+  outcome: 'won',
+  score: 2000,
+  seconds: 60,
+  ballsDestroyed: 40,
+  bestDepth: 1,
+  bestStreak: 2,
+  bestBounce: 0,
+  swaps: 3,
+  pulls: 0,
+  fusions: 0,
+  switches: 0,
+  curves: 0,
+  shots: 2,
+  bestGroove: 1,
+  stage: 0,
+  rivalScore: 0,
+  danger: 0.5,
+  colossusDefeated: false,
+  ...overrides,
+});
+
+describe('play modes', () => {
+  it('play a campaign level: stars, record, next level, assistance', () => {
+    const app = services();
+    const level = findLevel('nebula-01')!;
+    const mode = createMode({ kind: 'campaign', level });
+    expect(mode.label).toEqual({ key: 'campaign.levelShort', params: { world: 1, number: 1 } });
+    expect(mode.home).toBe('campaign');
+    expect(mode.hint).toBe('aim');
+    expect(mode.next(app)).toBeNull();
+    const settled = mode.settle(report(), app);
+    expect(settled.stars).toBeGreaterThan(0);
+    expect(settled.record).toEqual({ value: 2000, newBest: false, unit: 'score' });
+    expect(settled.rewards.shards).toBeGreaterThan(0);
+    expect(mode.next(app)?.request).toEqual({ kind: 'campaign', level: CAMPAIGN[1] });
+    const slow = mode.definition(FRAMES.square, true);
+    expect(slow.speed).toBeLessThan(mode.definition(FRAMES.square, false).speed);
+  });
+
+  it('play the daily challenge with its shared seed', () => {
+    const challenge = DailyChallenge.of(new Date(2026, 9, 12));
+    const mode = createMode({ kind: 'daily', challenge });
+    expect(mode.seed).toBe(challenge.seed);
+    expect(mode.home).toBe('home');
+    expect(mode.settle(report(), services()).rewards.firstDailyAttempt).toBe(true);
+  });
+
+  it('keep the Endless record and pay by score', () => {
+    const app = services();
+    const mode = createMode({ kind: 'endless' });
+    expect(mode.home).toBe('arcade');
+    expect(mode.outcome(false)).toEqual({ key: 'arcade.endless.over' });
+    const settled = mode.settle(report({ outcome: 'lost', score: 12_345, stage: 3 }), app);
+    expect(settled.stars).toBeNull();
+    expect(settled.record).toEqual({ value: 12_345, newBest: true, unit: 'score' });
+    expect(paid(settled)).toBe(REWARDS.endlessMax);
+    expect(mode.definition(FRAMES.portrait, false).endless).toBeDefined();
+  });
+
+  it('pay a puzzle the first time it is solved, then open the next one', () => {
+    const app = services();
+    const puzzle = PUZZLES[0]!;
+    const mode = createMode({ kind: 'puzzle', puzzle });
+    expect(mode.label).toEqual({ key: 'arcade.puzzle.short', params: { number: 1 } });
+    const first = mode.settle(report({ shots: puzzle.par }), app);
+    expect(first.stars).toBe(3);
+    expect(paid(first)).toBe(REWARDS.puzzleSolved + 3 * REWARDS.puzzlePerStar);
+    expect(paid(mode.settle(report({ shots: puzzle.par }), app))).toBe(0);
+    expect(mode.next(app)?.request).toEqual({ kind: 'puzzle', puzzle: PUZZLES[1] });
+    expect(app.player.view.stats.puzzlesSolved).toBe(1);
+  });
+
+  it('count the puzzle of the day once', () => {
+    const app = services();
+    const mode = createMode({ kind: 'puzzle', puzzle: PUZZLES[4]!, day: '20261012' });
+    expect(mode.label).toEqual({ key: 'arcade.puzzle.daily' });
+    expect(paid(mode.settle(report(), app))).toBe(REWARDS.dailyPuzzleSolved);
+    expect(paid(mode.settle(report(), app))).toBe(0);
+    expect(mode.next(app)).toBeNull();
+  });
+
+  it('keep the best score of a song and offer the next one', () => {
+    const app = services();
+    const mode = createMode({ kind: 'rhythm', song: SONGS[0]! });
+    expect(paid(mode.settle(report({ bestGroove: 4 }), app))).toBe(REWARDS.songCleared);
+    expect(app.player.view.stats.bestGroove).toBe(4);
+    expect(mode.next(app)?.request).toEqual({ kind: 'rhythm', song: SONGS[1] });
+    expect(mode.definition(FRAMES.square, false).rhythm?.bpm).toBe(SONGS[0]!.bpm);
+  });
+
+  it('count duels won by difficulty and offer a stronger rival', () => {
+    const app = services();
+    const mode = createMode({ kind: 'duel', difficulty: 'hard' });
+    expect(mode.outcome(true)).toEqual({ key: 'arcade.duel.won' });
+    const won = mode.settle(report(), app);
+    expect(won.record).toEqual({ value: 1, newBest: false, unit: 'wins' });
+    expect(paid(won)).toBe(REWARDS.duelWon.hard);
+    expect(won.rewards.achievements.map((item) => item.id)).toContain('duel-hard');
+    expect(mode.settle(report({ outcome: 'lost' }), app).record?.value).toBe(1);
+    expect(mode.next(app)).toBeNull();
+    expect(createMode({ kind: 'duel', difficulty: 'easy' }).next(app)?.request).toEqual({
+      kind: 'duel',
+      difficulty: 'normal',
+    });
+  });
+});

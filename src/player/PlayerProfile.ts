@@ -27,7 +27,7 @@ export interface DailyRecord {
 
 /** Where a game was played, and what it changed in the campaign. */
 export interface GameContext {
-  readonly kind: 'campaign' | 'daily';
+  readonly kind: 'campaign' | 'daily' | 'arcade';
   readonly levelId: string;
   readonly stars: number;
   /** Stars added to the campaign total by this game. */
@@ -38,6 +38,12 @@ export interface GameContext {
   readonly worldCompleted?: WorldId;
   /** Day of the challenge (YYYYMMDD) for a daily game. */
   readonly day?: string;
+  /** Arcade: the shards the mode pays for this game (record, first solve, duel won…). */
+  readonly shards?: number;
+  /** Arcade: a puzzle solved for the first time. */
+  readonly puzzleSolved?: boolean;
+  /** Arcade: a duel won, at this difficulty. */
+  readonly duelWon?: 'easy' | 'normal' | 'hard';
 }
 
 export interface Rewards {
@@ -127,6 +133,10 @@ export class PlayerProfile {
     stats.fusions += report.fusions;
     stats.switches += report.switches;
     stats.curves += report.curves;
+    stats.bestGroove = Math.max(stats.bestGroove, report.bestGroove);
+    stats.endlessStage = Math.max(stats.endlessStage, report.stage);
+    if (context.puzzleSolved) stats.puzzlesSolved++;
+    if (context.duelWon === 'hard') stats.hardDuelsWon++;
     stats.threeStarLevels = Math.max(stats.threeStarLevels, context.threeStarLevels);
     if (won) {
       stats.levelsWon++;
@@ -144,6 +154,8 @@ export class PlayerProfile {
       } else {
         this.state.failures[context.levelId] = this.failures(context.levelId) + 1;
       }
+    } else if (context.kind === 'arcade') {
+      shards += context.shards ?? 0;
     } else if (context.day) {
       const previous = this.state.daily[context.day];
       if (!previous) {

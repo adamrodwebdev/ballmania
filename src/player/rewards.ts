@@ -12,6 +12,18 @@ export const REWARDS = {
   dailyPerStar: 10,
   /** First attempt of the day's challenge, lost: thanks for playing. */
   dailyTried: 10,
+  /** Arcade: a puzzle solved for the first time, plus each of its stars. */
+  puzzleSolved: 15,
+  puzzlePerStar: 5,
+  /** Arcade: the puzzle of the day solved at the first attempt. */
+  dailyPuzzleSolved: 25,
+  /** Arcade: a song cleared in Rhythm mode. */
+  songCleared: 15,
+  /** Arcade: a duel won, by difficulty. */
+  duelWon: { easy: 10, normal: 20, hard: 40 },
+  /** Arcade: shards per thousand points in Endless mode, at most `endlessMax` a game. */
+  endlessPerThousand: 4,
+  endlessMax: 40,
 } as const;
 
 /** Failures in a row after which the assistance is offered (specification § 3.2). */
