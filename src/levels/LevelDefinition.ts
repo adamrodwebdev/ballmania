@@ -2,6 +2,7 @@ import type { ChainParams } from '@/engine/chain/Chain';
 import { SECONDARIES } from '@/engine/chain/Alchemy';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import type { LevelSetup, MagnetSetup } from '@/engine/Game';
+import { ForkedRoute, type RoutePart } from '@/engine/path/ForkedRoute';
 import type { ReflectorSetup } from '@/engine/reflectors/Reflectors';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Path } from '@/engine/path/Path';
@@ -11,6 +12,18 @@ export type Point = readonly [x: number, y: number];
 /** A track, as data: a polyline, or cubic Bézier curves (c1, c2, to) from a start point. */
 export type PathDefinition =
   | { readonly kind: 'points'; readonly points: readonly Point[] }
+  | {
+      /** A track with switches (Volcano world); the chain starts on every shortcut. */
+      readonly kind: 'forked';
+      readonly parts: readonly (
+        | { readonly kind: 'line'; readonly points: readonly Point[] }
+        | {
+            readonly kind: 'fork';
+            readonly short: readonly Point[];
+            readonly long: readonly Point[];
+          }
+      )[];
+    }
   | {
       readonly kind: 'curves';
       readonly start: Point;
@@ -73,6 +86,7 @@ const toVec = ([x, y]: Point): Vec2 => new Vec2(x, y);
 
 export function buildPath(definition: PathDefinition): Path {
   if (definition.kind === 'points') return Path.fromPoints(definition.points.map(toVec));
+  if (definition.kind === 'forked') return buildRoute(definition).build([]).path;
   return Path.fromCurves(
     toVec(definition.start),
     definition.segments.map(([c1, c2, to]) => ({ c1: toVec(c1), c2: toVec(c2), to: toVec(to) })),
@@ -94,6 +108,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     shooter: toVec(level.shooter),
     chains: level.chains.map(({ path, length, tones, repeatChance, palette }) => ({
       path: buildPath(path),
+      ...(path.kind === 'forked' ? { route: buildRoute(path) } : {}),
       recipe: {
         length,
         tones,
@@ -111,6 +126,16 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     ...(level.magnet ? { magnet: level.magnet } : {}),
     ...(level.alchemy ? { alchemy: true } : {}),
   };
+}
+
+function buildRoute(definition: Extract<PathDefinition, { kind: 'forked' }>): ForkedRoute {
+  return new ForkedRoute(
+    definition.parts.map((part): RoutePart =>
+      part.kind === 'line'
+        ? { kind: 'line', points: part.points.map(toVec) }
+        : { kind: 'fork', short: part.short.map(toVec), long: part.long.map(toVec) },
+    ),
+  );
 }
 
 function toReflectorSetup(reflector: ReflectorDefinition): ReflectorSetup {

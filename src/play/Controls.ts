@@ -2,6 +2,10 @@
 export interface PlayCommands {
   aimAt(x: number, y: number): void;
   isOnShooter(x: number, y: number): boolean;
+  /** Flips the switch under this point, if any (Volcano world); true if it did. */
+  flipSwitchAt(x: number, y: number): boolean;
+  /** Flips the next switch the chain has not reached yet (keyboard). */
+  flipNextSwitch(): void;
   fire(): void;
   swap(): void;
   turn(direction: number): void;
@@ -45,7 +49,7 @@ export class PointerControls {
     const [x, y] = this.local(event);
     if (event.pointerType === 'mouse') {
       if (event.button === 2) this.commands.swap();
-      else if (event.button === 0) {
+      else if (event.button === 0 && !this.commands.flipSwitchAt(x, y)) {
         this.commands.aimAt(x, y);
         this.commands.fire();
       }
@@ -53,6 +57,7 @@ export class PointerControls {
     }
     event.preventDefault();
     this.target.setPointerCapture(event.pointerId);
+    if (this.commands.flipSwitchAt(x, y)) return;
     if (this.commands.isOnShooter(x, y)) {
       this.swapping = event.pointerId;
       return;
@@ -124,6 +129,10 @@ export class KeyboardControls {
       case 'KeyM':
         if (event.repeat) return;
         this.commands.toggleMagnet();
+        break;
+      case 'KeyS':
+        if (event.repeat) return;
+        this.commands.flipNextSwitch();
         break;
       case 'Escape':
       case 'KeyP':

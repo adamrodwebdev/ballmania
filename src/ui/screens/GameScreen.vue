@@ -100,6 +100,8 @@ onMounted(() => {
   const commands: PlayCommands = {
     aimAt: (x, y) => play.aimAt(x, y),
     isOnShooter: (x, y) => play.isOnShooter(x, y),
+    flipSwitchAt: (x, y) => play.flipSwitchAt(x, y),
+    flipNextSwitch: () => play.flipNextSwitch(),
     fire: () => play.fire(),
     swap: () => play.swap(),
     turn: (direction) => play.turn(direction),
@@ -211,6 +213,15 @@ watch(
       threeStarLevels: progress.threeStarCount(order),
       ...(world ? { worldCompleted: world } : {}),
     });
+  },
+);
+
+watch(
+  () => hud.value?.switched,
+  (switched) => {
+    if (switched) {
+      announcement.value = t('switch.flipped', { branch: t(`switch.${switched.branch}`) });
+    }
   },
 );
 

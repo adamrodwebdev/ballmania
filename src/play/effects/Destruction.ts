@@ -14,6 +14,8 @@ export interface Burst {
   readonly depth: number;
   /** Mirrors the shot bounced off (0 when none). */
   readonly bounces?: number;
+  /** It happened on a hot shortcut (Volcano world): points doubled. */
+  readonly hot?: boolean;
 }
 
 /** A shock wave, in board units, for the distortion pass. */
@@ -48,6 +50,7 @@ interface Group {
   readonly centre: Vec2;
   readonly points: number;
   readonly bounces: number;
+  readonly hot: boolean;
   shattered: boolean;
 }
 
@@ -85,6 +88,8 @@ interface Fading {
   readonly text?: string;
   /** A bank-shot multiplier, drawn with a rebound arrow. */
   readonly ricochet?: boolean;
+  /** Drawn in its tone rather than in the text colour. */
+  readonly coloured?: boolean;
 }
 
 /** A ball pulled out of the chain on its way to the shooter. */
@@ -192,6 +197,7 @@ export class Destruction {
       centre: middle,
       points: burst.points,
       bounces: burst.bounces ?? 0,
+      hot: burst.hot ?? false,
       shattered: false,
     });
     burst.positions.forEach((position, i) => {
@@ -372,7 +378,7 @@ export class Destruction {
     for (const label of this.labels) {
       ctx.globalAlpha = Math.min(1, label.life / (LABEL_LIFE * 0.5));
       ctx.font = `800 ${label.size}px system-ui, sans-serif`;
-      ctx.fillStyle = label.ricochet ? palette.tone(label.tone) : palette.text;
+      ctx.fillStyle = label.ricochet || label.coloured ? palette.tone(label.tone) : palette.text;
       ctx.strokeText(label.text ?? '', label.x, label.y);
       ctx.fillText(label.text ?? '', label.x, label.y);
       if (label.ricochet)
@@ -583,6 +589,19 @@ export class Destruction {
         tone: ball.tone,
         size: 44 + 8 * Math.min(depth, 5),
         text: `×${depth}`,
+      });
+    }
+    if (group.hot) {
+      this.labels.push({
+        x: group.centre.x - 70,
+        y: group.centre.y - 34,
+        life: LABEL_LIFE,
+        maxLife: LABEL_LIFE,
+        tone: 1,
+        size: 34,
+        text: '×2',
+        ricochet: false,
+        coloured: true,
       });
     }
     if (group.bounces > 0) {

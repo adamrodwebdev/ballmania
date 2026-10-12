@@ -11,6 +11,8 @@ export interface PlayerStats {
   readonly magnetPulls: number;
   /** Primaries fused into secondaries, in total. */
   readonly fusions: number;
+  /** Switches flipped, in total. */
+  readonly switches: number;
   readonly noSwapWins: number;
   /** Levels won after the chain came within 10 % of the hole. */
   readonly closeCalls: number;
@@ -31,6 +33,7 @@ export const EMPTY_STATS: PlayerStats = {
   bestBounce: 0,
   magnetPulls: 0,
   fusions: 0,
+  switches: 0,
   noSwapWins: 0,
   closeCalls: 0,
   colossusDefeated: 0,
@@ -62,6 +65,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'bank-shot', stat: 'bestBounce', target: 2, reward: 60 },
   { id: 'magnet-10', stat: 'magnetPulls', target: 10, reward: 50 },
   { id: 'alchemist', stat: 'fusions', target: 20, reward: 60 },
+  { id: 'switchman', stat: 'switches', target: 15, reward: 50 },
   { id: 'no-swap', stat: 'noSwapWins', target: 1, reward: 40 },
   { id: 'close-call', stat: 'closeCalls', target: 1, reward: 50 },
   { id: 'three-stars-5', stat: 'threeStarLevels', target: 5, reward: 80 },
@@ -70,6 +74,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'world-nebula', stat: 'worldsCompleted', target: 1, reward: 150 },
   { id: 'world-neon', stat: 'worldsCompleted', target: 2, reward: 200 },
   { id: 'world-abyss', stat: 'worldsCompleted', target: 3, reward: 250 },
+  { id: 'world-jewel', stat: 'worldsCompleted', target: 4, reward: 300 },
 ];
 
 /** Progress towards an achievement, capped at its target. */

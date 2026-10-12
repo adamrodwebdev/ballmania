@@ -24,8 +24,10 @@ export function resolveLevel(level: CampaignLevel, frame: Frame): LevelDefinitio
     id: level.id,
     board: { width: frame.width, height: frame.height },
     shooter: track.shooter,
-    chains: track.paths.map((points) => ({
-      path: { kind: 'points', points },
+    chains: track.paths.map((points, chain) => ({
+      path: track.routes?.[chain]
+        ? { kind: 'forked' as const, parts: track.routes[chain] }
+        : { kind: 'points' as const, points },
       length: level.length,
       tones: level.palette?.length ?? level.tones,
       repeatChance: level.repeatChance,

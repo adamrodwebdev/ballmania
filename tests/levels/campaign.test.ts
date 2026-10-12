@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Game } from '@/engine/Game';
+import type { Vec2 } from '@/engine/geometry/Vec2';
 import { Prism } from '@/engine/reflectors/Reflectors';
 import { SeededRandom } from '@/engine/core/Random';
 import {
@@ -26,7 +27,7 @@ describe('campaign', () => {
       'volcano',
       'singularity',
     ]);
-    for (const world of WORLDS.slice(0, 4)) {
+    for (const world of WORLDS.slice(0, 5)) {
       expect(world.levels).toHaveLength(12);
       expect(world.levels.map((level) => level.number)).toEqual([
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
@@ -41,6 +42,10 @@ describe('campaign', () => {
     // Every Abyss level has a magnet.
     expect(WORLDS[2]!.levels.every((level) => level.magnet !== undefined)).toBe(true);
     // Every Jewel level has a palette of primaries, then of secondaries.
+    // Every Volcano level has switches.
+    for (const level of WORLDS[4]!.levels) {
+      expect(level.track.kind === 'serpentine' && (level.track.forks?.length ?? 0) > 0).toBe(true);
+    }
     for (const level of WORLDS[3]!.levels) {
       expect(level.palette!.slice(0, 3)).toEqual([0, 2, 4]);
     }
@@ -52,7 +57,8 @@ describe('campaign', () => {
     expect(nextLevel(findLevel('nebula-12')!)?.id).toBe('neon-01');
     expect(nextLevel(findLevel('neon-12')!)?.id).toBe('abyss-01');
     expect(nextLevel(findLevel('abyss-12')!)?.id).toBe('jewel-01');
-    expect(nextLevel(findLevel('jewel-12')!)).toBeUndefined();
+    expect(nextLevel(findLevel('jewel-12')!)?.id).toBe('volcano-01');
+    expect(nextLevel(findLevel('volcano-12')!)).toBeUndefined();
     expect(findLevel('nope')).toBeUndefined();
   });
 
@@ -85,7 +91,15 @@ describe.each(Object.values(FRAMES))('geometry on the $kind board', (frame) => {
   it.each(CAMPAIGN.map((level) => [level.id, level] as const))('%s is playable', (_, level) => {
     const setup = toLevelSetup(resolveLevel(level, frame));
     const radius = setup.chain.ballRadius;
-    const samples = setup.chains.map(({ path }) => path.sample(10));
+    // With switches, the detours must be as clean as the shortcuts.
+    const variants = setup.chains.map(({ path, route }) => {
+      const paths = [path];
+      if (route) {
+        paths.push(route.build(Array.from({ length: route.forkCount }, () => 'long')).path);
+      }
+      return paths.map((candidate) => candidate.sample(10));
+    });
+    const samples = variants.flat();
 
     for (const points of samples) {
       for (const [i, point] of points.entries()) {
@@ -101,18 +115,32 @@ describe.each(Object.values(FRAMES))('geometry on the $kind board', (frame) => {
       }
     }
 
-    // No two parts of the tracks overlap (beyond neighbouring samples of the same track).
-    const all = samples.flatMap((points, track) => points.map((point, i) => ({ point, track, i })));
-    for (const a of all) {
-      for (const b of all) {
-        if (a.track === b.track && Math.abs(a.i - b.i) < 12) continue;
-        if (a.track > b.track || (a.track === b.track && a.i >= b.i)) continue;
-        expect(
-          a.point.distanceTo(b.point),
-          `${a.track}:${a.i} / ${b.track}:${b.i}`,
-        ).toBeGreaterThan(radius * 2 + 10);
-      }
-    }
+    // No two parts of a track overlap (beyond neighbouring samples), whichever way the
+    // switches are set, and no two chains overlap.
+    const overlap = (
+      first: readonly Vec2[],
+      second: readonly Vec2[],
+      same: boolean,
+      label: string,
+    ) => {
+      first.forEach((a, i) => {
+        second.forEach((b, j) => {
+          if (same && j <= i + 11) return;
+          expect(a.distanceTo(b), `${label} ${i}/${j}`).toBeGreaterThan(radius * 2 + 10);
+        });
+      });
+    };
+    variants.forEach((chainVariants, chain) => {
+      chainVariants.forEach((points, variant) =>
+        overlap(points, points, true, `${chain}.${variant}`),
+      );
+      variants.slice(chain + 1).forEach((others, offset) => {
+        for (const points of chainVariants) {
+          for (const other of others)
+            overlap(points, other, false, `${chain}/${chain + offset + 1}`);
+        }
+      });
+    });
 
     // Mirrors stay on the board, clear of the tracks and of the shooter.
     const game = new Game(setup, SeededRandom.fromString('mirrors'));

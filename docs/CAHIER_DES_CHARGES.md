@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                     |
-| ------- | ---------- | ------------------------------------------ |
-| 0.11    | 12/10/2026 | Lot 8 livré (monde 4 Joaillerie, alchimie) |
+| Version | Date       | Statut                                    |
+| ------- | ---------- | ----------------------------------------- |
+| 0.12    | 12/10/2026 | Lot 9 livré (monde 5 Volcan, aiguillages) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -182,7 +182,7 @@ Deux portes d'entrée depuis l'accueil :
   billes × 48 + 700, arrondis à 50 (le Colosse compte pour un tiers de ses points de vie en
   billes). Le robot obtient en moyenne entre 1 et 2 étoiles ; la 3ᵉ demande des réactions
   en chaîne. **À affiner en tests joueurs.**
-- La carte de campagne présente les six mondes ; les mondes 5 et 6 sont annoncés
+- La carte de campagne présente les six mondes ; le monde 6 est annoncé
   (« bientôt ») avec leur mécanique.
 
 #### Monde 2 « Néon », livré au lot 6
@@ -306,6 +306,46 @@ Deux portes d'entrée depuis l'accueil :
 - Terminer les Abysses ouvre la Joaillerie et débloque le plateau « Joaillerie » (velours,
   reflets de facettes, filet doré, éclats).
 
+#### Monde 5 « Volcan », livré au lot 9
+
+- **Décision : aiguillages à dilemme.** Certaines rangées des serpentins se divisent en
+  une **voie principale** (le raccourci) et un **détour** qui plonge vers le lanceur. Sur le
+  raccourci, la lave est en fusion : les billes qui y explosent **valent double**. Le détour,
+  plus long, donne du temps. Points ou temps : c'est au joueur de choisir.
+- On bascule un aiguillage en touchant son levier (ou avec S, qui bascule le prochain
+  aiguillage libre) **tant que la tête de la chaîne ne l'a pas atteint** ; ensuite il est
+  verrouillé (son sourd si l'on insiste). Par défaut, la lave prend le raccourci.
+- Rendu : la branche non empruntée en pointillés, le raccourci actif qui rougeoie, un
+  levier avec une flèche vers la branche choisie (grisé une fois verrouillé), « ×2 » couleur
+  magma sur les explosions du raccourci, claquement mécanique, annonce aux lecteurs d'écran.
+- Moteur : la chaîne reste un ruban à une dimension ; basculer avant le passage de la tête
+  ne change que la géométrie devant elle, rien ne bouge à l'écran. Les tests de géométrie
+  contrôlent chaque tracé dans ses deux versions (tous raccourcis, tous détours).
+- Les niveaux suivants mêlent les mécaniques des mondes précédents (aimant aux niveaux 4
+  et 10, miroirs aux niveaux 7 et 9).
+
+| Niveau | Tracé (rangées / aiguillages)                    | Autre mécanique          | Billes        | Vitesse | Conseil             |
+| ------ | ------------------------------------------------ | ------------------------ | ------------- | ------- | ------------------- |
+| 1      | 3 / rangée 1                                     | —                        | 36            | 40      | Aiguillages         |
+| 2      | 3 / rangées 1 et 2                               | —                        | 38            | 44      | Raccourci en fusion |
+| 3      | 4 / rangée 2                                     | —                        | 44            | 46      | —                   |
+| 4      | 3 / rangée 2                                     | Aimant                   | 40            | 48      | —                   |
+| 5      | 4 / rangées 1 et 3                               | —                        | 48            | 42      | —                   |
+| 6      | 3 / rangées 1 et 2 (respiration)                 | —                        | 36            | 40      | —                   |
+| 7      | 3 / rangée 1                                     | Murs latéraux            | 42            | 46      | —                   |
+| 8      | 4 / rangées 1, 2 et 3                            | —                        | 46            | 40      | —                   |
+| 9      | 3 / rangée 2                                     | Murs + prismes tournants | 40            | 42      | —                   |
+| 10     | 4 / rangées 2 et 3 (respiration)                 | Aimant                   | 44            | 46      | —                   |
+| 11     | 4 / rangées 1, 2 et 3                            | —                        | 46            | 46      | —                   |
+| 12     | 3 / rangées 1 et 2 + **Colosse de lave** (44 PV) | —                        | 30 + renforts | 20      | Blesser le Colosse  |
+
+- **Équilibrage** : le robot, prudent, envoie la lave dans chaque détour libre. Il gagne
+  chaque niveau au moins 4 fois sur 6 ; pression de 40 à 82 %, la plus forte du jeu, comme
+  il convient à l'avant-dernier monde. Les serpentins à 4 rangées (lanceur loin des rangées
+  du haut) ont demandé des vitesses plus basses.
+- Terminer la Joaillerie ouvre le Volcan et débloque le plateau « Volcan » (basalte,
+  fissures de magma, braises).
+
 #### Modes et mécaniques (v0.1)
 
 Chaque mode est une **stratégie** branchée sur un moteur commun ; aucun mode ne modifie le
@@ -332,14 +372,15 @@ complet), puis un monde par lot, les modes Arcade s'intercalant.
 
 ### 3.3 Commandes
 
-| Action                    | Souris / clavier             | Tactile                                      |
-| ------------------------- | ---------------------------- | -------------------------------------------- |
-| Viser                     | Pointeur                     | Glisser le doigt (ligne de visée)            |
-| Tirer                     | Clic gauche, Espace          | Relâcher le doigt                            |
-| Échanger bille / suivante | Clic droit, X, C             | Toucher le lanceur ou le bouton « Échanger » |
-| Armer l'aimant (Abysses)  | M, bouton « Aimant »         | Bouton « Aimant »                            |
-| Pause                     | Échap, P                     | Bouton pause (≥ 44 × 44 px)                  |
-| Viser au clavier (a11y)   | Flèches gauche/droite (+Maj) | —                                            |
+| Action                          | Souris / clavier             | Tactile                                      |
+| ------------------------------- | ---------------------------- | -------------------------------------------- |
+| Viser                           | Pointeur                     | Glisser le doigt (ligne de visée)            |
+| Tirer                           | Clic gauche, Espace          | Relâcher le doigt                            |
+| Échanger bille / suivante       | Clic droit, X, C             | Toucher le lanceur ou le bouton « Échanger » |
+| Armer l'aimant (Abysses)        | M, bouton « Aimant »         | Bouton « Aimant »                            |
+| Basculer un aiguillage (Volcan) | Clic sur le levier, S        | Toucher le levier                            |
+| Pause                           | Échap, P                     | Bouton pause (≥ 44 × 44 px)                  |
+| Viser au clavier (a11y)         | Flèches gauche/droite (+Maj) | —                                            |
 
 La visée tactile se fait **en relâchant**, jamais au toucher, pour qu'on puisse corriger
 avant de tirer. Aucune action n'est réservée au survol.
@@ -450,17 +491,18 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 
 **Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu) :
 
-| Emplacement        | Objets (prix en éclats)                                                                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                                                                         |
-| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                                                                         |
-| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                                                                     |
-| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon), **Joaillerie** (en finissant les Abysses) |
+| Emplacement        | Objets (prix en éclats)                                                                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                                                                                                                  |
+| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                                                                                                                  |
+| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                                                                                                              |
+| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon), **Joaillerie** (en finissant les Abysses), **Volcan** (en finissant la Joaillerie) |
 
 Un objet acheté est aussitôt équipé. Le plateau choisi habille tous les niveaux et le défi
 du jour ; « Celui du monde » suit le monde joué.
 
-**18 objectifs** (compteurs à vie ; « tir en bande » ajouté au lot 6 : faire exploser un
+**20 objectifs** (compteurs à vie ; au lot 9 : basculer 15 aiguillages, 50 éclats, et terminer
+la Joaillerie, 300 éclats ; « tir en bande » ajouté au lot 6 : faire exploser un
 groupe après 2 rebonds, 60 éclats ; au lot 7 : aspirer 10 billes avec l'aimant, 50 éclats, et
 terminer Néon, 200 éclats ; au lot 8 : fusionner 20 fois, 60 éclats, et terminer les
 Abysses, 250 éclats) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
@@ -751,6 +793,18 @@ le moteur de tracés.
 | Événement `fused`                             | Effet, son, compteur `fusions` du bilan                         |
 | `JewelTheme`                                  | Fond du monde 4                                                 |
 
+### 5.11 Aiguillages (livrés au lot 9)
+
+| Élément                                      | Responsabilité                                                         |
+| -------------------------------------------- | ---------------------------------------------------------------------- |
+| `ForkedRoute`, `RoutePart`, `ForkSpan`       | Tracé en lignes et fourches ; construit un `Path` pour un choix donné  |
+| `Chain.setPath`, `Chain.front`               | Change de tracé (identique jusqu'à la tête), position de l'avant       |
+| `Game.switches`, `Game.toggleSwitch`         | État des aiguillages, bascule tant que la chaîne ne les a pas atteints |
+| `HOT_MULTIPLIER`, `Scoring` (multiplicateur) | Points doublés sur un raccourci                                        |
+| `TrackRecipe` serpentin `forks`, `TrackPart` | Fourches générées pour les deux plateaux                               |
+| `PathDefinition` « forked »                  | Tracé à aiguillages en données                                         |
+| `VolcanoTheme`                               | Fond du monde 5                                                        |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -788,7 +842,8 @@ le moteur de tracés.
 | 6 ✅ | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                     |
 | 7 ✅ | Monde 3 Abysses : aimant, charges, Colosse abyssal                                            |
 | 8 ✅ | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                |
-| 9–10 | Mondes 5 et 6 (une mécanique et un thème par lot), modes Arcade intercalés                    |
+| 9 ✅ | Monde 5 Volcan : aiguillages, raccourcis en fusion, Colosse de lave                           |
+| 10   | Monde 6 (orbite), modes Arcade                                                                |
 | 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
 | 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
 | 13   | Démo portfolio                                                                                |
@@ -816,3 +871,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                               |
 | 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                               |
 | 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                           |
+| 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                          |

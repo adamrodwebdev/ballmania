@@ -6,7 +6,7 @@ import { Game, type GameReport, type GameState } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
-import { CanvasRenderer, type Renderer } from './CanvasRenderer';
+import { CanvasRenderer, SWITCH_RADIUS, type Renderer } from './CanvasRenderer';
 import { Destruction } from './effects/Destruction';
 import type { DistortionLayer } from './effects/DistortionLayer';
 import type { EffectProfile } from './effects/EffectProfile';
@@ -38,6 +38,8 @@ export interface HudState {
   magnet: { readonly charges: number; readonly max: number } | null;
   /** The next shot pulls a ball out instead. */
   magnetArmed: boolean;
+  /** Latest switch flipped, for the screen reader announcement. */
+  switched: { readonly branch: 'short' | 'long'; readonly serial: number } | null;
 }
 
 export interface SessionOptions {
@@ -84,6 +86,7 @@ export class PlaySession {
   private heartIn = 0;
   private turning = 0;
   private reactions = 0;
+  private switchSerial = 0;
   private size = { width: 1, height: 1, pixelRatio: 1 };
   private colossusFlash = 0;
   private readonly canvas: HTMLCanvasElement;
@@ -187,6 +190,28 @@ export class PlaySession {
   }
 
   /** True if the point (CSS pixels relative to the canvas) is on the shooter. */
+  /** Flips the switch under this point (CSS pixels on the canvas), if any. */
+  flipSwitchAt(x: number, y: number): boolean {
+    if (!this.acceptsCommands) return false;
+    const point = this.renderer.toBoard(x, y);
+    // A generous target: a finger is wider than the lever.
+    const view = this.game
+      .switches()
+      .find((candidate) => candidate.position.distanceTo(point) < SWITCH_RADIUS * 1.6);
+    if (!view) return false;
+    this.feedback.sound.unlock();
+    if (!this.game.toggleSwitch(view.chain, view.fork)) this.feedback.sound.locked();
+    return true;
+  }
+
+  /** Flips the next switch a chain has not reached yet (keyboard). */
+  flipNextSwitch(): void {
+    if (!this.acceptsCommands) return;
+    this.feedback.sound.unlock();
+    const view = this.game.switches().find((candidate) => !candidate.locked);
+    if (view) this.game.toggleSwitch(view.chain, view.fork);
+  }
+
   isOnShooter(x: number, y: number): boolean {
     return this.renderer.toBoard(x, y).distanceTo(this.game.shooter.position) < 70;
   }
@@ -245,6 +270,7 @@ export class PlaySession {
         points: event.points,
         depth: event.depth,
         bounces: event.bounces,
+        hot: event.hot,
       });
       sound.explode(event.balls.length, event.depth);
       haptics.explosion(event.depth);
@@ -254,6 +280,10 @@ export class PlaySession {
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
     });
     game.events.on('missed', () => (this.hud.streak = 0));
+    game.events.on('switched', ({ branch }) => {
+      sound.switch(branch === 'long');
+      this.hud.switched = { branch, serial: ++this.switchSerial };
+    });
     game.events.on('fused', ({ position, from, ball }) => {
       this.destruction.fuse(position, from, ball.tone);
       sound.fuse();
@@ -321,6 +351,7 @@ export class PlaySession {
       bonus: 0,
       magnet: this.game.magnet,
       magnetArmed: false,
+      switched: null,
     };
   }
 

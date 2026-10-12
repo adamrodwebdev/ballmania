@@ -128,13 +128,16 @@
     "magnet": "Sentuh “Magnet” (atau M), lalu bidik sebuah bola: bola itu keluar dari rantai dan masuk ke penembakmu.",
     "magnetCombo": "Sedot bola yang memisahkan dua warna sama: keduanya bertemu dan meledak.",
     "alchemy": "Cahaya bercampur: rubi + limau = amber, limau + ungu = sian, rubi + ungu = merah muda. Tembakkan satu warna ke warna lain untuk menyatukannya.",
-    "alchemySecondary": "Warna campuran tidak bisa ditembakkan: satukan tiga berdampingan untuk meledakkannya."
+    "alchemySecondary": "Warna campuran tidak bisa ditembakkan: satukan tiga berdampingan untuk meledakkannya.",
+    "switch": "Sentuh persimpangan (atau tekan S) untuk mengalirkan lava ke jalan memutar: lebih panjang, memberimu waktu. Tidak bisa diubah lagi setelah rantai sampai.",
+    "hot": "Di jalan pintas lava sedang membara: bola yang meledak di sana bernilai dua kali lipat. Poin atau waktu, kamu yang pilih."
   },
   "colossus": {
     "nebula": "Kolosus Bintang",
     "neon": "Kolosus Prisma",
     "abyss": "Kolosus Samudra",
-    "jewel": "Kolosus Kristal"
+    "jewel": "Kolosus Kristal",
+    "volcano": "Kolosus Lava"
   },
   "player": {
     "balance": "{count} kepingan",
@@ -191,7 +194,8 @@
     "board-nebula": "Nebula",
     "board-neon": "Neon",
     "board-abyss": "Samudra Dalam",
-    "board-jewel": "Permata"
+    "board-jewel": "Permata",
+    "board-volcano": "Gunung Api"
   },
   "achievements": {
     "title": "Target",
@@ -241,6 +245,10 @@
         "name": "Ahli alkimia",
         "text": "Satukan dua warna sebanyak {target} kali."
       },
+      "switchman": {
+        "name": "Juru wesel",
+        "text": "Ubah {target} persimpangan."
+      },
       "no-swap": {
         "name": "Tanpa jaring",
         "text": "Menangkan level tanpa menukar bola."
@@ -272,6 +280,10 @@
       "world-abyss": {
         "name": "Kembali ke permukaan",
         "text": "Selesaikan dunia Samudra Dalam."
+      },
+      "world-jewel": {
+        "name": "Hati berlian",
+        "text": "Selesaikan dunia Permata."
       }
     }
   },
@@ -298,5 +310,12 @@
   "alchemy": {
     "title": "Campuran",
     "formula": "{a} + {b} = {result}"
+  },
+  "switch": {
+    "label": "Persimpangan {number}: {branch}",
+    "short": "jalan pintas",
+    "long": "jalan memutar",
+    "locked": "terkunci",
+    "flipped": "Persimpangan diarahkan ke {branch}"
   }
 }

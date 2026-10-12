@@ -19,9 +19,12 @@ export {
   type GameState,
   type LevelSetup,
   type MagnetSetup,
+  type SwitchView,
+  HOT_MULTIPLIER,
 } from './Game';
 export { Vec2 } from './geometry/Vec2';
 export { Path, type CubicSegment } from './path/Path';
+export { ForkedRoute, type Branch, type ForkSpan, type RoutePart } from './path/ForkedRoute';
 export { Segment } from './geometry/Segment';
 export {
   Prism,

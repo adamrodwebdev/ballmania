@@ -132,6 +132,12 @@ export function playLevel(
   };
 
   for (let frameIndex = 0; frameIndex < 60 * 300 && game.state === 'playing'; frameIndex++) {
+    // Volcano world: a cautious player sends the lava into every free detour.
+    if (frameIndex % 30 === 0) {
+      for (const view of game.switches()) {
+        if (!view.locked && view.branch === 'short') game.toggleSwitch(view.chain, view.fork);
+      }
+    }
     const magnet = game.magnet;
     if (frameIndex % cadence === 0 && game.shooter.ready && magnet && magnet.charges > 0) {
       const target = separator();

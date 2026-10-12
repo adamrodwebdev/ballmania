@@ -300,3 +300,33 @@ test('shows the colour mixes in the Jewel world, up to the Crystal Colossus', as
   await expect(page.getByTestId('alchemy')).toContainText('ruby + lime = amber');
   await expect(page.getByText('Crystal Colossus')).toBeVisible();
 });
+
+test('flips the switches of the Volcano world by touch and by keyboard', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+    const levels: Record<string, { stars: number; best: number }> = {};
+    for (const world of ['nebula', 'neon', 'abyss', 'jewel']) {
+      for (let i = 1; i <= 12; i++)
+        levels[`${world}-${String(i).padStart(2, '0')}`] = { stars: 1, best: 1 };
+    }
+    localStorage.setItem('ballmania:progress', JSON.stringify({ version: 1, levels }));
+  });
+  await page.goto('./');
+  await page.getByTestId('play').click();
+  await page.getByTestId('level-volcano-01').click();
+  const board = page.getByTestId('board');
+  const box = (await board.boundingBox())!;
+  // The first fork starts 30 % along the first row (y = 110), on a square or tall board.
+  const tall = box.height / box.width >= 1.2;
+  const [width, height] = tall ? [1000, 1400] : [1000, 1000];
+  const scale = Math.min(box.width / width, box.height / height);
+  const left = (box.width - width * scale) / 2;
+  const top = (box.height - height * scale) / 2;
+  const forkX = tall ? 291 : 298.5;
+  const live = page.locator('[aria-live="polite"]');
+  await board.click({ position: { x: left + forkX * scale, y: top + 110 * scale } });
+  await expect(live).toHaveText('Switch set to the detour');
+  await board.focus();
+  await page.keyboard.press('KeyS');
+  await expect(live).toHaveText('Switch set to the shortcut');
+});

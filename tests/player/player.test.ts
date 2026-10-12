@@ -18,6 +18,7 @@ const report = (overrides: Partial<GameReport> = {}): GameReport => ({
   swaps: 3,
   pulls: 0,
   fusions: 0,
+  switches: 0,
   danger: 0.5,
   colossusDefeated: false,
   ...overrides,
