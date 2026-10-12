@@ -22,7 +22,13 @@
   },
   "settings": {
     "language": "Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "title": "Settings",
+    "open": "Open the settings",
+    "effects": "Destruction effects",
+    "volume": "Volume",
+    "vibration": "Vibrations",
+    "done": "Done"
   },
   "theme": {
     "system": "System",
@@ -52,6 +58,21 @@
     "playAgain": "Play again",
     "home": "Home",
     "reaction": "Chain reaction ×{depth}",
-    "loading": "Loading the game…"
+    "loading": "Loading the game…",
+    "settings": "Settings"
+  },
+  "effects": {
+    "spectacular": {
+      "name": "Spectacular",
+      "hint": "Shards, lightning, shock waves and slow motion"
+    },
+    "balanced": {
+      "name": "Balanced",
+      "hint": "Fewer particles, no screen distortion"
+    },
+    "subtle": {
+      "name": "Subtle",
+      "hint": "The essentials, for modest phones"
+    }
   }
 }

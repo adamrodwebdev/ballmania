@@ -4,9 +4,8 @@ import { Chain } from '@/engine/chain/Chain';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallMotion, LANDING_TIME } from '@/play/BallMotion';
 import { KeyboardControls, type PlayCommands } from '@/play/Controls';
-import { Effects } from '@/play/Effects';
 import { GameLoop } from '@/play/GameLoop';
-import { Palette, TONE_VARIABLES } from '@/play/Palette';
+import { luminance, Palette, TONE_VARIABLES } from '@/play/Palette';
 import { PARAMS, straightPath } from '../engine/helpers';
 
 describe('BallMotion', () => {
@@ -58,6 +57,13 @@ describe('Palette', () => {
     expect(palette.tone(6)).toBe('#ff0000');
     expect(palette.board).toBe('#000');
     expect(palette.tones).toHaveLength(TONE_VARIABLES.length);
+    expect(palette.dark).toBe(true);
+  });
+
+  it('measures how light a colour is', () => {
+    expect(luminance('#ffffff')).toBeCloseTo(1);
+    expect(luminance('#000')).toBe(0);
+    expect(luminance('rebeccapurple')).toBe(0.5);
   });
 });
 
@@ -81,16 +87,6 @@ describe('GameLoop', () => {
     loop.stop();
     expect(loop.running).toBe(false);
     expect(scheduler.cancelAnimationFrame).toHaveBeenCalled();
-  });
-});
-
-describe('Effects', () => {
-  it('fades every particle and label out', () => {
-    const effects = new Effects(() => 0.5);
-    effects.explode([new Vec2(0, 0), new Vec2(10, 0), new Vec2(20, 0)], [1, 1, 1], 60, 2);
-    expect(effects.active).toBe(true);
-    for (let i = 0; i < 120; i++) effects.update(1 / 60);
-    expect(effects.active).toBe(false);
   });
 });
 

@@ -46,6 +46,7 @@ function star(ctx: Context, outer: number, inner: number): void {
  */
 export class BallSprites {
   private sprites: HTMLCanvasElement[] = [];
+  private glows: HTMLCanvasElement[] = [];
 
   constructor(private readonly createCanvas: () => HTMLCanvasElement) {}
 
@@ -55,10 +56,35 @@ export class BallSprites {
     this.sprites = Array.from({ length: MAX_TONES }, (_, tone) =>
       this.draw(palette.tone(tone), tone, size),
     );
+    this.glows = Array.from({ length: MAX_TONES }, (_, tone) =>
+      this.drawGlow(palette.tone(tone), Math.min(256, size * 2)),
+    );
+  }
+
+  /** Soft halo of a tone, drawn stretched over several ball radii. */
+  glow(tone: Tone): HTMLCanvasElement | undefined {
+    return this.glows[tone % MAX_TONES];
   }
 
   get(tone: Tone): HTMLCanvasElement | undefined {
     return this.sprites[tone % MAX_TONES];
+  }
+
+  private drawGlow(colour: string, size: number): HTMLCanvasElement {
+    const canvas = this.createCanvas();
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return canvas;
+    const r = size / 2;
+    const gradient = ctx.createRadialGradient(r, r, 0, r, r, r);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.95)');
+    gradient.addColorStop(0.18, colour);
+    // Fade to the same colour, transparent: fading to black would darken the halo.
+    gradient.addColorStop(1, /^#[0-9a-f]{6}$/i.test(colour) ? `${colour}00` : 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+    return canvas;
   }
 
   private draw(colour: string, tone: Tone, size: number): HTMLCanvasElement {

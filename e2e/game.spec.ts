@@ -51,3 +51,35 @@ test.describe('game', () => {
     }
   });
 });
+
+test.describe('settings', () => {
+  test('changes the effects, volume and vibrations, and remembers them', async ({ page }) => {
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('seeded')) {
+        localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+        sessionStorage.setItem('seeded', '1');
+      }
+    });
+    await page.goto('./');
+    await page.getByTestId('open-settings').click();
+    const dialog = page.getByRole('dialog', { name: 'Settings' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId('effects-subtle').check();
+    await dialog.getByTestId('volume').fill('30');
+    await dialog.getByTestId('vibration').uncheck();
+    await dialog.getByRole('button', { name: 'Done' }).click();
+    await expect(dialog).toBeHidden();
+
+    await page.reload();
+    const saved = await page.evaluate(() => localStorage.getItem('ballmania:settings'));
+    expect(JSON.parse(saved!)).toMatchObject({ effects: 'subtle', volume: 0.3, vibration: false });
+  });
+
+  test('opens from the pause menu', async ({ page }) => {
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    await page.getByTestId('pause').click();
+    await page.getByRole('dialog').getByTestId('open-settings').click();
+    await expect(page.getByTestId('settings')).toBeVisible();
+  });
+});
