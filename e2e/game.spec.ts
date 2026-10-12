@@ -145,3 +145,93 @@ test.describe('campaign', () => {
     await expect(page.getByTestId('hint')).toBeVisible();
   });
 });
+
+test.describe('progression', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+      localStorage.setItem(
+        'ballmania:player',
+        JSON.stringify({
+          version: 1,
+          shards: 200,
+          owned: [],
+          equipped: {},
+          stats: { levelsWon: 1 },
+          achievements: ['first-win'],
+          worlds: [],
+          daily: {},
+          failures: {},
+        }),
+      );
+    });
+  });
+
+  test('buys and equips a cosmetic in the workshop, and remembers it', async ({ page }) => {
+    await page.goto('./');
+    await expect(page.getByTestId('wallet')).toHaveText(/200 shards/);
+    await page.getByTestId('shop').click();
+    const comet = page.getByTestId('item-trail-comet');
+    await comet.getByRole('button', { name: /Buy/ }).click();
+    await expect(comet.getByText('Equipped')).toBeVisible();
+    await expect(page.getByTestId('wallet')).toHaveText(/120 shards/);
+    await expect(
+      page.getByTestId('item-shooter-eye').getByRole('button', { name: /Buy/ }),
+    ).toBeDisabled();
+    await expect(page.getByTestId('item-board-neon')).toContainText('Finish the Nebula world');
+    await page.reload();
+    await page.getByTestId('shop').click();
+    await expect(page.getByTestId('item-trail-comet').getByText('Equipped')).toBeVisible();
+  });
+
+  test('lists the goals with their progress', async ({ page }) => {
+    await page.goto('./');
+    await expect(page.getByTestId('achievements')).toContainText('1 / 13 reached');
+    await page.getByTestId('achievements').click();
+    await expect(page.getByTestId('achievement-first-win')).toContainText('Reached');
+    await expect(page.getByTestId('achievement-colossus')).toContainText('+100 shards');
+  });
+
+  test('plays the daily challenge once for rewards, then offers to share', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.clock.install();
+    await page.goto('./');
+    await expect(page.getByTestId('daily')).toContainText('To play');
+    await page.getByTestId('daily').click();
+    await expect(page.getByTestId('board')).toBeVisible();
+    await expect(page.getByTestId('level')).toHaveText('Daily');
+    await page.clock.runFor(150_000);
+    const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByTestId('shards-earned')).toHaveText('+10 shards');
+    await expect(dialog.getByTestId('share')).toBeVisible();
+    await dialog.getByTestId('map').click();
+    await expect(page.getByTestId('daily')).toContainText('Done');
+  });
+});
+
+test('offers help after three failures in a row on a level', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('seeded')) return;
+    sessionStorage.setItem('seeded', '1');
+    localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+    localStorage.setItem(
+      'ballmania:player',
+      JSON.stringify({ version: 1, shards: 0, failures: { 'nebula-01': 2 } }),
+    );
+  });
+  await page.clock.install();
+  await page.goto('./');
+  await page.getByTestId('play').click();
+  await page.getByTestId('level-nebula-01').click();
+  await expect(page.getByTestId('board')).toBeVisible();
+  await page.clock.runFor(100_000);
+  const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByTestId('assist').click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByTestId('assisted')).toHaveText('Help on');
+});

@@ -15,8 +15,6 @@
     "tagline": "Le tir de billes réinventé",
     "pitch": "Six mondes à conquérir, des explosions en chaîne et des modes que vous n'avez jamais joués.",
     "campaign": "Campagne",
-    "arcade": "Arcade",
-    "soon": "Bientôt disponible",
     "play": "Jouer",
     "demo": "Monde 1 : Nébuleuse"
   },
@@ -64,7 +62,8 @@
     "best": "Record : {score}",
     "newBest": "Nouveau record !",
     "nextLevel": "Niveau suivant",
-    "map": "Carte de la campagne"
+    "map": "Carte de la campagne",
+    "homeButton": "Accueil"
   },
   "effects": {
     "spectacular": {
@@ -126,5 +125,127 @@
   },
   "colossus": {
     "name": "Colosse stellaire"
+  },
+  "player": {
+    "balance": "{count} éclats",
+    "earned": "+{count} éclats",
+    "reward": "+{count} éclats"
+  },
+  "daily": {
+    "title": "Défi du jour",
+    "short": "Défi",
+    "todo": "À jouer : niveau {level}",
+    "done": "Fait : {score} points",
+    "counted": "Seul le premier essai du jour compte : {score} points.",
+    "share": "Partager mon résultat",
+    "shareText": "Ballmania · Défi du {date} : {score} points {stars} · {url}",
+    "shareOutcome": {
+      "shared": "Résultat partagé.",
+      "copied": "Résultat copié : collez-le où vous voulez.",
+      "cancelled": "Partage annulé.",
+      "unavailable": "Le partage n'est pas disponible sur cet appareil."
+    }
+  },
+  "shop": {
+    "title": "Atelier",
+    "pitch": "Lanceurs, traînées, éclats",
+    "intro": "Tout se gagne en jouant. Ce sont des looks : aucun objet ne rend le jeu plus facile.",
+    "slots": {
+      "shooter": "Lanceurs",
+      "trail": "Traînées de tir",
+      "burst": "Signatures de bris",
+      "board": "Plateaux"
+    },
+    "equipped": "Équipé",
+    "equip": "Équiper",
+    "buy": "Acheter · {price}",
+    "unlockHint": "Terminez le monde {world}",
+    "unlocked": "Débloqué : {name}",
+    "bought": "{name} acheté et équipé.",
+    "equippedNow": "{name} équipé."
+  },
+  "cosmetics": {
+    "shooter-orbit": "Orbite",
+    "shooter-crown": "Couronne",
+    "shooter-halo": "Halo",
+    "shooter-eye": "Œil",
+    "trail-none": "Aucune",
+    "trail-comet": "Comète",
+    "trail-stardust": "Poussière d'étoiles",
+    "trail-prism": "Prisme",
+    "burst-glass": "Verre",
+    "burst-stars": "Étoiles",
+    "burst-pixels": "Pixels",
+    "burst-petals": "Pétales",
+    "board-world": "Celui du monde",
+    "board-nebula": "Nébuleuse",
+    "board-neon": "Néon"
+  },
+  "achievements": {
+    "title": "Objectifs",
+    "count": "{done} / {total} atteints",
+    "intro": "Chaque objectif atteint rapporte des éclats à dépenser dans l'atelier.",
+    "reached": "Objectif atteint : {name}",
+    "done": "Atteint",
+    "progress": "{current} sur {target}",
+    "list": {
+      "first-win": {
+        "name": "Premier pas",
+        "text": "Gagner un niveau."
+      },
+      "chain-3": {
+        "name": "Réaction",
+        "text": "Déclencher une réaction en chaîne ×{target}."
+      },
+      "chain-5": {
+        "name": "Cascade",
+        "text": "Déclencher une réaction en chaîne ×{target}."
+      },
+      "streak-5": {
+        "name": "En rythme",
+        "text": "Réussir {target} tirs d'affilée."
+      },
+      "streak-10": {
+        "name": "Infaillible",
+        "text": "Réussir {target} tirs d'affilée."
+      },
+      "balls-500": {
+        "name": "Briseur",
+        "text": "Détruire {target} billes en tout."
+      },
+      "balls-2000": {
+        "name": "Démolisseur",
+        "text": "Détruire {target} billes en tout."
+      },
+      "no-swap": {
+        "name": "Sans filet",
+        "text": "Gagner un niveau sans échanger de bille."
+      },
+      "close-call": {
+        "name": "Sur le fil",
+        "text": "Gagner alors que la chaîne frôlait le trou."
+      },
+      "three-stars-5": {
+        "name": "Constellation",
+        "text": "Obtenir 3 étoiles sur {target} niveaux."
+      },
+      "colossus": {
+        "name": "Tueur de géant",
+        "text": "Vaincre le Colosse stellaire."
+      },
+      "daily-3": {
+        "name": "Habitué",
+        "text": "Jouer le défi du jour {target} jours."
+      },
+      "world-nebula": {
+        "name": "Au-delà des étoiles",
+        "text": "Terminer le monde Nébuleuse."
+      }
+    }
+  },
+  "assist": {
+    "retry": "Réessayer avec de l'aide",
+    "detail": "La chaîne avance 15 % moins vite pour cet essai.",
+    "active": "Aide active"
   }
 }

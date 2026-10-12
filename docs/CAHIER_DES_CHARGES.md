@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                          |
-| ------- | ---------- | ------------------------------- |
-| 0.7     | 12/10/2026 | Lot 4 livré (campagne, monde 1) |
+| Version | Date       | Statut                                  |
+| ------- | ---------- | --------------------------------------- |
+| 0.8     | 12/10/2026 | Lot 5 livré (progression, défi du jour) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -134,7 +134,10 @@ Deux portes d'entrée depuis l'accueil :
   et les mondes bonus. Rejouer un niveau pour la 3ᵉ étoile = rejouabilité.
 - **Assistance discrète** : après 3 échecs d'affilée sur un niveau, proposition d'un
   ralentissement léger (le joueur garde le choix) ; aucune difficulté cachée qui triche.
-  _Reportée au lot 5._
+  **Livrée au lot 5** : après 3 défaites d'affilée sur un niveau de campagne, l'écran de fin
+  propose « Réessayer avec de l'aide » (chaîne 15 % moins rapide pour cet essai, signalée
+  par « Aide active »). Les étoiles restent attribuées normalement : l'aide est visible et
+  choisie, elle ne triche pas. Pas d'aide sur le défi du jour (classement équitable).
 
 #### Monde 1 « Nébuleuse », livré au lot 4
 
@@ -310,6 +313,47 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 - **Objectifs** (« faire un combo ×5 », « finir un niveau sans échange »…) qui donnent des
   éclats et guident la découverte des mécaniques.
 
+#### Livré au lot 5
+
+**Éclats** (monnaie gagnée uniquement en jouant) :
+
+| Source                        | Éclats                      |
+| ----------------------------- | --------------------------- |
+| Niveau de campagne gagné      | 10 + 15 par étoile nouvelle |
+| Défi du jour, 1er essai gagné | 20 + 10 par étoile          |
+| Défi du jour, 1er essai perdu | 10 (merci d'avoir joué)     |
+| Objectif atteint              | 20 à 150 selon l'objectif   |
+
+**Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu) :
+
+| Emplacement        | Objets (prix en éclats)                                                               |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                      |
+| Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                      |
+| Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                  |
+| Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (débloqué en finissant la Nébuleuse) |
+
+Un objet acheté est aussitôt équipé. Le plateau choisi habille tous les niveaux et le défi
+du jour ; « Celui du monde » suit le monde joué.
+
+**13 objectifs** (compteurs à vie) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
+5 et 10 tirs réussis d'affilée (40, 100), 500 et 2 000 billes détruites (50, 120), gagner
+sans échanger (40), gagner alors que la chaîne a dépassé 90 % du tracé (50), 3 étoiles sur
+5 niveaux (80), vaincre le Colosse (100), jouer le défi 3 jours (60), terminer la Nébuleuse
+(150). Atteints automatiquement, payés aussitôt, listés avec leur progression.
+
+**Défi du jour** : un niveau de la Nébuleuse (3 à 11, ni tutoriels ni boss) tiré par
+hachage de la date locale, avec la même suite de billes pour tous (graine `daily:AAAAMMJJ`).
+Seul le **premier essai du jour** compte (éclats, résultat affiché sur l'accueil) ; on peut
+rejouer pour le plaisir. Le résultat se **partage** par la feuille de partage du téléphone,
+ou se copie dans le presse-papiers : « Ballmania · Défi du 12 octobre 2026 : 2 450 points
+★★☆ · lien ».
+
+**Sauvegarde** : `PlayerProfile` (clé `ballmania:player`, version 1) : éclats, objets
+possédés et équipés, compteurs, objectifs, mondes terminés, défis joués, défaites
+d'affilée. Une sauvegarde abîmée est réparée champ par champ ; une version inconnue repart
+de zéro.
+
 ### 3.7 Monétisation et plateformes (v0.2)
 
 Modèle visé : **distribution sur portails de jeux web** (CrazyGames, Poki, GameDistribution,
@@ -381,6 +425,8 @@ Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 ### 4.4 Internationalisation
 
 - `vue-i18n`, textes dans `fr.json`, `en.json`, `id.json` (mêmes clés, vérifié par test).
+  Depuis le lot 5, **chaque langue est un fichier séparé** : le visiteur ne télécharge que
+  la sienne (≈ 3 Ko compressés), les autres au premier changement de langue.
 - Langue détectée depuis le navigateur, modifiable ; nombres et dates via `Intl`.
 - `<html lang>` et métadonnées SEO mis à jour selon la langue.
 
@@ -527,6 +573,22 @@ Le son et les vibrations sont partagés par toutes les parties de la visite
 | `WorldTheme`, `NebulaTheme` | Fond du monde (nébuleuses, étoiles), peint une fois par taille et par thème                  |
 | `CampaignScreen`, `StarRow` | Carte de campagne, chargée à la demande                                                      |
 
+### 5.7 Progression (livrée au lot 5)
+
+| Élément                                                 | Responsabilité                                                                             |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `GameReport` (`Game.summary()`)                         | Ce que dit une partie : score, billes, profondeur, série, échanges, danger, Colosse        |
+| `PlayerProfile`                                         | Éclats, achats, équipement, compteurs, objectifs, défis, défaites ; `recordGame` paie tout |
+| `catalog`, `achievements`, `rewards`                    | Données : cosmétiques, objectifs, barème                                                   |
+| `DailyChallenge`                                        | Niveau et graine du jour                                                                   |
+| `ShooterSkin`, `TrailStyle`, `ShardShape`, `WorldTheme` | Stratégies cosmétiques, choisies par `resolveLook`                                         |
+| `ShareService`                                          | Feuille de partage ou presse-papiers                                                       |
+| `PlayRequest`                                           | Ce que l'on joue : niveau de campagne (avec ou sans aide) ou défi du jour                  |
+| `ShopScreen`, `AchievementsScreen`, `CosmeticPreview`   | Atelier et objectifs, chargés à la demande                                                 |
+
+`resolveLevel` (géométrie d'un niveau) a quitté `campaign.ts` : l'accueil n'embarque plus
+le moteur de tracés.
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -560,7 +622,7 @@ Le son et les vibrations sont partagés par toutes les parties de la visite
 | 2 ✅ | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo              |
 | 3 ✅ | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités                |
 | 4 ✅ | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                |
-| 5    | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance |
+| 5 ✅ | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance |
 | 6–10 | Mondes 2 à 6 (une mécanique et un thème par lot), modes Arcade intercalés                     |
 | 11   | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                  |
 | 12   | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                           |
@@ -576,12 +638,13 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 
 ## 12. Journal des versions du document
 
-| Version | Date       | Changements                                                                                                                            |
-| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                       |
-| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus. |
-| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                      |
-| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                      |
-| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                  |
-| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                  |
-| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).         |
+| Version | Date       | Changements                                                                                                                                                          |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                                                     |
+| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus.                               |
+| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                                                    |
+| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                                                    |
+| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                                                |
+| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                |
+| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                       |
+| 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7). |

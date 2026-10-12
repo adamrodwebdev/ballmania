@@ -5,7 +5,9 @@ import { BallSprites } from './BallSprites';
 import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
-import type { WorldTheme } from './themes/WorldTheme';
+import type { Look } from './cosmetics/Look';
+import { SHOOTER_RADIUS } from './cosmetics/ShooterSkins';
+import { TRAIL_LENGTH } from './cosmetics/Trails';
 
 /** What every renderer offers the play session. */
 export interface Renderer {
@@ -34,8 +36,6 @@ export interface Scene {
   readonly colossusFlash: number;
 }
 
-const SHOOTER_RADIUS = 58;
-
 /** Canvas 2D renderer: tracks, hole, chains, shots, shooter and effects. */
 export class CanvasRenderer implements Renderer {
   private readonly ctx: CanvasRenderingContext2D;
@@ -47,12 +47,14 @@ export class CanvasRenderer implements Renderer {
   private pixelRatio = 1;
   private readonly tracks = new Map<Chain, Path2D>();
   private background: HTMLCanvasElement | null = null;
+  private readonly trails = new Map<number, Vec2[]>();
+  private time = 0;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly game: Game,
     palette: Palette,
-    private readonly theme: WorldTheme,
+    private readonly look: Look,
   ) {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('Canvas 2D is not available');
@@ -85,7 +87,7 @@ export class CanvasRenderer implements Renderer {
     background.height = this.canvas.height;
     const ctx = background.getContext('2d');
     if (!ctx) return;
-    this.theme.paintBackground(ctx, background.width, background.height, this.palette);
+    this.look.theme.paintBackground(ctx, background.width, background.height, this.palette);
     this.background = background;
   }
 
@@ -128,11 +130,13 @@ export class CanvasRenderer implements Renderer {
     );
 
     const { game } = scene;
+    this.time = scene.time;
     const radius = game.setup.chain.ballRadius;
     for (const chain of game.chains) this.drawTrack(chain, radius);
     if (scene.aimEnd) this.drawAim(scene.aimEnd, radius);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
     game.chains.forEach((chain) => this.drawColossus(chain, scene));
+    this.drawTrails(radius);
     for (const projectile of game.projectiles) {
       this.drawBall(projectile.tone, projectile.position, radius);
     }
@@ -304,24 +308,26 @@ export class CanvasRenderer implements Renderer {
     ctx.restore();
   }
 
+  /** Remembers the last positions of every ball in flight and draws its trail. */
+  private drawTrails(radius: number): void {
+    const flying = new Set<number>();
+    for (const projectile of this.game.projectiles) {
+      flying.add(projectile.id);
+      const history = this.trails.get(projectile.id) ?? [];
+      history.push(projectile.position);
+      if (history.length > TRAIL_LENGTH) history.shift();
+      this.trails.set(projectile.id, history);
+      this.look.trail.draw(this.ctx, this.palette, projectile.tone, history, radius);
+    }
+    for (const id of this.trails.keys()) if (!flying.has(id)) this.trails.delete(id);
+  }
+
   private drawShooter(radius: number): void {
     const { ctx, palette } = this;
     const { shooter } = this.game;
-    const { x, y } = shooter.position;
     ctx.save();
-    ctx.translate(x, y);
-    ctx.beginPath();
-    ctx.arc(0, 0, SHOOTER_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = palette.shooter;
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = palette.accent;
-    ctx.stroke();
-    ctx.rotate(shooter.angle);
-    ctx.beginPath();
-    ctx.roundRect(SHOOTER_RADIUS - 18, -radius - 6, 36, radius * 2 + 12, 10);
-    ctx.fillStyle = palette.accent;
-    ctx.fill();
+    ctx.translate(shooter.position.x, shooter.position.y);
+    this.look.shooter.draw(ctx, palette, shooter.angle, radius, this.time);
     ctx.restore();
     // Loaded ball in the barrel, next ball in the centre.
     this.drawBall(

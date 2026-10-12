@@ -2,7 +2,7 @@ import { shallowReactive } from 'vue';
 import type { SoundEngine } from '@/audio/SoundEngine';
 import type { Tone } from '@/engine/chain/Ball';
 import { SeededRandom } from '@/engine/core/Random';
-import { Game, type GameState } from '@/engine/Game';
+import { Game, type GameReport, type GameState } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
@@ -15,7 +15,7 @@ import { TimeWarp } from './effects/TimeWarp';
 import { GameLoop } from './GameLoop';
 import type { Haptics } from './Haptics';
 import type { Palette } from './Palette';
-import type { WorldTheme } from './themes/WorldTheme';
+import type { Look } from './cosmetics/Look';
 
 /** What the interface shows around the board; updated on events, not every frame. */
 export interface HudState {
@@ -43,7 +43,7 @@ export interface SessionOptions {
   readonly palette: Palette;
   readonly profile: EffectProfile;
   readonly feedback: Feedback;
-  readonly theme: WorldTheme;
+  readonly look: Look;
   /** Seed of each game; a new one per game by default. */
   readonly seed?: () => string;
 }
@@ -87,11 +87,11 @@ export class PlaySession {
   private colossusFlash = 0;
   private readonly canvas: HTMLCanvasElement;
   private readonly distortion: DistortionLayer | null;
-  private readonly level: LevelDefinition;
+  private level: LevelDefinition;
   private palette: Palette;
   private profile: EffectProfile;
   private readonly feedback: Feedback;
-  private readonly theme: WorldTheme;
+  private readonly look: Look;
   private readonly seed: () => string;
 
   constructor(options: SessionOptions) {
@@ -102,11 +102,11 @@ export class PlaySession {
       palette: this.palette,
       profile: this.profile,
       feedback: this.feedback,
-      theme: this.theme,
+      look: this.look,
     } = options);
     this.seed = options.seed ?? (() => `${options.level.id}:${Date.now()}`);
     this.game = this.createGame();
-    this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.theme);
+    this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.destruction = this.createDestruction();
     this.hud = shallowReactive(this.initialHud());
     this.loop = new GameLoop((dt) => this.frame(dt));
@@ -141,10 +141,17 @@ export class PlaySession {
     else this.pause();
   }
 
-  restart(): void {
+  /** What the game says about how it was played, for progression. */
+  summary(): GameReport {
+    return this.game.summary();
+  }
+
+  /** Starts a new game, of another version of the level if given (the assistance). */
+  restart(level: LevelDefinition = this.level): void {
+    this.level = level;
     this.game.events.clear();
     this.game = this.createGame();
-    this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.theme);
+    this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.renderer.resize(this.size.width, this.size.height, this.size.pixelRatio);
     this.motion = new BallMotion();
     this.destruction = this.createDestruction();
@@ -206,7 +213,7 @@ export class PlaySession {
   }
 
   private createDestruction(): Destruction {
-    return new Destruction(this.profile, this.game.setup.chain.ballRadius);
+    return new Destruction(this.profile, this.game.setup.chain.ballRadius, this.look.shards);
   }
 
   private createGame(): Game {

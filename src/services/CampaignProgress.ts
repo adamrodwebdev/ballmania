@@ -44,6 +44,11 @@ export class CampaignProgress {
     return this.records[order[index - 1]!] !== undefined;
   }
 
+  /** Levels finished with three stars. */
+  threeStarCount(levelIds: readonly string[]): number {
+    return levelIds.filter((id) => this.records[id]?.stars === 3).length;
+  }
+
   totalStars(levelIds: readonly string[]): number {
     return levelIds.reduce((sum, id) => sum + (this.records[id]?.stars ?? 0), 0);
   }

@@ -15,8 +15,6 @@
     "tagline": "Marble shooting, reinvented",
     "pitch": "Six worlds to conquer, chain explosions and modes you have never played.",
     "campaign": "Campaign",
-    "arcade": "Arcade",
-    "soon": "Coming soon",
     "play": "Play",
     "demo": "World 1: Nebula"
   },
@@ -64,7 +62,8 @@
     "best": "Best: {score}",
     "newBest": "New record!",
     "nextLevel": "Next level",
-    "map": "Campaign map"
+    "map": "Campaign map",
+    "homeButton": "Home"
   },
   "effects": {
     "spectacular": {
@@ -126,5 +125,127 @@
   },
   "colossus": {
     "name": "Stellar Colossus"
+  },
+  "player": {
+    "balance": "{count} shards",
+    "earned": "+{count} shards",
+    "reward": "+{count} shards"
+  },
+  "daily": {
+    "title": "Daily challenge",
+    "short": "Daily",
+    "todo": "To play: level {level}",
+    "done": "Done: {score} points",
+    "counted": "Only the first attempt of the day counts: {score} points.",
+    "share": "Share my result",
+    "shareText": "Ballmania · {date} challenge: {score} points {stars} · {url}",
+    "shareOutcome": {
+      "shared": "Result shared.",
+      "copied": "Result copied: paste it anywhere.",
+      "cancelled": "Sharing cancelled.",
+      "unavailable": "Sharing is not available on this device."
+    }
+  },
+  "shop": {
+    "title": "Workshop",
+    "pitch": "Shooters, trails, shards",
+    "intro": "Everything is earned by playing. These are looks only: nothing makes the game easier.",
+    "slots": {
+      "shooter": "Shooters",
+      "trail": "Shot trails",
+      "burst": "Burst signatures",
+      "board": "Boards"
+    },
+    "equipped": "Equipped",
+    "equip": "Equip",
+    "buy": "Buy · {price}",
+    "unlockHint": "Finish the {world} world",
+    "unlocked": "Unlocked: {name}",
+    "bought": "{name} bought and equipped.",
+    "equippedNow": "{name} equipped."
+  },
+  "cosmetics": {
+    "shooter-orbit": "Orbit",
+    "shooter-crown": "Crown",
+    "shooter-halo": "Halo",
+    "shooter-eye": "Eye",
+    "trail-none": "None",
+    "trail-comet": "Comet",
+    "trail-stardust": "Stardust",
+    "trail-prism": "Prism",
+    "burst-glass": "Glass",
+    "burst-stars": "Stars",
+    "burst-pixels": "Pixels",
+    "burst-petals": "Petals",
+    "board-world": "The world's own",
+    "board-nebula": "Nebula",
+    "board-neon": "Neon"
+  },
+  "achievements": {
+    "title": "Goals",
+    "count": "{done} / {total} reached",
+    "intro": "Every goal you reach earns shards to spend in the workshop.",
+    "reached": "Goal reached: {name}",
+    "done": "Reached",
+    "progress": "{current} of {target}",
+    "list": {
+      "first-win": {
+        "name": "First step",
+        "text": "Win a level."
+      },
+      "chain-3": {
+        "name": "Reaction",
+        "text": "Trigger a ×{target} chain reaction."
+      },
+      "chain-5": {
+        "name": "Cascade",
+        "text": "Trigger a ×{target} chain reaction."
+      },
+      "streak-5": {
+        "name": "In the groove",
+        "text": "Land {target} shots in a row."
+      },
+      "streak-10": {
+        "name": "Flawless",
+        "text": "Land {target} shots in a row."
+      },
+      "balls-500": {
+        "name": "Breaker",
+        "text": "Destroy {target} balls in total."
+      },
+      "balls-2000": {
+        "name": "Wrecker",
+        "text": "Destroy {target} balls in total."
+      },
+      "no-swap": {
+        "name": "No safety net",
+        "text": "Win a level without swapping a ball."
+      },
+      "close-call": {
+        "name": "Close call",
+        "text": "Win while the chain was brushing the hole."
+      },
+      "three-stars-5": {
+        "name": "Constellation",
+        "text": "Get 3 stars on {target} levels."
+      },
+      "colossus": {
+        "name": "Giant slayer",
+        "text": "Defeat the Stellar Colossus."
+      },
+      "daily-3": {
+        "name": "Regular",
+        "text": "Play the daily challenge on {target} days."
+      },
+      "world-nebula": {
+        "name": "Beyond the stars",
+        "text": "Finish the Nebula world."
+      }
+    }
+  },
+  "assist": {
+    "retry": "Retry with help",
+    "detail": "The chain moves 15% slower for this attempt.",
+    "active": "Help on"
   }
 }

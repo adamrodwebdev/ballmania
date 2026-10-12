@@ -15,8 +15,6 @@
     "tagline": "Tembak bola berantai, dengan cara baru",
     "pitch": "Enam dunia untuk ditaklukkan, ledakan berantai, dan mode yang belum pernah kamu mainkan.",
     "campaign": "Kampanye",
-    "arcade": "Arkade",
-    "soon": "Segera hadir",
     "play": "Main",
     "demo": "Dunia 1: Nebula"
   },
@@ -64,7 +62,8 @@
     "best": "Rekor: {score}",
     "newBest": "Rekor baru!",
     "nextLevel": "Level berikutnya",
-    "map": "Peta kampanye"
+    "map": "Peta kampanye",
+    "homeButton": "Beranda"
   },
   "effects": {
     "spectacular": {
@@ -126,5 +125,127 @@
   },
   "colossus": {
     "name": "Kolosus Bintang"
+  },
+  "player": {
+    "balance": "{count} kepingan",
+    "earned": "+{count} kepingan",
+    "reward": "+{count} kepingan"
+  },
+  "daily": {
+    "title": "Tantangan harian",
+    "short": "Harian",
+    "todo": "Untuk dimainkan: level {level}",
+    "done": "Selesai: {score} poin",
+    "counted": "Hanya percobaan pertama hari ini yang dihitung: {score} poin.",
+    "share": "Bagikan hasilku",
+    "shareText": "Ballmania · Tantangan {date}: {score} poin {stars} · {url}",
+    "shareOutcome": {
+      "shared": "Hasil dibagikan.",
+      "copied": "Hasil disalin: tempel di mana saja.",
+      "cancelled": "Berbagi dibatalkan.",
+      "unavailable": "Berbagi tidak tersedia di perangkat ini."
+    }
+  },
+  "shop": {
+    "title": "Bengkel",
+    "pitch": "Penembak, jejak, pecahan",
+    "intro": "Semuanya didapat dengan bermain. Ini hanya tampilan: tidak ada yang membuat permainan lebih mudah.",
+    "slots": {
+      "shooter": "Penembak",
+      "trail": "Jejak tembakan",
+      "burst": "Gaya pecahan",
+      "board": "Papan"
+    },
+    "equipped": "Dipakai",
+    "equip": "Pakai",
+    "buy": "Beli · {price}",
+    "unlockHint": "Selesaikan dunia {world}",
+    "unlocked": "Terbuka: {name}",
+    "bought": "{name} dibeli dan dipakai.",
+    "equippedNow": "{name} dipakai."
+  },
+  "cosmetics": {
+    "shooter-orbit": "Orbit",
+    "shooter-crown": "Mahkota",
+    "shooter-halo": "Lingkaran Cahaya",
+    "shooter-eye": "Mata",
+    "trail-none": "Tanpa jejak",
+    "trail-comet": "Komet",
+    "trail-stardust": "Debu Bintang",
+    "trail-prism": "Prisma",
+    "burst-glass": "Kaca",
+    "burst-stars": "Bintang",
+    "burst-pixels": "Piksel",
+    "burst-petals": "Kelopak",
+    "board-world": "Sesuai dunia",
+    "board-nebula": "Nebula",
+    "board-neon": "Neon"
+  },
+  "achievements": {
+    "title": "Target",
+    "count": "{done} / {total} tercapai",
+    "intro": "Setiap target yang tercapai memberi kepingan untuk dibelanjakan di bengkel.",
+    "reached": "Target tercapai: {name}",
+    "done": "Tercapai",
+    "progress": "{current} dari {target}",
+    "list": {
+      "first-win": {
+        "name": "Langkah pertama",
+        "text": "Menangkan satu level."
+      },
+      "chain-3": {
+        "name": "Reaksi",
+        "text": "Picu reaksi berantai ×{target}."
+      },
+      "chain-5": {
+        "name": "Kaskade",
+        "text": "Picu reaksi berantai ×{target}."
+      },
+      "streak-5": {
+        "name": "Berirama",
+        "text": "Kenai {target} tembakan berturut-turut."
+      },
+      "streak-10": {
+        "name": "Tanpa cela",
+        "text": "Kenai {target} tembakan berturut-turut."
+      },
+      "balls-500": {
+        "name": "Penghancur",
+        "text": "Hancurkan total {target} bola."
+      },
+      "balls-2000": {
+        "name": "Perusak",
+        "text": "Hancurkan total {target} bola."
+      },
+      "no-swap": {
+        "name": "Tanpa jaring",
+        "text": "Menangkan level tanpa menukar bola."
+      },
+      "close-call": {
+        "name": "Nyaris",
+        "text": "Menang saat rantai hampir menyentuh lubang."
+      },
+      "three-stars-5": {
+        "name": "Rasi bintang",
+        "text": "Dapatkan 3 bintang di {target} level."
+      },
+      "colossus": {
+        "name": "Pembunuh raksasa",
+        "text": "Kalahkan Kolosus Bintang."
+      },
+      "daily-3": {
+        "name": "Pelanggan setia",
+        "text": "Mainkan tantangan harian selama {target} hari."
+      },
+      "world-nebula": {
+        "name": "Melampaui bintang",
+        "text": "Selesaikan dunia Nebula."
+      }
+    }
+  },
+  "assist": {
+    "retry": "Coba lagi dengan bantuan",
+    "detail": "Rantai bergerak 15% lebih lambat untuk percobaan ini.",
+    "active": "Bantuan aktif"
   }
 }
