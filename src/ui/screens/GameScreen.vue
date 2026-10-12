@@ -4,17 +4,23 @@ import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
+import { DistortionLayer } from '@/play/effects/DistortionLayer';
+import { EffectProfile } from '@/play/effects/EffectProfile';
+import { sharedFeedback } from '@/play/feedback';
 import { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
+import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 
 const props = defineProps<{ level: LevelDefinition }>();
 const emit = defineEmits<{ quit: [] }>();
 
 const { t, locale } = useI18n();
-const { theme } = useServices();
+const { theme, settings } = useServices();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
-const stage = ref<HTMLElement | null>(null);
+const overlay = ref<HTMLCanvasElement | null>(null);
+const surface = ref<HTMLElement | null>(null);
+const settingsDialog = ref<{ open: () => void } | null>(null);
 const pauseDialog = ref<HTMLDialogElement | null>(null);
 const endDialog = ref<HTMLDialogElement | null>(null);
 const session = shallowRef<PlaySession | null>(null);
@@ -25,11 +31,26 @@ const number = computed(() => new Intl.NumberFormat(locale.value));
 
 const readPalette = () => Palette.fromStyle(getComputedStyle(document.documentElement));
 
+const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const reducedMotion = ref(motionQuery.matches);
+const onMotionChange = (event: MediaQueryListEvent) => (reducedMotion.value = event.matches);
+motionQuery.addEventListener('change', onMotionChange);
+const profile = () => EffectProfile.for(settings.current.effects, reducedMotion.value);
+const feedback = sharedFeedback(settings.current.volume, settings.current.vibration);
+
 let cleanups: (() => void)[] = [];
 
 onMounted(() => {
-  if (!canvas.value || !stage.value) return;
-  const play = new PlaySession(canvas.value, props.level, readPalette());
+  if (!canvas.value || !surface.value) return;
+  const distortion = overlay.value ? DistortionLayer.create(overlay.value) : null;
+  const play = new PlaySession(
+    canvas.value,
+    distortion,
+    props.level,
+    readPalette(),
+    profile(),
+    feedback,
+  );
   session.value = play;
 
   const commands: PlayCommands = {
@@ -38,7 +59,7 @@ onMounted(() => {
     fire: () => play.fire(),
     swap: () => play.swap(),
     turn: (direction) => play.turn(direction),
-    togglePause: () => (play.hud.paused ? play.resume() : play.pause()),
+    togglePause: () => play.togglePause(),
   };
   const pointer = new PointerControls(canvas.value, commands);
   const keyboard = new KeyboardControls(window, commands);
@@ -48,7 +69,7 @@ onMounted(() => {
     const { width, height } = entry.contentRect;
     play.resize(width, height, Math.min(window.devicePixelRatio || 1, 2));
   });
-  observer.observe(stage.value);
+  observer.observe(surface.value);
 
   const onVisibility = () => {
     if (document.hidden) play.pause();
@@ -61,6 +82,7 @@ onMounted(() => {
     () => observer.disconnect(),
     () => document.removeEventListener('visibilitychange', onVisibility),
     () => play.destroy(),
+    () => motionQuery.removeEventListener('change', onMotionChange),
   ];
   play.start();
   canvas.value.focus();
@@ -69,6 +91,16 @@ onMounted(() => {
 onBeforeUnmount(() => {
   for (const cleanup of cleanups) cleanup();
 });
+
+watch([() => settings.current.effects, reducedMotion], () => session.value?.setProfile(profile()));
+watch(
+  () => settings.current.volume,
+  (volume) => feedback.sound.setVolume(volume),
+);
+watch(
+  () => settings.current.vibration,
+  (enabled) => feedback.haptics.setEnabled(enabled),
+);
 
 // The board follows the theme: colours are read again once <html> has switched.
 watch(theme.resolved, async () => {
@@ -136,15 +168,18 @@ const quit = () => emit('quit');
       </button>
     </div>
 
-    <div ref="stage" class="stage">
-      <canvas
-        ref="canvas"
-        class="board"
-        tabindex="0"
-        :aria-label="t('game.board')"
-        aria-describedby="game-help"
-        data-testid="board"
-      ></canvas>
+    <div class="stage">
+      <div ref="surface" class="surface">
+        <canvas
+          ref="canvas"
+          class="board"
+          tabindex="0"
+          :aria-label="t('game.board')"
+          aria-describedby="game-help"
+          data-testid="board"
+        ></canvas>
+        <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
+      </div>
     </div>
 
     <div class="controls">
@@ -164,9 +199,18 @@ const quit = () => emit('quit');
           {{ t('game.resume') }}
         </button>
         <button class="btn" type="button" @click="restart">{{ t('game.restart') }}</button>
+        <button
+          class="btn"
+          type="button"
+          data-testid="open-settings"
+          @click="settingsDialog?.open()"
+        >
+          {{ t('game.settings') }}
+        </button>
         <button class="btn" type="button" @click="quit">{{ t('game.quit') }}</button>
       </div>
     </dialog>
+    <SettingsDialog ref="settingsDialog" />
 
     <dialog ref="endDialog" class="dialog" aria-labelledby="end-title" @cancel.prevent="quit">
       <h2 id="end-title">{{ t(hud?.over === 'won' ? 'game.won' : 'game.lost') }}</h2>
@@ -233,6 +277,25 @@ const quit = () => emit('quit');
   position: relative;
   min-height: 0;
   padding-inline: var(--space-2);
+}
+
+.surface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+
+.overlay[hidden] {
+  display: none;
 }
 
 .board {

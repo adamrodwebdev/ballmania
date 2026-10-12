@@ -1,4 +1,5 @@
 import { shallowReactive } from 'vue';
+import type { SoundEngine } from '@/audio/SoundEngine';
 import type { Tone } from '@/engine/chain/Ball';
 import { SeededRandom } from '@/engine/core/Random';
 import { Game, type GameState } from '@/engine/Game';
@@ -6,8 +7,13 @@ import { Vec2 } from '@/engine/geometry/Vec2';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
 import { CanvasRenderer, type Renderer } from './CanvasRenderer';
-import { Effects } from './Effects';
+import { Destruction } from './effects/Destruction';
+import type { DistortionLayer } from './effects/DistortionLayer';
+import type { EffectProfile } from './effects/EffectProfile';
+import { FrameMonitor } from './effects/FrameMonitor';
+import { TimeWarp } from './effects/TimeWarp';
 import { GameLoop } from './GameLoop';
+import type { Haptics } from './Haptics';
 import type { Palette } from './Palette';
 
 /** What the interface shows around the board; updated on events, not every frame. */
@@ -25,40 +31,55 @@ export interface HudState {
   reaction: { readonly depth: number; readonly serial: number } | null;
 }
 
-/** Seconds between the end of a game and the result dialog. */
-const RESULT_DELAY = 1.2;
+/** Sound and vibrations, shared by every game of the visit. */
+export interface Feedback {
+  readonly sound: SoundEngine;
+  readonly haptics: Haptics;
+}
+
+/** Real seconds between the end of a game and the result dialog. */
+const RESULT_DELAY = 1.6;
 /** Speed at which a lost chain is swallowed by the hole, in units per second. */
 const DRAIN_SPEED = 1400;
 /** Longest aim line, in board units. */
 const AIM_REACH = 1600;
 const AIM_STEP = 12;
+/** Share of the track from which the heart starts beating. */
+const DANGER_FROM = 0.8;
 
 /**
- * A level being played: owns the game, the loop, the renderer and the visual
- * motion, and turns player commands into game commands. Created by the game
- * screen, which only displays `hud`.
+ * A level being played: owns the game, the loop, the renderer, the visual
+ * motion and the destruction effects, and turns player commands into game
+ * commands. Created by the game screen, which only displays `hud`.
  */
 export class PlaySession {
   readonly hud: HudState;
   private game: Game;
   private renderer: Renderer;
   private motion = new BallMotion();
-  private effects = new Effects();
+  private destruction: Destruction;
+  private readonly warp = new TimeWarp();
+  private readonly monitor = new FrameMonitor();
   private readonly loop: GameLoop;
   private time = 0;
   private overIn: number | null = null;
+  private heartIn = 0;
   private turning = 0;
   private reactions = 0;
   private size = { width: 1, height: 1, pixelRatio: 1 };
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
+    private readonly distortion: DistortionLayer | null,
     private readonly level: LevelDefinition,
     private palette: Palette,
+    private profile: EffectProfile,
+    private readonly feedback: Feedback,
     private readonly seed: () => string = () => `${level.id}:${Date.now()}`,
   ) {
     this.game = this.createGame();
     this.renderer = new CanvasRenderer(canvas, this.game, palette);
+    this.destruction = this.createDestruction();
     this.hud = shallowReactive(this.initialHud());
     this.loop = new GameLoop((dt) => this.frame(dt));
   }
@@ -70,14 +91,26 @@ export class PlaySession {
   destroy(): void {
     this.loop.stop();
     this.game.events.clear();
+    this.distortion?.hide();
   }
 
   pause(): void {
-    if (this.hud.state === 'playing') this.hud.paused = true;
+    if (this.hud.state !== 'playing') return;
+    this.hud.paused = true;
+    this.turning = 0;
+    this.feedback.sound.suspend();
   }
 
   resume(): void {
     this.hud.paused = false;
+    this.monitor.reset();
+    this.feedback.sound.resume();
+  }
+
+  togglePause(): void {
+    this.feedback.sound.unlock();
+    if (this.hud.paused) this.resume();
+    else this.pause();
   }
 
   restart(): void {
@@ -86,14 +119,17 @@ export class PlaySession {
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette);
     this.renderer.resize(this.size.width, this.size.height, this.size.pixelRatio);
     this.motion = new BallMotion();
-    this.effects = new Effects();
+    this.destruction = this.createDestruction();
     this.overIn = null;
+    this.feedback.sound.resume();
     Object.assign(this.hud, this.initialHud());
   }
 
   resize(width: number, height: number, pixelRatio: number): void {
     this.size = { width, height, pixelRatio };
     this.renderer.resize(width, height, pixelRatio);
+    const { surface } = this.renderer;
+    this.distortion?.resize(surface.width, surface.height);
     this.render();
   }
 
@@ -101,6 +137,12 @@ export class PlaySession {
     this.palette = palette;
     this.renderer.setPalette(palette);
     this.render();
+  }
+
+  setProfile(profile: EffectProfile): void {
+    this.profile = profile;
+    this.destruction.setProfile(profile);
+    this.monitor.reset();
   }
 
   /** Aims at a point given in CSS pixels relative to the canvas. */
@@ -114,16 +156,19 @@ export class PlaySession {
   }
 
   fire(): void {
-    if (this.acceptsCommands) this.game.fire();
+    this.feedback.sound.unlock();
+    if (this.acceptsCommands && this.game.fire()) this.feedback.sound.shoot();
   }
 
   swap(): void {
+    this.feedback.sound.unlock();
     if (!this.acceptsCommands) return;
     this.game.swap();
+    this.feedback.sound.swap();
     this.syncTones();
   }
 
-  /** Keyboard aiming: -1, 0 or 1 turn direction, applied every frame. */
+  /** Keyboard aiming: turn direction (negative = anticlockwise), applied every frame. */
   turn(direction: number): void {
     this.turning = direction;
   }
@@ -132,16 +177,27 @@ export class PlaySession {
     return !this.hud.paused && this.hud.state === 'playing';
   }
 
+  private createDestruction(): Destruction {
+    return new Destruction(this.profile, this.game.setup.chain.ballRadius);
+  }
+
   private createGame(): Game {
     const game = new Game(toLevelSetup(this.level), SeededRandom.fromString(this.seed()));
-    game.events.on('inserted', ({ ball, from }) => this.motion.land(ball, from));
+    const { sound, haptics } = this.feedback;
+    game.events.on('inserted', ({ ball, from }) => {
+      this.motion.land(ball, from);
+      sound.land();
+    });
     game.events.on('exploded', (event) => {
-      this.effects.explode(
-        event.positions,
-        event.balls.map((ball) => ball.tone),
-        event.points,
-        event.depth,
-      );
+      this.destruction.explode({
+        positions: event.positions,
+        tones: event.balls.map((ball) => ball.tone),
+        points: event.points,
+        depth: event.depth,
+      });
+      sound.explode(event.balls.length, event.depth);
+      haptics.explosion(event.depth);
+      if (event.depth >= 3 && this.profile.slowMotion) this.warp.trigger(0.3, 0.12, 0.25);
       this.hud.score = game.score;
       this.hud.streak = event.streak;
       if (event.depth > 1) this.hud.reaction = { depth: event.depth, serial: ++this.reactions };
@@ -152,6 +208,16 @@ export class PlaySession {
       this.hud.score = game.score;
       this.hud.bestDepth = game.bestDepth;
       this.overIn = RESULT_DELAY;
+      if (outcome === 'won') {
+        this.destruction.finale(game.shooter.position, [0, 1, 2, 3, 4, 5], this.palette.accent);
+        if (this.profile.slowMotion) this.warp.trigger(0.35, 0.4, 0.5);
+        sound.win();
+        haptics.win();
+      } else {
+        this.destruction.defeat(this.palette.danger);
+        sound.lose();
+        haptics.lose();
+      }
     });
     return game;
   }
@@ -170,19 +236,22 @@ export class PlaySession {
     };
   }
 
-  private frame(dt: number): void {
+  private frame(realDt: number): void {
     if (this.hud.paused) return;
+    if (this.monitor.record(realDt)) this.lowerEffects();
+    const dt = this.warp.update(realDt);
     this.time += dt;
     if (this.turning !== 0 && this.acceptsCommands) {
-      this.game.shooter.aim(this.game.shooter.angle + this.turning * 2.4 * dt);
+      this.game.shooter.aim(this.game.shooter.angle + this.turning * 2.4 * realDt);
     }
     this.game.update(dt);
     if (this.game.state === 'lost') this.motion.drain(DRAIN_SPEED, dt);
     this.motion.update(this.game.chains, dt);
-    this.effects.update(dt);
+    this.destruction.update(dt);
     this.syncTones();
+    this.beatHeart(realDt);
     if (this.overIn !== null) {
-      this.overIn -= dt;
+      this.overIn -= realDt;
       if (this.overIn <= 0) {
         this.overIn = null;
         this.hud.over = this.game.state === 'won' ? 'won' : 'lost';
@@ -191,14 +260,50 @@ export class PlaySession {
     this.render();
   }
 
+  /** The frame rate dropped: one step less spectacle, for the rest of the game. */
+  private lowerEffects(): void {
+    const lower = this.profile.lowered();
+    if (lower) this.setProfile(lower);
+  }
+
+  private beatHeart(realDt: number): void {
+    if (this.game.state !== 'playing') return;
+    const danger = Math.max(
+      0,
+      ...this.game.chains.map((chain) => {
+        const head = chain.balls[chain.balls.length - 1];
+        return head ? head.s / chain.path.length : 0;
+      }),
+    );
+    if (danger < DANGER_FROM) {
+      this.heartIn = 0;
+      return;
+    }
+    this.heartIn -= realDt;
+    if (this.heartIn > 0) return;
+    this.feedback.sound.heartbeat();
+    const urgency = (danger - DANGER_FROM) / (1 - DANGER_FROM);
+    this.heartIn = 1 - 0.55 * urgency;
+  }
+
   private render(): void {
     this.renderer.draw({
       game: this.game,
       motion: this.motion,
-      effects: this.effects,
+      destruction: this.destruction,
       aimEnd: this.game.state === 'playing' ? this.aimEnd() : null,
       time: this.time,
     });
+    if (!this.distortion) return;
+    const k = this.renderer.deviceScale;
+    this.distortion.present(
+      this.renderer.surface,
+      this.destruction.waves.map((wave) => {
+        const centre = this.renderer.toDevice(new Vec2(wave.x, wave.y));
+        return { x: centre.x, y: centre.y, radius: wave.radius * k, strength: wave.strength * k };
+      }),
+      42 * k,
+    );
   }
 
   private syncTones(): void {

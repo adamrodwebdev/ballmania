@@ -3,23 +3,28 @@ import type { Game } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import type { BallMotion } from './BallMotion';
-import type { Effects } from './Effects';
+import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
 
-/** What every renderer offers the play session; a WebGL2 one joins in lot 3. */
+/** What every renderer offers the play session. */
 export interface Renderer {
   /** Size of the drawing surface in CSS pixels, and the device pixel ratio. */
   resize(width: number, height: number, pixelRatio: number): void;
   setPalette(palette: Palette): void;
   /** Board coordinates of a point given in CSS pixels relative to the canvas. */
   toBoard(x: number, y: number): Vec2;
+  /** Device-pixel position of a board point, and device pixels per board unit. */
+  toDevice(point: Vec2): Vec2;
+  readonly deviceScale: number;
+  /** The surface drawn on, which post-processing reads. */
+  readonly surface: HTMLCanvasElement;
   draw(scene: Scene): void;
 }
 
 export interface Scene {
   readonly game: Game;
   readonly motion: BallMotion;
-  readonly effects: Effects;
+  readonly destruction: Destruction;
   /** Where the aim line stops (first ball it meets), or null to hide it. */
   readonly aimEnd: Vec2 | null;
   /** Seconds since the session started, for pulsing details. */
@@ -71,13 +76,36 @@ export class CanvasRenderer implements Renderer {
     return new Vec2((x - this.offsetX) / this.scale, (y - this.offsetY) / this.scale);
   }
 
+  toDevice(point: Vec2): Vec2 {
+    return new Vec2(
+      (point.x * this.scale + this.offsetX) * this.pixelRatio,
+      (point.y * this.scale + this.offsetY) * this.pixelRatio,
+    );
+  }
+
+  get deviceScale(): number {
+    return this.scale * this.pixelRatio;
+  }
+
+  get surface(): HTMLCanvasElement {
+    return this.canvas;
+  }
+
   draw(scene: Scene): void {
     const { ctx, palette } = this;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = palette.board;
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     const k = this.scale * this.pixelRatio;
-    ctx.setTransform(k, 0, 0, k, this.offsetX * this.pixelRatio, this.offsetY * this.pixelRatio);
+    const shake = scene.destruction.shakeOffset;
+    ctx.setTransform(
+      k,
+      0,
+      0,
+      k,
+      (this.offsetX + shake.x * this.scale) * this.pixelRatio,
+      (this.offsetY + shake.y * this.scale) * this.pixelRatio,
+    );
 
     const { game } = scene;
     const radius = game.setup.chain.ballRadius;
@@ -90,7 +118,16 @@ export class CanvasRenderer implements Renderer {
     // Entrances and holes cover the balls coming out of and going into them.
     for (const chain of game.chains) this.drawEnds(chain, radius, scene.time);
     this.drawShooter(radius);
-    scene.effects.draw(ctx, palette, radius);
+    scene.destruction.draw(ctx, palette, this.sprites);
+
+    const flash = scene.destruction.flash;
+    if (flash.amount > 0) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = flash.amount;
+      ctx.fillStyle = flash.colour;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.globalAlpha = 1;
+    }
   }
 
   private rebuildSprites(): void {

@@ -22,7 +22,13 @@
   },
   "settings": {
     "language": "Bahasa",
-    "theme": "Tema"
+    "theme": "Tema",
+    "title": "Pengaturan",
+    "open": "Buka pengaturan",
+    "effects": "Efek penghancuran",
+    "volume": "Volume",
+    "vibration": "Getaran",
+    "done": "Selesai"
   },
   "theme": {
     "system": "Sistem",
@@ -52,6 +58,21 @@
     "playAgain": "Main lagi",
     "home": "Beranda",
     "reaction": "Reaksi berantai ×{depth}",
-    "loading": "Memuat permainan…"
+    "loading": "Memuat permainan…",
+    "settings": "Pengaturan"
+  },
+  "effects": {
+    "spectacular": {
+      "name": "Spektakuler",
+      "hint": "Pecahan, kilat, gelombang kejut, dan gerak lambat"
+    },
+    "balanced": {
+      "name": "Seimbang",
+      "hint": "Partikel lebih sedikit, tanpa distorsi layar"
+    },
+    "subtle": {
+      "name": "Sederhana",
+      "hint": "Yang penting saja, untuk ponsel sederhana"
+    }
   }
 }

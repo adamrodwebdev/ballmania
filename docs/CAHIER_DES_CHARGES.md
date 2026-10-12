@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                    |
-| ------- | ---------- | ------------------------- |
-| 0.5     | 12/10/2026 | Lot 2 livré (jeu jouable) |
+| Version | Date       | Statut                           |
+| ------- | ---------- | -------------------------------- |
+| 0.6     | 12/10/2026 | Lot 3 livré (destruction et son) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -182,8 +182,11 @@ Précisions du lot 2 :
 
 ### 3.4 Paramètres et données
 
-- Langue, thème (clair / sombre / système), volume musique et effets, vibrations, intensité
-  des effets (Spectaculaire / Équilibré / Sobre), réduction des mouvements.
+- Langue, thème (clair / sombre / système), volume des effets sonores, vibrations, intensité
+  des effets (Spectaculaire / Équilibré / Sobre). La réduction des mouvements suit le réglage
+  du système (`prefers-reduced-motion`). Livré au lot 3 : fenêtre « Réglages » accessible
+  depuis l'accueil et le menu pause, appliquée en direct pendant la partie. Le volume de la
+  musique viendra avec la musique.
 - Sauvegarde versionnée (migrations) : progression de campagne, étoiles, records, éclats,
   cosmétiques possédés, historique du défi du jour. Stockée via une abstraction
   (`SaveStore`) : `localStorage` sur notre site, stockage du SDK sur les portails qui
@@ -210,6 +213,41 @@ variantes.
 - **Niveaux d'intensité** : _Spectaculaire_ (par défaut sur machine capable), _Équilibré_,
   _Sobre_ ; bascule automatique si la fréquence d'images chute ; `prefers-reduced-motion`
   supprime tremblements, ralentis et distorsions.
+
+#### Destruction livrée au lot 3 (matière « verre et énergie », monde Nébuleuse)
+
+| Temps          | Effet                                                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 0 → 80 ms      | Le groupe **se fissure** : billes qui gonflent, fêlures blanches, **arcs électriques** entre les billes                          |
+| 80 ms          | Chaque bille **éclate** : éclats de verre triangulaires (vitesse, rotation, freinage), traînées de lumière, halo additif, anneau |
+| 80 → 630 ms    | **Onde de choc** qui courbe l'image avec aberration chromatique (WebGL2), **tremblement** de l'écran                             |
+| Profondeur ≥ 3 | **Ralenti** (×0,3 pendant 120 ms, retour en 250 ms) et **éclair** blanc                                                          |
+| Victoire       | Explosion de lumière depuis le lanceur, onde géante, ralenti, arpège                                                             |
+| Défaite        | Secousse et voile rouge, chaîne avalée par le trou, glissando grave                                                              |
+
+Tout grandit avec la profondeur de la réaction : vitesse des éclats, onde, tremblement, note
+jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête de chaîne passe
+80 % du tracé, de plus en plus vite.
+
+| Intensité     | Éclats / bille | Traînées / bille | Arcs, halo | Tremblement | Ralenti | Distorsion | Particules max |
+| ------------- | -------------- | ---------------- | ---------- | ----------- | ------- | ---------- | -------------- |
+| Spectaculaire | 12             | 10               | oui        | fort        | oui     | oui        | 900            |
+| Équilibré     | 7              | 5                | oui        | moyen       | oui     | non        | 400            |
+| Sobre         | 4              | 0                | non        | non         | non     | non        | 150            |
+
+- **Bascule automatique** : après 2 s sous ~40 images/s, l'intensité descend d'un cran pour la
+  partie en cours (le réglage du joueur n'est pas modifié).
+- **Distorsion** : un second canevas WebGL2 posé sur le plateau n'est affiché que pendant
+  une onde de choc ; le reste du temps il est masqué et ne coûte rien. Sans WebGL2, le jeu
+  se passe simplement de distorsion.
+- **Son** : tir, arrivée de la bille, échange, explosion (bruit de verre filtré + cloche
+  inharmonique + impact grave), battement de cœur, victoire, défaite ; tout est synthétisé,
+  rien n'est téléchargé. Le contexte audio naît au premier geste du joueur et se tait en
+  pause.
+- **Vibrations** : motifs croissants avec la profondeur, victoire, défaite (navigateurs qui
+  les permettent ; pas d'effet sur iOS).
+- Les autres matières (Néon, Abysses, Joaillerie, Volcan, Singularité) arrivent avec leurs
+  mondes (lots 6 à 10).
 
 ### 3.6 Progression et thèmes à débloquer (v0.2)
 
@@ -410,6 +448,22 @@ Dans `src/play/`, entre le moteur et Vue :
 - L'écran de jeu, le moteur et les niveaux sont **chargés à la demande** : l'accueil reste à
   47 Ko de JS compressé, l'écran de jeu en ajoute 10.
 
+### 5.5 Effets, son et vibrations (livrés au lot 3)
+
+| Classe            | Responsabilité                                                                    |
+| ----------------- | --------------------------------------------------------------------------------- |
+| `EffectProfile`   | Valeurs de chaque intensité, effet de `prefers-reduced-motion`, cran inférieur    |
+| `Destruction`     | Fissures, arcs, éclats, traînées, halos, anneaux, points, ondes, éclair, secousse |
+| `Shake`           | Tremblement par « traumatisme » qui décroît (amplitude ∝ traumatisme²)            |
+| `TimeWarp`        | Ralenti : la simulation reçoit des images plus courtes, elle reste exacte         |
+| `FrameMonitor`    | Mesure la fréquence d'images et demande de baisser l'intensité                    |
+| `DistortionLayer` | Passe WebGL2 (ondes + aberration chromatique) sur un canevas superposé            |
+| `SoundEngine`     | Synthèse Web Audio de tous les sons, déverrouillage au premier geste              |
+| `Haptics`         | Motifs de vibration, désactivables                                                |
+
+Le son et les vibrations sont partagés par toutes les parties de la visite
+(`sharedFeedback`) et ne sont téléchargés qu'avec l'écran de jeu.
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -441,7 +495,7 @@ Dans `src/play/`, entre le moteur et Vue :
 | 0 ✅ | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)          |
 | 1 ✅ | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine  |
 | 2 ✅ | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo |
-| 3    | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités   |
+| 3 ✅ | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités   |
 | 4    | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse   |
 | 5    | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour |
 | 6–10 | Mondes 2 à 6 (une mécanique et un thème par lot), modes Arcade intercalés        |
@@ -466,3 +520,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                      |
 | 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                      |
 | 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                  |
+| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                  |

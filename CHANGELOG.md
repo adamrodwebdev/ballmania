@@ -26,3 +26,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   visée), commandes souris, tactile (viser en glissant, tirer en relâchant, toucher le
   lanceur pour échanger) et clavier, score et série, pause (aussi automatique en arrière-
   plan), écran de fin, niveau de démonstration en données, annonces pour lecteurs d'écran.
+- Lot 3, destruction et son : billes qui se fissurent, arcs électriques, éclats de verre,
+  traînées de lumière, halos, ondes de choc qui courbent l'image (WebGL2), tremblement,
+  ralenti et éclair sur les réactions en chaîne, finale de victoire, secousse de défaite ;
+  sons synthétisés (tir, explosion de verre, cloche dont la note monte avec la réaction,
+  battement de cœur près du trou, victoire, défaite) ; vibrations ; trois intensités,
+  respect de « réduire les animations », baisse automatique si l'affichage ralentit ;
+  fenêtre de réglages (langue, thème, effets, volume, vibrations).

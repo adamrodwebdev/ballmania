@@ -4,27 +4,37 @@ import { BrowserStorage, MemoryStorage, readJson } from '@/services/KeyValueStor
 import { SETTINGS_KEY, SettingsService } from '@/services/SettingsService';
 import { ThemeController } from '@/services/ThemeController';
 
-const DEFAULTS = { locale: 'fr', theme: 'system', effects: 'spectacular' } as const;
+const DEFAULTS = {
+  locale: 'fr',
+  theme: 'system',
+  effects: 'spectacular',
+  volume: 0.7,
+  vibration: true,
+} as const;
 
 describe('SettingsService', () => {
   it('starts from the defaults and saves every change', () => {
     const storage = new MemoryStorage();
     const settings = new SettingsService(storage, DEFAULTS);
     expect(settings.current.theme).toBe('system');
-    settings.update({ theme: 'dark', effects: 'subtle' });
+    settings.update({ theme: 'dark', effects: 'subtle', volume: 0 });
     expect(settings.current.theme).toBe('dark');
     expect(readJson(storage, SETTINGS_KEY)).toEqual({
-      locale: 'fr',
+      ...DEFAULTS,
       theme: 'dark',
       effects: 'subtle',
+      volume: 0,
     });
   });
 
   it('restores saved settings and ignores invalid fields', () => {
     const storage = new MemoryStorage();
-    storage.set(SETTINGS_KEY, JSON.stringify({ locale: 'id', theme: 'neon', effects: 'max' }));
+    storage.set(
+      SETTINGS_KEY,
+      JSON.stringify({ locale: 'id', theme: 'neon', effects: 'max', volume: 3, vibration: false }),
+    );
     const settings = new SettingsService(storage, DEFAULTS);
-    expect(settings.current).toEqual({ locale: 'id', theme: 'system', effects: 'spectacular' });
+    expect(settings.current).toEqual({ ...DEFAULTS, locale: 'id', vibration: false });
   });
 
   it('survives corrupt storage', () => {

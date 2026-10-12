@@ -27,6 +27,11 @@ export class Palette {
     readonly shooter: string,
   ) {}
 
+  /** True on a dark board: light then adds up (additive blending) instead of covering. */
+  get dark(): boolean {
+    return luminance(this.board) < 0.4;
+  }
+
   static fromStyle(style: Pick<CSSStyleDeclaration, 'getPropertyValue'>): Palette {
     const read = (name: string, fallback: string) =>
       style.getPropertyValue(name).trim() || fallback;
@@ -46,4 +51,17 @@ export class Palette {
   tone(tone: Tone): string {
     return this.tones[tone % MAX_TONES]!;
   }
+}
+
+/** Relative luminance (0 to 1) of a `#rrggbb` or `#rgb` colour; 0.5 when unreadable. */
+export function luminance(colour: string): number {
+  const hex = colour.trim().replace('#', '');
+  const full = hex.length === 3 ? hex.replace(/./g, (c) => c + c) : hex;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return 0.5;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255) as [
+    number,
+    number,
+    number,
+  ];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }

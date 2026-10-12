@@ -22,7 +22,13 @@
   },
   "settings": {
     "language": "Langue",
-    "theme": "Thème"
+    "theme": "Thème",
+    "title": "Réglages",
+    "open": "Ouvrir les réglages",
+    "effects": "Effets de destruction",
+    "volume": "Volume",
+    "vibration": "Vibrations",
+    "done": "Terminé"
   },
   "theme": {
     "system": "Système",
@@ -52,6 +58,21 @@
     "playAgain": "Rejouer",
     "home": "Accueil",
     "reaction": "Réaction en chaîne ×{depth}",
-    "loading": "Chargement du jeu…"
+    "loading": "Chargement du jeu…",
+    "settings": "Réglages"
+  },
+  "effects": {
+    "spectacular": {
+      "name": "Spectaculaire",
+      "hint": "Éclats, éclairs, ondes de choc et ralentis"
+    },
+    "balanced": {
+      "name": "Équilibré",
+      "hint": "Moins de particules, sans distorsion de l'écran"
+    },
+    "subtle": {
+      "name": "Sobre",
+      "hint": "L'essentiel, pour les petits téléphones"
+    }
   }
 }

@@ -13,6 +13,10 @@ export interface Settings {
   readonly theme: ThemePreference;
   /** Intensity of destruction effects (specification § 3.5). */
   readonly effects: EffectLevel;
+  /** Volume of the sound effects, from 0 (muted) to 1. */
+  readonly volume: number;
+  /** Vibrations on phones that support them. */
+  readonly vibration: boolean;
 }
 
 /** Same key as the theme bootstrap script (public/theme-boot.js). */
@@ -56,6 +60,10 @@ export class SettingsService {
     if (isLocale(record.locale)) settings.locale = record.locale;
     if (isThemePreference(record.theme)) settings.theme = record.theme;
     if (isEffectLevel(record.effects)) settings.effects = record.effects;
+    if (typeof record.volume === 'number' && record.volume >= 0 && record.volume <= 1) {
+      settings.volume = record.volume;
+    }
+    if (typeof record.vibration === 'boolean') settings.vibration = record.vibration;
     return settings;
   }
 }

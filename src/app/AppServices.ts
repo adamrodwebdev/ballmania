@@ -19,6 +19,8 @@ export function createBrowserServices(
     locale: detectLocale(navigator.languages),
     theme: 'system',
     effects: 'spectacular',
+    volume: 0.7,
+    vibration: true,
   });
   return {
     settings,
