@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                  |
-| ------- | ---------- | ----------------------- |
-| 0.3     | 12/10/2026 | Lot 0 livré (outillage) |
+| Version | Date       | Statut               |
+| ------- | ---------- | -------------------- |
+| 0.4     | 12/10/2026 | Lot 1 livré (moteur) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -88,8 +88,14 @@ Différenciation :
 - **Bonus** apparaissant sur certaines billes, déclenchés quand elles explosent : bombe
   (rayon), ralenti, recul de la chaîne, foudre (toutes les billes d'une couleur), joker
   multicolore.
-- **Score** : base par bille détruite × multiplicateur de combo × bonus de série (explosions
-  consécutives sans tir raté) + bonus de vitesse en fin de manche.
+- **Score** (précisé au lot 1) : chaque explosion rapporte **billes × 10 × profondeur** de
+  la réaction en chaîne (1 pour la première explosion, +1 pour chaque explosion qui en
+  découle). Une explosion provoquée directement par un tir prolonge la **série** ; à partir
+  du 3ᵉ tir réussi consécutif, chaque tir ajoute **20 × (série − 2)**. Un tir qui sort du
+  plateau ou ne fait rien exploser casse la série. Bonus de fin de manche : défini par les
+  modes (lot 4).
+- La chaîne générée ne contient jamais de groupe déjà explosif (suites limitées à 2 billes
+  de même couleur) : chaque explosion est l'œuvre du joueur.
 - Tout l'aléatoire passe par un **générateur à graine** : une partie se rejoue à l'identique
   avec la même graine (défi du jour, tests, replays).
 
@@ -339,6 +345,38 @@ Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 - **Thèmes de monde = stratégies** (`WorldTheme`) : palette, matière des billes, signature
   de bris, fond ; chargés à la demande.
 
+### 5.3 Moteur (livré au lot 1)
+
+TypeScript pur dans `src/engine/` : aucune dépendance à Vue ni au DOM, entièrement testé.
+
+| Classe           | Responsabilité                                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `Vec2`           | Vecteur 2D immuable (unités du plateau, y vers le bas)                                                            |
+| `Path`           | Tracé paramétré par l'abscisse curviligne `s` (entrée = 0, trou = longueur) ; courbes de Bézier aplaties une fois |
+| `Ball`           | Bille : identifiant, couleur (`Tone`), position `s` ; seule `Chain` la déplace (vue publique `BallView`)          |
+| `BallFactory`    | Identifiants uniques par partie, pour que le rendu suive chaque bille                                             |
+| `ChainGenerator` | Couleurs d'une chaîne selon une recette (longueur, nombre de couleurs, probabilité de répétition)                 |
+| `Chain`          | Avancée du segment arrière, rappel des segments de même couleur, jonctions, insertion, explosions, profondeur     |
+| `Shooter`        | Position, visée, bille chargée et suivante, échange, cadence de tir, couleurs tirées parmi celles en jeu          |
+| `Projectile`     | Bille en vol                                                                                                      |
+| `Scoring`        | Score, série, meilleure profondeur                                                                                |
+| `Game`           | Partie : pas fixe de 1/120 s, commandes (viser, échanger, tirer), victoire, défaite, événements de domaine        |
+
+Règles de simulation :
+
+- **Pas fixe** de 1/120 s avec accumulateur (au plus 0,25 s simulée par image) : mêmes
+  commandes + même graine = même partie, quelle que soit la fréquence d'affichage.
+- Billes rangées de la queue à la tête ; deux billes **se touchent** à 2 rayons d'écart.
+  Seul le **segment arrière** est poussé (vitesse d'entrée rapide puis de croisière). Un
+  segment dont la première bille a la couleur de la dernière bille du segment derrière lui
+  **recule** jusqu'à la jonction, qui peut exploser à son tour.
+- **Insertion** : la bille tirée se place avant ou après la bille touchée selon le côté de
+  l'impact (projection sur la tangente) et pousse les billes devant elle.
+- **Profondeur** : remise à 1 quand plus aucun segment ne recule.
+- Les billes encore dans le tunnel d'entrée (`s < 0`) ne peuvent pas être touchées.
+- Événements : `fired`, `inserted` (avec point de départ, pour l'animation), `missed`,
+  `exploded` (billes, positions, cause, profondeur, points, série), `ended`.
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -368,7 +406,7 @@ Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 | Lot  | Contenu                                                                          |
 | ---- | -------------------------------------------------------------------------------- |
 | 0 ✅ | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)          |
-| 1    | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine  |
+| 1 ✅ | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine  |
 | 2    | Interface jouable : accueil, écran de jeu, rendu, commandes, i18n, thèmes        |
 | 3    | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités   |
 | 4    | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse   |
@@ -393,3 +431,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                       |
 | 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus. |
 | 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                      |
+| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                      |
