@@ -1,3 +1,4 @@
+import type { AmbienceStyle } from './Ambience';
 import { SeededRandom } from '@/engine/core/Random';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
@@ -8,6 +9,8 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  * tighten around the black hole (the board is centred on the canvas).
  */
 export class SingularityTheme implements WorldTheme {
+  readonly ambience: AmbienceStyle = 'twinkle';
+
   paintBackground(
     ctx: CanvasRenderingContext2D,
     width: number,

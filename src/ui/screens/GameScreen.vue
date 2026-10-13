@@ -482,6 +482,15 @@ const quit = () => emit('quit');
         :label="t('game.starsLabel', { count: settlement.stars }, settlement.stars)"
         data-testid="stars"
       />
+      <p v-if="(settlement?.starsGained ?? 0) > 0" class="record" data-testid="stars-gained">
+        {{
+          t(
+            'game.starsGained',
+            { count: settlement?.starsGained ?? 0 },
+            settlement?.starsGained ?? 0,
+          )
+        }}
+      </p>
       <p class="result">{{ t('game.finalScore', { score: number.format(hud?.score ?? 0) }) }}</p>
       <p v-if="(hud?.bonus ?? 0) > 0" class="detail">
         {{ t('game.bonus', { points: number.format(hud?.bonus ?? 0) }) }}

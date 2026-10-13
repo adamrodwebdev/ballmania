@@ -810,6 +810,22 @@ Livré à l'étape 11.3 :
   éclat au bilan, scintillement sur la carte.
 - **Étoiles gagnées** affichées : total sur l'accueil et la carte, « +2 étoiles » au bilan.
 
+Livré à l'étape 11.4 :
+
+- Fin de niveau gagné : 0,7 s de tourbillon (les débris de la cascade finale et 70 traits de
+  lumière sont aspirés par le trou), puis 1,3 s pendant lesquelles tout le plateau tourne
+  d'un tour et demi en rétrécissant vers le trou, sur fond de vide ; le bilan suit.
+  Mouvement réduit : fondu.
+- Ambiances animées par monde, dessinées sur le fond peint (36 éléments au plus, sans
+  état) : étoiles qui scintillent (Nébuleuse, Singularité), ligne de balayage (Néon), bulles
+  (Abysses), éclats de facettes (Joaillerie), braises (Volcan). Menus : deux halos qui
+  dérivent lentement derrière tout.
+- Écrans qui glissent à l'apparition (sauf le premier affichage, pour ne pas retarder
+  l'accueil), listes en cascade (niveaux, Arcade, Observatoire, Atelier, objectifs),
+  boutons qui se soulèvent et s'enfoncent, étoiles du bilan qui éclosent une à une avec un
+  éclair. Le tout en CSS (`transform`, `opacity`), coupé par `prefers-reduced-motion`.
+- Total d'étoiles sur l'accueil et la carte, « +n étoiles » au bilan.
+
 #### Contraintes
 
 - Lighthouse ≥ 95 (visé : 100) dans les quatre catégories, mobile et ordinateur : les

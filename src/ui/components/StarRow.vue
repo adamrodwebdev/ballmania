@@ -41,4 +41,45 @@ defineProps<{ count: number; label: string; size?: 'small' | 'large' }>();
   stroke: var(--text-muted);
   stroke-width: 1.4;
 }
+
+/* The stars of a result light up one after the other, with a flash (§ 3.9). */
+@media (prefers-reduced-motion: no-preference) {
+  .large svg {
+    animation: star-pop 0.55s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+    transform-origin: center;
+  }
+
+  .large svg:nth-child(1) {
+    animation-delay: 0.15s;
+  }
+
+  .large svg:nth-child(2) {
+    animation-delay: 0.4s;
+  }
+
+  .large svg:nth-child(3) {
+    animation-delay: 0.65s;
+  }
+
+  .large .lit {
+    animation: star-flash 0.9s ease-out both;
+    animation-delay: inherit;
+  }
+}
+
+@keyframes star-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-40deg);
+  }
+}
+
+@keyframes star-flash {
+  0% {
+    filter: brightness(2.2) drop-shadow(0 0 0.6rem var(--star));
+  }
+  100% {
+    filter: none;
+  }
+}
 </style>

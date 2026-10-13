@@ -56,7 +56,7 @@ const buy = (id: UpgradeId) => {
       {{ t('observatory.balance', { count: number.format(player.view.fragments) }) }}
     </p>
 
-    <ul class="grid">
+    <ul class="grid stagger">
       <li
         v-for="upgrade in upgrades"
         :key="upgrade.id"

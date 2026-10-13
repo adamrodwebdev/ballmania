@@ -1,3 +1,4 @@
+import type { AmbienceStyle } from './Ambience';
 import { SeededRandom } from '@/engine/core/Random';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
@@ -7,6 +8,8 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  * by glowing magma cracks, with embers floating up.
  */
 export class VolcanoTheme implements WorldTheme {
+  readonly ambience: AmbienceStyle = 'embers';
+
   paintBackground(
     ctx: CanvasRenderingContext2D,
     width: number,

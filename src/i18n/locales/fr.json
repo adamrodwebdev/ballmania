@@ -67,7 +67,8 @@
     "map": "Carte de la campagne",
     "homeButton": "Accueil",
     "campaignDone": "Campagne terminée : les six mondes sont à vous !",
-    "arcadeButton": "Arcade"
+    "arcadeButton": "Arcade",
+    "starsGained": "+{count} étoile | +{count} étoile | +{count} étoiles"
   },
   "effects": {
     "spectacular": {

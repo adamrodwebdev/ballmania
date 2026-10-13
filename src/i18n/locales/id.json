@@ -67,7 +67,8 @@
     "map": "Peta kampanye",
     "homeButton": "Beranda",
     "campaignDone": "Kampanye selesai: keenam dunia milikmu!",
-    "arcadeButton": "Arkade"
+    "arcadeButton": "Arkade",
+    "starsGained": "+{count} bintang | +{count} bintang | +{count} bintang"
   },
   "effects": {
     "spectacular": {

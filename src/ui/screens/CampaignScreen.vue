@@ -11,6 +11,8 @@ const { t } = useI18n();
 const { progress, settings, player } = useServices();
 
 const order = CAMPAIGN.map((level) => level.id);
+/** Stars won in the whole campaign. */
+const total = computed(() => progress.totalStars(order));
 
 const worlds = computed(() =>
   WORLDS.map((world, index) => ({
@@ -36,6 +38,9 @@ const worlds = computed(() =>
         <span>{{ t('campaign.back') }}</span>
       </button>
       <h1 id="campaign-title">{{ t('campaign.title') }}</h1>
+      <p class="total" data-testid="stars-total">
+        {{ t('campaign.stars', { count: total, total: order.length * 3 }) }}
+      </p>
       <button
         class="btn observatory"
         type="button"
@@ -81,7 +86,7 @@ const worlds = computed(() =>
         </p>
       </header>
 
-      <ol v-if="world.levels.length > 0" class="levels">
+      <ol v-if="world.levels.length > 0" class="levels stagger">
         <li v-for="tile in world.tiles" :key="tile.level.id">
           <button
             class="tile"
@@ -233,6 +238,13 @@ h2 {
   font-family: var(--font-display);
   font-size: 1.35rem;
 }
+.total {
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-weight: 800;
+}
+
 .observatory {
   flex-direction: row;
   margin-left: auto;
@@ -249,7 +261,7 @@ h2 {
 
 .difficulty {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-2);
   margin: 0;
   padding: 0;
@@ -277,10 +289,11 @@ h2 {
   display: grid;
   flex: 1;
   gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
+  text-align: center;
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
@@ -288,7 +301,14 @@ h2 {
 }
 
 .option small {
+  display: none;
   color: var(--text-muted);
+}
+
+@media (min-width: 640px) {
+  .option small {
+    display: block;
+  }
 }
 
 .option input:checked + span {

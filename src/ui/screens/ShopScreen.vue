@@ -45,7 +45,7 @@ const equip = (item: Cosmetic) => {
       :aria-labelledby="`slot-${section.slot}`"
     >
       <h2 :id="`slot-${section.slot}`">{{ t(`shop.slots.${section.slot}`) }}</h2>
-      <ul class="items">
+      <ul class="items stagger">
         <li
           v-for="item in section.items"
           :key="item.id"

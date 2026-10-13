@@ -72,7 +72,7 @@ const playDailyPuzzle = () => emit('play', { kind: 'puzzle', puzzle: dailyPuzzle
         {{ t('arcade.locked', { world: t(`worlds.${mode.unlockedBy}.name`) }) }}
       </p>
 
-      <div v-else-if="mode.id === 'endless'" class="choices">
+      <div v-else-if="mode.id === 'endless'" class="choices stagger">
         <button
           class="btn btn-primary"
           type="button"
@@ -87,7 +87,7 @@ const playDailyPuzzle = () => emit('play', { kind: 'puzzle', puzzle: dailyPuzzle
       </div>
 
       <template v-else-if="mode.id === 'puzzle'">
-        <div class="choices">
+        <div class="choices stagger">
           <button
             class="btn btn-primary"
             type="button"
@@ -110,7 +110,7 @@ const playDailyPuzzle = () => emit('play', { kind: 'puzzle', puzzle: dailyPuzzle
             t('arcade.puzzle.solvedCount', { count: arcade.puzzlesSolved, total: PUZZLES.length })
           }}
         </p>
-        <ol class="tiles">
+        <ol class="tiles stagger">
           <li v-for="tile in puzzles" :key="tile.puzzle.id">
             <button
               class="tile"
@@ -132,7 +132,7 @@ const playDailyPuzzle = () => emit('play', { kind: 'puzzle', puzzle: dailyPuzzle
         </ol>
       </template>
 
-      <div v-else-if="mode.id === 'rhythm'" class="choices">
+      <div v-else-if="mode.id === 'rhythm'" class="choices stagger">
         <button
           v-for="song in SONGS"
           :key="song.id"
@@ -151,7 +151,7 @@ const playDailyPuzzle = () => emit('play', { kind: 'puzzle', puzzle: dailyPuzzle
         </button>
       </div>
 
-      <div v-else class="choices">
+      <div v-else class="choices stagger">
         <button
           v-for="difficulty in DUEL_DIFFICULTIES"
           :key="difficulty"
