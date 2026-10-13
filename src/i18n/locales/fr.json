@@ -563,6 +563,7 @@
     "continued": "La chaîne recule : à vous de jouer !",
     "doubled": "{count} éclats de plus !",
     "hintShown": "Indice : tirez sur la bille entourée.",
-    "unavailable": "Aucune publicité disponible pour le moment : rien n'est perdu, réessayez plus tard."
+    "unavailable": "Aucune publicité disponible pour le moment : rien n'est perdu, réessayez plus tard.",
+    "blocked": "Bonus vidéo indisponibles : un bloqueur de publicité est actif. Le jeu reste entièrement jouable."
   }
 }

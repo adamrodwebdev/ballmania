@@ -209,3 +209,10 @@ body::before {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Portals: long presses never select text nor open the magnifier (CrazyGames). */
+:root:not([data-platform='standalone']) body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

@@ -28,6 +28,7 @@ import { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
 import type { Silence } from '@/platform/AdService';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
+import AdIcon from '@/ui/components/AdIcon.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 
 const props = defineProps<{ request: PlayRequest }>();
@@ -377,28 +378,43 @@ const doubleShards = async () => {
   endDialog.value?.showModal();
 };
 
-/** Puzzle mode: a hint for a rewarded ad, the best next shot circled on the board. */
+/**
+ * Puzzle mode: a hint for a rewarded ad, offered in the pause menu (never on
+ * the board while playing); the best next shot is then circled.
+ */
 const offerHint = computed(
   () => request.kind === 'puzzle' && hud.value?.state === 'playing' && ads.rewardsOffered,
 );
 const showHint = async () => {
   const play = session.value;
   if (!play) return;
-  if (await ads.reward(silence())) {
-    adMessage.value = play.showHint(puzzleHint) ? t('ads.hintShown') : t('ads.unavailable');
-  } else adMessage.value = t('ads.unavailable');
+  // The game stays paused while the ad is asked for and shown.
+  pauseDialog.value?.close();
+  const watched = await ads.reward(silence());
+  play.resume();
+  adMessage.value =
+    watched && play.showHint(puzzleHint) ? t('ads.hintShown') : t('ads.unavailable');
   canvas.value?.focus();
 };
 
+/** A portal with ads, but none can be offered: an ad blocker. Said, never punished. */
+const adsBlocked = computed(() => platform.hasAds && !ads.rewardsOffered);
+
 /**
- * Leaving the end dialog is a natural break: maybe an ad first (§ 3.7, at
- * most one every three minutes), above the game once the dialog is closed.
+ * Starting another game from the end dialog is a natural break: maybe an ad
+ * first (§ 3.7, at most one every three minutes), above the game once the
+ * dialog is closed. Never on the way back to a menu, and never after offering
+ * to continue for an ad: one ad offer per break.
  */
-const afterBreak = async (action: () => void) => {
+const afterBreak = async (action: () => void, ad = !offerContinue.value) => {
   settleNow();
   endDialog.value?.close();
-  await ads.betweenGames(silence());
+  if (ad) await ads.betweenGames(silence());
   action();
+};
+const leaveToMenu = () => {
+  settleNow();
+  quit();
 };
 /** The last level of the campaign is won: the game is finished. */
 const campaignDone = computed(
@@ -550,16 +566,6 @@ const quit = () => emit('quit');
         <span class="dot small" :class="`tone-${hud?.next ?? 0}`" aria-hidden="true"></span>
         <span>{{ t(request.kind === 'puzzle' ? 'arcade.puzzle.nextColour' : 'game.swap') }}</span>
       </button>
-      <button
-        v-if="offerHint"
-        class="btn hint-button"
-        type="button"
-        data-testid="ad-hint"
-        @click="showHint"
-      >
-        <span>{{ t('ads.hint') }}</span>
-        <small>{{ t('ads.hintDetail') }}</small>
-      </button>
       <label v-if="hud && hud.nova !== null" class="nova" data-testid="nova">
         <span>{{ t(hud.nova >= 1 ? 'upgrades.nova.ready' : 'upgrades.nova.name') }}</span>
         <progress class="gauge" max="1" :value="hud.nova"></progress>
@@ -606,6 +612,17 @@ const quit = () => emit('quit');
         <button class="btn btn-primary" type="button" autofocus @click="resume">
           {{ t('game.resume') }}
         </button>
+        <button v-if="offerHint" class="btn" type="button" data-testid="ad-hint" @click="showHint">
+          <span class="ad-label"><AdIcon />{{ t('ads.hint') }}</span>
+          <small>{{ t('ads.hintDetail') }}</small>
+        </button>
+        <p
+          v-else-if="request.kind === 'puzzle' && adsBlocked"
+          class="detail"
+          data-testid="ads-blocked"
+        >
+          {{ t('ads.blocked') }}
+        </p>
         <button class="btn" type="button" @click="restart">{{ t('game.restart') }}</button>
         <button
           class="btn"
@@ -699,6 +716,16 @@ const quit = () => emit('quit');
       </ul>
 
       <p v-if="adMessage" class="detail" data-testid="ad-message">{{ adMessage }}</p>
+      <p
+        v-else-if="
+          adsBlocked &&
+          ((hud?.over === 'lost' && mode.continuable) || (settlement?.rewards.shards ?? 0) > 0)
+        "
+        class="detail"
+        data-testid="ads-blocked"
+      >
+        {{ t('ads.blocked') }}
+      </p>
 
       <div class="actions">
         <button
@@ -709,7 +736,7 @@ const quit = () => emit('quit');
           data-testid="ad-continue"
           @click="continueGame"
         >
-          <span>{{ t('ads.continue') }}</span>
+          <span class="ad-label"><AdIcon />{{ t('ads.continue') }}</span>
           <small>{{ t('ads.continueDetail') }}</small>
         </button>
         <button
@@ -719,7 +746,7 @@ const quit = () => emit('quit');
           data-testid="ad-double"
           @click="doubleShards"
         >
-          <span>{{ t('ads.double') }}</span>
+          <span class="ad-label"><AdIcon />{{ t('ads.double') }}</span>
           <small>{{ t('ads.doubleDetail') }}</small>
         </button>
         <button
@@ -766,7 +793,7 @@ const quit = () => emit('quit');
         >
           {{ t('game.playAgain') }}
         </button>
-        <button class="btn" type="button" data-testid="map" @click="afterBreak(quit)">
+        <button class="btn" type="button" data-testid="map" @click="leaveToMenu">
           {{ t(HOME_LABELS[mode.home]) }}
         </button>
       </div>
@@ -1074,6 +1101,12 @@ const quit = () => emit('quit');
   justify-content: center;
   gap: var(--space-2) var(--space-3);
   padding: var(--space-2) var(--space-4) max(var(--space-2), env(safe-area-inset-bottom));
+}
+
+.ad-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .swap,

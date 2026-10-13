@@ -3,6 +3,27 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouté
+
+- Kit de soumission CrazyGames (`marketing/crazygames/`) : description et commandes en
+  anglais et en français, trois couvertures (16:9, 2:3, 1:1) dessinées avec les billes du
+  jeu, deux vidéos de 20 s au plus (paysage 1080p, portrait 2:3) tournées image par image
+  par le moteur, réponses du formulaire. `npm run kit:crazygames` les régénère.
+- Icône vidéo sur chaque bouton de publicité récompensée ; message dans la page quand un
+  bloqueur de publicité rend les bonus vidéo indisponibles.
+
+### Modifié
+
+- Portails : pas d'intro du studio, et « Jouer » mène un nouveau joueur directement au
+  niveau 1-1 (un clic pour jouer).
+- Portails : jamais de publicité en revenant à un menu, ni au « Rejouer » d'un écran qui
+  proposait déjà « Continuer » ; l'indice d'énigme passe dans le menu pause (aucun bouton de
+  publicité sur l'écran de jeu actif) ; pas de sélection de texte sur appui long.
+- Les raccourcis lettres suivent la disposition du clavier : M, X, C, S et P marchent en
+  AZERTY comme en QWERTY.
+
 ## [1.1.0] — 2026-10-13
 
 Lot 13 : le jeu se publie sur les portails de jeux, avec des publicités respectueuses ;

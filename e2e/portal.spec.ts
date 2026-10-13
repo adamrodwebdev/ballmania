@@ -40,6 +40,9 @@ test.describe('portal build', () => {
     await page.getByTestId('arcade').click();
     await page.getByRole('button', { name: 'Puzzles', exact: true }).click();
     await page.getByTestId('puzzle-1').click();
+    // Never on the board while playing: in the pause menu.
+    await expect(page.getByTestId('ad-hint')).toBeHidden();
+    await page.getByTestId('pause').click();
     await page.getByTestId('ad-hint').click();
     await expect(page.getByTestId('simulated-ad')).toBeVisible();
     await expect(page.getByTestId('simulated-ad')).toBeHidden();
@@ -47,17 +50,28 @@ test.describe('portal build', () => {
     expect(await log(page)).toContain('rewarded');
   });
 
-  test('continues once after a defeat, then shows an ad on the way out', async ({ page }) => {
+  test('lands a new player in the first level in one click, without the intro', async ({
+    page,
+  }) => {
+    await english(page);
+    await page.addInitScript(() => sessionStorage.removeItem('ballmania:intro'));
+    await page.goto('./');
+    await expect(page.getByTestId('studio-intro')).toHaveCount(0);
+    await page.getByTestId('play').click();
+    await expect(page.getByTestId('level')).toHaveText('1-1');
+  });
+
+  test('continues once after a defeat, then shows an ad before replaying', async ({ page }) => {
     test.setTimeout(180_000);
     await english(page);
     await page.clock.install();
     await page.goto('./');
     await page.getByTestId('play').click();
-    await page.getByTestId('level-nebula-01').click();
     await expect(page.getByTestId('board')).toBeVisible();
     await page.clock.runFor(100_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
     await expect(dialog).toBeVisible();
+    await expect(dialog.getByTestId('ad-continue')).toContainText('Watch an ad');
     await dialog.getByTestId('ad-continue').click();
     await page.clock.runFor(1000);
     await expect(dialog).toBeHidden();
@@ -67,11 +81,16 @@ test.describe('portal build', () => {
     await page.clock.runFor(190_000);
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('ad-continue')).toHaveCount(0);
-    await dialog.getByTestId('map').click();
+    await dialog.getByTestId('replay').click();
     await expect(page.getByTestId('simulated-ad')).toBeVisible();
     await page.clock.runFor(1000);
-    await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
+    await expect(dialog).toBeHidden();
     expect(await log(page)).toEqual(expect.arrayContaining(['rewarded', 'interstitial']));
+    // Back to a menu: never an ad.
+    await page.clock.runFor(100_000);
+    await dialog.getByTestId('map').click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
+    expect((await log(page)).filter((event) => event === 'interstitial')).toHaveLength(1);
   });
 
   test('doubles the shards of a game, and lends a cosmetic to try', async ({ page }) => {
@@ -106,11 +125,14 @@ test.describe('portal build', () => {
     await page.getByTestId('shop').click();
     await expect(page.getByTestId('item-shooter-eye')).toBeVisible();
     await expect(page.getByTestId('try-shooter-eye')).toHaveCount(0);
+    await expect(page.getByTestId('ads-blocked')).toContainText('ad blocker');
     await page.getByTestId('home').click();
     await page.getByTestId('arcade').click();
     await page.getByRole('button', { name: 'Puzzles', exact: true }).click();
     await page.getByTestId('puzzle-1').click();
     await expect(page.getByTestId('board')).toBeVisible();
+    await page.getByTestId('pause').click();
     await expect(page.getByTestId('ad-hint')).toHaveCount(0);
+    await expect(page.getByTestId('ads-blocked')).toBeVisible();
   });
 });

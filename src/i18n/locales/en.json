@@ -563,6 +563,7 @@
     "continued": "The chain moves back: your turn!",
     "doubled": "{count} more shards!",
     "hintShown": "Hint: shoot at the circled ball.",
-    "unavailable": "No ad available right now: nothing is lost, try again later."
+    "unavailable": "No ad available right now: nothing is lost, try again later.",
+    "blocked": "Video bonuses are unavailable: an ad blocker is on. The whole game stays playable."
   }
 }

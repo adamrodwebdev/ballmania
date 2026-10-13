@@ -82,7 +82,9 @@ publicité ni SDK.
 | `npm run build:portals`          | Les trois                                                                |
 | `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités)              |
 
-On envoie ensuite au portail une archive zip du dossier. Les publicités récompensées sont
+On envoie ensuite au portail une archive zip du dossier. Pour CrazyGames, le
+[kit de soumission](marketing/crazygames/README.md) réunit description, commandes,
+couvertures et vidéos (`npm run kit:crazygames`). Les publicités récompensées sont
 toujours au choix : continuer après une défaite, éclats doublés, indice d'énigme, essai
 d'un cosmétique. Une publicité entre deux parties passe au plus une fois toutes les
 3 minutes. Détails : § 3.7 du [cahier des charges](docs/CAHIER_DES_CHARGES.md).

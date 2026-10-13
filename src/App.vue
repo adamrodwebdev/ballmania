@@ -30,7 +30,7 @@ type Screen =
 
 const i18n = useI18n();
 const { t, locale } = i18n;
-const { settings } = useServices();
+const { settings, platform, progress } = useServices();
 const version = __APP_VERSION__;
 
 const screen = shallowRef<Screen>({ kind: 'home' });
@@ -46,7 +46,8 @@ const introSeen = () => {
     return false;
   }
 };
-const showIntro = ref(!introSeen());
+// Portals want players in the game at once: the studio intro plays on our site only.
+const showIntro = ref(platform.id === 'standalone' && !introSeen());
 const introDone = () => {
   showIntro.value = false;
   try {
@@ -68,6 +69,20 @@ const campaign = () => show({ kind: 'campaign' });
 const arcade = () => show({ kind: 'arcade' });
 const play = (request: PlayRequest) => show({ kind: 'game', request, id: ++games });
 const playLevel = (level: CampaignLevel) => play({ kind: 'campaign', level });
+/**
+ * "Play": the campaign map, except for a new player on a portal, who lands
+ * straight in the first level (portals ask for one click to play).
+ */
+const startCampaign = async () => {
+  if (platform.id === 'standalone') {
+    campaign();
+    return;
+  }
+  const { CAMPAIGN } = await import('@/levels/campaign');
+  const first = CAMPAIGN[0];
+  if (first && !progress.get(first.id)) playLevel(first);
+  else campaign();
+};
 /** After a game: the map for the campaign, home for the daily challenge, else the Arcade. */
 const leave = (request: PlayRequest) => {
   if (request.kind === 'campaign') campaign();
@@ -102,7 +117,7 @@ watchEffect(() => {
     <AppHeader />
     <main id="main" tabindex="-1" :class="{ enter: navigated }">
       <HomeScreen
-        @play="campaign"
+        @play="startCampaign"
         @arcade="arcade"
         @observatory="show({ kind: 'observatory', from: 'home' })"
         @daily="(challenge) => play({ kind: 'daily', challenge })"

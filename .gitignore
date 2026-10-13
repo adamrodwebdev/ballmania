@@ -10,3 +10,4 @@ reports/
 Thumbs.db
 *.log
 dist-*/
+marketing/crazygames/out/*.mp4

@@ -563,6 +563,7 @@
     "continued": "Rantai mundur: giliranmu!",
     "doubled": "{count} kepingan tambahan!",
     "hintShown": "Petunjuk: tembak bola yang dilingkari.",
-    "unavailable": "Belum ada iklan saat ini: tidak ada yang hilang, coba lagi nanti."
+    "unavailable": "Belum ada iklan saat ini: tidak ada yang hilang, coba lagi nanti.",
+    "blocked": "Bonus video tidak tersedia: pemblokir iklan aktif. Seluruh permainan tetap bisa dimainkan."
   }
 }

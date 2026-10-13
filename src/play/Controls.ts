@@ -135,7 +135,7 @@ export class KeyboardControls {
 
   private readonly down = (event: KeyboardEvent): void => {
     if (KeyboardControls.isTyping(event.target)) return;
-    switch (event.code) {
+    switch (KeyboardControls.nameOf(event)) {
       case 'ArrowLeft':
       case 'ArrowRight':
         this.held.add(event.code);
@@ -188,6 +188,16 @@ export class KeyboardControls {
   private updateTurn(fine: boolean): void {
     const direction = (this.held.has('ArrowRight') ? 1 : 0) - (this.held.has('ArrowLeft') ? 1 : 0);
     this.commands.turn(direction * (fine ? 0.25 : 1));
+  }
+
+  /**
+   * A letter is the one printed on the key, whatever the layout (M is M on
+   * AZERTY too, where it sits elsewhere); other keys go by position.
+   */
+  private static nameOf(event: KeyboardEvent): string {
+    const printed = typeof event.key === 'string' && event.key.length === 1 && event.key !== ' ';
+    if (!printed) return event.code;
+    return /^[a-z]$/i.test(event.key) ? `Key${event.key.toUpperCase()}` : event.key;
   }
 
   /** Form fields and buttons keep their own keys (a focused button reacts to Space). */
