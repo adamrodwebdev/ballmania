@@ -13,6 +13,13 @@ import {
   type CosmeticSlot,
 } from './catalog';
 import { REWARDS } from './rewards';
+import {
+  MAX_RANK,
+  UPGRADE_COSTS,
+  UPGRADE_IDS,
+  type UpgradeId,
+  type UpgradeRanks,
+} from '@/engine/upgrades/Upgrades';
 
 export const PLAYER_KEY = 'ballmania:player';
 /** Format version of the saved profile; bump it with a migration when it changes. */
@@ -63,6 +70,10 @@ interface State {
   worlds: string[];
   daily: Record<string, DailyRecord>;
   failures: Record<string, number>;
+  /** Star fragments to spend at the Observatory. */
+  fragments: number;
+  /** Rank of each upgrade bought. */
+  upgrades: Partial<Record<UpgradeId, number>>;
 }
 
 /**
@@ -99,6 +110,38 @@ export class PlayerProfile {
 
   daily(day: string): DailyRecord | undefined {
     return this.state.daily[day];
+  }
+
+  /** The upgrades owned, for the games of the campaign. */
+  get upgrades(): UpgradeRanks {
+    return { ...this.state.upgrades };
+  }
+
+  upgradeRank(id: UpgradeId): number {
+    return this.state.upgrades[id] ?? 0;
+  }
+
+  /** Fragments the next rank of an upgrade costs, or null when it is at its best. */
+  upgradeCost(id: UpgradeId): number | null {
+    return UPGRADE_COSTS[this.upgradeRank(id)] ?? null;
+  }
+
+  /** True if some upgrade can be bought now (the badge on the home screen and the map). */
+  get upgradeAffordable(): boolean {
+    return UPGRADE_IDS.some((id) => {
+      const cost = this.upgradeCost(id);
+      return cost !== null && cost <= this.state.fragments;
+    });
+  }
+
+  /** Spends fragments on the next rank of an upgrade; false if it cannot be bought. */
+  buyUpgrade(id: UpgradeId): boolean {
+    const cost = this.upgradeCost(id);
+    if (cost === null || cost > this.state.fragments) return false;
+    this.state.fragments -= cost;
+    this.state.upgrades[id] = this.upgradeRank(id) + 1;
+    this.save();
+    return true;
   }
 
   /** Spends shards on a cosmetic; false if it cannot be bought. */
@@ -148,6 +191,8 @@ export class PlayerProfile {
     let shards = 0;
     let firstDailyAttempt = false;
     if (context.kind === 'campaign') {
+      this.state.fragments += report.fragments;
+      stats.fragmentsCaught += report.fragments;
       if (won) {
         shards += REWARDS.levelWon + REWARDS.perStarGained * context.starsGained;
         this.state.failures[context.levelId] = 0;
@@ -205,6 +250,8 @@ export class PlayerProfile {
       worlds: [],
       daily: {},
       failures: {},
+      fragments: 0,
+      upgrades: {},
     };
     if (typeof value !== 'object' || value === null) return fresh;
     const saved = value as Partial<Record<keyof State | 'version', unknown>>;
@@ -242,6 +289,12 @@ export class PlayerProfile {
     }
     for (const [level, raw] of Object.entries(record(saved.failures))) {
       if (count(raw) > 0) fresh.failures[level] = count(raw);
+    }
+    fresh.fragments = count(saved.fragments);
+    const upgrades = record(saved.upgrades);
+    for (const id of UPGRADE_IDS) {
+      const rank = Math.min(MAX_RANK, count(upgrades[id]));
+      if (rank > 0) fresh.upgrades[id] = rank;
     }
     return fresh;
   }

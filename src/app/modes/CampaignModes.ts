@@ -1,6 +1,5 @@
 import type { GameReport } from '@/engine/Game';
 import { CAMPAIGN, nextLevel, starsFor, WORLDS, type CampaignLevel } from '@/levels/campaign';
-import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { resolveLevel } from '@/levels/resolveLevel';
 import type { Frame } from '@/levels/tracks';
@@ -8,7 +7,10 @@ import type { DailyChallenge } from '@/player/DailyChallenge';
 import { ASSIST_SPEED } from '@/player/rewards';
 import type { AppServices } from '../AppServices';
 import type { PlayRequest } from '../PlayRequest';
-import type { Message, PlayMode, Settlement } from './PlayMode';
+import type { Message, PlayMode, PlayOptions, Settlement } from './PlayMode';
+
+/** Seconds between two star fragments, on average, without the Attrape-étoiles upgrade. */
+export const FRAGMENT_EVERY = 9;
 
 const ORDER = CAMPAIGN.map((level) => level.id);
 const worldNumber = (level: CampaignLevel) =>
@@ -53,9 +55,14 @@ export class CampaignMode implements PlayMode {
     return { key: won ? 'game.won' : 'game.lost' };
   }
 
-  definition(frame: Frame, assisted: boolean, difficulty: Difficulty): LevelDefinition {
+  definition(frame: Frame, { assisted, difficulty, upgrades }: PlayOptions): LevelDefinition {
     const resolved = resolveLevel(this.level, frame, difficulty);
-    return assisted ? { ...resolved, speed: resolved.speed * ASSIST_SPEED } : resolved;
+    return {
+      ...resolved,
+      speed: resolved.speed * (assisted ? ASSIST_SPEED : 1),
+      upgrades,
+      fragments: { every: FRAGMENT_EVERY },
+    };
   }
 
   settle(report: GameReport, { progress, player }: AppServices): Settlement {

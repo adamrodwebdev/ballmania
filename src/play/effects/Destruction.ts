@@ -277,6 +277,29 @@ export class Destruction {
     if (powered) this.shaker.add(0.25);
   }
 
+  /** A star fragment caught: a bright twinkle and a little burst of sparks. */
+  sparkle(at: Vec2): void {
+    this.glows.push({ x: at.x, y: at.y, life: 0.5, maxLife: 0.5, tone: 3, size: 2.5 });
+    this.rings.push({ x: at.x, y: at.y, life: 0.5, maxLife: 0.5, tone: 3, size: 3 });
+    const count = Math.min(14, this.budget());
+    for (let i = 0; i < count; i++) this.addSpark(at.x, at.y, 3, 1);
+  }
+
+  /** A Nova bomb: a blinding ring as wide as its blast, a shock wave and a shake. */
+  blast(at: Vec2, radius: number): void {
+    this.flashAmount = Math.max(this.flashAmount, 0.3);
+    this.flashColour = '#ffffff';
+    this.rings.push({
+      x: at.x,
+      y: at.y,
+      life: 0.6,
+      maxLife: 0.6,
+      tone: 0,
+      size: (radius / this.ballRadius) * 1.4,
+    });
+    this.impact(at, 0.7);
+  }
+
   /** The last balls are gone: one big burst of light from `centre`. */
   finale(centre: Vec2, tones: readonly Tone[], colour: string): void {
     this.flashAmount = Math.max(this.flashAmount, 0.55);

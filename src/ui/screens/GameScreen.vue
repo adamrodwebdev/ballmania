@@ -42,6 +42,8 @@ const RECIPES = SECONDARIES.map((result) => {
   const [a, b] = ingredients(result)!;
   return { a, b, result };
 });
+/** The sign of star fragments in the top bar. */
+const FRAGMENT = '✦';
 /** Where "back" leads, as the end dialog's button says it. */
 const HOME_LABELS = {
   campaign: 'game.map',
@@ -76,7 +78,11 @@ const feedback = sharedFeedback(settings.current.volume, settings.current.vibrat
 let frame: Frame | null = null;
 /** The level for this board shape, slowed down when the assistance is on. */
 const definition = (): LevelDefinition =>
-  mode.definition(frame!, assisted.value, settings.current.difficulty);
+  mode.definition(frame!, {
+    assisted: assisted.value,
+    difficulty: settings.current.difficulty,
+    upgrades: player.upgrades,
+  });
 
 let cleanups: (() => void)[] = [];
 
@@ -211,6 +217,13 @@ watch(
 );
 
 watch(
+  () => hud.value?.secondChance,
+  (used) => {
+    if (used) announcement.value = t('upgrades.secondChance.used');
+  },
+);
+
+watch(
   () => hud.value?.weather,
   (weather) => {
     if (weather) announcement.value = t(`weather.${weather}.announce`);
@@ -304,6 +317,14 @@ const quit = () => emit('quit');
       <p v-if="hud?.groove" class="badge groove" data-testid="groove">
         {{ t('arcade.rhythm.groove', { multiplier: hud.groove }) }}
       </p>
+      <p
+        v-if="hud && hud.fragments !== null"
+        class="badge fragments"
+        :aria-label="t('observatory.caught', { count: hud.fragments }, hud.fragments)"
+        data-testid="fragments"
+      >
+        {{ FRAGMENT }} {{ hud.fragments }}
+      </p>
       <p v-if="hud?.weather" class="badge weather" :class="hud.weather" data-testid="weather">
         {{ t(`weather.${hud.weather}.name`) }}
       </p>
@@ -391,6 +412,10 @@ const quit = () => emit('quit');
         <span class="dot small" :class="`tone-${hud?.next ?? 0}`" aria-hidden="true"></span>
         <span>{{ t(request.kind === 'puzzle' ? 'arcade.puzzle.nextColour' : 'game.swap') }}</span>
       </button>
+      <label v-if="hud && hud.nova !== null" class="nova" data-testid="nova">
+        <span>{{ t(hud.nova >= 1 ? 'upgrades.nova.ready' : 'upgrades.nova.name') }}</span>
+        <progress class="gauge" max="1" :value="hud.nova"></progress>
+      </label>
       <button
         v-if="hud?.magnet"
         class="btn magnet"
@@ -494,10 +519,16 @@ const quit = () => emit('quit');
 
       <ul
         v-if="
-          settlement && (settlement.rewards.shards > 0 || settlement.rewards.unlocked.length > 0)
+          settlement &&
+          (settlement.rewards.shards > 0 ||
+            settlement.rewards.unlocked.length > 0 ||
+            (hud?.fragments ?? 0) > 0)
         "
         class="gains"
       >
+        <li v-if="(hud?.fragments ?? 0) > 0" class="shards" data-testid="fragments-earned">
+          {{ t('observatory.caught', { count: hud?.fragments ?? 0 }, hud?.fragments ?? 0) }}
+        </li>
         <li v-if="settlement.rewards.shards > 0" class="shards" data-testid="shards-earned">
           {{ t('player.earned', { count: number.format(settlement.rewards.shards) }) }}
         </li>
@@ -752,6 +783,23 @@ const quit = () => emit('quit');
 
 .groove {
   color: var(--orb-cyan);
+}
+
+.fragments {
+  color: var(--orb-cyan);
+}
+
+.nova {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 800;
+}
+
+.gauge {
+  width: 5rem;
+  height: 0.6rem;
+  accent-color: var(--orb-cyan);
 }
 
 .weather {

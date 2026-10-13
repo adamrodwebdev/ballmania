@@ -30,6 +30,8 @@ export interface PlayerStats {
   readonly bestGroove: number;
   /** Arcade: duels won against the hard rival. */
   readonly hardDuelsWon: number;
+  /** Star fragments caught, in total. */
+  readonly fragmentsCaught: number;
 }
 
 export type StatName = keyof PlayerStats;
@@ -55,6 +57,7 @@ export const EMPTY_STATS: PlayerStats = {
   puzzlesSolved: 0,
   bestGroove: 0,
   hardDuelsWon: 0,
+  fragmentsCaught: 0,
 };
 
 /**
@@ -91,6 +94,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'puzzles-10', stat: 'puzzlesSolved', target: 10, reward: 80 },
   { id: 'groove-4', stat: 'bestGroove', target: 4, reward: 60 },
   { id: 'duel-hard', stat: 'hardDuelsWon', target: 1, reward: 120 },
+  { id: 'stargazer', stat: 'fragmentsCaught', target: 30, reward: 80 },
   { id: 'world-nebula', stat: 'worldsCompleted', target: 1, reward: 150 },
   { id: 'world-neon', stat: 'worldsCompleted', target: 2, reward: 200 },
   { id: 'world-abyss', stat: 'worldsCompleted', target: 3, reward: 250 },

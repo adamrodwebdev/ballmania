@@ -81,3 +81,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   arythmie, météo (tempête solaire, froid mordant, vents contraires et rafales massives) ;
   tracés à deux entrées ; rendu et sons de chaque aléa ; robot d'équilibrage qui lit sa
   ligne de visée.
+- Lot 11.3, Observatoire : fragments d'étoiles à toucher en jeu, dix améliorations à trois
+  rangs (Œil stellaire, Chronos, Onde de choc, Bille prismatique, Bouclier thermique,
+  Brise-glace, Ancre, Attrape-étoiles, Nova, Seconde chance), pastille « Amélioration
+  disponible » sur l'accueil et la carte, objectif « Astronome ».

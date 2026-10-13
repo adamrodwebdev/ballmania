@@ -329,6 +329,10 @@
       "duel-hard": {
         "name": "Duel master",
         "text": "Beat the fearsome rival."
+      },
+      "stargazer": {
+        "name": "Stargazer",
+        "text": "Collect {target} star fragments."
       }
     }
   },
@@ -452,6 +456,82 @@
     "wind": {
       "name": "Headwinds",
       "announce": "Gust: your shots drift and the chain changes pace."
+    }
+  },
+  "observatory": {
+    "title": "Observatory",
+    "back": "Back",
+    "intro": "Hit shooting stars with your shots to collect star fragments, then upgrade your instruments. Upgrades work in the campaign (never in the daily challenge or the Arcade).",
+    "balance": "{count} fragments",
+    "ready": "Upgrade available",
+    "buy": "Upgrade · {cost} fragments",
+    "max": "At its best",
+    "rank": "Rank {rank} of {max}",
+    "bought": "{name}: rank {rank}",
+    "caught": "No fragments | {count} star fragment | {count} star fragments"
+  },
+  "upgrades": {
+    "eye": {
+      "name": "Star eye",
+      "r1": "The aim line shows a 3rd rebound.",
+      "r2": "And a 4th rebound.",
+      "r3": "The preview also shows the chain reaction that follows."
+    },
+    "chronos": {
+      "name": "Chronos",
+      "r1": "Chain 4% slower.",
+      "r2": "8% slower.",
+      "r3": "12% slower."
+    },
+    "shockwave": {
+      "name": "Shockwave",
+      "r1": "Every explosion pushes the chain back 20 units.",
+      "r2": "40 units.",
+      "r3": "60 units."
+    },
+    "prism": {
+      "name": "Prism ball",
+      "r1": "Every 20 shots, a rainbow ball takes the colour of the ball it hits.",
+      "r2": "Every 15 shots.",
+      "r3": "Every 10 shots."
+    },
+    "shield": {
+      "name": "Heat shield",
+      "r1": "In a solar storm, groups of 4 still explode.",
+      "r2": "Every group explodes.",
+      "r3": "And storms last half as long."
+    },
+    "icebreaker": {
+      "name": "Icebreaker",
+      "r1": "The cold slows your shots a third less.",
+      "r2": "Two thirds less.",
+      "r3": "Any explosion shatters the frozen balls."
+    },
+    "anchor": {
+      "name": "Anchor",
+      "r1": "The wind bends your shots 35% less.",
+      "r2": "70% less.",
+      "r3": "The wind no longer bends your shots."
+    },
+    "catcher": {
+      "name": "Star catcher",
+      "r1": "Fragments come more often (+25%) and are easier to hit.",
+      "r2": "+50%, easier still.",
+      "r3": "Twice as often."
+    },
+    "nova": {
+      "name": "Nova",
+      "ready": "Nova ready!",
+      "r1": "30 balls destroyed charge a bomb: the next shot blows up everything around it.",
+      "r2": "24 balls, wider blast.",
+      "r3": "18 balls, huge blast."
+    },
+    "secondChance": {
+      "name": "Second chance",
+      "used": "Second chance: the chain is pushed back!",
+      "r1": "Once per level, a chain reaching the hole is pushed back 15% of the track.",
+      "r2": "25%.",
+      "r3": "35%."
     }
   }
 }

@@ -5,6 +5,7 @@ import type { GameReport } from '@/engine/Game';
 import { PUZZLES } from '@/levels/arcade/puzzles';
 import { SONGS } from '@/levels/arcade/rhythm';
 import { CAMPAIGN, findLevel } from '@/levels/campaign';
+import type { Difficulty } from '@/levels/difficulty';
 import { FRAMES } from '@/levels/tracks';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { PlayerProfile } from '@/player/PlayerProfile';
@@ -22,6 +23,13 @@ const services = (): AppServices => {
     player: new PlayerProfile(storage),
   } as unknown as AppServices;
 };
+
+/** What the player brings to a game. */
+const play = (assisted: boolean, difficulty: Difficulty) => ({
+  assisted,
+  difficulty,
+  upgrades: {},
+});
 
 /** Shards a game paid, without those of the achievements it reached. */
 const paid = ({ rewards }: Settlement) =>
@@ -44,6 +52,7 @@ const report = (overrides: Partial<GameReport> = {}): GameReport => ({
   bestGroove: 1,
   stage: 0,
   rivalScore: 0,
+  fragments: 0,
   danger: 0.5,
   colossusDefeated: false,
   ...overrides,
@@ -63,10 +72,12 @@ describe('play modes', () => {
     expect(settled.record).toEqual({ value: 2000, newBest: false, unit: 'score' });
     expect(settled.rewards.shards).toBeGreaterThan(0);
     expect(mode.next(app)?.request).toEqual({ kind: 'campaign', level: CAMPAIGN[1] });
-    const slow = mode.definition(FRAMES.square, true, 'pilot');
-    expect(slow.speed).toBeLessThan(mode.definition(FRAMES.square, false, 'pilot').speed);
-    const legend = mode.definition(FRAMES.square, false, 'legend');
-    expect(legend.speed).toBeGreaterThan(mode.definition(FRAMES.square, false, 'pilot').speed);
+    const slow = mode.definition(FRAMES.square, play(true, 'pilot'));
+    expect(slow.speed).toBeLessThan(mode.definition(FRAMES.square, play(false, 'pilot')).speed);
+    const legend = mode.definition(FRAMES.square, play(false, 'legend'));
+    expect(legend.speed).toBeGreaterThan(
+      mode.definition(FRAMES.square, play(false, 'pilot')).speed,
+    );
     expect(legend.scoreFactor).toBe(1.3);
   });
 
@@ -87,7 +98,7 @@ describe('play modes', () => {
     expect(settled.stars).toBeNull();
     expect(settled.record).toEqual({ value: 12_345, newBest: true, unit: 'score' });
     expect(paid(settled)).toBe(REWARDS.endlessMax);
-    expect(mode.definition(FRAMES.portrait, false, 'pilot').endless).toBeDefined();
+    expect(mode.definition(FRAMES.portrait, play(false, 'pilot')).endless).toBeDefined();
   });
 
   it('pay a puzzle the first time it is solved, then open the next one', () => {
@@ -118,7 +129,7 @@ describe('play modes', () => {
     expect(paid(mode.settle(report({ bestGroove: 4 }), app))).toBe(REWARDS.songCleared);
     expect(app.player.view.stats.bestGroove).toBe(4);
     expect(mode.next(app)?.request).toEqual({ kind: 'rhythm', song: SONGS[1] });
-    expect(mode.definition(FRAMES.square, false, 'pilot').rhythm?.bpm).toBe(SONGS[0]!.bpm);
+    expect(mode.definition(FRAMES.square, play(false, 'pilot')).rhythm?.bpm).toBe(SONGS[0]!.bpm);
   });
 
   it('count duels won by difficulty and offer a stronger rival', () => {

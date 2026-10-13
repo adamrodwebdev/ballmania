@@ -13,7 +13,11 @@ export interface ProjectileView {
   readonly by: Side;
   /** A charged shot: faster, and straight whatever the gravity or the wind. */
   readonly powered: boolean;
+  /** A rainbow ball (takes the colour it touches) or a bomb (upgrades, § 3.9). */
+  readonly special: ProjectileSpecial;
 }
+
+export type ProjectileSpecial = 'wild' | 'bomb' | null;
 
 /** A ball in flight, from the shooter to the chain or out of the board. */
 export class Projectile implements ProjectileView {
@@ -31,6 +35,7 @@ export class Projectile implements ProjectileView {
     velocity: Vec2,
     readonly by: Side = 'player',
     readonly powered = false,
+    readonly special: ProjectileSpecial = null,
   ) {
     this.positionValue = origin;
     this.velocityValue = velocity;

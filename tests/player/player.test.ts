@@ -24,6 +24,7 @@ const report = (overrides: Partial<GameReport> = {}): GameReport => ({
   bestGroove: 1,
   stage: 0,
   rivalScore: 0,
+  fragments: 0,
   danger: 0.5,
   colossusDefeated: false,
   ...overrides,
@@ -107,6 +108,27 @@ describe('PlayerProfile', () => {
     profile.recordGame(report({ curves: 4 }), campaign());
     expect(profile.view.stats.curves).toBe(10);
     expect(profile.view.achievements).toContain('slingshot');
+  });
+
+  it('keeps the star fragments of the campaign and spends them on upgrades', () => {
+    const storage = new MemoryStorage();
+    const profile = new PlayerProfile(storage);
+    profile.recordGame(report({ fragments: 4 }), campaign());
+    profile.recordGame(report({ fragments: 9 }), { ...campaign(), kind: 'daily', day: '20261013' });
+    expect(profile.view.fragments).toBe(4);
+    expect(profile.upgradeAffordable).toBe(false);
+    profile.recordGame(report({ fragments: 2 }), campaign());
+    expect(profile.upgradeAffordable).toBe(true);
+    expect(profile.upgradeCost('nova')).toBe(5);
+    expect(profile.buyUpgrade('nova')).toBe(true);
+    expect(profile.upgradeRank('nova')).toBe(1);
+    expect(profile.view.fragments).toBe(1);
+    expect(profile.upgradeCost('nova')).toBe(12);
+    expect(profile.buyUpgrade('nova')).toBe(false);
+    expect(profile.upgrades).toEqual({ nova: 1 });
+    const restored = new PlayerProfile(storage);
+    expect(restored.upgradeRank('nova')).toBe(1);
+    expect(restored.view.stats.fragmentsCaught).toBe(6);
   });
 
   it('unlocks the Singularity backdrop by finishing the Volcano', () => {

@@ -60,6 +60,8 @@ const GUIDE = 160;
 export interface AimPreview {
   readonly position: Vec2;
   readonly group: readonly Vec2[];
+  /** Balls of the chain reaction that would follow (Œil stellaire, rank 3). */
+  readonly reaction: readonly Vec2[];
 }
 
 /** The aim line: its points (curved by gravity) and where it bounces off mirrors. */
@@ -195,7 +197,9 @@ export class CanvasRenderer implements Renderer {
     this.drawTrails(radius);
     for (const projectile of game.projectiles) {
       this.drawBall(projectile.tone, projectile.position, radius);
+      if (projectile.special) this.drawSpecial(projectile.special, projectile.position, radius);
     }
+    this.drawFragments(radius, scene.time);
     // Entrances and holes cover the balls coming out of and going into them.
     for (const chain of game.chains) this.drawEnds(chain, radius, scene.time);
     this.blackHole?.draw(ctx, palette, scene.time, this.danger());
@@ -648,10 +652,83 @@ export class CanvasRenderer implements Renderer {
       ctx.lineWidth = 6;
       ctx.strokeStyle = palette.board;
       ctx.fillStyle = palette.accent;
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = palette.tone(5);
+      ctx.lineWidth = 3;
+      for (const ball of preview.reaction) {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, radius * pulse, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = palette.board;
       const label = `×${preview.group.length + 1}`;
       const at = position.add(new Vec2(0, -radius * 2));
       ctx.strokeText(label, at.x, at.y);
       ctx.fillText(label, at.x, at.y);
+    }
+    ctx.restore();
+  }
+
+  /** A rainbow ball (rainbow ring) or a Nova bomb (white-hot, pulsing). */
+  private drawSpecial(special: 'wild' | 'bomb', at: Vec2, radius: number): void {
+    const { ctx, palette } = this;
+    ctx.save();
+    ctx.lineWidth = 5;
+    if (special === 'wild') {
+      for (let k = 0; k < 6; k++) {
+        ctx.strokeStyle = palette.tone(k);
+        ctx.beginPath();
+        const start = this.time * 3 + (k / 6) * Math.PI * 2;
+        ctx.arc(at.x, at.y, radius * 1.05, start, start + Math.PI / 3);
+        ctx.stroke();
+      }
+    } else {
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(this.time * 14);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = palette.danger;
+      ctx.shadowBlur = 24;
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, radius * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /** Star fragments: shooting stars with a fading tail, twinkling. */
+  private drawFragments(radius: number, time: number): void {
+    const fragments = this.game.fragments;
+    if (fragments.length === 0) return;
+    const { ctx, palette } = this;
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (const fragment of fragments) {
+      const { x, y } = fragment.position;
+      const back = fragment.velocity.normalize().scale(-radius * 4);
+      const tail = ctx.createLinearGradient(x, y, x + back.x, y + back.y);
+      tail.addColorStop(0, palette.tone(3));
+      tail.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.strokeStyle = tail;
+      ctx.lineWidth = radius * 0.6;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + back.x, y + back.y);
+      ctx.stroke();
+      // A five-pointed star that turns and twinkles.
+      const size = radius * (0.75 + 0.15 * Math.sin(time * 12 + fragment.id));
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = palette.tone(3);
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      for (let k = 0; k < 10; k++) {
+        const angle = time * 2 + (k / 10) * Math.PI * 2;
+        const r = k % 2 === 0 ? size : size * 0.45;
+        ctx.lineTo(x + Math.cos(angle) * r, y + Math.sin(angle) * r);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
     }
     ctx.restore();
   }
@@ -678,11 +755,10 @@ export class CanvasRenderer implements Renderer {
     }
     ctx.restore();
     // Loaded ball in the barrel, next ball in the centre.
-    this.drawBall(
-      shooter.current,
-      shooter.position.add(Vec2.fromAngle(shooter.angle, SHOOTER_RADIUS)),
-      radius,
-    );
+    const barrel = shooter.position.add(Vec2.fromAngle(shooter.angle, SHOOTER_RADIUS));
+    this.drawBall(shooter.current, barrel, radius);
+    const special = this.game.loadedSpecial;
+    if (special) this.drawSpecial(special, barrel, radius);
     this.drawBall(shooter.next, shooter.position, radius * 0.6);
   }
 }

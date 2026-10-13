@@ -329,6 +329,10 @@
       "duel-hard": {
         "name": "Maître du duel",
         "text": "Battre le rival redoutable."
+      },
+      "stargazer": {
+        "name": "Astronome",
+        "text": "Récolter {target} fragments d'étoiles."
       }
     }
   },
@@ -452,6 +456,82 @@
     "wind": {
       "name": "Vents contraires",
       "announce": "Rafale : vos tirs dérivent et la chaîne change d'allure."
+    }
+  },
+  "observatory": {
+    "title": "Observatoire",
+    "back": "Retour",
+    "intro": "Touchez les étoiles filantes de vos tirs pour récolter des fragments d'étoiles, puis améliorez vos instruments. Les améliorations jouent en campagne (jamais au défi du jour ni en Arcade).",
+    "balance": "{count} fragments",
+    "ready": "Amélioration disponible",
+    "buy": "Améliorer · {cost} fragments",
+    "max": "Au meilleur",
+    "rank": "Rang {rank} sur {max}",
+    "bought": "{name} : rang {rank}",
+    "caught": "Aucun fragment | {count} fragment d'étoile | {count} fragments d'étoiles"
+  },
+  "upgrades": {
+    "eye": {
+      "name": "Œil stellaire",
+      "r1": "La ligne de visée montre un 3ᵉ rebond.",
+      "r2": "Et un 4ᵉ rebond.",
+      "r3": "L'aperçu montre aussi la réaction en chaîne qui suivra."
+    },
+    "chronos": {
+      "name": "Chronos",
+      "r1": "Chaîne plus lente de 4 %.",
+      "r2": "Plus lente de 8 %.",
+      "r3": "Plus lente de 12 %."
+    },
+    "shockwave": {
+      "name": "Onde de choc",
+      "r1": "Chaque explosion fait reculer la chaîne de 20 unités.",
+      "r2": "De 40 unités.",
+      "r3": "De 60 unités."
+    },
+    "prism": {
+      "name": "Bille prismatique",
+      "r1": "Tous les 20 tirs, une bille arc-en-ciel prend la couleur de la bille touchée.",
+      "r2": "Tous les 15 tirs.",
+      "r3": "Tous les 10 tirs."
+    },
+    "shield": {
+      "name": "Bouclier thermique",
+      "r1": "En tempête solaire, les groupes de 4 explosent quand même.",
+      "r2": "Tous les groupes explosent.",
+      "r3": "Et les tempêtes durent moitié moins."
+    },
+    "icebreaker": {
+      "name": "Brise-glace",
+      "r1": "Le froid ralentit vos tirs d'un tiers de moins.",
+      "r2": "De deux tiers de moins.",
+      "r3": "Toute explosion fait éclater les billes gelées."
+    },
+    "anchor": {
+      "name": "Ancre",
+      "r1": "Le vent dévie vos tirs de 35 % de moins.",
+      "r2": "De 70 % de moins.",
+      "r3": "Le vent ne dévie plus vos tirs."
+    },
+    "catcher": {
+      "name": "Attrape-étoiles",
+      "r1": "Fragments plus fréquents (+25 %) et plus faciles à toucher.",
+      "r2": "+50 %, encore plus faciles.",
+      "r3": "Deux fois plus fréquents."
+    },
+    "nova": {
+      "name": "Nova",
+      "ready": "Nova prête !",
+      "r1": "30 billes détruites chargent une bombe : le tir suivant détruit tout autour de lui.",
+      "r2": "24 billes, souffle plus large.",
+      "r3": "18 billes, souffle immense."
+    },
+    "secondChance": {
+      "name": "Seconde chance",
+      "used": "Seconde chance : la chaîne est repoussée !",
+      "r1": "Une fois par niveau, la chaîne qui atteint le trou est repoussée de 15 % du tracé.",
+      "r2": "De 25 %.",
+      "r3": "De 35 %."
     }
   }
 }

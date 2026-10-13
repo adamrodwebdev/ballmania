@@ -50,6 +50,12 @@ export interface HudState {
   rivalScore: number | null;
   /** The weather now (§ 3.9), or null in calm weather. */
   weather: 'solar' | 'cold' | 'wind' | null;
+  /** Star fragments caught this game, or null outside the campaign. */
+  fragments: number | null;
+  /** Nova upgrade: how charged the bomb is (0 to 1), or null without it. */
+  nova: number | null;
+  /** Latest use of the second chance, for the announcement. */
+  secondChance: number | null;
   /**
    * Duel mode: where the chain stands between the two holes, from 0 (in the
    * rival's hole: won) to 1 (in the player's: lost); null elsewhere.
@@ -379,6 +385,23 @@ export class PlaySession {
       }
     });
     game.events.on('meteorWarning', () => sound.whistle());
+    game.events.on('fragment', ({ position }) => {
+      this.hud.fragments = (this.hud.fragments ?? 0) + 1;
+      this.destruction.sparkle(position);
+      sound.fragment();
+      haptics.explosion(1);
+    });
+    game.events.on('novaReady', () => sound.novaReady());
+    game.events.on('bomb', ({ position, radius }) => {
+      this.destruction.blast(position, radius);
+      sound.bomb();
+      haptics.explosion(4);
+    });
+    game.events.on('secondChance', () => {
+      this.destruction.defeat(this.palette.accent);
+      this.hud.secondChance = (this.hud.secondChance ?? 0) + 1;
+      sound.roar();
+    });
     game.events.on('meteor', ({ position }) => {
       this.destruction.impact(position, 0.25);
       sound.thud();
@@ -469,6 +492,9 @@ export class PlaySession {
       rivalScore: this.game.rival ? 0 : null,
       tug: this.tug(),
       weather: null,
+      fragments: this.game.setup.fragments ? 0 : null,
+      nova: this.game.nova,
+      secondChance: null,
     };
   }
 
@@ -504,6 +530,8 @@ export class PlaySession {
     this.colossusFlash = Math.max(0, this.colossusFlash - 4 * dt);
     this.syncTones();
     this.beatHeart(realDt);
+    const nova = this.game.nova;
+    if (nova !== this.hud.nova) this.hud.nova = nova;
     if (this.game.rival) {
       this.tugIn -= realDt;
       if (this.tugIn <= 0) {
@@ -552,7 +580,10 @@ export class PlaySession {
       game: this.game,
       motion: this.motion,
       destruction: this.destruction,
-      aim: this.game.state === 'playing' ? this.game.aimLine(2, this.powered) : null,
+      aim:
+        this.game.state === 'playing'
+          ? this.game.aimLine(this.game.upgrades.aimBounces, this.powered)
+          : null,
       preview:
         this.aimAssist && this.game.state === 'playing' && !this.hud.magnetArmed
           ? this.game.preview(this.powered)

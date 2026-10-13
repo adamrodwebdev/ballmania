@@ -144,6 +144,29 @@ export class SoundEngine {
     });
   }
 
+  /** A star fragment caught: a bright, rising arpeggio. */
+  fragment(): void {
+    this.play((ctx, out, now) => {
+      [0, 4, 7, 12].forEach((step, i) =>
+        this.bell(ctx, out, now + i * 0.05, semitones(1046, step), 0.5, 0.08),
+      );
+    });
+  }
+
+  /** The Nova bomb is ready: a deep hum rising. */
+  novaReady(): void {
+    this.play((ctx, out, now) => this.sweep(ctx, out, now, 'triangle', 110, 440, 0.5, 0.14));
+  }
+
+  /** A Nova bomb goes off. */
+  bomb(): void {
+    this.play((ctx, out, now) => {
+      this.thump(ctx, out, now, 0.8);
+      this.noiseBurst(ctx, out, now, 0.8, 200, 0.35);
+      this.sweep(ctx, out, now, 'sawtooth', 300, 40, 0.6, 0.2, 900);
+    });
+  }
+
   /** A ball starts falling from the sky: a short whistle going down. */
   whistle(): void {
     this.play((ctx, out, now) => this.sweep(ctx, out, now, 'sine', 1800, 500, 0.9, 0.05));
