@@ -5,6 +5,11 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [Non publié]
 
+## [1.0.0] — 2026-10-13
+
+Première version complète : six mondes (72 niveaux), quatre modes Arcade, défi du jour,
+observatoire, trois langues, thèmes clair et sombre.
+
 ### Ajouté
 
 - Cahier des charges v0.1 : objectifs, positionnement, règles communes, 12 modes proposés.
@@ -89,3 +94,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   ambiances animées par monde, fond des menus vivant, transitions d'écrans, listes en
   cascade, étoiles qui éclosent au bilan, total d'étoiles sur l'accueil et la carte,
   « +n étoiles » au bilan.
+- Lot 12, version 1.0.0 : audits d'accessibilité axe-core (WCAG 2.1 AA) de chaque écran
+  dans les deux thèmes, contrastes des badges corrigés, annonce « la chaîne approche du
+  trou », parcours entièrement au clavier, absence de défilement horizontal vérifiée de
+  320 à 1 920 px ; référencement : cartes Open Graph et Twitter, image de partage, données
+  structurées `VideoGame`, manifeste, lien canonique, `sitemap.xml` et `robots.txt` quand
+  `SITE_URL` est fourni, message sans JavaScript ; README refait ; intégration continue
+  GitHub Actions.

@@ -56,6 +56,8 @@ export interface HudState {
   nova: number | null;
   /** Latest use of the second chance, for the announcement. */
   secondChance: number | null;
+  /** A chain is close to its hole (the heart beats): said once each time it gets there. */
+  danger: boolean;
   /**
    * Duel mode: where the chain stands between the two holes, from 0 (in the
    * rival's hole: won) to 1 (in the player's: lost); null elsewhere.
@@ -505,6 +507,7 @@ export class PlaySession {
       fragments: this.game.setup.fragments ? 0 : null,
       nova: this.game.nova,
       secondChance: null,
+      danger: false,
     };
   }
 
@@ -577,8 +580,11 @@ export class PlaySession {
     );
     if (danger < DANGER_FROM) {
       this.heartIn = 0;
+      // Far enough again: the next approach will be announced too.
+      if (danger < DANGER_FROM - 0.1 && this.hud.danger) this.hud.danger = false;
       return;
     }
+    if (!this.hud.danger) this.hud.danger = true;
     this.heartIn -= realDt;
     if (this.heartIn > 0) return;
     this.feedback.sound.heartbeat();

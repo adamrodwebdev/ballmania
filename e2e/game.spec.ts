@@ -377,3 +377,31 @@ test('chooses the difficulty of the campaign on the map', async ({ page }) => {
   await page.getByTestId('level-nebula-01').click();
   await expect(page.getByTestId('difficulty')).toHaveText('Legend');
 });
+
+test('plays with the keyboard alone, from the home page to the pause menu', async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' })),
+  );
+  await page.goto('./');
+  await page.getByTestId('play').focus();
+  await page.keyboard.press('Enter');
+  await page.getByTestId('level-nebula-01').focus();
+  await page.keyboard.press('Enter');
+  const board = page.getByTestId('board');
+  await expect(board).toBeFocused();
+  await page.keyboard.down('ArrowLeft');
+  await page.keyboard.up('ArrowLeft');
+  // A plain shot, then a charged one (Space held), then a swap.
+  await page.keyboard.press('Space');
+  await page.keyboard.down('Space');
+  await page.waitForTimeout(500);
+  await page.keyboard.up('Space');
+  await page.keyboard.press('KeyX');
+  await page.keyboard.press('Escape');
+  const dialog = page.getByRole('dialog', { name: 'Game paused' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Resume' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(dialog).toBeHidden();
+  await expect(board).toBeFocused();
+});

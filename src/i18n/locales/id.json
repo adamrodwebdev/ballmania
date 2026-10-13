@@ -68,7 +68,8 @@
     "homeButton": "Beranda",
     "campaignDone": "Kampanye selesai: keenam dunia milikmu!",
     "arcadeButton": "Arkade",
-    "starsGained": "+{count} bintang | +{count} bintang | +{count} bintang"
+    "starsGained": "+{count} bintang | +{count} bintang | +{count} bintang",
+    "danger": "Awas: rantai mendekati lubang!"
   },
   "effects": {
     "spectacular": {

@@ -68,7 +68,8 @@
     "homeButton": "Accueil",
     "campaignDone": "Campagne terminée : les six mondes sont à vous !",
     "arcadeButton": "Arcade",
-    "starsGained": "+{count} étoile | +{count} étoile | +{count} étoiles"
+    "starsGained": "+{count} étoile | +{count} étoile | +{count} étoiles",
+    "danger": "Attention : la chaîne approche du trou !"
   },
   "effects": {
     "spectacular": {
