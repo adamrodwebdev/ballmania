@@ -9,6 +9,7 @@ import { dailyPuzzle, PUZZLES } from '@/levels/arcade/puzzles';
 import { SONGS } from '@/levels/arcade/rhythm';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import StarRow from '@/ui/components/StarRow.vue';
+import SwiperDeck from '@/ui/components/SwiperDeck.vue';
 
 const emit = defineEmits<{ play: [request: PlayRequest]; home: [] }>();
 const { t, locale } = useI18n();
@@ -34,6 +35,12 @@ const puzzles = computed(() =>
 
 /** The puzzle of the day is drawn when asked for: drawing it runs the solver. */
 const playDailyPuzzle = () => emit('play', { kind: 'puzzle', puzzle: dailyPuzzle(day), day });
+const names = computed(() => ARCADE_MODES.map((mode) => t(`arcade.${mode.id}.name`)));
+/** The deck opens on the mode opened last: the newest thing to try. */
+const current = computed(() => {
+  const last = modes.value.map((mode) => mode.open).lastIndexOf(true);
+  return Math.max(0, last);
+});
 </script>
 
 <template>
@@ -49,130 +56,139 @@ const playDailyPuzzle = () => emit('play', { kind: 'puzzle', puzzle: dailyPuzzle
     </div>
     <p class="intro">{{ t('arcade.intro') }}</p>
 
-    <article
-      v-for="mode in modes"
-      :key="mode.id"
-      class="mode"
-      :class="{ locked: !mode.open }"
-      :aria-labelledby="`mode-${mode.id}`"
-      :data-testid="`mode-${mode.id}`"
-    >
-      <header>
-        <h2 :id="`mode-${mode.id}`">{{ t(`arcade.${mode.id}.name`) }}</h2>
-        <p class="tagline">{{ t(`arcade.${mode.id}.tagline`) }}</p>
-      </header>
-
-      <p v-if="!mode.open" class="soon">
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M7 10V7a5 5 0 0 1 10 0v3h1v11H6V10zm2 0h6V7a3 3 0 0 0-6 0z"
-          />
-        </svg>
-        {{ t('arcade.locked', { world: t(`worlds.${mode.unlockedBy}.name`) }) }}
-      </p>
-
-      <div v-else-if="mode.id === 'endless'" class="choices stagger">
-        <button
-          class="btn btn-primary"
-          type="button"
-          data-testid="play-endless"
-          @click="emit('play', { kind: 'endless' })"
+    <SwiperDeck :label="t('arcade.modesLabel')" :names="names" :initial="current">
+      <div v-for="mode in modes" :key="mode.id" class="swiper-slide">
+        <article
+          class="mode"
+          :class="{ locked: !mode.open }"
+          :aria-labelledby="`mode-${mode.id}`"
+          :data-testid="`mode-${mode.id}`"
         >
-          <span>{{ t('arcade.start') }}</span>
-          <small>{{
-            t('arcade.endless.best', { score: number.format(arcade.view.endless) })
-          }}</small>
-        </button>
-      </div>
+          <div class="emblem" :class="`emblem-${mode.id}`" aria-hidden="true"></div>
+          <header>
+            <h2 :id="`mode-${mode.id}`">{{ t(`arcade.${mode.id}.name`) }}</h2>
+            <p class="tagline">{{ t(`arcade.${mode.id}.tagline`) }}</p>
+          </header>
 
-      <template v-else-if="mode.id === 'puzzle'">
-        <div class="choices stagger">
-          <button
-            class="btn btn-primary"
-            type="button"
-            data-testid="play-daily-puzzle"
-            @click="playDailyPuzzle"
-          >
-            <span>{{ t('arcade.puzzle.daily') }}</span>
-            <small v-if="dailyRecord">
-              {{
-                dailyRecord.won
-                  ? t('arcade.puzzle.dailyDone', { shots: dailyRecord.shots })
-                  : t('arcade.puzzle.dailyTried')
-              }}
-            </small>
-            <small v-else>{{ t('arcade.puzzle.dailyTodo') }}</small>
-          </button>
-        </div>
-        <p class="detail">
-          {{
-            t('arcade.puzzle.solvedCount', { count: arcade.puzzlesSolved, total: PUZZLES.length })
-          }}
-        </p>
-        <ol class="tiles stagger">
-          <li v-for="tile in puzzles" :key="tile.puzzle.id">
+          <p v-if="!mode.open" class="soon">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M7 10V7a5 5 0 0 1 10 0v3h1v11H6V10zm2 0h6V7a3 3 0 0 0-6 0z"
+              />
+            </svg>
+            {{ t('arcade.locked', { world: t(`worlds.${mode.unlockedBy}.name`) }) }}
+          </p>
+
+          <div v-else-if="mode.id === 'endless'" class="choices stagger">
             <button
-              class="tile"
-              :class="{ done: tile.stars > 0 }"
+              class="btn btn-primary"
               type="button"
-              :disabled="!tile.open"
-              :data-testid="`puzzle-${tile.puzzle.number}`"
-              :aria-label="
-                tile.open
-                  ? t('arcade.puzzle.tileLabel', { number: tile.puzzle.number, stars: tile.stars })
-                  : t('arcade.puzzle.lockedLabel', { number: tile.puzzle.number })
-              "
-              @click="emit('play', { kind: 'puzzle', puzzle: tile.puzzle })"
+              data-testid="play-endless"
+              @click="emit('play', { kind: 'endless' })"
             >
-              <span class="number" aria-hidden="true">{{ tile.puzzle.number }}</span>
-              <StarRow v-if="tile.open" :count="tile.stars" label="" aria-hidden="true" />
+              <span>{{ t('arcade.start') }}</span>
+              <small>{{
+                t('arcade.endless.best', { score: number.format(arcade.view.endless) })
+              }}</small>
             </button>
-          </li>
-        </ol>
-      </template>
+          </div>
 
-      <div v-else-if="mode.id === 'rhythm'" class="choices stagger">
-        <button
-          v-for="song in SONGS"
-          :key="song.id"
-          class="btn"
-          type="button"
-          :data-testid="`song-${song.id}`"
-          @click="emit('play', { kind: 'rhythm', song })"
-        >
-          <span>{{ t(`arcade.rhythm.songs.${song.id}`) }}</span>
-          <small>
-            {{ t('arcade.rhythm.bpm', { bpm: song.bpm }) }}
-            <template v-if="arcade.view.songs[song.id] !== undefined">
-              · {{ t('game.best', { score: number.format(arcade.view.songs[song.id] ?? 0) }) }}
-            </template>
-          </small>
-        </button>
-      </div>
+          <template v-else-if="mode.id === 'puzzle'">
+            <div class="choices stagger">
+              <button
+                class="btn btn-primary"
+                type="button"
+                data-testid="play-daily-puzzle"
+                @click="playDailyPuzzle"
+              >
+                <span>{{ t('arcade.puzzle.daily') }}</span>
+                <small v-if="dailyRecord">
+                  {{
+                    dailyRecord.won
+                      ? t('arcade.puzzle.dailyDone', { shots: dailyRecord.shots })
+                      : t('arcade.puzzle.dailyTried')
+                  }}
+                </small>
+                <small v-else>{{ t('arcade.puzzle.dailyTodo') }}</small>
+              </button>
+            </div>
+            <p class="detail">
+              {{
+                t('arcade.puzzle.solvedCount', {
+                  count: arcade.puzzlesSolved,
+                  total: PUZZLES.length,
+                })
+              }}
+            </p>
+            <ol class="tiles stagger">
+              <li v-for="tile in puzzles" :key="tile.puzzle.id">
+                <button
+                  class="tile"
+                  :class="{ done: tile.stars > 0 }"
+                  type="button"
+                  :disabled="!tile.open"
+                  :data-testid="`puzzle-${tile.puzzle.number}`"
+                  :aria-label="
+                    tile.open
+                      ? t('arcade.puzzle.tileLabel', {
+                          number: tile.puzzle.number,
+                          stars: tile.stars,
+                        })
+                      : t('arcade.puzzle.lockedLabel', { number: tile.puzzle.number })
+                  "
+                  @click="emit('play', { kind: 'puzzle', puzzle: tile.puzzle })"
+                >
+                  <span class="number" aria-hidden="true">{{ tile.puzzle.number }}</span>
+                  <StarRow v-if="tile.open" :count="tile.stars" label="" aria-hidden="true" />
+                </button>
+              </li>
+            </ol>
+          </template>
 
-      <div v-else class="choices stagger">
-        <button
-          v-for="difficulty in DUEL_DIFFICULTIES"
-          :key="difficulty"
-          class="btn"
-          type="button"
-          :data-testid="`duel-${difficulty}`"
-          @click="emit('play', { kind: 'duel', difficulty })"
-        >
-          <span>{{ t(`arcade.duel.levels.${difficulty}`) }}</span>
-          <small>
-            {{
-              t(
-                'arcade.duel.wins',
-                { count: arcade.duelsWon(difficulty) },
-                arcade.duelsWon(difficulty),
-              )
-            }}
-          </small>
-        </button>
+          <div v-else-if="mode.id === 'rhythm'" class="choices stagger">
+            <button
+              v-for="song in SONGS"
+              :key="song.id"
+              class="btn"
+              type="button"
+              :data-testid="`song-${song.id}`"
+              @click="emit('play', { kind: 'rhythm', song })"
+            >
+              <span>{{ t(`arcade.rhythm.songs.${song.id}`) }}</span>
+              <small>
+                {{ t('arcade.rhythm.bpm', { bpm: song.bpm }) }}
+                <template v-if="arcade.view.songs[song.id] !== undefined">
+                  · {{ t('game.best', { score: number.format(arcade.view.songs[song.id] ?? 0) }) }}
+                </template>
+              </small>
+            </button>
+          </div>
+
+          <div v-else class="choices stagger">
+            <button
+              v-for="difficulty in DUEL_DIFFICULTIES"
+              :key="difficulty"
+              class="btn"
+              type="button"
+              :data-testid="`duel-${difficulty}`"
+              @click="emit('play', { kind: 'duel', difficulty })"
+            >
+              <span>{{ t(`arcade.duel.levels.${difficulty}`) }}</span>
+              <small>
+                {{
+                  t(
+                    'arcade.duel.wins',
+                    { count: arcade.duelsWon(difficulty) },
+                    arcade.duelsWon(difficulty),
+                  )
+                }}
+              </small>
+            </button>
+          </div>
+        </article>
       </div>
-    </article>
+    </SwiperDeck>
   </section>
 </template>
 
@@ -209,10 +225,18 @@ h1 {
   color: var(--text-muted);
 }
 
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  padding-top: 2.5rem;
+}
+
 .mode {
+  position: relative;
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-6) var(--space-4);
+  width: min(calc(100% - 2.5rem), 46rem);
+  padding: calc(var(--space-6) + 2rem) var(--space-4) var(--space-6);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -220,9 +244,53 @@ h1 {
 }
 
 .mode.locked {
-  box-shadow: none;
-  background: transparent;
   border-style: dashed;
+}
+
+.mode.locked .emblem {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+/* Each mode's emblem straddles the top edge of its card. */
+.emblem {
+  position: absolute;
+  top: -2.5rem;
+  left: 50%;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 1.4rem;
+  box-shadow:
+    0 0.75rem 1.5rem rgb(0 0 0 / 0.3),
+    0 0 0 4px var(--surface);
+  transform: translateX(-50%) rotate(-8deg);
+}
+
+/* Endless: a spiral of rings; Puzzles: a grid of dots; Rhythm: bars; Duel: two halves. */
+.emblem-endless {
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent 0 6px,
+      rgb(255 255 255 / 0.55) 6px 9px
+    ),
+    linear-gradient(135deg, var(--orb-violet), var(--orb-cyan));
+}
+
+.emblem-puzzle {
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 0.75) 0 4px, transparent 5px) 0 0 / 1.25rem 1.25rem,
+    linear-gradient(135deg, var(--orb-lime), var(--orb-cyan));
+}
+
+.emblem-rhythm {
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.6) 0 5px, transparent 5px 12px),
+    linear-gradient(135deg, var(--orb-rose), var(--orb-violet));
+}
+
+.emblem-duel {
+  background: linear-gradient(135deg, var(--orb-ruby) 0 50%, var(--orb-amber) 50% 100%);
 }
 
 h2 {

@@ -5,6 +5,7 @@ import { useServices } from '@/app/AppServices';
 import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
 import { DIFFICULTIES } from '@/levels/difficulty';
 import StarRow from '@/ui/components/StarRow.vue';
+import SwiperDeck from '@/ui/components/SwiperDeck.vue';
 
 const emit = defineEmits<{ play: [level: CampaignLevel]; home: []; observatory: [] }>();
 const { t } = useI18n();
@@ -18,6 +19,7 @@ const worlds = computed(() =>
   WORLDS.map((world, index) => ({
     ...world,
     index: index + 1,
+    open: world.levels.some((level) => progress.isUnlocked(order, level.id)),
     stars: progress.totalStars(world.levels.map((level) => level.id)),
     tiles: world.levels.map((level) => ({
       level,
@@ -26,6 +28,17 @@ const worlds = computed(() =>
     })),
   })),
 );
+const names = computed(() => WORLDS.map((world) => t(`worlds.${world.id}.name`)));
+/** The deck opens on the world of the furthest level the player can play. */
+const current = computed(() => {
+  const furthest = [...CAMPAIGN].reverse().find((level) => progress.isUnlocked(order, level.id));
+  return Math.max(
+    0,
+    WORLDS.findIndex((world) => world.id === furthest?.world),
+  );
+});
+/** Decorative orbs of each card's banner: a few tones per world, peeking over its edge. */
+const ORBS = [0, 1, 2, 3, 4] as const;
 </script>
 
 <template>
@@ -70,60 +83,66 @@ const worlds = computed(() =>
       </label>
     </fieldset>
 
-    <article
-      v-for="world in worlds"
-      :key="world.id"
-      class="world"
-      :class="[`world-${world.id}`, { locked: world.levels.length === 0 }]"
-      :aria-labelledby="`world-${world.id}`"
-    >
-      <header class="world-head">
-        <p class="world-number">{{ t('campaign.world', { number: world.index }) }}</p>
-        <h2 :id="`world-${world.id}`">{{ t(`worlds.${world.id}.name`) }}</h2>
-        <p class="tagline">{{ t(`worlds.${world.id}.tagline`) }}</p>
-        <p v-if="world.levels.length > 0" class="world-stars">
-          {{ t('campaign.stars', { count: world.stars, total: world.levels.length * 3 }) }}
-        </p>
-      </header>
+    <SwiperDeck :label="t('campaign.worldsLabel')" :names="names" :initial="current">
+      <div v-for="world in worlds" :key="world.id" class="swiper-slide">
+        <article
+          class="world"
+          :class="[`world-${world.id}`, { locked: !world.open }]"
+          :aria-labelledby="`world-${world.id}`"
+          :data-testid="`world-${world.id}`"
+        >
+          <div class="banner" aria-hidden="true">
+            <span v-for="orb in ORBS" :key="orb" class="orb" :class="`orb-${orb}`"></span>
+          </div>
+          <header class="world-head">
+            <p class="world-number">{{ t('campaign.world', { number: world.index }) }}</p>
+            <h2 :id="`world-${world.id}`">{{ t(`worlds.${world.id}.name`) }}</h2>
+            <p class="tagline">{{ t(`worlds.${world.id}.tagline`) }}</p>
+            <p v-if="world.levels.length > 0" class="world-stars">
+              {{ t('campaign.stars', { count: world.stars, total: world.levels.length * 3 }) }}
+            </p>
+          </header>
 
-      <ol v-if="world.levels.length > 0" class="levels stagger">
-        <li v-for="tile in world.tiles" :key="tile.level.id">
-          <button
-            class="tile"
-            :class="{ boss: tile.level.colossus, done: tile.stars > 0 }"
-            type="button"
-            :disabled="!tile.unlocked"
-            :data-testid="`level-${tile.level.id}`"
-            :aria-label="
-              tile.unlocked
-                ? t('campaign.levelLabel', {
-                    number: tile.level.number,
-                    stars: tile.stars,
-                  })
-                : t('campaign.lockedLabel', { number: tile.level.number })
-            "
-            @click="emit('play', tile.level)"
-          >
-            <span class="number" aria-hidden="true">{{ tile.level.number }}</span>
-            <svg
-              v-if="!tile.unlocked"
-              class="lock"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              aria-hidden="true"
-            >
-              <path
-                fill="currentColor"
-                d="M7 10V7a5 5 0 0 1 10 0v3h1v11H6V10zm2 0h6V7a3 3 0 0 0-6 0z"
-              />
-            </svg>
-            <StarRow v-else :count="tile.stars" label="" aria-hidden="true" />
-          </button>
-        </li>
-      </ol>
-      <p v-else class="soon">{{ t('campaign.comingSoon') }}</p>
-    </article>
+          <ol v-if="world.levels.length > 0" class="levels stagger">
+            <li v-for="tile in world.tiles" :key="tile.level.id">
+              <button
+                class="tile"
+                :class="{ boss: tile.level.colossus, done: tile.stars > 0 }"
+                type="button"
+                :disabled="!tile.unlocked"
+                :data-testid="`level-${tile.level.id}`"
+                :aria-label="
+                  tile.unlocked
+                    ? t('campaign.levelLabel', {
+                        number: tile.level.number,
+                        stars: tile.stars,
+                      })
+                    : t('campaign.lockedLabel', { number: tile.level.number })
+                "
+                @click="emit('play', tile.level)"
+              >
+                <span class="number" aria-hidden="true">{{ tile.level.number }}</span>
+                <svg
+                  v-if="!tile.unlocked"
+                  class="lock"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M7 10V7a5 5 0 0 1 10 0v3h1v11H6V10zm2 0h6V7a3 3 0 0 0-6 0z"
+                  />
+                </svg>
+                <StarRow v-else :count="tile.stars" label="" aria-hidden="true" />
+              </button>
+            </li>
+          </ol>
+          <p v-else class="soon">{{ t('campaign.comingSoon') }}</p>
+        </article>
+      </div>
+    </SwiperDeck>
   </section>
 </template>
 
@@ -153,20 +172,137 @@ h1 {
   font-size: clamp(1.75rem, 1.4rem + 2vw, 2.6rem);
 }
 
+/* Each world is a card of the deck; its neighbours peek out behind it. */
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  padding-top: 2.25rem;
+}
+
 .world {
+  --w1: var(--orb-violet);
+  --w2: var(--orb-cyan);
+  position: relative;
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-6) var(--space-4);
+  width: min(calc(100% - 2.5rem), 46rem);
+  padding: calc(var(--space-6) + 1.75rem) var(--space-4) var(--space-6);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
+  isolation: isolate;
+}
+
+/* A wash of the world's colours along the top of the card. */
+.world::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: 7rem;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(135deg, var(--w1), var(--w2));
+  opacity: 0.22;
+  mask-image: linear-gradient(to bottom, #000, transparent);
+}
+
+.world-nebula {
+  --w1: var(--orb-violet);
+  --w2: var(--orb-cyan);
+}
+.world-neon {
+  --w1: var(--orb-rose);
+  --w2: var(--orb-cyan);
+}
+.world-abyss {
+  --w1: var(--orb-cyan);
+  --w2: var(--orb-lime);
+}
+.world-jewel {
+  --w1: var(--orb-ruby);
+  --w2: var(--orb-amber);
+}
+.world-volcano {
+  --w1: var(--orb-amber);
+  --w2: var(--orb-ruby);
+}
+.world-singularity {
+  --w1: var(--orb-violet);
+  --w2: var(--orb-rose);
+}
+
+/* Glass orbs straddling the top edge of the card, overlapping one another. */
+.banner {
+  position: absolute;
+  top: -1.75rem;
+  left: 50%;
+  display: flex;
+  transform: translateX(-50%);
+}
+
+.orb {
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-inline: -0.45rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgb(255 255 255 / 0.85), transparent 30%),
+    radial-gradient(circle at 60% 75%, rgb(0 0 0 / 0.3), transparent 60%), var(--w1);
+  box-shadow:
+    0 0.5rem 1.2rem rgb(0 0 0 / 0.3),
+    0 0 0 3px var(--surface);
+}
+
+.orb-1,
+.orb-3 {
+  background:
+    radial-gradient(circle at 34% 28%, rgb(255 255 255 / 0.85), transparent 30%),
+    radial-gradient(circle at 60% 75%, rgb(0 0 0 / 0.3), transparent 60%), var(--w2);
+}
+
+.orb-2 {
+  z-index: 1;
+  transform: translateY(-0.4rem) scale(1.15);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .orb {
+    animation: bob 3.2s ease-in-out infinite alternate;
+  }
+
+  .orb-1,
+  .orb-3 {
+    animation-delay: -1.6s;
+  }
+
+  .orb-2 {
+    animation-name: bob-centre;
+  }
+}
+
+@keyframes bob {
+  to {
+    transform: translateY(-0.3rem);
+  }
+}
+
+@keyframes bob-centre {
+  from {
+    transform: translateY(-0.4rem) scale(1.15);
+  }
+  to {
+    transform: translateY(-0.7rem) scale(1.15);
+  }
 }
 
 .world.locked {
-  box-shadow: none;
-  background: transparent;
   border-style: dashed;
+}
+
+.world.locked .banner {
+  filter: grayscale(1);
+  opacity: 0.6;
 }
 
 .world-number {

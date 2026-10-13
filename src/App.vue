@@ -7,6 +7,7 @@ import type { PlayRequest } from '@/app/PlayRequest';
 import type { CampaignLevel } from '@/levels/campaign';
 import AppHeader from '@/ui/components/AppHeader.vue';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
+import StudioIntro from '@/ui/components/StudioIntro.vue';
 
 /** The campaign map, the game screen and the engine are downloaded only when needed. */
 const CampaignScreen = defineAsyncComponent(() => import('@/ui/screens/CampaignScreen.vue'));
@@ -34,6 +35,26 @@ const version = __APP_VERSION__;
 
 const screen = shallowRef<Screen>({ kind: 'home' });
 let games = 0;
+
+/** Session key of the studio intro: it plays once per visit. */
+const INTRO_KEY = 'ballmania:intro';
+const introSeen = () => {
+  try {
+    if (new URLSearchParams(window.location.search).has('nointro')) return true;
+    return sessionStorage.getItem(INTRO_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+const showIntro = ref(!introSeen());
+const introDone = () => {
+  showIntro.value = false;
+  try {
+    sessionStorage.setItem(INTRO_KEY, '1');
+  } catch {
+    // Without storage, the intro plays again on the next visit.
+  }
+};
 
 /** True after the first change of screen: from then on, screens slide in. */
 const navigated = ref(false);
@@ -75,6 +96,7 @@ watchEffect(() => {
 </script>
 
 <template>
+  <StudioIntro v-if="showIntro" @done="introDone" />
   <template v-if="screen.kind === 'home'">
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
     <AppHeader />

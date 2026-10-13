@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('spends star fragments on upgrades at the Observatory', async ({ page }) => {
   await page.addInitScript(() => {

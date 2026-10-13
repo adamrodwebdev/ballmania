@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('home', () => {
   test('shows the game without errors nor horizontal scroll', async ({ page }) => {

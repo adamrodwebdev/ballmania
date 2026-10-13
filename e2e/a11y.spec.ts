@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures';
 
 /** A player who has seen everything: every screen shows its full content. */
 const prepare = async (page: Page, scheme: 'light' | 'dark') => {
@@ -73,6 +73,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.getByRole('button', { name: 'Quit' }).click();
       await page.getByTestId('home').click();
       await page.getByTestId('arcade').click();
+      await page.getByRole('button', { name: 'Puzzles', exact: true }).click();
       await page.getByTestId('puzzle-1').click();
       const board = page.getByTestId('board');
       await expect(board).toBeFocused();

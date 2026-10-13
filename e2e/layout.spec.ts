@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures';
 
 /** Acceptance criterion (specification § 8): no horizontal scroll from 320 to 1,920 pixels. */
 const WIDTHS = [320, 375, 768, 1024, 1280, 1920];

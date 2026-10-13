@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('game', () => {
   test.beforeEach(async ({ page }) => {
@@ -47,8 +47,9 @@ test.describe('game', () => {
   test('keeps touch targets large enough', async ({ page }) => {
     for (const id of ['pause', 'swap']) {
       const box = (await page.getByTestId(id).boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44);
-      expect(box.height).toBeGreaterThanOrEqual(44);
+      // Rounded: the screen's entrance animation can leave a sub-pixel fraction.
+      expect(Math.round(box.width)).toBeGreaterThanOrEqual(44);
+      expect(Math.round(box.height)).toBeGreaterThanOrEqual(44);
     }
   });
 });
