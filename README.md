@@ -69,6 +69,24 @@ Pour un déploiement, `SITE_URL=https://exemple.org/ npm run build` ajoute le li
 canonique, les adresses absolues des cartes de partage, `sitemap.xml` et un `robots.txt`
 qui le cite. Le build est statique et fonctionne depuis n'importe quel sous-dossier.
 
+## Portails de jeux
+
+Le jeu se publie aussi sur des portails, avec leurs publicités. Notre site reste sans
+publicité ni SDK.
+
+| Commande                         | Build                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| `npm run build:crazygames`       | CrazyGames, dans `dist-crazygames/`                                      |
+| `npm run build:poki`             | Poki, dans `dist-poki/`                                                  |
+| `npm run build:gamedistribution` | GameDistribution, dans `dist-gamedistribution/` (avec `VITE_GD_GAME_ID`) |
+| `npm run build:portals`          | Les trois                                                                |
+| `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités)              |
+
+On envoie ensuite au portail une archive zip du dossier. Les publicités récompensées sont
+toujours au choix : continuer après une défaite, éclats doublés, indice d'énigme, essai
+d'un cosmétique. Une publicité entre deux parties passe au plus une fois toutes les
+3 minutes. Détails : § 3.7 du [cahier des charges](docs/CAHIER_DES_CHARGES.md).
+
 ## Architecture
 
 | Dossier        | Rôle                                                                                |
@@ -80,6 +98,7 @@ qui le cite. Le build est statique et fonctionne depuis n'importe quel sous-doss
 | `src/player`   | Profil, objectifs, cosmétiques, défi du jour                                        |
 | `src/services` | Réglages, sauvegardes, partage, thème                                               |
 | `src/app`      | Services injectés et modes de jeu (stratégies)                                      |
+| `src/platform` | Notre site et les portails (publicités, sauvegarde, signaux), choisis au build      |
 | `src/ui`       | Écrans et composants Vue 3                                                          |
 
 Programmation orientée objet, TypeScript strict, Vue 3 (Composition API), vue-i18n

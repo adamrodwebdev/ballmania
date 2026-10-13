@@ -171,6 +171,7 @@
     "counted": "Seul le premier essai du jour compte : {score} points.",
     "share": "Partager mon résultat",
     "shareText": "Ballmania · Défi du {date} : {score} points {stars} · {url}",
+    "shareTextNoLink": "Ballmania · Défi du {date} : {score} points {stars}",
     "shareOutcome": {
       "shared": "Résultat partagé.",
       "copied": "Résultat copié : collez-le où vous voulez.",
@@ -547,5 +548,21 @@
   "studio": {
     "label": "AdamRodWebTech présente Ballmania",
     "presents": "présente"
+  },
+  "ads": {
+    "continue": "Continuer",
+    "continueDetail": "Regarder une publicité : la chaîne recule",
+    "double": "Doubler les éclats",
+    "doubleDetail": "Regarder une publicité",
+    "hint": "Indice",
+    "hintDetail": "Regarder une publicité",
+    "try": "Essayer",
+    "tryDetail": "Une publicité, pour la prochaine partie",
+    "trying": "À essayer à la prochaine partie",
+    "trial": "{name} : à essayer à la prochaine partie.",
+    "continued": "La chaîne recule : à vous de jouer !",
+    "doubled": "{count} éclats de plus !",
+    "hintShown": "Indice : tirez sur la bille entourée.",
+    "unavailable": "Aucune publicité disponible pour le moment : rien n'est perdu, réessayez plus tard."
   }
 }

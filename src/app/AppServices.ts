@@ -1,5 +1,7 @@
 import { inject, type InjectionKey } from 'vue';
 import { detectLocale } from '@/i18n/locales';
+import { AdPolicy, AdService, GameplaySignals } from '@/platform/AdService';
+import type { PlatformAdapter } from '@/platform/PlatformAdapter';
 import { PlayerProfile } from '@/player/PlayerProfile';
 import { ArcadeProgress } from '@/services/ArcadeProgress';
 import { CampaignProgress } from '@/services/CampaignProgress';
@@ -16,17 +18,28 @@ export interface AppServices {
   readonly arcade: ArcadeProgress;
   readonly player: PlayerProfile;
   readonly share: ShareService;
+  /** The site or portal the game runs on (§ 3.7). */
+  readonly platform: PlatformAdapter;
+  readonly ads: AdService;
+  readonly gameplay: GameplaySignals;
   /** Today, for the daily challenge (a function so tests can fix it). */
   readonly today: () => Date;
 }
 
 export const APP_SERVICES: InjectionKey<AppServices> = Symbol('AppServices');
 
+/**
+ * Settings stay in the browser (the theme script reads them before the first
+ * paint); saves go where the platform keeps them.
+ */
 export function createBrowserServices(
+  platform: PlatformAdapter,
   storage: KeyValueStorage = BrowserStorage.local(),
 ): AppServices {
+  const saves = platform.saves();
+  const portalLocale = platform.locale();
   const settings = new SettingsService(storage, {
-    locale: detectLocale(navigator.languages),
+    locale: detectLocale(portalLocale ? [portalLocale] : navigator.languages),
     theme: 'system',
     effects: 'spectacular',
     volume: 0.7,
@@ -39,10 +52,13 @@ export function createBrowserServices(
     theme: new ThemeController(settings, document.documentElement, (query) =>
       window.matchMedia(query),
     ),
-    progress: new CampaignProgress(storage),
-    arcade: new ArcadeProgress(storage),
-    player: new PlayerProfile(storage),
+    progress: new CampaignProgress(saves),
+    arcade: new ArcadeProgress(saves),
+    player: new PlayerProfile(saves),
     share: new ShareService(navigator),
+    platform,
+    ads: new AdService(platform, new AdPolicy(Date.now()), () => Date.now()),
+    gameplay: new GameplaySignals(platform),
     today: () => new Date(),
   };
 }

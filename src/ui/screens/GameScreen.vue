@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  watch,
+  watchEffect,
+} from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { createMode, type Message, type Settlement } from '@/app/modes';
 import type { PlayRequest } from '@/app/PlayRequest';
 import { ingredients, SECONDARIES } from '@/engine/chain/Alchemy';
+import { puzzleHint } from '@/levels/arcade/hint';
 import { CAMPAIGN } from '@/levels/campaign';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { frameFor, type Frame } from '@/levels/tracks';
@@ -16,6 +26,7 @@ import { EffectProfile } from '@/play/effects/EffectProfile';
 import { sharedFeedback } from '@/play/feedback';
 import { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
+import type { Silence } from '@/platform/AdService';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 
@@ -24,7 +35,7 @@ const emit = defineEmits<{ quit: []; play: [request: PlayRequest] }>();
 
 const { t, locale } = useI18n();
 const services = useServices();
-const { theme, settings, player, share } = services;
+const { theme, settings, player, share, platform, ads, gameplay } = services;
 
 const request = props.request;
 /** What kind of game this is decides the level, the texts and the records (§ 3.2). */
@@ -73,7 +84,26 @@ const reducedMotion = ref(motionQuery.matches);
 const onMotionChange = (event: MediaQueryListEvent) => (reducedMotion.value = event.matches);
 motionQuery.addEventListener('change', onMotionChange);
 const profile = () => EffectProfile.for(settings.current.effects, reducedMotion.value);
-const feedback = sharedFeedback(settings.current.volume, settings.current.vibration);
+/** The portal may ask for silence (§ 3.7): it overrides the game's own volume. */
+const portalMuted = ref(platform.muted());
+const volume = () => (portalMuted.value ? 0 : settings.current.volume);
+const feedback = sharedFeedback(volume(), settings.current.vibration);
+const stopListeningToPortal = platform.onMutedChange((muted) => (portalMuted.value = muted));
+
+/** An ad covers the game (§ 3.7): time and sound stop until it is over. */
+const adPlaying = ref(false);
+/** What became of the last rewarded ad, for the end dialog and the screen reader. */
+const adMessage = ref('');
+const silence = (): Silence => ({
+  start: () => {
+    adPlaying.value = true;
+    session.value?.hold();
+  },
+  end: () => {
+    adPlaying.value = false;
+    session.value?.release();
+  },
+});
 
 let frame: Frame | null = null;
 /** The level for this board shape, slowed down when the assistance is on. */
@@ -98,7 +128,8 @@ onMounted(() => {
     palette: readPalette(),
     profile: profile(),
     feedback,
-    look: resolveLook(player.view.equipped, mode.world),
+    // A cosmetic being tried (rewarded ad, § 3.7) is worn for this game only.
+    look: resolveLook(player.takeLook(), mode.world),
     ...(seed === null ? {} : { seed: () => seed }),
     ...(request.kind === 'rhythm' ? { root: request.song.root } : {}),
     aimAssist: settings.current.aimAssist,
@@ -146,14 +177,21 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  settleNow();
+  gameplay.stop();
+  stopListeningToPortal();
   for (const cleanup of cleanups) cleanup();
 });
 
+// The portal is told when the player really plays: not paused, not over, no ad.
+watchEffect(() => {
+  const state = hud.value;
+  if (state && state.state === 'playing' && !state.paused && !adPlaying.value) gameplay.start();
+  else gameplay.stop();
+});
+
 watch([() => settings.current.effects, reducedMotion], () => session.value?.setProfile(profile()));
-watch(
-  () => settings.current.volume,
-  (volume) => feedback.sound.setVolume(volume),
-);
+watch([() => settings.current.volume, portalMuted], () => feedback.sound.setVolume(volume()));
 watch(
   () => settings.current.aimAssist,
   (enabled) => session.value?.setAimAssist(enabled),
@@ -190,13 +228,37 @@ watch(
   },
 );
 
+/** The player continued once after a defeat (rewarded ad, § 3.7). */
+const continued = ref(false);
+/** A defeat that may still be continued is saved only once the player decides. */
+const pendingLoss = ref(false);
+const settle = () => {
+  const play = session.value;
+  if (!play) return;
+  const result = mode.settle(play.summary(), services);
+  settlement.value = result;
+  const finishedWorld = result.rewards.unlocked.length > 0 || campaignDone.value;
+  const endlessRecord = request.kind === 'endless' && result.record?.newBest === true;
+  if (finishedWorld || endlessRecord) platform.celebrate();
+};
+/** Saves a defeat the player chose not to continue. */
+const settleNow = () => {
+  if (!pendingLoss.value) return;
+  pendingLoss.value = false;
+  settle();
+};
+
 // A finished game is saved at once, even if the player leaves before the dialog.
 watch(
   () => hud.value?.state,
   (state) => {
     const play = session.value;
     if (!play || state === undefined || state === 'playing') return;
-    settlement.value = mode.settle(play.summary(), services);
+    if (state === 'lost' && mode.continuable && !continued.value && ads.rewardsOffered) {
+      pendingLoss.value = play.revivable;
+      if (pendingLoss.value) return;
+    }
+    settle();
   },
 );
 
@@ -246,8 +308,12 @@ watch(
 
 const resume = () => session.value?.resume();
 const restart = () => {
+  settleNow();
   settlement.value = null;
   shareOutcome.value = null;
+  continued.value = false;
+  doubled.value = false;
+  adMessage.value = '';
   session.value?.restart(definition());
   canvas.value?.focus();
 };
@@ -267,8 +333,73 @@ const offerAssist = computed(
     request.kind === 'campaign' &&
     hud.value?.over === 'lost' &&
     !assisted.value &&
-    player.failures(request.level.id) >= ASSIST_AFTER,
+    // A defeat not saved yet counts already.
+    player.failures(request.level.id) + (pendingLoss.value ? 1 : 0) >= ASSIST_AFTER,
 );
+
+/** After a defeat, continue once with a rewarded ad: the chain is pushed back. */
+const offerContinue = computed(
+  () => pendingLoss.value && hud.value?.over === 'lost' && ads.rewardsOffered,
+);
+const continueGame = async () => {
+  const play = session.value;
+  if (!play) return;
+  endDialog.value?.close();
+  const watched = await ads.reward(silence());
+  if (watched && play.revive()) {
+    continued.value = true;
+    pendingLoss.value = false;
+    adMessage.value = t('ads.continued');
+    canvas.value?.focus();
+    return;
+  }
+  adMessage.value = t('ads.unavailable');
+  endDialog.value?.showModal();
+};
+
+/** The shards of a game doubled by a rewarded ad, once. */
+const doubled = ref(false);
+const offerDouble = computed(
+  () =>
+    !doubled.value &&
+    Boolean(hud.value?.over) &&
+    (settlement.value?.rewards.shards ?? 0) > 0 &&
+    ads.rewardsOffered,
+);
+const doubleShards = async () => {
+  const shards = settlement.value?.rewards.shards ?? 0;
+  endDialog.value?.close();
+  if (await ads.reward(silence())) {
+    player.grantShards(shards);
+    doubled.value = true;
+    adMessage.value = t('ads.doubled', { count: number.value.format(shards) });
+  } else adMessage.value = t('ads.unavailable');
+  endDialog.value?.showModal();
+};
+
+/** Puzzle mode: a hint for a rewarded ad, the best next shot circled on the board. */
+const offerHint = computed(
+  () => request.kind === 'puzzle' && hud.value?.state === 'playing' && ads.rewardsOffered,
+);
+const showHint = async () => {
+  const play = session.value;
+  if (!play) return;
+  if (await ads.reward(silence())) {
+    adMessage.value = play.showHint(puzzleHint) ? t('ads.hintShown') : t('ads.unavailable');
+  } else adMessage.value = t('ads.unavailable');
+  canvas.value?.focus();
+};
+
+/**
+ * Leaving the end dialog is a natural break: maybe an ad first (§ 3.7, at
+ * most one every three minutes), above the game once the dialog is closed.
+ */
+const afterBreak = async (action: () => void) => {
+  settleNow();
+  endDialog.value?.close();
+  await ads.betweenGames(silence());
+  action();
+};
 /** The last level of the campaign is won: the game is finished. */
 const campaignDone = computed(
   () =>
@@ -286,18 +417,18 @@ const puzzleResult = computed(() =>
     ? { shots: session.value.summary().shots, par: request.puzzle.par }
     : null,
 );
-const primaryReplay = computed(() => !following.value && !offerAssist.value && !daily);
+const primaryReplay = computed(
+  () => !following.value && !offerAssist.value && !offerContinue.value && !daily,
+);
 
 const shareResult = async () => {
   const record = dailyRecord.value;
   if (!daily || !record) return;
   const stars = '★'.repeat(record.stars) + '☆'.repeat(3 - record.stars);
-  const text = t('daily.shareText', {
-    date: dayLabel.value,
-    score: number.value.format(record.score),
-    stars,
-    url: `${window.location.origin}${window.location.pathname}`,
-  });
+  // On a portal, the link is the portal's own (or none where links are not allowed).
+  const url = await platform.shareLink({ day: daily.day });
+  const params = { date: dayLabel.value, score: number.value.format(record.score), stars };
+  const text = url ? t('daily.shareText', { ...params, url }) : t('daily.shareTextNoLink', params);
   shareOutcome.value = await share.share(text);
 };
 const quit = () => emit('quit');
@@ -419,6 +550,16 @@ const quit = () => emit('quit');
         <span class="dot small" :class="`tone-${hud?.next ?? 0}`" aria-hidden="true"></span>
         <span>{{ t(request.kind === 'puzzle' ? 'arcade.puzzle.nextColour' : 'game.swap') }}</span>
       </button>
+      <button
+        v-if="offerHint"
+        class="btn hint-button"
+        type="button"
+        data-testid="ad-hint"
+        @click="showHint"
+      >
+        <span>{{ t('ads.hint') }}</span>
+        <small>{{ t('ads.hintDetail') }}</small>
+      </button>
       <label v-if="hud && hud.nova !== null" class="nova" data-testid="nova">
         <span>{{ t(hud.nova >= 1 ? 'upgrades.nova.ready' : 'upgrades.nova.name') }}</span>
         <progress class="gauge" max="1" :value="hud.nova"></progress>
@@ -457,6 +598,7 @@ const quit = () => emit('quit');
     <p v-if="hud?.magnetArmed" class="sr-only" role="status">{{ t('magnet.armed') }}</p>
     <p id="game-help" class="sr-only">{{ t('game.help') }}</p>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
+    <p class="sr-only" role="status">{{ adMessage }}</p>
 
     <dialog ref="pauseDialog" class="dialog" aria-labelledby="pause-title" @cancel.prevent="resume">
       <h2 id="pause-title">{{ t('game.paused') }}</h2>
@@ -556,14 +698,37 @@ const quit = () => emit('quit');
         </li>
       </ul>
 
+      <p v-if="adMessage" class="detail" data-testid="ad-message">{{ adMessage }}</p>
+
       <div class="actions">
+        <button
+          v-if="offerContinue"
+          class="btn btn-primary"
+          type="button"
+          autofocus
+          data-testid="ad-continue"
+          @click="continueGame"
+        >
+          <span>{{ t('ads.continue') }}</span>
+          <small>{{ t('ads.continueDetail') }}</small>
+        </button>
+        <button
+          v-if="offerDouble"
+          class="btn"
+          type="button"
+          data-testid="ad-double"
+          @click="doubleShards"
+        >
+          <span>{{ t('ads.double') }}</span>
+          <small>{{ t('ads.doubleDetail') }}</small>
+        </button>
         <button
           v-if="following"
           class="btn btn-primary"
           type="button"
           autofocus
           data-testid="next"
-          @click="goNext"
+          @click="afterBreak(goNext)"
         >
           {{ say(following.label) }}
         </button>
@@ -586,7 +751,7 @@ const quit = () => emit('quit');
           type="button"
           autofocus
           data-testid="assist"
-          @click="restartWithAssist"
+          @click="afterBreak(restartWithAssist)"
         >
           <span>{{ t('assist.retry') }}</span>
           <small>{{ t('assist.detail') }}</small>
@@ -597,11 +762,11 @@ const quit = () => emit('quit');
           type="button"
           :autofocus="primaryReplay"
           data-testid="replay"
-          @click="restart"
+          @click="afterBreak(restart)"
         >
           {{ t('game.playAgain') }}
         </button>
-        <button class="btn" type="button" data-testid="map" @click="quit">
+        <button class="btn" type="button" data-testid="map" @click="afterBreak(quit)">
           {{ t(HOME_LABELS[mode.home]) }}
         </button>
       </div>

@@ -171,6 +171,7 @@
     "counted": "Only the first attempt of the day counts: {score} points.",
     "share": "Share my result",
     "shareText": "Ballmania · {date} challenge: {score} points {stars} · {url}",
+    "shareTextNoLink": "Ballmania · {date} challenge: {score} points {stars}",
     "shareOutcome": {
       "shared": "Result shared.",
       "copied": "Result copied: paste it anywhere.",
@@ -547,5 +548,21 @@
   "studio": {
     "label": "AdamRodWebTech presents Ballmania",
     "presents": "presents"
+  },
+  "ads": {
+    "continue": "Continue",
+    "continueDetail": "Watch an ad: the chain moves back",
+    "double": "Double the shards",
+    "doubleDetail": "Watch an ad",
+    "hint": "Hint",
+    "hintDetail": "Watch an ad",
+    "try": "Try it",
+    "tryDetail": "One ad, for your next game",
+    "trying": "Yours to try in your next game",
+    "trial": "{name}: yours to try in your next game.",
+    "continued": "The chain moves back: your turn!",
+    "doubled": "{count} more shards!",
+    "hintShown": "Hint: shoot at the circled ball.",
+    "unavailable": "No ad available right now: nothing is lost, try again later."
   }
 }

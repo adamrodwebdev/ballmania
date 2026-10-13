@@ -54,6 +54,12 @@ export interface PlayMode {
   readonly seed: string | null;
   /** Short name in the top bar ("3-7", "Endless"…). */
   readonly label: Message;
+  /**
+   * After a defeat, the player may continue once with a rewarded ad (§ 3.7):
+   * the campaign and Endless, never a game that is compared (daily challenge,
+   * puzzle, song, duel).
+   */
+  readonly continuable: boolean;
   /** Where leaving the game leads. */
   readonly home: 'campaign' | 'home' | 'arcade';
   /** Title of the end dialog. */

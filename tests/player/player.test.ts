@@ -161,6 +161,29 @@ describe('PlayerProfile', () => {
     expect(profile.equip('shooter-eye')).toBe(false);
   });
 
+  it('lends a cosmetic on sale for one game, never saved (rewarded ad)', () => {
+    const storage = new MemoryStorage();
+    const profile = new PlayerProfile(storage);
+    expect(profile.tryOn('board-neon')).toBe(false);
+    expect(profile.tryOn('trail-orbit-unknown')).toBe(false);
+    expect(profile.tryOn('shooter-eye')).toBe(true);
+    expect(profile.trial).toBe('shooter-eye');
+    expect(new PlayerProfile(storage).trial).toBeNull();
+    expect(profile.takeLook()).toEqual({ ...DEFAULT_LOOK, shooter: 'shooter-eye' });
+    expect(profile.trial).toBeNull();
+    expect(profile.takeLook()).toEqual(DEFAULT_LOOK);
+    expect(profile.owns('shooter-eye')).toBe(false);
+  });
+
+  it('adds the doubled shards of a game (rewarded ad)', () => {
+    const storage = new MemoryStorage();
+    const profile = new PlayerProfile(storage);
+    profile.grantShards(30);
+    profile.grantShards(-5);
+    expect(profile.shards).toBe(30);
+    expect(new PlayerProfile(storage).shards).toBe(30);
+  });
+
   it('counts only the first attempt of a daily challenge', () => {
     const profile = new PlayerProfile(new MemoryStorage());
     const daily = (outcome: 'won' | 'lost', score: number) =>

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
+import { PLATFORM_IDS, type PlatformId } from './src/platform/platforms.ts';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
   version: string;
@@ -10,8 +11,9 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 
 /**
  * Content Security Policy of the standalone site, added to the built page only:
- * the dev server needs inline scripts for hot reload. Portal builds (later lot)
- * will extend it with their SDK origin.
+ * the dev server needs inline scripts for hot reload. Portal builds have none:
+ * their ad networks load scripts and frames from origins nobody can list, and
+ * the portal's own frame already isolates the game.
  */
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -128,34 +130,50 @@ Sitemap: ${SITE_URL}sitemap.xml
   },
 });
 
+/**
+ * The platform of a build (specification § 3.7): `vite build --mode poki`
+ * builds for Poki into `dist-poki/`; any other mode builds our own site.
+ */
+const platformOf = (mode: string): PlatformId =>
+  (PLATFORM_IDS as readonly string[]).includes(mode) ? (mode as PlatformId) : 'standalone';
+
 // Relative base: the build can be served from any sub-folder or game portal.
-export default defineConfig({
-  base: './',
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
-  plugins: [
-    vue(),
-    // Messages are precompiled at build time: no runtime message compiler,
-    // no `eval`, a smaller bundle and a strict CSP stays possible.
-    VueI18nPlugin({
-      include: [fileURLToPath(new URL('./src/i18n/locales/**', import.meta.url))],
-      runtimeOnly: true,
-      compositionOnly: true,
-      fullInstall: false,
-      strictMessage: false,
-    }),
-    contentSecurityPolicy(),
-    seo(),
-  ],
-  resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
-  },
-  build: {
-    target: 'es2022',
-    cssCodeSplit: true,
-    reportCompressedSize: true,
-  },
-  test: {
-    include: ['tests/**/*.test.ts'],
-    environment: 'node',
-  },
+export default defineConfig(({ mode }) => {
+  const platform = platformOf(mode);
+  const site = platform === 'standalone';
+  return {
+    base: './',
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+      __PLATFORM__: JSON.stringify(platform),
+    },
+    plugins: [
+      vue(),
+      // Messages are precompiled at build time: no runtime message compiler,
+      // no `eval`, a smaller bundle and a strict CSP stays possible.
+      VueI18nPlugin({
+        include: [fileURLToPath(new URL('./src/i18n/locales/**', import.meta.url))],
+        runtimeOnly: true,
+        compositionOnly: true,
+        fullInstall: false,
+        strictMessage: false,
+      }),
+      // Search engines and the CSP concern our own site: on a portal, the
+      // portal's page is the one indexed.
+      ...(site ? [contentSecurityPolicy(), seo()] : []),
+    ],
+    resolve: {
+      alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    },
+    build: {
+      outDir: site ? 'dist' : `dist-${platform}`,
+      target: 'es2022',
+      cssCodeSplit: true,
+      reportCompressedSize: true,
+    },
+    test: {
+      include: ['tests/**/*.test.ts'],
+      environment: 'node',
+    },
+  };
 });

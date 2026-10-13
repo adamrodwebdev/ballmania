@@ -25,6 +25,7 @@ const worldFinished = (level: CampaignLevel) => {
 /** A level of the campaign: stars, best score, the next level, the assistance. */
 export class CampaignMode implements PlayMode {
   readonly home = 'campaign';
+  readonly continuable = true;
   readonly seed = null;
 
   constructor(
@@ -99,6 +100,7 @@ export class CampaignMode implements PlayMode {
 /** The daily challenge: one level, the same balls for everyone, the first attempt counts. */
 export class DailyMode implements PlayMode {
   readonly home = 'home';
+  readonly continuable = false;
   readonly hint = null;
   private readonly challenge: DailyChallenge;
 

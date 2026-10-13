@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4174;
+/** The portal build, against the simulated portal (e2e/portal.spec.ts). */
+const PORTAL_PORT = 4175;
 
 /** Journeys run on the production build, in the two viewports of the specification. */
 export default defineConfig({
@@ -10,12 +12,20 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [['list']],
   use: { baseURL: `http://localhost:${PORT}/`, trace: 'retain-on-failure' },
-  webServer: {
-    command: `npm run build && npx vite preview --port ${PORT} --strictPort`,
-    port: PORT,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: `npm run build && npx vite preview --port ${PORT} --strictPort`,
+      port: PORT,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      command: `npx vite build --mode simulated && npx vite preview --mode simulated --port ${PORTAL_PORT} --strictPort`,
+      port: PORTAL_PORT,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
   projects: [
     {
       name: 'mobile',

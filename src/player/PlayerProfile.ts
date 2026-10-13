@@ -1,4 +1,4 @@
-import { reactive, readonly } from 'vue';
+import { reactive, readonly, shallowRef } from 'vue';
 import type { GameReport } from '@/engine/Game';
 import type { WorldId } from '@/levels/campaign';
 import { readJson, type KeyValueStorage } from '@/services/KeyValueStorage';
@@ -86,6 +86,7 @@ export class PlayerProfile {
   private readonly state: State;
   /** Read-only, reactive view for the interface. */
   readonly view: Readonly<State>;
+  private readonly trialItem = shallowRef<string | null>(null);
 
   constructor(private readonly storage: KeyValueStorage) {
     this.state = reactive(PlayerProfile.parse(readJson(storage, PLAYER_KEY)));
@@ -152,6 +153,35 @@ export class PlayerProfile {
     this.state.owned.push(id);
     this.save();
     return true;
+  }
+
+  /** The cosmetic lent for the next game (§ 3.7, a rewarded ad watched), or null. */
+  get trial(): string | null {
+    return this.trialItem.value;
+  }
+
+  /** Lends a cosmetic on sale for the next game; never saved. False if it cannot be tried. */
+  tryOn(id: string): boolean {
+    const item = findCosmetic(id);
+    if (!item || item.unlockedBy || this.owns(id)) return false;
+    this.trialItem.value = id;
+    return true;
+  }
+
+  /** What the next game wears: the equipped cosmetics and the one lent, which is then given back. */
+  takeLook(): Record<CosmeticSlot, string> {
+    const look = { ...this.state.equipped };
+    const item = this.trialItem.value ? findCosmetic(this.trialItem.value) : undefined;
+    if (item) look[item.slot] = item.id;
+    this.trialItem.value = null;
+    return look;
+  }
+
+  /** Extra shards (§ 3.7: a game's shards doubled after a rewarded ad). */
+  grantShards(amount: number): void {
+    if (!(amount > 0)) return;
+    this.state.shards += Math.floor(amount);
+    this.save();
   }
 
   /** Wears an owned cosmetic in its slot. */

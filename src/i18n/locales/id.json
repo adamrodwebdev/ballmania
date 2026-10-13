@@ -171,6 +171,7 @@
     "counted": "Hanya percobaan pertama hari ini yang dihitung: {score} poin.",
     "share": "Bagikan hasilku",
     "shareText": "Ballmania · Tantangan {date}: {score} poin {stars} · {url}",
+    "shareTextNoLink": "Ballmania · Tantangan {date}: {score} poin {stars}",
     "shareOutcome": {
       "shared": "Hasil dibagikan.",
       "copied": "Hasil disalin: tempel di mana saja.",
@@ -547,5 +548,21 @@
   "studio": {
     "label": "AdamRodWebTech mempersembahkan Ballmania",
     "presents": "mempersembahkan"
+  },
+  "ads": {
+    "continue": "Lanjutkan",
+    "continueDetail": "Tonton iklan: rantai mundur",
+    "double": "Gandakan kepingan",
+    "doubleDetail": "Tonton iklan",
+    "hint": "Petunjuk",
+    "hintDetail": "Tonton iklan",
+    "try": "Coba",
+    "tryDetail": "Satu iklan, untuk permainan berikutnya",
+    "trying": "Bisa dicoba di permainan berikutnya",
+    "trial": "{name}: bisa dicoba di permainan berikutnya.",
+    "continued": "Rantai mundur: giliranmu!",
+    "doubled": "{count} kepingan tambahan!",
+    "hintShown": "Petunjuk: tembak bola yang dilingkari.",
+    "unavailable": "Belum ada iklan saat ini: tidak ada yang hilang, coba lagi nanti."
   }
 }

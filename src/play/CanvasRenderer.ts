@@ -64,6 +64,8 @@ export interface Scene {
   readonly time: number;
   /** White flash of the Colossus when it is hit, from 1 down to 0. */
   readonly colossusFlash: number;
+  /** Puzzle hint (§ 3.7): the ball to shoot at, circled; null without. */
+  readonly hint?: Vec2 | null;
 }
 
 /** Length of the aim guide without aim assistance, in board units. */
@@ -218,6 +220,7 @@ export class CanvasRenderer implements Renderer {
       scene.time,
     );
     if (scene.preview && scene.aim) this.drawPreview(scene.preview, radius, scene.time);
+    if (scene.hint) this.drawHint(scene.hint, radius, scene.time, scene.reducedMotion);
     game.chains.forEach((chain) => this.drawColossus(chain, scene));
     this.drawTrails(radius);
     for (const projectile of game.projectiles) {
@@ -452,6 +455,24 @@ export class CanvasRenderer implements Renderer {
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+  }
+
+  /** The hint's ball: two rings, the outer one breathing (still with reduced motion). */
+  private drawHint(at: Vec2, radius: number, time: number, still: boolean): void {
+    const { ctx, palette } = this;
+    const pulse = still ? 0 : 0.5 + 0.5 * Math.sin(time * 6);
+    ctx.save();
+    ctx.strokeStyle = palette.accent;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, radius * 1.45, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 0.35 + 0.4 * (1 - pulse);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, radius * (1.8 + 0.5 * pulse), 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
   }
 

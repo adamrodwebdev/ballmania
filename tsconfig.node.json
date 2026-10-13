@@ -6,7 +6,14 @@
     "types": ["node"],
     "strict": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "eslint.config.ts", "e2e/**/*.ts"]
+  "include": [
+    "vite.config.ts",
+    "src/platform/platforms.ts",
+    "playwright.config.ts",
+    "eslint.config.ts",
+    "e2e/**/*.ts"
+  ]
 }

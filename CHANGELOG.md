@@ -3,9 +3,31 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié]
+## [1.1.0] — 2026-10-13
+
+Lot 13 : le jeu se publie sur les portails de jeux, avec des publicités respectueuses ;
+notre site reste sans publicité.
 
 ### Ajouté
+
+- Builds par portail : `npm run build:crazygames`, `build:poki`, `build:gamedistribution`
+  (`build:portals` pour les trois), chacun dans `dist-<portail>/` avec le seul SDK de son
+  portail, chargé depuis son CDN. Le build de notre site ne contient aucun code de portail.
+- Adaptateurs CrazyGames (SDK v3 : publicités, sauvegarde dans le module de données,
+  langue, liens d'invitation, silence demandé par le portail), Poki (SDK v2) et
+  GameDistribution, derrière une interface `PlatformAdapter`.
+- Publicités récompensées, toujours au choix : continuer après une défaite (campagne et
+  Infini, une fois par partie, la chaîne recule), doubler les éclats d'une partie, indice
+  dans une énigme (bille à viser entourée), essayer un cosmétique de l'atelier pour une
+  partie.
+- Publicité entre deux parties au plus une fois toutes les 3 minutes, jamais pendant le
+  jeu ; temps et son arrêtés pendant une publicité.
+- Signaux de jeu aux portails : chargement terminé, début et fin de jeu, moments de joie
+  rares.
+- Portail simulé pour le développement (`npm run dev:portal`) et 5 parcours de bout en
+  bout du build portail ; tests unitaires des adaptateurs avec de faux SDK.
+- Le défi du jour partagé depuis un portail porte le lien du portail, ou aucun lien là où
+  ils sont interdits.
 
 - Navigation en cartes à faire glisser (Swiper) pour les mondes de la campagne et les modes
   Arcade : cartes voisines qui dépassent derrière la carte active, inclinées, billes et
