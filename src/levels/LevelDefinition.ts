@@ -5,6 +5,7 @@ import type { LevelSetup, MagnetSetup } from '@/engine/Game';
 import type { DuelSetup } from '@/engine/objectives/DuelObjective';
 import type { HazardSetup } from '@/engine/hazards/Hazards';
 import type { EndlessSetup } from '@/engine/objectives/EndlessObjective';
+import type { UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import type { RhythmSetup } from '@/engine/rhythm/Tempo';
 import { ForkedRoute, type RoutePart } from '@/engine/path/ForkedRoute';
 import type { ReflectorSetup } from '@/engine/reflectors/Reflectors';
@@ -107,6 +108,10 @@ export interface LevelDefinition {
   readonly hazards?: HazardSetup;
   /** Factor of the points (campaign difficulty). */
   readonly scoreFactor?: number;
+  /** The player's upgrades (campaign). */
+  readonly upgrades?: UpgradeRanks;
+  /** Star fragments cross the board (campaign). */
+  readonly fragments?: { readonly every: number };
   /** The ring the shooter glides along (Singularity world); `shooter` is then its start. */
   readonly orbit?: {
     readonly centre: Point;
@@ -181,6 +186,8 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
       : {}),
     ...(level.endless ? { endless: level.endless } : {}),
     ...(level.hazards ? { hazards: level.hazards } : {}),
+    ...(level.upgrades ? { upgrades: level.upgrades } : {}),
+    ...(level.fragments ? { fragments: level.fragments } : {}),
     ...(level.scoreFactor === undefined ? {} : { scoreFactor: level.scoreFactor }),
     ...(level.puzzle ? { puzzle: level.puzzle } : {}),
     ...(level.rhythm ? { rhythm: level.rhythm } : {}),

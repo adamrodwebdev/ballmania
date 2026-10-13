@@ -329,6 +329,10 @@
       "duel-hard": {
         "name": "Jagoan duel",
         "text": "Kalahkan lawan tangguh."
+      },
+      "stargazer": {
+        "name": "Pengamat bintang",
+        "text": "Kumpulkan {target} pecahan bintang."
       }
     }
   },
@@ -452,6 +456,82 @@
     "wind": {
       "name": "Angin sakal",
       "announce": "Embusan: tembakanmu melenceng dan laju rantai berubah."
+    }
+  },
+  "observatory": {
+    "title": "Observatorium",
+    "back": "Kembali",
+    "intro": "Tembak bintang jatuh untuk mengumpulkan pecahan bintang, lalu tingkatkan instrumenmu. Peningkatan berlaku di kampanye (tidak di tantangan harian maupun Arkade).",
+    "balance": "{count} pecahan",
+    "ready": "Peningkatan tersedia",
+    "buy": "Tingkatkan · {cost} pecahan",
+    "max": "Sudah maksimal",
+    "rank": "Tingkat {rank} dari {max}",
+    "bought": "{name}: tingkat {rank}",
+    "caught": "Belum ada pecahan | {count} pecahan bintang | {count} pecahan bintang"
+  },
+  "upgrades": {
+    "eye": {
+      "name": "Mata bintang",
+      "r1": "Garis bidik menunjukkan pantulan ke-3.",
+      "r2": "Dan pantulan ke-4.",
+      "r3": "Pratinjau juga menunjukkan reaksi berantai berikutnya."
+    },
+    "chronos": {
+      "name": "Chronos",
+      "r1": "Rantai 4% lebih lambat.",
+      "r2": "8% lebih lambat.",
+      "r3": "12% lebih lambat."
+    },
+    "shockwave": {
+      "name": "Gelombang kejut",
+      "r1": "Setiap ledakan mendorong rantai mundur 20 satuan.",
+      "r2": "40 satuan.",
+      "r3": "60 satuan."
+    },
+    "prism": {
+      "name": "Bola prisma",
+      "r1": "Setiap 20 tembakan, bola pelangi mengambil warna bola yang dikenainya.",
+      "r2": "Setiap 15 tembakan.",
+      "r3": "Setiap 10 tembakan."
+    },
+    "shield": {
+      "name": "Perisai panas",
+      "r1": "Saat badai matahari, kelompok berisi 4 tetap meledak.",
+      "r2": "Semua kelompok meledak.",
+      "r3": "Dan badai berlangsung separuh lebih singkat."
+    },
+    "icebreaker": {
+      "name": "Pemecah es",
+      "r1": "Dingin memperlambat tembakanmu sepertiga lebih sedikit.",
+      "r2": "Dua pertiga lebih sedikit.",
+      "r3": "Setiap ledakan memecahkan bola beku."
+    },
+    "anchor": {
+      "name": "Jangkar",
+      "r1": "Angin membelokkan tembakanmu 35% lebih sedikit.",
+      "r2": "70% lebih sedikit.",
+      "r3": "Angin tak lagi membelokkan tembakanmu."
+    },
+    "catcher": {
+      "name": "Penangkap bintang",
+      "r1": "Pecahan lebih sering muncul (+25%) dan lebih mudah dikenai.",
+      "r2": "+50%, makin mudah.",
+      "r3": "Dua kali lebih sering."
+    },
+    "nova": {
+      "name": "Nova",
+      "ready": "Nova siap!",
+      "r1": "30 bola hancur mengisi bom: tembakan berikutnya meledakkan semua di sekitarnya.",
+      "r2": "24 bola, ledakan lebih luas.",
+      "r3": "18 bola, ledakan raksasa."
+    },
+    "secondChance": {
+      "name": "Kesempatan kedua",
+      "used": "Kesempatan kedua: rantai didorong mundur!",
+      "r1": "Sekali per level, rantai yang mencapai lubang didorong mundur 15% lintasan.",
+      "r2": "25%.",
+      "r3": "35%."
     }
   }
 }

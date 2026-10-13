@@ -302,6 +302,9 @@ test('shows the colour mixes in the Jewel world, up to the Crystal Colossus', as
 });
 
 test('flips the switches of the Volcano world by touch and by keyboard', async ({ page }) => {
+  // Time stands still: the chain cannot reach (and lock) the first switch before the click.
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 1000);
   await page.addInitScript(() => {
     localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
     const levels: Record<string, { stars: number; best: number }> = {};

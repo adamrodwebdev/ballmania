@@ -1,5 +1,6 @@
 import type { GameReport } from '@/engine/Game';
 import type { HintId, WorldId } from '@/levels/campaign';
+import type { UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
@@ -11,6 +12,13 @@ import type { PlayRequest } from '../PlayRequest';
 export interface Message {
   readonly key: string;
   readonly params?: Readonly<Record<string, string | number>>;
+}
+
+/** What the player brings to a game: the assistance, the difficulty, the upgrades. */
+export interface PlayOptions {
+  readonly assisted: boolean;
+  readonly difficulty: Difficulty;
+  readonly upgrades: UpgradeRanks;
 }
 
 /** What a finished game earned, for the end dialog. */
@@ -48,8 +56,11 @@ export interface PlayMode {
   readonly home: 'campaign' | 'home' | 'arcade';
   /** Title of the end dialog. */
   outcome(won: boolean): Message;
-  /** The level for this board shape, slowed down when assisted, at the campaign difficulty. */
-  definition(frame: Frame, assisted: boolean, difficulty: Difficulty): LevelDefinition;
+  /**
+   * The level for this board shape: slowed down when assisted, at the
+   * campaign difficulty, with the player's upgrades (the campaign only).
+   */
+  definition(frame: Frame, options: PlayOptions): LevelDefinition;
   /** Saves the finished game and pays its rewards. */
   settle(report: GameReport, services: AppServices): Settlement;
   /** What to offer after a win, with its button label, if anything is open. */

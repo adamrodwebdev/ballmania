@@ -13,6 +13,7 @@ const emit = defineEmits<{
   play: [];
   daily: [challenge: DailyChallenge];
   arcade: [];
+  observatory: [];
   shop: [];
   achievements: [];
 }>();
@@ -90,6 +91,17 @@ const ORBS = [
         <small>
           {{ t('arcade.open', { count: openModes, total: ARCADE_MODES.length }) }}
         </small>
+      </button>
+      <button class="btn" type="button" data-testid="observatory" @click="emit('observatory')">
+        <span>
+          {{ t('observatory.title') }}
+          <span v-if="player.upgradeAffordable" class="badge" data-testid="upgrade-ready">
+            {{ t('observatory.ready') }}
+          </span>
+        </span>
+        <small>{{
+          t('observatory.balance', { count: number.format(player.view.fragments) })
+        }}</small>
       </button>
       <button class="btn" type="button" data-testid="shop" @click="emit('shop')">
         <span>{{ t('shop.title') }}</span>
@@ -202,6 +214,18 @@ const ORBS = [
   gap: var(--space-3);
   width: min(100%, 34rem);
   margin-top: var(--space-2);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--orb-cyan);
+  color: #04131a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  vertical-align: middle;
 }
 
 .main {

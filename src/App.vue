@@ -13,6 +13,7 @@ const CampaignScreen = defineAsyncComponent(() => import('@/ui/screens/CampaignS
 const GameScreen = defineAsyncComponent(() => import('@/ui/screens/GameScreen.vue'));
 const ShopScreen = defineAsyncComponent(() => import('@/ui/screens/ShopScreen.vue'));
 const ArcadeScreen = defineAsyncComponent(() => import('@/ui/screens/ArcadeScreen.vue'));
+const ObservatoryScreen = defineAsyncComponent(() => import('@/ui/screens/ObservatoryScreen.vue'));
 const AchievementsScreen = defineAsyncComponent(
   () => import('@/ui/screens/AchievementsScreen.vue'),
 );
@@ -21,6 +22,7 @@ type Screen =
   | { readonly kind: 'home' }
   | { readonly kind: 'campaign' }
   | { readonly kind: 'arcade' }
+  | { readonly kind: 'observatory'; readonly from: 'home' | 'campaign' }
   | { readonly kind: 'shop' }
   | { readonly kind: 'achievements' }
   | { readonly kind: 'game'; readonly request: PlayRequest; readonly id: number };
@@ -77,6 +79,7 @@ watchEffect(() => {
       <HomeScreen
         @play="campaign"
         @arcade="arcade"
+        @observatory="show({ kind: 'observatory', from: 'home' })"
         @daily="(challenge) => play({ kind: 'daily', challenge })"
         @shop="show({ kind: 'shop' })"
         @achievements="show({ kind: 'achievements' })"
@@ -87,7 +90,14 @@ watchEffect(() => {
     </footer>
   </template>
   <main v-else-if="screen.kind === 'campaign'" id="main" tabindex="-1">
-    <CampaignScreen @play="playLevel" @home="home" />
+    <CampaignScreen
+      @play="playLevel"
+      @home="home"
+      @observatory="show({ kind: 'observatory', from: 'campaign' })"
+    />
+  </main>
+  <main v-else-if="screen.kind === 'observatory'" id="main" tabindex="-1">
+    <ObservatoryScreen @back="screen.from === 'campaign' ? campaign() : home()" />
   </main>
   <main v-else-if="screen.kind === 'arcade'" id="main" tabindex="-1">
     <ArcadeScreen @play="play" @home="home" />

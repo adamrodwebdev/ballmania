@@ -6,9 +6,9 @@ import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
 import { DIFFICULTIES } from '@/levels/difficulty';
 import StarRow from '@/ui/components/StarRow.vue';
 
-const emit = defineEmits<{ play: [level: CampaignLevel]; home: [] }>();
+const emit = defineEmits<{ play: [level: CampaignLevel]; home: []; observatory: [] }>();
 const { t } = useI18n();
-const { progress, settings } = useServices();
+const { progress, settings, player } = useServices();
 
 const order = CAMPAIGN.map((level) => level.id);
 
@@ -36,6 +36,15 @@ const worlds = computed(() =>
         <span>{{ t('campaign.back') }}</span>
       </button>
       <h1 id="campaign-title">{{ t('campaign.title') }}</h1>
+      <button
+        class="btn observatory"
+        type="button"
+        data-testid="observatory"
+        @click="emit('observatory')"
+      >
+        <span>{{ t('observatory.title') }}</span>
+        <span v-if="player.upgradeAffordable" class="badge">{{ t('observatory.ready') }}</span>
+      </button>
     </div>
 
     <fieldset class="difficulty">
@@ -224,6 +233,20 @@ h2 {
   font-family: var(--font-display);
   font-size: 1.35rem;
 }
+.observatory {
+  flex-direction: row;
+  margin-left: auto;
+}
+
+.badge {
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--orb-cyan);
+  color: #04131a;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
 .difficulty {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));

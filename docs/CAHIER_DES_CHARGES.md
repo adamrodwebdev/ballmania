@@ -781,6 +781,22 @@ Livré à l'étape 11.2 :
       repoussée de 15, 25 puis 35 % du tracé.
 - Une pastille signale **sur l'accueil et la carte** qu'une amélioration est abordable.
 
+Livré à l'étape 11.3 :
+
+- Une étoile filante traverse le plateau toutes les 9 s environ (de 4,5 à 7 s avec
+  l'Attrape-étoiles), en ligne droite, d'un bord vers le centre ; un tir qui passe à moins
+  de 40 unités (55 à 85 avec l'Attrape-étoiles) la récolte et continue sa course. Compteur
+  « ✦ » en jeu, « +n fragments d'étoiles » au bilan ; sauvegardés dans le profil du joueur.
+- **Coûts** : 5, 12 puis 25 fragments par rang (42 par amélioration, 420 pour tout).
+- Effets précis : Œil stellaire (3, puis 4 rebonds sur la ligne de visée ; au rang 3,
+  l'aperçu entoure en pointillés les billes de la réaction en chaîne qui suivra) ; Nova
+  (30, 24, 18 billes pour charger ; rayon 90, 120, 150 ; les billes détruites par la bombe
+  ne rechargent pas la suivante) ; Seconde chance (repousse la chaîne qui atteint le trou,
+  une fois par niveau).
+- Objectif « Astronome » : récolter 30 fragments, 80 éclats (28 objectifs).
+- Les améliorations ne servent qu'en campagne ; le robot d'équilibrage joue sans elles :
+  l'équilibrage reste celui d'un joueur qui n'a rien acheté.
+
 #### 11.4 Design et animations
 
 - **Fin de niveau** : les dernières billes partent en traînées de particules vers le trou

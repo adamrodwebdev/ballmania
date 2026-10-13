@@ -176,6 +176,15 @@ export class Chain {
     return explosions;
   }
 
+  /** A bomb (Nova upgrade): takes out every ball within `radius` of `point`. */
+  extractWithin(point: Vec2, radius: number): Ball[] {
+    const balls = this.items.filter(
+      (ball) => ball.s >= 0 && this.path.pointAt(ball.s).distanceTo(point) <= radius,
+    );
+    for (const ball of balls) this.items.splice(this.items.indexOf(ball), 1);
+    return balls;
+  }
+
   /** Biting cold: frosts these balls. */
   freeze(balls: readonly BallView[]): void {
     for (const ball of this.items) if (balls.includes(ball)) ball.frozen = true;

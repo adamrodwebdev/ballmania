@@ -27,12 +27,14 @@ import {
   type WeatherKind,
 } from './hazards/Hazards';
 import { Gravity, type GravitySetup } from './orbit/Gravity';
+import { StarFragments, type Fragment } from './upgrades/StarFragments';
+import { Upgrades, type UpgradeRanks } from './upgrades/Upgrades';
 import { Orbit, type OrbitSetup } from './orbit/Orbit';
 import type { Branch, ForkSpan, ForkedRoute } from './path/ForkedRoute';
 import type { Path } from './path/Path';
 import { Reflectors, type ReflectorSetup } from './reflectors/Reflectors';
 import { Scoring } from './Scoring';
-import type { Projectile, ProjectileView } from './shooter/Projectile';
+import type { Projectile, ProjectileSpecial, ProjectileView } from './shooter/Projectile';
 import { Shooter } from './shooter/Shooter';
 
 export interface ChainSetup {
@@ -95,6 +97,10 @@ export interface LevelSetup {
   readonly hazards?: HazardSetup;
   /** Every explosion's points are multiplied by this (campaign difficulty); 1 by default. */
   readonly scoreFactor?: number;
+  /** The Observatory's upgrades the player owns (campaign, § 3.9). */
+  readonly upgrades?: UpgradeRanks;
+  /** Star fragments cross the board every `every` seconds, on average (campaign). */
+  readonly fragments?: { readonly every: number };
 }
 
 export interface MagnetSetup {
@@ -134,6 +140,8 @@ export interface GameReport {
   readonly stage: number;
   /** The rival's score (Duel mode; 0 elsewhere). */
   readonly rivalScore: number;
+  /** Star fragments caught. */
+  readonly fragments: number;
   /** Furthest any chain head got, as a share of its track (1 = the hole). */
   readonly danger: number;
   readonly colossusDefeated: boolean;
@@ -152,6 +160,14 @@ export interface GameEvents {
   meteor: { readonly chain: number; readonly ball: BallView; readonly position: Vec2 };
   /** An episode of weather starts or ends. */
   weather: { readonly kind: WeatherKind; readonly active: boolean; readonly massive: boolean };
+  /** A shot caught a star fragment. */
+  fragment: { readonly position: Vec2 };
+  /** A bomb (Nova upgrade) went off. */
+  bomb: { readonly position: Vec2; readonly radius: number };
+  /** The Nova bomb is ready: the next shot is a bomb. */
+  novaReady: Record<string, never>;
+  /** Second chance (upgrade): the chain reached the hole and was pushed back, once. */
+  secondChance: { readonly chain: number };
   /** Endless mode: a new stage, faster and maybe with one more colour. */
   stage: { readonly stage: number; readonly tones: number };
   bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
@@ -239,6 +255,14 @@ export class Game {
   private beatIndex = 0;
   private shotsFired = 0;
   private readonly random: RandomSource;
+  /** The Observatory's upgrades (§ 3.9). */
+  readonly upgrades: Upgrades;
+  private readonly starFragments: StarFragments | null;
+  private fragmentsCaught = 0;
+  private novaCharge = 0;
+  private secondChanceUsed = false;
+  /** A bomb is going off: its balls do not charge the next one. */
+  private bombing = false;
   private readonly arrhythmia: Arrhythmia | null;
   private readonly meteors: MeteorShower | null;
   private readonly weatherSystem: Weather | null;
@@ -272,6 +296,10 @@ export class Game {
     random: RandomSource,
   ) {
     this.random = random;
+    this.upgrades = new Upgrades(setup.upgrades);
+    this.starFragments = setup.fragments
+      ? new StarFragments(setup.fragments.every * this.upgrades.fragmentEvery, setup.board, random)
+      : null;
     const hazards = setup.hazards;
     this.arrhythmia = hazards?.arrhythmia ? new Arrhythmia(hazards.arrhythmia) : null;
     this.meteors = hazards?.meteors ? new MeteorShower(hazards.meteors, random) : null;
@@ -285,6 +313,7 @@ export class Game {
         : Chain.placed(path, balls, setup.chain, tail);
     });
     this.lastShooter = this.chains.map(() => 'player');
+    for (const chain of this.chains) chain.setPace(this.upgrades.chronos);
     this.tempo = setup.rhythm ? new Tempo(setup.rhythm) : null;
     this.routes = setup.chains.map(({ route }) => {
       if (!route) return null;
@@ -346,18 +375,37 @@ export class Game {
   private get shotSpeedFactor(): number {
     const weather = this.weather;
     if (weather?.kind !== 'cold') return 1;
-    return Math.max(0.4, 1 - COLD_SLOWDOWN * this.strength);
+    return Math.max(0.4, 1 - COLD_SLOWDOWN * this.strength * this.upgrades.coldSlowdown);
   }
 
   /** Sideways pull of the wind on shots now, or null. */
   private get windPull(): Vec2 | null {
     const weather = this.weather;
     if (weather?.kind !== 'wind') return null;
-    return new Vec2(weather.direction * WIND_PULL * this.strength, 0);
+    const pull = WIND_PULL * this.strength * this.upgrades.windPull;
+    return pull === 0 ? null : new Vec2(weather.direction * pull, 0);
   }
 
   private get strength(): number {
     return this.setup.hazards?.weather?.strength ?? 1;
+  }
+
+  /** Star fragments crossing the board now. */
+  get fragments(): readonly Fragment[] {
+    return this.starFragments?.fragments ?? [];
+  }
+
+  /** Nova upgrade: how charged the bomb is, from 0 to 1, or null without it. */
+  get nova(): number | null {
+    const needed = this.upgrades.novaBalls;
+    return needed === null ? null : Math.min(1, this.novaCharge / needed);
+  }
+
+  /** What the loaded ball is: a bomb (Nova), a rainbow ball (prism), or a plain ball. */
+  get loadedSpecial(): ProjectileSpecial {
+    if (this.nova === 1) return 'bomb';
+    const every = this.upgrades.prismEvery;
+    return every !== null && (this.shotsFired + 1) % every === 0 ? 'wild' : null;
   }
 
   /** Shots left in Puzzle mode, or null without a limit. */
@@ -440,34 +488,63 @@ export class Game {
   preview(power = false): {
     readonly position: Vec2;
     readonly group: readonly Vec2[];
+    readonly reaction: readonly Vec2[];
   } | null {
-    const target = this.trace(2, power).target;
+    const target = this.trace(this.upgrades.aimBounces, power).target;
     if (!target) return null;
     const chain = this.chains[target.chain]!;
     const balls = chain.balls;
     const touched = balls[target.index]!;
-    const tone = this.shooter.current;
-    if (this.setup.alchemy && mix(tone, touched.tone) !== null) return null;
     const diameter = chain.diameter;
     // Between the touched ball and its neighbour, where the shot wedges itself in.
     const position = chain.path.pointAt(touched.s + (target.after ? diameter : -diameter) / 2);
+    const special = this.loadedSpecial;
+    if (special === 'bomb') {
+      // A bomb: every ball within its radius.
+      const radius = this.upgrades.novaRadius;
+      const group = this.chains.flatMap((other) =>
+        other.balls
+          .filter((ball) => ball.s >= 0 && other.positionOf(ball).distanceTo(position) <= radius)
+          .map((ball) => other.positionOf(ball)),
+      );
+      return { position, group, reaction: [] };
+    }
+    const tone = special === 'wild' ? touched.tone : this.shooter.current;
+    if (special !== 'wild' && this.setup.alchemy && mix(tone, touched.tone) !== null) return null;
     const touching = (a: number, b: number) =>
       Math.abs(balls[b]!.s - balls[a]!.s) <= diameter + 1e-6;
-    const group: Vec2[] = [];
+    /** Indexes of the touching balls of `colour` from `from`, going one way. */
+    const run = (from: number, step: 1 | -1, colour: number): number[] => {
+      const found: number[] = [];
+      for (let i = from; i >= 0 && i < balls.length && balls[i]!.tone === colour; i += step) {
+        if (i !== from && !touching(Math.min(i, i - step), Math.max(i, i - step))) break;
+        found.push(i);
+      }
+      return found;
+    };
     // The ball before the new one is the touched one when it lands after it.
-    let behind = target.after ? target.index : target.index - 1;
-    for (let i = behind; i >= 0 && balls[i]!.tone === tone; i--) {
-      if (i < behind && !touching(i, i + 1)) break;
-      group.push(chain.positionOf(balls[i]!));
-      behind = i;
+    const behind = run(target.after ? target.index : target.index - 1, -1, tone);
+    const ahead = run(target.after ? target.index + 1 : target.index, 1, tone);
+    const indexes = [...behind, ...ahead];
+    if (indexes.length + 1 < this.setup.chain.minMatch) {
+      return { position, group: [], reaction: [] };
     }
-    const ahead = target.after ? target.index + 1 : target.index;
-    for (let i = ahead; i < balls.length && balls[i]!.tone === tone; i++) {
-      if (i > ahead && !touching(i - 1, i)) break;
-      group.push(chain.positionOf(balls[i]!));
+    const group = indexes.map((i) => chain.positionOf(balls[i]!));
+    // Œil stellaire, rank 3: the two sides that meet next, if they explode in turn.
+    let reaction: Vec2[] = [];
+    if (this.upgrades.reactionPreview) {
+      const low = Math.min(...indexes, target.after ? target.index + 1 : target.index) - 1;
+      const high = Math.max(...indexes, target.after ? target.index : target.index - 1) + 1;
+      const left = balls[low];
+      const right = balls[high];
+      if (left && right && left.tone === right.tone) {
+        const joined = [...run(low, -1, left.tone), ...run(high, 1, right.tone)];
+        if (joined.length >= this.setup.chain.minMatch) {
+          reaction = joined.map((i) => chain.positionOf(balls[i]!));
+        }
+      }
     }
-    const enough = group.length + 1 >= this.setup.chain.minMatch;
-    return { position, group: enough ? group : [] };
+    return { position, group, reaction };
   }
 
   /** The ring the shooter glides along, or null when it stands still. */
@@ -638,6 +715,7 @@ export class Game {
       bestGroove: this.bestGroove,
       stage: this.stage ?? 0,
       rivalScore: this.rivalScoring.score,
+      fragments: this.fragmentsCaught,
       danger: this.danger,
       colossusDefeated: this.stateValue === 'won' && this.setup.colossus !== undefined,
     };
@@ -655,11 +733,14 @@ export class Game {
    */
   fire(power = false): boolean {
     if (this.stateValue !== 'playing' || this.shotsLeft === 0) return false;
+    const special = this.loadedSpecial;
     const projectile = this.shooter.fire(
       this.shooterTones(),
       (power ? POWER_SPEED : 1) * this.shotSpeedFactor,
+      special,
     );
     if (!projectile) return false;
+    if (special === 'bomb') this.novaCharge = 0;
     this.shotsFired++;
     this.flying.push(projectile);
     this.events.emit('fired', { projectile });
@@ -691,12 +772,17 @@ export class Game {
 
   /** Falling balls, arrhythmia and weather (§ 3.9). */
   private applyHazards(dt: number): void {
-    const change = this.weatherSystem?.update(dt) ?? {};
+    const change =
+      this.weatherSystem?.update(dt, (kind) =>
+        kind === 'solar' ? this.upgrades.solarDuration : 1,
+      ) ?? {};
+    this.starFragments?.update(dt);
     if (change.started) this.startWeather(change.started);
     if (change.ended) this.endWeather(change.ended);
     const weather = this.weather;
     const wind = weather?.kind === 'wind' ? 1 + weather.direction * WIND_PACE * this.strength : 1;
-    const pace = (this.arrhythmia?.pace(this.elapsedValue) ?? 1) * Math.max(0.3, wind);
+    const pace =
+      (this.arrhythmia?.pace(this.elapsedValue) ?? 1) * Math.max(0.3, wind) * this.upgrades.chronos;
     if (this.arrhythmia || this.weatherSystem) for (const chain of this.chains) chain.setPace(pace);
     if (this.meteors?.update(dt)) this.aimMeteor();
     for (let i = this.falling.length - 1; i >= 0; i--) {
@@ -710,7 +796,7 @@ export class Game {
 
   private startWeather(episode: WeatherEpisode): void {
     if (episode.kind === 'solar') {
-      for (const chain of this.chains) chain.setImmunity(Infinity);
+      for (const chain of this.chains) chain.setImmunity(this.upgrades.solarImmunity);
     } else if (episode.kind === 'cold') {
       for (const chain of this.chains) {
         const visible = chain.balls.filter((ball) => ball.s >= 0 && ball.s <= chain.path.length);
@@ -833,6 +919,13 @@ export class Game {
       }
       const wind = this.windPull;
       if (wind && !projectile.powered) projectile.accelerate(wind, dt);
+      if (this.starFragments && projectile.by === 'player') {
+        const caught = this.starFragments.catchAt(projectile.position, this.upgrades.fragmentReach);
+        if (caught) {
+          this.fragmentsCaught++;
+          this.events.emit('fragment', { position: caught.position });
+        }
+      }
       projectile.move(dt);
       const bounce = this.reflectors.bounce(
         projectile.position,
@@ -861,9 +954,15 @@ export class Game {
       const chain = this.chains[index]!;
       const hit = chain.hitTest(projectile.position);
       if (!hit) continue;
-      if (this.fuse(index, chain, hit.index, projectile)) return true;
+      if (projectile.special === 'bomb') {
+        this.explodeBomb(projectile.position);
+        return true;
+      }
+      const wild = projectile.special === 'wild';
+      if (!wild && this.fuse(index, chain, hit.index, projectile)) return true;
       this.lastShooter[index] = projectile.by;
-      const ball = this.balls.create(projectile.tone);
+      // A rainbow ball takes the colour of the ball it touches.
+      const ball = this.balls.create(wild ? chain.balls[hit.index]!.tone : projectile.tone);
       const explosion = chain.insert(ball, hit);
       this.events.emit('inserted', { chain: index, ball, from: projectile.position });
       if (explosion) {
@@ -873,6 +972,19 @@ export class Game {
       return true;
     }
     return false;
+  }
+
+  /** Nova: every ball within the bomb's radius goes up, whatever its colour. */
+  private explodeBomb(position: Vec2): void {
+    const radius = this.upgrades.novaRadius;
+    this.events.emit('bomb', { position, radius });
+    this.bombing = true;
+    this.chains.forEach((chain, index) => {
+      const balls = chain.extractWithin(position, radius);
+      this.lastShooter[index] = 'player';
+      if (balls.length > 0) this.report(index, chain, { balls, cause: 'shot', depth: 1 });
+    });
+    this.bombing = false;
   }
 
   /** A shot that exploded balls after gravity bent it hard enough counts as a curve. */
@@ -952,14 +1064,29 @@ export class Game {
       by,
     });
     this.objective.onExplosion(this.context, index, explosion, by);
-    if (by === 'player') this.rechargeMagnet();
+    if (by === 'player') {
+      this.rechargeMagnet();
+      this.chargeNova(explosion.balls.length);
+      if (this.upgrades.shockwave > 0 && this.stateValue === 'playing') {
+        chain.shift(-this.upgrades.shockwave);
+      }
+    }
     // Biting cold: a chain reaction shatters every frozen ball as well.
-    if (this.weather?.kind === 'cold' && explosion.depth >= 2) {
+    const shatters = explosion.depth >= 2 || this.upgrades.shatterOnAnyExplosion;
+    if (this.weather?.kind === 'cold' && shatters) {
       this.chains.forEach((other, i) => {
         const shattered = other.shatterFrozen(explosion.depth + 1);
         if (shattered) this.report(i, other, shattered);
       });
     }
+  }
+
+  /** Nova: exploded balls charge the bomb; full, the next shot is one. */
+  private chargeNova(balls: number): void {
+    const needed = this.upgrades.novaBalls;
+    if (needed === null || this.novaCharge >= needed || this.bombing) return;
+    this.novaCharge += balls;
+    if (this.novaCharge >= needed) this.events.emit('novaReady', {});
   }
 
   /** Every few explosions, the magnet gets a charge back. */
@@ -973,9 +1100,22 @@ export class Game {
   }
 
   private checkEnd(): void {
-    if (this.chains.some((chain) => chain.reachedHole)) this.end('lost');
+    const reached = this.chains.findIndex((chain) => chain.reachedHole);
+    if (reached >= 0 && this.useSecondChance(reached)) return;
+    if (reached >= 0) this.end('lost');
     else if (this.objective.isComplete(this.context)) this.end('won');
     else if (this.objective.isFailed?.(this.context)) this.end('lost');
+  }
+
+  /** Second chance (upgrade): once a level, the chain is pushed back instead of losing. */
+  private useSecondChance(index: number): boolean {
+    const share = this.upgrades.secondChance;
+    if (share === 0 || this.secondChanceUsed) return false;
+    this.secondChanceUsed = true;
+    const chain = this.chains[index]!;
+    chain.shift(-chain.path.length * share);
+    this.events.emit('secondChance', { chain: index });
+    return true;
   }
 
   private end(outcome: 'won' | 'lost'): void {

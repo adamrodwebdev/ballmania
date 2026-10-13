@@ -100,7 +100,7 @@ export class Weather {
   /** Advances the weather; returns the episode that started or ended this step, if any. */
   update(
     dt: number,
-    durationFactor = 1,
+    durationFactor: (kind: WeatherKind) => number = () => 1,
   ): { readonly started?: WeatherEpisode; readonly ended?: WeatherEpisode } {
     if (this.episode) {
       this.episode.left -= dt;
@@ -113,7 +113,7 @@ export class Weather {
     this.calm -= dt;
     if (this.calm > 0 || this.setup.kinds.length === 0) return {};
     const kind = this.setup.kinds[this.turn++ % this.setup.kinds.length]!;
-    const duration = this.setup.duration * durationFactor;
+    const duration = this.setup.duration * durationFactor(kind);
     this.episode = {
       kind,
       duration,
