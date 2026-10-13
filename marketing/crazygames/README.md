@@ -58,22 +58,6 @@ cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes 
 > - Colour-blind friendly: every colour carries a symbol
 > - Plays in English, French and Indonesian
 
-Version française, si le formulaire propose d'autres langues :
-
-> **Ballmania** réinvente le tir de billes. Une chaîne de billes de verre roule vers le
-> trou : tirez des billes pour former des groupes de trois de la même couleur et regardez-les
-> voler en éclats dans des réactions en chaîne spectaculaires.
->
-> Traversez six mondes, chacun avec sa mécanique : ricochets sur des miroirs néon, aimant
-> des abysses, mélange des couleurs en Joaillerie, aiguillages de lave dans le Volcan, tirs
-> courbés autour d'un trou noir. Chaque monde se termine par un Colosse.
->
-> Attrapez des fragments d'étoiles pour débloquer dix améliorations à l'Observatoire,
-> gagnez des éclats pour personnaliser lanceur, traînées et explosions, et affrontez pluies
-> de météores, tempêtes solaires, froid mordant et vents contraires. Débloquez en chemin
-> quatre modes Arcade : Infini, Énigmes (avec l'énigme du jour), Rythme et Duel contre un
-> rival, plus un défi du jour.
-
 ## Commandes (à coller, en anglais)
 
 > **Mouse / keyboard**

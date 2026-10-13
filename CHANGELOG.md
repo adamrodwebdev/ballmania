@@ -8,7 +8,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 ### Ajouté
 
 - Kit de soumission CrazyGames (`marketing/crazygames/`) : description et commandes en
-  anglais et en français, trois couvertures (16:9, 2:3, 1:1) dessinées avec les billes du
+  anglais, trois couvertures (16:9, 2:3, 1:1) dessinées avec les billes du
   jeu, deux vidéos de 20 s au plus (paysage 1080p, portrait 2:3) tournées image par image
   par le moteur, réponses du formulaire. `npm run kit:crazygames` les régénère.
 - Icône vidéo sur chaque bouton de publicité récompensée ; message dans la page quand un
