@@ -8,7 +8,7 @@ import { ARCADE_MODES } from '@/levels/arcade/modes';
 import { DailyChallenge } from '@/player/DailyChallenge';
 
 const { t, locale } = useI18n();
-const { player, today } = useServices();
+const { player, progress, today } = useServices();
 const emit = defineEmits<{
   play: [];
   daily: [challenge: DailyChallenge];
@@ -22,6 +22,9 @@ const challenge = DailyChallenge.of(today());
 const record = computed(() => player.daily(challenge.day));
 const number = computed(() => new Intl.NumberFormat(locale.value));
 const worldOf = (id: string) => WORLDS.findIndex((world) => world.id === id) + 1;
+const ORDER = WORLDS.flatMap((world) => world.levels.map((level) => level.id));
+/** Stars won in the campaign, out of three per level. */
+const stars = computed(() => progress.totalStars(ORDER));
 const openModes = computed(
   () => ARCADE_MODES.filter((mode) => player.view.worlds.includes(mode.unlockedBy)).length,
 );
@@ -59,6 +62,15 @@ const ORBS = [
     <h1 id="home-title" class="title">{{ t('app.name') }}</h1>
     <p class="tagline">{{ t('home.tagline') }}</p>
     <p class="pitch">{{ t('home.pitch') }}</p>
+    <p class="wallet" data-testid="stars-total">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"
+        />
+      </svg>
+      {{ t('campaign.stars', { count: stars, total: ORDER.length * 3 }) }}
+    </p>
     <p class="wallet" data-testid="wallet">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
         <path fill="currentColor" d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z" />

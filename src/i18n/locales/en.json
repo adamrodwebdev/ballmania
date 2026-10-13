@@ -67,7 +67,8 @@
     "map": "Campaign map",
     "homeButton": "Home",
     "campaignDone": "Campaign complete: all six worlds are yours!",
-    "arcadeButton": "Arcade"
+    "arcadeButton": "Arcade",
+    "starsGained": "+{count} stars | +{count} star | +{count} stars"
   },
   "effects": {
     "spectacular": {

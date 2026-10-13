@@ -4,6 +4,8 @@ import { mix } from '@/engine/chain/Alchemy';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import { BlackHole } from './BlackHole';
+import { withAlpha } from './themes/WorldTheme';
+import { Ambience } from './themes/Ambience';
 import { WeatherLayer } from './WeatherLayer';
 import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
@@ -45,6 +47,17 @@ export interface Scene {
   readonly charge: number;
   /** Recoil of the shooter after a shot, from 1 down to 0. */
   readonly recoil: number;
+  /** The player asked for less motion: the backdrop stays still. */
+  readonly reducedMotion: boolean;
+  /**
+   * After a win, the hole swallowing the board: where, how far along (0 to
+   * 1), and whether to fade instead of spinning (reduced motion).
+   */
+  readonly swallow: {
+    readonly at: Vec2;
+    readonly progress: number;
+    readonly reducedMotion: boolean;
+  } | null;
   /** The magnet is armed: the next "shot" pulls the aimed ball instead. */
   readonly magnetArmed: boolean;
   /** Seconds since the session started, for pulsing details. */
@@ -88,6 +101,7 @@ export class CanvasRenderer implements Renderer {
   private readonly blackHole: BlackHole | null;
   /** Hazards: weather, falling balls, arrhythmia (§ 3.9). */
   private readonly weather: WeatherLayer;
+  private readonly ambience: Ambience;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -102,6 +116,7 @@ export class CanvasRenderer implements Renderer {
     this.sprites = new BallSprites(() => document.createElement('canvas'));
     this.blackHole = game.gravity ? new BlackHole(game.gravity, game.ring) : null;
     this.weather = new WeatherLayer(game);
+    this.ambience = new Ambience(look.theme.ambience);
   }
 
   resize(width: number, height: number, pixelRatio: number): void {
@@ -153,15 +168,25 @@ export class CanvasRenderer implements Renderer {
 
   draw(scene: Scene): void {
     const { ctx, palette } = this;
+    const swallow = this.swallowMatrix(scene);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (swallow) {
+      // Behind the board being swallowed: the void.
+      ctx.fillStyle = palette.hole;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.setTransform(swallow);
+    }
     if (this.background) ctx.drawImage(this.background, 0, 0);
     else {
       ctx.fillStyle = palette.board;
       ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
+    if (!scene.reducedMotion) {
+      this.ambience.draw(ctx, this.canvas.width, this.canvas.height, palette, scene.time);
+    }
     const k = this.scale * this.pixelRatio;
     const shake = scene.destruction.shakeOffset;
-    ctx.setTransform(
+    ctx.transform(
       k,
       0,
       0,
@@ -208,6 +233,7 @@ export class CanvasRenderer implements Renderer {
     this.drawShooter(radius, scene);
     scene.destruction.draw(ctx, palette, this.sprites);
 
+    if (scene.swallow && scene.swallow.progress > 0) this.drawSwallowed(scene.swallow);
     const flash = scene.destruction.flash;
     if (flash.amount > 0) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -216,6 +242,51 @@ export class CanvasRenderer implements Renderer {
       ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       ctx.globalAlpha = 1;
     }
+  }
+
+  /**
+   * The board spinning down into the hole after a win (in device pixels), or
+   * null before it starts and with reduced motion.
+   */
+  private swallowMatrix(scene: Scene): DOMMatrix | null {
+    const swallow = scene.swallow;
+    if (!swallow || swallow.progress <= 0 || swallow.reducedMotion) return null;
+    const t = swallow.progress;
+    const eased = t * t * (3 - 2 * t);
+    const hole = this.toDevice(swallow.at);
+    return new DOMMatrix()
+      .translate(hole.x, hole.y)
+      .rotate(eased * 540)
+      .scale(Math.max(0.001, 1 - eased))
+      .translate(-hole.x, -hole.y);
+  }
+
+  /** Over the swallowed board: the hole's glow closing; a plain fade with reduced motion. */
+  private drawSwallowed(swallow: NonNullable<Scene['swallow']>): void {
+    const { ctx, palette } = this;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (swallow.reducedMotion) {
+      ctx.globalAlpha = swallow.progress;
+      ctx.fillStyle = palette.board;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    } else {
+      const hole = this.toDevice(swallow.at);
+      const reach = Math.hypot(this.canvas.width, this.canvas.height);
+      const glow = ctx.createRadialGradient(
+        hole.x,
+        hole.y,
+        0,
+        hole.x,
+        hole.y,
+        reach * (1 - swallow.progress) + 1,
+      );
+      glow.addColorStop(0, withAlpha(palette.accent, 0.8 * (1 - swallow.progress)));
+      glow.addColorStop(1, withAlpha(palette.accent, 0));
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    ctx.restore();
   }
 
   private rebuildSprites(): void {

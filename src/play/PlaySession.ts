@@ -87,6 +87,9 @@ export interface Feedback {
 
 /** Real seconds between the end of a game and the result dialog. */
 const RESULT_DELAY = 1.6;
+/** After a win: seconds of debris spiralling into the hole, then of the board swallowed. */
+const VORTEX_TIME = 0.7;
+const SWALLOW_TIME = 1.3;
 /** Speed at which a lost chain is swallowed by the hole, in units per second. */
 const DRAIN_SPEED = 1400;
 /** Share of the track from which the heart starts beating. */
@@ -119,6 +122,8 @@ export class PlaySession {
   private reactions = 0;
   private switchSerial = 0;
   private tugIn = 0;
+  /** After a win: the hole that swallows the board, and the seconds since the win. */
+  private swallow: { readonly at: Vec2; elapsed: number } | null = null;
   private size = { width: 1, height: 1, pixelRatio: 1 };
   private colossusFlash = 0;
   private readonly canvas: HTMLCanvasElement;
@@ -200,6 +205,7 @@ export class PlaySession {
     this.motion = new BallMotion();
     this.destruction = this.createDestruction();
     this.overIn = null;
+    this.swallow = null;
     this.feedback.sound.resume();
     Object.assign(this.hud, this.initialHud());
   }
@@ -454,7 +460,11 @@ export class PlaySession {
       this.hud.bestDepth = game.bestDepth;
       this.overIn = RESULT_DELAY;
       if (outcome === 'won') {
-        this.destruction.finale(game.shooter.position, [0, 1, 2, 3, 4, 5], this.palette.accent);
+        // The hole (or the black hole) swallows what is left, then the board.
+        const hole = game.gravity?.centre ?? game.chains[0]?.path.end ?? game.shooter.position;
+        this.swallow = { at: hole, elapsed: 0 };
+        this.overIn = VORTEX_TIME + SWALLOW_TIME;
+        this.destruction.vortex(hole, game.setup.board, [0, 1, 2, 3, 4, 5]);
         if (this.profile.slowMotion) this.warp.trigger(0.35, 0.4, 0.5);
         sound.win();
         haptics.win();
@@ -513,6 +523,7 @@ export class PlaySession {
     const dt = this.warp.update(realDt);
     this.time += dt;
     this.recoil = Math.max(0, this.recoil - RECOIL_FADE * realDt);
+    if (this.swallow) this.swallow.elapsed += realDt;
     if (this.charging !== null) {
       this.charging += realDt;
       if (!this.chargedOnce && this.charging >= CHARGE_TIME) {
@@ -591,6 +602,12 @@ export class PlaySession {
       assist: this.aimAssist,
       charge: this.charging === null ? 0 : Math.min(1, this.charging / CHARGE_TIME),
       recoil: this.recoil,
+      reducedMotion: this.profile.reducedMotion,
+      swallow: this.swallow && {
+        at: this.swallow.at,
+        progress: Math.min(1, Math.max(0, (this.swallow.elapsed - VORTEX_TIME) / SWALLOW_TIME)),
+        reducedMotion: this.profile.reducedMotion,
+      },
       magnetArmed: this.hud.magnetArmed,
       time: this.time,
       colossusFlash: this.colossusFlash,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, shallowRef, watch, watchEffect } from 'vue';
+import { defineAsyncComponent, ref, shallowRef, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { loadMessages } from '@/i18n';
@@ -35,7 +35,10 @@ const version = __APP_VERSION__;
 const screen = shallowRef<Screen>({ kind: 'home' });
 let games = 0;
 
+/** True after the first change of screen: from then on, screens slide in. */
+const navigated = ref(false);
 const show = (next: Screen) => {
+  navigated.value = true;
   screen.value = next;
   window.scrollTo(0, 0);
 };
@@ -75,7 +78,7 @@ watchEffect(() => {
   <template v-if="screen.kind === 'home'">
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
     <AppHeader />
-    <main id="main" tabindex="-1">
+    <main id="main" tabindex="-1" :class="{ enter: navigated }">
       <HomeScreen
         @play="campaign"
         @arcade="arcade"
@@ -89,26 +92,41 @@ watchEffect(() => {
       <p>{{ t('app.version', { version }) }}</p>
     </footer>
   </template>
-  <main v-else-if="screen.kind === 'campaign'" id="main" tabindex="-1">
+  <main
+    v-else-if="screen.kind === 'campaign'"
+    id="main"
+    tabindex="-1"
+    :class="{ enter: navigated }"
+  >
     <CampaignScreen
       @play="playLevel"
       @home="home"
       @observatory="show({ kind: 'observatory', from: 'campaign' })"
     />
   </main>
-  <main v-else-if="screen.kind === 'observatory'" id="main" tabindex="-1">
+  <main
+    v-else-if="screen.kind === 'observatory'"
+    id="main"
+    tabindex="-1"
+    :class="{ enter: navigated }"
+  >
     <ObservatoryScreen @back="screen.from === 'campaign' ? campaign() : home()" />
   </main>
-  <main v-else-if="screen.kind === 'arcade'" id="main" tabindex="-1">
+  <main v-else-if="screen.kind === 'arcade'" id="main" tabindex="-1" :class="{ enter: navigated }">
     <ArcadeScreen @play="play" @home="home" />
   </main>
-  <main v-else-if="screen.kind === 'shop'" id="main" tabindex="-1">
+  <main v-else-if="screen.kind === 'shop'" id="main" tabindex="-1" :class="{ enter: navigated }">
     <ShopScreen @home="home" />
   </main>
-  <main v-else-if="screen.kind === 'achievements'" id="main" tabindex="-1">
+  <main
+    v-else-if="screen.kind === 'achievements'"
+    id="main"
+    tabindex="-1"
+    :class="{ enter: navigated }"
+  >
     <AchievementsScreen @home="home" />
   </main>
-  <main v-else id="main" tabindex="-1">
+  <main v-else id="main" tabindex="-1" :class="{ enter: navigated }">
     <GameScreen
       :key="screen.id"
       :request="screen.request"

@@ -25,6 +25,8 @@ export interface PlayOptions {
 export interface Settlement {
   /** Stars earned, or null for a mode without stars. */
   readonly stars: number | null;
+  /** Stars this game added to the campaign's total (0 elsewhere). */
+  readonly starsGained?: number;
   /** The record of the mode after this game, or null for a mode without one. */
   readonly record: {
     readonly value: number;

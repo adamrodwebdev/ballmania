@@ -1,3 +1,4 @@
+import type { AmbienceStyle } from './Ambience';
 import { SeededRandom } from '@/engine/core/Random';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
@@ -7,6 +8,8 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  * from the surface, drifting glowing plankton, and a rocky sea floor.
  */
 export class AbyssTheme implements WorldTheme {
+  readonly ambience: AmbienceStyle = 'bubbles';
+
   paintBackground(
     ctx: CanvasRenderingContext2D,
     width: number,

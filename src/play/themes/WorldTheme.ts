@@ -1,3 +1,4 @@
+import type { AmbienceStyle } from './Ambience';
 import { SeededRandom } from '@/engine/core/Random';
 import type { Palette } from '../Palette';
 
@@ -6,6 +7,8 @@ import type { Palette } from '../Palette';
  * board. Painted once per size and colour scheme into a cached canvas.
  */
 export interface WorldTheme {
+  /** How the backdrop lives, frame after frame (§ 3.9). */
+  readonly ambience: AmbienceStyle;
   paintBackground(
     ctx: CanvasRenderingContext2D,
     width: number,
@@ -16,6 +19,8 @@ export interface WorldTheme {
 
 /** World 1: deep space, soft nebulae and stars, light or dark with the interface. */
 export class NebulaTheme implements WorldTheme {
+  readonly ambience: AmbienceStyle = 'twinkle';
+
   paintBackground(
     ctx: CanvasRenderingContext2D,
     width: number,

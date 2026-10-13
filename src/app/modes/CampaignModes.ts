@@ -80,6 +80,7 @@ export class CampaignMode implements PlayMode {
     });
     return {
       stars,
+      starsGained: result?.starsGained ?? 0,
       record: result && { value: result.best, newBest: result.newBest, unit: 'score' },
       rewards,
     };

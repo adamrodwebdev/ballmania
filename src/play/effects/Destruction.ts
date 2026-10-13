@@ -144,7 +144,11 @@ export class Destruction {
   private flashColour = '';
   private nextGroup = 1;
   /** Singularity world: the black hole every piece of debris drifts towards. */
-  private attractor: { readonly at: Vec2; readonly horizon: number } | null = null;
+  private attractor: {
+    readonly at: Vec2;
+    readonly horizon: number;
+    readonly strength: number;
+  } | null = null;
 
   constructor(
     private profile: EffectProfile,
@@ -204,8 +208,36 @@ export class Destruction {
    * Singularity world: from now on, shards and sparks drift towards the black
    * hole and vanish into it (the world's implosion).
    */
-  setAttractor(at: Vec2, horizon: number): void {
-    this.attractor = { at, horizon };
+  setAttractor(at: Vec2, horizon: number, strength = 1): void {
+    this.attractor = { at, horizon, strength };
+  }
+
+  /**
+   * End of a won level (§ 3.9): every piece of debris, and a stream of light
+   * from all over the board, is sucked into the hole at `at`.
+   */
+  vortex(
+    at: Vec2,
+    board: { readonly width: number; readonly height: number },
+    tones: readonly Tone[],
+  ): void {
+    this.setAttractor(at, this.ballRadius, 6);
+    const count = Math.min(70, this.budget());
+    for (let i = 0; i < count; i++) {
+      const x = this.random() * board.width;
+      const y = this.random() * board.height;
+      // A sideways start, so the light spirals in rather than falls straight.
+      const towards = at.sub(new Vec2(x, y)).normalize();
+      this.sparks.push({
+        x,
+        y,
+        vx: -towards.y * 320,
+        vy: towards.x * 320,
+        life: 1.6,
+        maxLife: 1.6,
+        tone: tones[i % Math.max(1, tones.length)] ?? 0,
+      });
+    }
   }
 
   /** A shot falls into the black hole: a ring closing in, and a last glimmer. */
@@ -300,28 +332,6 @@ export class Destruction {
     this.impact(at, 0.7);
   }
 
-  /** The last balls are gone: one big burst of light from `centre`. */
-  finale(centre: Vec2, tones: readonly Tone[], colour: string): void {
-    this.flashAmount = Math.max(this.flashAmount, 0.55);
-    this.flashColour = colour;
-    this.shaker.add(0.8);
-    if (this.profile.distortion) {
-      this.liveWaves.push({ x: centre.x, y: centre.y, strength: 70, age: 0 });
-    }
-    this.rings.push({
-      x: centre.x,
-      y: centre.y,
-      life: 0.9,
-      maxLife: 0.9,
-      tone: tones[0] ?? 0,
-      size: 9,
-    });
-    const count = Math.min(80, this.budget());
-    for (let i = 0; i < count; i++) {
-      this.addSpark(centre.x, centre.y, tones[i % Math.max(1, tones.length)] ?? 0, 1.8);
-    }
-  }
-
   /** A blow on something big (the Colossus): shake and a shock wave. */
   impact(at: Vec2, strength: number): void {
     this.shaker.add(strength);
@@ -362,7 +372,10 @@ export class Destruction {
       shard.angle += shard.spin * dt;
       shard.life -= dt;
     }
-    if (this.attractor) this.attract(dt, this.attractor.at, this.attractor.horizon);
+    if (this.attractor) {
+      const { at, horizon, strength } = this.attractor;
+      this.attract(dt, at, horizon, strength);
+    }
     const sparkDrag = Math.exp(-5 * dt);
     for (const spark of this.sparks) {
       spark.x += spark.vx * dt;
@@ -391,7 +404,7 @@ export class Destruction {
   }
 
   /** Pulls debris towards the black hole; whatever reaches the horizon is gone. */
-  private attract(dt: number, at: Vec2, horizon: number): void {
+  private attract(dt: number, at: Vec2, horizon: number, strength: number): void {
     for (const particle of [...this.shards, ...this.sparks]) {
       const dx = at.x - particle.x;
       const dy = at.y - particle.y;
@@ -400,7 +413,7 @@ export class Destruction {
         particle.life = Math.min(particle.life, 0.04);
         continue;
       }
-      const pull = (PULL * dt) / (squared + 4900) / Math.sqrt(squared);
+      const pull = (PULL * strength * dt) / (squared + 4900) / Math.sqrt(squared);
       particle.vx += dx * pull;
       particle.vy += dy * pull;
     }

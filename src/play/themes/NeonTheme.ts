@@ -1,3 +1,4 @@
+import type { AmbienceStyle } from './Ambience';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
 
@@ -6,6 +7,8 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  * glowing grid that runs to the horizon.
  */
 export class NeonTheme implements WorldTheme {
+  readonly ambience: AmbienceStyle = 'scan';
+
   paintBackground(
     ctx: CanvasRenderingContext2D,
     width: number,

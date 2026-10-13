@@ -27,7 +27,7 @@ const rows = computed(() =>
       @back="emit('home')"
     />
     <p class="intro">{{ t('achievements.intro') }}</p>
-    <ul class="list">
+    <ul class="list stagger">
       <li
         v-for="row in rows"
         :key="row.achievement.id"

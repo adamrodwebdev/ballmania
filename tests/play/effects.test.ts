@@ -125,10 +125,10 @@ describe('Destruction', () => {
     expect(destruction.waves).toHaveLength(0);
   });
 
-  it('clears everything once the animation is over', () => {
+  it('sucks the debris into the hole after a win, then clears everything', () => {
     const destruction = create();
     destruction.explode(burst(4, 2));
-    destruction.finale(new Vec2(500, 500), [0, 1, 2], '#ffffff');
+    destruction.vortex(new Vec2(500, 500), { width: 1000, height: 1000 }, [0, 1, 2]);
     destruction.defeat('#ff0000');
     expect(destruction.active).toBe(true);
     run(destruction, 3);

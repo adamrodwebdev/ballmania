@@ -85,3 +85,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   rangs (Œil stellaire, Chronos, Onde de choc, Bille prismatique, Bouclier thermique,
   Brise-glace, Ancre, Attrape-étoiles, Nova, Seconde chance), pastille « Amélioration
   disponible » sur l'accueil et la carte, objectif « Astronome ».
+- Lot 11.4, design : le trou avale le plateau en spirale à la fin d'un niveau gagné,
+  ambiances animées par monde, fond des menus vivant, transitions d'écrans, listes en
+  cascade, étoiles qui éclosent au bilan, total d'étoiles sur l'accueil et la carte,
+  « +n étoiles » au bilan.
