@@ -8,7 +8,7 @@ import ScreenHeader from '@/ui/components/ScreenHeader.vue';
 
 const emit = defineEmits<{ home: [] }>();
 const { t, locale } = useI18n();
-const { player } = useServices();
+const { player, ads } = useServices();
 const number = computed(() => new Intl.NumberFormat(locale.value));
 const message = ref('');
 
@@ -22,6 +22,17 @@ const buy = (item: Cosmetic) => {
     player.equip(item.id);
     message.value = t('shop.bought', { name: t(`cosmetics.${item.id}`) });
   }
+};
+/** Try a cosmetic on sale for one game, for a rewarded ad (§ 3.7). */
+const trying = ref(false);
+const tryOn = async (item: Cosmetic) => {
+  trying.value = true;
+  const watched = await ads.reward({ start: () => {}, end: () => {} });
+  trying.value = false;
+  message.value =
+    watched && player.tryOn(item.id)
+      ? t('ads.trial', { name: t(`cosmetics.${item.id}`) })
+      : t('ads.unavailable');
 };
 const equip = (item: Cosmetic) => {
   if (player.equip(item.id))
@@ -38,6 +49,9 @@ const equip = (item: Cosmetic) => {
     </ScreenHeader>
     <p class="intro">{{ t('shop.intro') }}</p>
     <p class="sr-only" role="status">{{ message }}</p>
+    <p v-if="message && ads.rewardsOffered" class="notice" data-testid="shop-message">
+      {{ message }}
+    </p>
 
     <section
       v-for="section in sections"
@@ -63,15 +77,30 @@ const equip = (item: Cosmetic) => {
           <p v-else-if="item.unlockedBy" class="state">
             {{ t('shop.unlockHint', { world: t(`worlds.${item.unlockedBy}.name`) }) }}
           </p>
-          <button
-            v-else
-            class="btn btn-primary"
-            type="button"
-            :disabled="player.view.shards < item.price"
-            @click="buy(item)"
-          >
-            {{ t('shop.buy', { price: number.format(item.price) }) }}
-          </button>
+          <template v-else>
+            <button
+              class="btn btn-primary"
+              type="button"
+              :disabled="player.view.shards < item.price"
+              @click="buy(item)"
+            >
+              {{ t('shop.buy', { price: number.format(item.price) }) }}
+            </button>
+            <p v-if="player.trial === item.id" class="state" data-testid="trial">
+              {{ t('ads.trying') }}
+            </p>
+            <button
+              v-else-if="ads.rewardsOffered"
+              class="btn"
+              type="button"
+              :disabled="trying"
+              :data-testid="`try-${item.id}`"
+              @click="tryOn(item)"
+            >
+              <span>{{ t('ads.try') }}</span>
+              <small>{{ t('ads.tryDetail') }}</small>
+            </button>
+          </template>
         </li>
       </ul>
     </section>
@@ -98,6 +127,13 @@ const equip = (item: Cosmetic) => {
 
 .intro {
   color: var(--text-muted);
+}
+
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-weight: 700;
 }
 
 h2 {

@@ -1,6 +1,6 @@
 {
   "name": "ballmania",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Jeu de tir de billes en chaîne réinventé : campagne, nouveaux modes, destruction spectaculaire, en français, anglais et indonésien. Vue 3, TypeScript, mobile d'abord.",
   "type": "module",
@@ -9,7 +9,12 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:portal": "vite --mode simulated",
     "build": "vue-tsc --noEmit -p tsconfig.app.json && vite build",
+    "build:crazygames": "vue-tsc --noEmit -p tsconfig.app.json && vite build --mode crazygames",
+    "build:poki": "vue-tsc --noEmit -p tsconfig.app.json && vite build --mode poki",
+    "build:gamedistribution": "vue-tsc --noEmit -p tsconfig.app.json && vite build --mode gamedistribution",
+    "build:portals": "npm run build:crazygames && npm run build:poki && npm run build:gamedistribution",
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "vue-tsc --noEmit -p tsconfig.vitest.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",

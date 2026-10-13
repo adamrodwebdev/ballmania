@@ -31,6 +31,11 @@ export class BallMotion {
     this.drainDistance += speed * dt;
   }
 
+  /** The game goes on after a defeat: the chains come back out of the hole. */
+  undrain(): void {
+    this.drainDistance = 0;
+  }
+
   update(chains: readonly Chain[], dt: number): void {
     const follow = 1 - Math.exp(-FOLLOW_RATE * dt);
     const alive = new Set<number>();

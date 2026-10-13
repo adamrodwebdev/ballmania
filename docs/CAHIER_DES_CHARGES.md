@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                        |
-| ------- | ---------- | ----------------------------- |
-| 1.0     | 13/10/2026 | Version 1.0.0 livrée (lot 12) |
+| Version | Date       | Statut                                |
+| ------- | ---------- | ------------------------------------- |
+| 1.1     | 13/10/2026 | Lot 13 livré : portails et publicités |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -670,6 +670,71 @@ partie, langue imposée, invitation au partage) avec une implémentation par cib
 (`vite build --mode crazygames`) : le SDK d'un portail n'est jamais embarqué dans les autres
 builds, et la version de notre site garde Lighthouse ≥ 95 sans traceur.
 
+**Livré au lot 13 (v1.1)** :
+
+- **Builds par cible** : `npm run build` construit notre site (`dist/`) ;
+  `npm run build:crazygames`, `build:poki`, `build:gamedistribution` construisent chaque
+  portail dans `dist-<portail>/` (`build:portals` les trois). La constante `__PLATFORM__`
+  est fixée au build : le code des autres plateformes est retiré du paquet, et celui de
+  notre site ne contient aucune ligne de code de portail (vérifié sur le build). Le SDK est
+  chargé depuis le CDN du portail au démarrage, jamais embarqué.
+- **Notre site inchangé** : aucune publicité, aucun SDK, CSP stricte, référencement.
+  Les builds portails n'ont ni CSP (leurs régies chargent scripts et cadres depuis des
+  origines impossibles à lister ; le cadre du portail isole déjà le jeu) ni balises de
+  référencement (c'est la page du portail qui est indexée).
+- **Le jeu reste jouable sans SDK** : SDK introuvable, bloqueur de publicité, publicité
+  refusée ou absente : la partie continue, la récompense est seulement indisponible. Le
+  démarrage n'attend jamais plus de 10 s le SDK.
+- **Interstitielle** : en quittant l'écran de fin (niveau suivant, rejouer, carte, aide),
+  jamais pendant une partie, jamais dans les 3 premières minutes de la visite, au plus une
+  toutes les 3 minutes, publicités récompensées comprises (`AdPolicy`). Le portail peut
+  encore décider de ne rien montrer.
+- **Récompensées**, toujours au choix et annoncées sur le bouton (« Regarder une
+  publicité ») :
+  - **Continuer** après une défaite, une fois par partie, dans la campagne et l'Infini
+    seulement (les modes comparés entre joueurs, défi du jour, énigmes, rythme et duel, en
+    sont exclus). La chaîne recule de 35 % de son tracé. La défaite n'est enregistrée
+    qu'une fois le choix fait, pour ne pas compter deux fois la partie ; l'aide après
+    trois défaites la compte déjà.
+  - **Éclats doublés** sur l'écran de fin, une fois, dès que la partie en a rapporté.
+  - **Indice** dans une énigme : le premier tir d'une solution la plus courte (calculée
+    par le solveur sur la chaîne du moment) ; la couleur est chargée, la visée posée et
+    la bille entourée 6 s.
+  - **Essayer** un cosmétique en vente à l'atelier, pour la prochaine partie ; jamais
+    sauvegardé.
+- **Pendant une publicité** : temps du jeu arrêté (sans le menu pause), son coupé, puis
+  reprise. Les fenêtres du jeu se ferment avant la publicité : un `<dialog>` modal reste
+  sinon au-dessus d'elle.
+- **Signaux** : chargement terminé, début et fin de jeu effectif (ni pause, ni fin, ni
+  publicité), dédoublonnés ; moment de joie (CrazyGames `happytime`) seulement pour un monde
+  terminé, la campagne finie ou un record de l'Infini.
+- **Par portail** :
+
+| Portail          | Publicités                                                        | Sauvegarde                                      | Langue                   | Partage                 |
+| ---------------- | ----------------------------------------------------------------- | ----------------------------------------------- | ------------------------ | ----------------------- |
+| CrazyGames (v3)  | `requestAd('midgame' / 'rewarded')`, `hasAdblock`                 | Module `data` du SDK (suit le compte du joueur) | `user.systemInfo.locale` | `game.inviteLink`       |
+| Poki (v2)        | `commercialBreak`, `rewardedBreak` ; `init` rejeté = bloqueur     | Navigateur                                      | —                        | `shareableURL`          |
+| GameDistribution | `showAd()` / `showAd('rewarded')` + `SDK_REWARDED_WATCH_COMPLETE` | Navigateur                                      | —                        | aucun lien (texte seul) |
+
+La langue du portail sert de langue par défaut ; le choix du joueur dans les réglages
+l'emporte. CrazyGames peut demander le silence (`muteAudio`) : il prime sur le volume du
+jeu. Les réglages (thème, langue, volume) restent dans le navigateur, car le script du
+thème les lit avant le premier affichage ; progression, profil et records vont au
+stockage de la plateforme. GameDistribution demande l'identifiant du jeu au build
+(`VITE_GD_GAME_ID`).
+
+- **Portail simulé** (`npm run dev:portal`, `vite build --mode simulated`) : fausses
+  publicités en boîte modale, journal des appels dans `window.platformLog`,
+  `?ads=blocked` (bloqueur) et `?ads=refused` (publicité fermée trop tôt). Les tests de
+  bout en bout du build portail s'en servent.
+- **À faire par l'éditeur, hors code** : créer les comptes développeur, soumettre les
+  archives de `dist-<portail>/` (zip), vérifier chaque intégration avec l'outil du portail
+  (CrazyGames : `?useLocalSdk=true` et le QA tool ; Poki : Poki for Developers ;
+  GameDistribution : `gdsdk.openConsole()`), et trancher l'exclusivité web demandée par
+  Poki. Les noms d'API viennent des documentations publiques consultées le 13/10/2026 ;
+  GameDistribution reste à valider sur sa console, sa documentation étant la moins
+  détaillée.
+
 **Notre site** : sans publicité en v1.0 (vitrine, référencement, Lighthouse). Pistes
 ultérieures : don volontaire, version premium sans pub sur magasins d'applis (PWA/TWA).
 
@@ -1141,6 +1206,23 @@ le moteur de tracés.
 | `ArcadeProgress`, `ArcadeScreen`                                                   | Records Arcade, écran des quatre modes                                                                                 |
 | `SoundEngine.beat`, `.grooveUp`, `.stageUp`, `.rivalShoot`                         | Musique du Rythme et sons des modes                                                                                    |
 
+### 5.14 Plateformes et publicités (livrées au lot 13)
+
+| Élément                                                                         | Responsabilité                                                                               |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `PlatformAdapter` (`src/platform`)                                              | Ce que le jeu demande à son hôte : publicités, sauvegarde, signaux, langue, partage, silence |
+| `StandalonePlatform`                                                            | Notre site : aucune publicité, stockage du navigateur, lien vers la page                     |
+| `CrazyGamesPlatform`, `PokiPlatform`, `GameDistributionPlatform`                | Un adaptateur par SDK, qui n'échoue jamais (SDK absent, bloqueur, publicité refusée)         |
+| `SimulatedPlatform`                                                             | Faux portail du développement et des tests de bout en bout                                   |
+| `createPlatform`, `__PLATFORM__`, `vite build --mode <portail>`                 | Choix de la plateforme au build, code des autres retiré                                      |
+| `AdPolicy`                                                                      | _Quand_ une interstitielle est permise (3 min, récompensées comprises)                       |
+| `AdService`                                                                     | Publicités vues par l'interface : interstitielle, récompensée, silence pendant               |
+| `GameplaySignals`                                                               | Début et fin de jeu signalés une fois chacun                                                 |
+| `Game.revive`, `PlaySession.revive`, `.hold` / `.release`, `BallMotion.undrain` | Continuer après une défaite ; temps arrêté pendant une publicité                             |
+| `puzzleHint`, `PlaySession.showHint`, `Scene.hint`                              | Indice d'énigme et anneau sur la bille                                                       |
+| `PlayMode.continuable`                                                          | Les modes où l'on peut continuer                                                             |
+| `PlayerProfile.tryOn`, `.takeLook`, `.grantShards`                              | Cosmétique prêté pour une partie, éclats doublés                                             |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
@@ -1182,7 +1264,7 @@ le moteur de tracés.
 | 10 ✅ | Monde 6 Singularité : gravité, orbite, Colosse ultime ; modes Arcade Infini, Énigmes, Rythme, Duel                             |
 | 11 ✅ | Expérience (§ 3.9) : 11.1 tir et plateau, 11.2 difficulté et aléas, 11.3 fragments et améliorations, 11.4 design et animations |
 | 12 ✅ | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                                                   |
-| 13    | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                                            |
+| 13 ✅ | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                                            |
 | 14    | Démo portfolio                                                                                                                 |
 
 ## 10. Hors périmètre (v1)
@@ -1213,3 +1295,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                 |
 | 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                   |
 | 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                        |
+| 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                             |

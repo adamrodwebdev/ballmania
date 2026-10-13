@@ -168,6 +168,8 @@ export interface GameEvents {
   novaReady: Record<string, never>;
   /** Second chance (upgrade): the chain reached the hole and was pushed back, once. */
   secondChance: { readonly chain: number };
+  /** After a defeat, the player chose to continue (a rewarded ad): the chains were pushed back. */
+  revived: { readonly chains: readonly number[] };
   /** Endless mode: a new stage, faster and maybe with one more colour. */
   stage: { readonly stage: number; readonly tones: number };
   bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
@@ -215,6 +217,9 @@ export interface GameEvents {
 export const STEP = 1 / 120;
 /** A shot that bounced this many times shatters: no endless ping-pong. */
 export const MAX_BOUNCES = 6;
+
+/** Share of its track a chain is pushed back by when the player continues after a defeat. */
+export const REVIVE_SHARE = 0.35;
 
 /** Seconds a shot may fly before it is given up (one circling the black hole). */
 export const MAX_FLIGHT = 4;
@@ -1105,6 +1110,24 @@ export class Game {
     if (reached >= 0) this.end('lost');
     else if (this.objective.isComplete(this.context)) this.end('won');
     else if (this.objective.isFailed?.(this.context)) this.end('lost');
+  }
+
+  /**
+   * Continue after a defeat (§ 3.7, rewarded ad): every chain that reached its
+   * hole is pushed back and the game goes on. False unless the game was lost
+   * that way (a puzzle out of shots cannot be continued).
+   */
+  revive(share = REVIVE_SHARE): boolean {
+    if (this.stateValue !== 'lost') return false;
+    const reached = this.chains.flatMap((chain, index) => (chain.reachedHole ? [index] : []));
+    if (reached.length === 0) return false;
+    for (const index of reached) {
+      const chain = this.chains[index]!;
+      chain.shift(-chain.path.length * share);
+    }
+    this.stateValue = 'playing';
+    this.events.emit('revived', { chains: reached });
+    return true;
   }
 
   /** Second chance (upgrade): once a level, the chain is pushed back instead of losing. */

@@ -87,6 +87,9 @@ export interface Feedback {
   readonly haptics: Haptics;
 }
 
+/** Seconds a puzzle hint stays circled on the board. */
+const HINT_TIME = 6;
+
 /** Real seconds between the end of a game and the result dialog. */
 const RESULT_DELAY = 1.6;
 /** After a win: seconds of debris spiralling into the hole, then of the board swallowed. */
@@ -142,6 +145,10 @@ export class PlaySession {
   private charging: number | null = null;
   private chargedOnce = false;
   private recoil = 0;
+  /** Puzzle hint: the ball circled, and until when (session time). */
+  private hinted: { readonly at: Vec2; readonly until: number } | null = null;
+  /** An ad is playing over the game: time stands still, without the pause menu. */
+  private held = false;
 
   constructor(options: SessionOptions) {
     ({
@@ -186,10 +193,58 @@ export class PlaySession {
     this.feedback.sound.resume();
   }
 
+  /** Stops time and sound while something covers the game (an ad), without the pause menu. */
+  hold(): void {
+    this.held = true;
+    this.turning = 0;
+    this.charging = null;
+    this.feedback.sound.suspend();
+  }
+
+  release(): void {
+    this.held = false;
+    this.monitor.reset();
+    this.feedback.sound.resume();
+  }
+
   togglePause(): void {
     this.feedback.sound.unlock();
     if (this.hud.paused) this.resume();
     else this.pause();
+  }
+
+  /** True if the game was lost by a chain in its hole, so it could be continued. */
+  get revivable(): boolean {
+    return this.game.state === 'lost' && this.game.chains.some((chain) => chain.reachedHole);
+  }
+
+  /**
+   * Continue after a defeat (§ 3.7, a rewarded ad watched): the chains come
+   * back out of the hole and the game goes on. False if it cannot.
+   */
+  revive(): boolean {
+    if (!this.game.revive()) return false;
+    this.motion.undrain();
+    this.overIn = null;
+    this.feedback.sound.resume();
+    Object.assign(this.hud, { state: 'playing', over: null, paused: false, danger: false });
+    return true;
+  }
+
+  /**
+   * Shows a hint (Puzzle mode, a rewarded ad watched): loads the colour and
+   * aims at the ball, which stays circled for a few seconds.
+   */
+  showHint(find: (game: Game) => { readonly tone: Tone; readonly target: Vec2 } | null): boolean {
+    if (!this.acceptsCommands) return false;
+    const hint = find(this.game);
+    if (!hint) return false;
+    for (let i = 0; i < 6 && this.game.shooter.current !== hint.tone; i++) this.game.swap();
+    this.game.aimAt(hint.target);
+    this.hinted = { at: hint.target, until: this.time + HINT_TIME };
+    this.syncTones();
+    this.render();
+    return true;
   }
 
   /** What the game says about how it was played, for progression. */
@@ -208,6 +263,7 @@ export class PlaySession {
     this.destruction = this.createDestruction();
     this.overIn = null;
     this.swallow = null;
+    this.hinted = null;
     this.feedback.sound.resume();
     Object.assign(this.hud, this.initialHud());
   }
@@ -327,7 +383,7 @@ export class PlaySession {
   }
 
   private get acceptsCommands(): boolean {
-    return !this.hud.paused && this.hud.state === 'playing';
+    return !this.hud.paused && !this.held && this.hud.state === 'playing';
   }
 
   private createDestruction(): Destruction {
@@ -404,6 +460,10 @@ export class PlaySession {
       this.destruction.blast(position, radius);
       sound.bomb();
       haptics.explosion(4);
+    });
+    game.events.on('revived', () => {
+      this.destruction.defeat(this.palette.accent);
+      sound.roar();
     });
     game.events.on('secondChance', () => {
       this.destruction.defeat(this.palette.accent);
@@ -521,7 +581,7 @@ export class PlaySession {
   }
 
   private frame(realDt: number): void {
-    if (this.hud.paused) return;
+    if (this.hud.paused || this.held) return;
     if (this.monitor.record(realDt)) this.lowerEffects();
     const dt = this.warp.update(realDt);
     this.time += dt;
@@ -617,6 +677,7 @@ export class PlaySession {
       magnetArmed: this.hud.magnetArmed,
       time: this.time,
       colossusFlash: this.colossusFlash,
+      hint: this.hinted && this.time < this.hinted.until ? this.hinted.at : null,
     });
     if (!this.distortion) return;
     const k = this.renderer.deviceScale;

@@ -19,6 +19,7 @@ abstract class ArcadeMode implements PlayMode {
   readonly home = 'arcade';
   readonly alchemy = false;
   readonly seed: string | null = null;
+  readonly continuable: boolean = false;
 
   protected constructor(
     readonly request: PlayRequest,
@@ -64,6 +65,7 @@ abstract class ArcadeMode implements PlayMode {
 /** Endless: as long as possible; the best score is the record. */
 export class EndlessMode extends ArcadeMode {
   readonly label: Message = { key: 'arcade.endless.name' };
+  override readonly continuable = true;
 
   constructor(request: Extract<PlayRequest, { kind: 'endless' }>) {
     super(request, 'endless');
