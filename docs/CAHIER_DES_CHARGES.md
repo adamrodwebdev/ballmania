@@ -2,7 +2,7 @@
 
 | Version | Date       | Statut                                           |
 | ------- | ---------- | ------------------------------------------------ |
-| 0.14    | 12/10/2026 | Lot 10 livré (monde 6 Singularité, modes Arcade) |
+| 0.15    | 13/10/2026 | Lot 11 « Expérience » spécifié (retours de test) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -681,6 +681,100 @@ léger, effets visuels qui se remarquent dans les vignettes et vidéos de prése
 
 Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 
+### 3.9 Lot 11 « Expérience » : retours d'un joueur (v0.15)
+
+Retours de test reçus le 13/10/2026, après les six mondes et l'Arcade. Ils visent la
+sensation de jeu, la profondeur et la rejouabilité. Livrés en quatre étapes (§ 9).
+
+#### 11.1 Module de tir et plateau agrandi
+
+- **Plateau plus grand** : l'écran de jeu occupe toute la largeur ; un troisième format de
+  plateau, **paysage** (1 400 × 1 000), sert les écrans larges (ordinateur, tablette à
+  l'horizontale). Les tracés étant des recettes, chaque niveau s'adapte aux trois formats ;
+  les tests de géométrie couvrent les trois.
+- **Module de tir** (ambition : une sensation de tir dont on se souvient) :
+  - **Aide à la visée** activable dans les réglages (activée par défaut) : ligne de visée,
+    **bille fantôme** à la place exacte où le tir s'insérera, et **aperçu du groupe** qui
+    explosera (halo et « ×3 », « ×4 »…). Désactivée : seul un court guide au bout du canon.
+  - **Tir chargé** : maintenir le tir (≥ 0,35 s, clavier, souris ou doigt) charge un **tir
+    puissant**, deux fois plus rapide, insensible au vent et à la gravité, qui traverse les
+    fragments d'étoiles ; une jauge circulaire autour du lanceur montre la charge.
+  - **Retour physique** : recul du canon, éclair de bouche, légère secousse et vibration à
+    chaque tir, rotation du lanceur amortie (ressort critique) pour une visée nette.
+  - **Visée fine au doigt** : en glissant, le doigt pilote l'angle avec une démultiplication
+    près du lanceur ; une loupe n'est pas nécessaire.
+
+#### 11.2 Difficulté et aléas
+
+- **Trois difficultés de campagne**, choisies sur la carte et sauvegardées : **Explorateur**,
+  **Pilote** (par défaut) et **Légende**. Elles règlent la vitesse de la chaîne (×0,85, ×1,
+  ×1,15) et **l'intensité de tous les aléas** (×0,6, ×1, ×1,5). Le score est multiplié
+  (×0,8, ×1, ×1,3) : les étoiles récompensent l'audace. Les étoiles d'un niveau restent les
+  meilleures obtenues, toutes difficultés confondues. L'aide après trois défaites reste.
+- **Parcours non linéaires** (à partir des Abysses) : tracés **à deux entrées**, deux
+  chaînes qui serpentent depuis les deux côtés et finissent chacune dans le trou.
+- **Pluie de billes** : périodiquement, une bille **tombe du ciel** (ombre annoncée une
+  seconde avant) et s'insère dans la chaîne ; elle ne forme jamais de groupe en tombant.
+- **Arythmie** : la chaîne **accélère puis ralentit** par cycles irréguliers, annoncés par un
+  battement visuel ; à distinguer du vent, qui pousse dans un sens.
+- **Météo** (épisodes de quelques secondes, annoncés par une bannière et un son) :
+  - **Tempête solaire** : les billes deviennent **brûlantes et indestructibles** ; les
+    groupes formés pendant la tempête explosent à sa fin, en réaction. Des améliorations
+    lèvent l'immunité.
+  - **Froid mordant** : les tirs ralentissent (×0,65) ; des billes se couvrent de **givre** ;
+    toute **réaction en chaîne** (profondeur 2 et plus) fait aussi exploser les billes
+    gelées.
+  - **Vents contraires** : des **rafales** dévient les tirs (dérive latérale visible sur la
+    ligne de visée) et, selon leur sens, **accélèrent ou ralentissent** la chaîne ; une
+    **rafale massive** échange quelques billes voisines (sans jamais créer de groupe).
+- Les aléas arrivent progressivement dans la campagne (pluie et arythmie dès Néon, une
+  météo par monde ensuite, combinées dans la Singularité) ; plus la difficulté est haute,
+  plus ils sont fréquents et marqués.
+
+#### 11.3 Fragments d'étoiles et améliorations
+
+- **Fragments d'étoiles** : des étoiles filantes traversent le plateau de temps en temps ;
+  les toucher d'un tir les **récolte** (le tir continue sa course). Monnaie à part des éclats,
+  gagnée uniquement en campagne.
+- **Observatoire** : écran où l'on achète **10 améliorations à trois rangs** (coût croissant),
+  actives en campagne (jamais au défi du jour ni en Arcade, pour l'équité) :
+  1. **Œil stellaire** : la bille fantôme montre aussi la bille suivante ; rang 3 : la ligne
+     de visée montre un rebond de plus.
+  2. **Chronos** : chaîne plus lente de 4, 8 puis 12 %.
+  3. **Onde de choc** : chaque explosion fait reculer la chaîne (20, 40, 60 unités).
+  4. **Bille prismatique** : tous les 20, 15 puis 10 tirs, une bille arc-en-ciel qui prend
+     la couleur des billes qu'elle touche.
+  5. **Bouclier thermique** : en tempête solaire, les groupes de 4 explosent (rang 1), tous
+     (rang 2), et la tempête dure moitié moins (rang 3).
+  6. **Brise-glace** : le froid ralentit moins les tirs ; au rang 3, toute explosion fait
+     éclater les billes gelées.
+  7. **Ancre** : le vent dévie moins les tirs (−35, −70, −100 %).
+  8. **Attrape-étoiles** : fragments plus fréquents et plus faciles à toucher.
+  9. **Nova** : les explosions chargent une jauge ; pleine, le prochain tir est une **bombe**
+     qui détruit les billes proches (rayon croissant).
+  10. **Seconde chance** : une fois par niveau, quand la chaîne atteint le trou, elle est
+      repoussée de 15, 25 puis 35 % du tracé.
+- Une pastille signale **sur l'accueil et la carte** qu'une amélioration est abordable.
+
+#### 11.4 Design et animations
+
+- **Fin de niveau** : les dernières billes partent en traînées de particules vers le trou
+  (ou le trou noir), puis le trou **avale tout le plateau** en spirale avant le bilan.
+  Mouvement réduit : simple fondu.
+- **Arrière-plans animés** avec retenue : étoiles qui scintillent, nuées qui dérivent,
+  braises qui montent… selon le monde, à faible coût (un calque de quelques dizaines de
+  particules) ; figés avec `prefers-reduced-motion`.
+- **Menus animés** : transitions entre écrans, apparition en cascade des cartes et des
+  niveaux, micro-interactions des boutons ; **étoiles** qui s'allument une à une avec un
+  éclat au bilan, scintillement sur la carte.
+- **Étoiles gagnées** affichées : total sur l'accueil et la carte, « +2 étoiles » au bilan.
+
+#### Contraintes
+
+- Lighthouse ≥ 95 (visé : 100) dans les quatre catégories, mobile et ordinateur : les
+  animations de menu sont en CSS (`transform`, `opacity`), sans bibliothèque ; aucun
+  nouveau code n'est chargé par l'accueil sauf le strict nécessaire.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -975,22 +1069,23 @@ le moteur de tracés.
 
 ## 9. Lots et planning (provisoire)
 
-| Lot   | Contenu                                                                                            |
-| ----- | -------------------------------------------------------------------------------------------------- |
-| 0 ✅  | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)                            |
-| 1 ✅  | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine                    |
-| 2 ✅  | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo                   |
-| 3 ✅  | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités                     |
-| 4 ✅  | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                     |
-| 5 ✅  | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance      |
-| 6 ✅  | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                          |
-| 7 ✅  | Monde 3 Abysses : aimant, charges, Colosse abyssal                                                 |
-| 8 ✅  | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                     |
-| 9 ✅  | Monde 5 Volcan : aiguillages, raccourcis en fusion, Colosse de lave                                |
-| 10 ✅ | Monde 6 Singularité : gravité, orbite, Colosse ultime ; modes Arcade Infini, Énigmes, Rythme, Duel |
-| 11    | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                       |
-| 12    | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                |
-| 13    | Démo portfolio                                                                                     |
+| Lot   | Contenu                                                                                                                        |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 0 ✅  | Dépôt, outillage, cahier des charges, accueil provisoire (i18n, thèmes)                                                        |
+| 1 ✅  | Moteur : chemin, chaîne, tir, insertion, correspondances, recul, combos, graine                                                |
+| 2 ✅  | Interface jouable : écran de jeu, rendu, commandes, HUD, pause, fin, niveau démo                                               |
+| 3 ✅  | Destruction et son : bris, ondes de choc, ralentis, synthèse audio, intensités                                                 |
+| 4 ✅  | Campagne : mondes, niveaux en données, étoiles, sauvegarde ; monde 1 Nébuleuse                                                 |
+| 5 ✅  | Progression : éclats, objectifs, cosmétiques, thèmes débloquables ; Défi du jour ; assistance                                  |
+| 6 ✅  | Monde 2 Néon : miroirs, prismes, ricochet, Colosse prisme                                                                      |
+| 7 ✅  | Monde 3 Abysses : aimant, charges, Colosse abyssal                                                                             |
+| 8 ✅  | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                                                 |
+| 9 ✅  | Monde 5 Volcan : aiguillages, raccourcis en fusion, Colosse de lave                                                            |
+| 10 ✅ | Monde 6 Singularité : gravité, orbite, Colosse ultime ; modes Arcade Infini, Énigmes, Rythme, Duel                             |
+| 11    | Expérience (§ 3.9) : 11.1 tir et plateau, 11.2 difficulté et aléas, 11.3 fragments et améliorations, 11.4 design et animations |
+| 12    | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                                                   |
+| 13    | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                                            |
+| 14    | Démo portfolio                                                                                                                 |
 
 ## 10. Hors périmètre (v1)
 
@@ -1018,3 +1113,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                          |
 | 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                       |
 | 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                 |
+| 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                   |
