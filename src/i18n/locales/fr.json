@@ -93,7 +93,8 @@
     "levelShort": "{world}-{number}",
     "levelLabel": "Niveau {number}, {stars} étoile(s) sur 3",
     "lockedLabel": "Niveau {number}, verrouillé",
-    "comingSoon": "Bientôt : terminez le monde précédent pour l'ouvrir."
+    "comingSoon": "Bientôt : terminez le monde précédent pour l'ouvrir.",
+    "worldsLabel": "Mondes de la campagne"
   },
   "worlds": {
     "nebula": {
@@ -429,7 +430,8 @@
       "final": "Score du rival : {score}",
       "wins": "Aucune victoire | {count} victoire | {count} victoires",
       "harder": "Rival plus fort"
-    }
+    },
+    "modesLabel": "Modes Arcade"
   },
   "difficulty": {
     "title": "Difficulté",
@@ -535,5 +537,15 @@
       "r2": "De 25 %.",
       "r3": "De 35 %."
     }
+  },
+  "deck": {
+    "previous": "Carte précédente",
+    "next": "Carte suivante",
+    "position": "{index} sur {total}",
+    "role": "carrousel"
+  },
+  "studio": {
+    "label": "AdamRodWebTech présente Ballmania",
+    "presents": "présente"
   }
 }

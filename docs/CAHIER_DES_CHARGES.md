@@ -832,6 +832,24 @@ Livré à l'étape 11.4 :
   animations de menu sont en CSS (`transform`, `opacity`), sans bibliothèque ; aucun
   nouveau code n'est chargé par l'accueil sauf le strict nécessaire.
 
+### 3.10 Navigation en cartes et intro du studio (après la 1.0.0)
+
+- **Cartes à faire glisser** (bibliothèque Swiper 14, chargée seulement avec la carte et
+  l'Arcade) : un monde, ou un mode Arcade, par carte ; effet « créatif » où les cartes
+  voisines dépassent derrière la carte active, réduites et inclinées ; billes de verre
+  (mondes) ou emblème (modes) qui chevauchent le bord supérieur de la carte ; pastilles
+  nommées, flèches, flèches du clavier, glisser au doigt ou à la souris. Le paquet s'ouvre
+  sur le monde du niveau le plus avancé, ou sur le dernier mode ouvert. Seule la carte
+  active est lisible et utilisable (`inert` sur les autres). Mouvement réduit : simple
+  glissement.
+- **Intro du studio** reprise de Catapulte Mania, avec le nom **AdamRodWebTech** (celle de
+  Catapulte Mania affiche aujourd'hui AdamRodWebDev) : hexagone doré qui se trace et
+  tourne, « A », étincelle, nom lettre à lettre, « présente », environ 2,6 s. Une fois par
+  visite (`sessionStorage`), passée par une touche (sauf Tab) ou un toucher, absente avec
+  `?nointro`, image finale immédiate avec le mouvement réduit. CSS seulement.
+- Lighthouse mobile : Performance 99 (l'intro recouvre l'accueil pendant 2,6 s), 100 dans
+  les trois autres catégories ; 100 × 4 sur ordinateur.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse

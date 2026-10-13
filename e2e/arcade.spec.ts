@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures';
 
 /** English, and the given worlds of the campaign already finished. */
 const prepare = async (page: Page, worlds: readonly string[]) => {
@@ -55,6 +55,8 @@ test('counts the shots of a puzzle and lets the player pick the colour', async (
 test('plays to the beat and duels a rival', async ({ page }) => {
   await prepare(page, ['nebula', 'neon', 'abyss', 'jewel']);
   await page.getByTestId('arcade').click();
+  // The deck opens on the newest mode, the duel: bring the rhythm card forward.
+  await page.getByRole('button', { name: 'Rhythm', exact: true }).click();
   await page.getByTestId('song-pulse').click();
   await expect(page.getByTestId('level')).toHaveText('Pulse');
   await expect(page.getByTestId('groove')).toHaveText('Groove ×1');
@@ -63,6 +65,7 @@ test('plays to the beat and duels a rival', async ({ page }) => {
     .getByRole('dialog', { name: 'Game paused' })
     .getByRole('button', { name: 'Quit' })
     .click();
+  await page.getByRole('button', { name: 'Duel', exact: true }).click();
   await page.getByTestId('duel-easy').click();
   await expect(page.getByTestId('level')).toHaveText('Rookie rival');
   await expect(page.getByTestId('duel')).toContainText('Rival');

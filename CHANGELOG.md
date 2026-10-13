@@ -5,6 +5,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [Non publié]
 
+### Ajouté
+
+- Navigation en cartes à faire glisser (Swiper) pour les mondes de la campagne et les modes
+  Arcade : cartes voisines qui dépassent derrière la carte active, inclinées, billes et
+  emblèmes qui chevauchent le bord des cartes, pastilles nommées, flèches, clavier.
+- Intro du studio AdamRodWebTech (hexagone doré qui se trace, nom écrit lettre à lettre),
+  une fois par visite, à passer d'une touche ou d'un toucher, figée avec le mouvement
+  réduit.
+
 ## [1.0.0] — 2026-10-13
 
 Première version complète : six mondes (72 niveaux), quatre modes Arcade, défi du jour,
