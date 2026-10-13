@@ -140,6 +140,16 @@ describe('KeyboardControls', () => {
     expect(commands.togglePause).toHaveBeenCalledTimes(1);
   });
 
+  it('reads letters as printed on the keyboard, whatever its layout (AZERTY)', () => {
+    const { commands, press } = setup();
+    // AZERTY: M sits where QWERTY has the semicolon, and that key prints a comma.
+    press('keydown', 'Semicolon', { key: 'm' });
+    press('keydown', 'KeyM', { key: ',' });
+    expect(commands.toggleMagnet).toHaveBeenCalledTimes(1);
+    press('keydown', 'KeyP', { key: 'P' });
+    expect(commands.togglePause).toHaveBeenCalledTimes(1);
+  });
+
   it('turns while an arrow is held, slower with Shift', () => {
     const { commands, press } = setup();
     press('keydown', 'ArrowRight');

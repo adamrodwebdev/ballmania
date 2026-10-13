@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                |
-| ------- | ---------- | ------------------------------------- |
-| 1.1     | 13/10/2026 | Lot 13 livré : portails et publicités |
+| Version | Date       | Statut                                  |
+| ------- | ---------- | --------------------------------------- |
+| 1.2     | 13/10/2026 | Exigences CrazyGames, kit de soumission |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -727,6 +727,15 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
   publicités en boîte modale, journal des appels dans `window.platformLog`,
   `?ads=blocked` (bloqueur) et `?ads=refused` (publicité fermée trop tôt). Les tests de
   bout en bout du build portail s'en servent.
+- **Exigences CrazyGames appliquées** (v1.2, d'après leur documentation) : un clic au
+  plus pour jouer (sur les portails, pas d'intro du studio ; « Jouer » mène un nouveau
+  joueur au niveau 1-1) ; interstitielle seulement en enchaînant une partie (suivant,
+  rejouer, aide), jamais en revenant à un menu, et jamais au « Rejouer » d'un écran qui
+  proposait « Continuer » (une seule offre de publicité par pause) ; aucun bouton de
+  publicité récompensée sur l'écran de jeu actif (l'indice est dans le menu pause) ; icône
+  vidéo sur ces boutons ; message dans la page avec un bloqueur ; pas de sélection de texte
+  sur appui long ; lettres des raccourcis selon la disposition du clavier. Kit de
+  soumission (description, commandes, couvertures, vidéos) : `marketing/crazygames/`.
 - **À faire par l'éditeur, hors code** : créer les comptes développeur, soumettre les
   archives de `dist-<portail>/` (zip), vérifier chaque intégration avec l'outil du portail
   (CrazyGames : `?useLocalSdk=true` et le QA tool ; Poki : Poki for Developers ;
@@ -1296,3 +1305,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                   |
 | 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                        |
 | 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                             |
+| 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                     |

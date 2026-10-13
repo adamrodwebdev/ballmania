@@ -4,11 +4,12 @@ import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { COSMETICS, SLOTS, type Cosmetic } from '@/player/catalog';
 import CosmeticPreview from '@/ui/components/CosmeticPreview.vue';
+import AdIcon from '@/ui/components/AdIcon.vue';
 import ScreenHeader from '@/ui/components/ScreenHeader.vue';
 
 const emit = defineEmits<{ home: [] }>();
 const { t, locale } = useI18n();
-const { player, ads } = useServices();
+const { player, ads, platform } = useServices();
 const number = computed(() => new Intl.NumberFormat(locale.value));
 const message = ref('');
 
@@ -48,6 +49,9 @@ const equip = (item: Cosmetic) => {
       </p>
     </ScreenHeader>
     <p class="intro">{{ t('shop.intro') }}</p>
+    <p v-if="platform.hasAds && !ads.rewardsOffered" class="notice" data-testid="ads-blocked">
+      {{ t('ads.blocked') }}
+    </p>
     <p class="sr-only" role="status">{{ message }}</p>
     <p v-if="message && ads.rewardsOffered" class="notice" data-testid="shop-message">
       {{ message }}
@@ -97,7 +101,7 @@ const equip = (item: Cosmetic) => {
               :data-testid="`try-${item.id}`"
               @click="tryOn(item)"
             >
-              <span>{{ t('ads.try') }}</span>
+              <span class="ad-label"><AdIcon />{{ t('ads.try') }}</span>
               <small>{{ t('ads.tryDetail') }}</small>
             </button>
           </template>
@@ -127,6 +131,12 @@ const equip = (item: Cosmetic) => {
 
 .intro {
   color: var(--text-muted);
+}
+
+.ad-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .notice {

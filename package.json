@@ -24,7 +24,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "lighthouse": "node scripts/lighthouse.mjs",
-    "verify": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build"
+    "verify": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build",
+    "kit:crazygames": "node marketing/crazygames/render.mjs"
   },
   "dependencies": {
     "swiper": "14.3.0",
@@ -45,6 +46,7 @@
     "eslint-plugin-vue": "10.11.1",
     "jiti": "2.7.0",
     "lighthouse": "13.5.0",
+    "mp4-muxer": "5.2.2",
     "prettier": "3.9.10",
     "typescript": "6.0.3",
     "vite": "8.3.4",
