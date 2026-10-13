@@ -1,3 +1,4 @@
+import { DEMO, DEMO_WORLDS } from './edition';
 import type { WeatherKind } from '@/engine/hazards/Hazards';
 import type { TrackRecipe } from './tracks';
 
@@ -885,15 +886,21 @@ const SINGULARITY: readonly CampaignLevel[] = [
   }),
 ];
 
-/** The six worlds in order. */
-export const WORLDS: readonly World[] = [
-  { id: 'nebula', levels: NEBULA },
-  { id: 'neon', levels: NEON },
-  { id: 'abyss', levels: ABYSS },
-  { id: 'jewel', levels: JEWEL },
-  { id: 'volcano', levels: VOLCANO },
-  { id: 'singularity', levels: SINGULARITY },
-];
+/** The six worlds in order; the demo plays the first ones, the others stay empty. */
+export const WORLDS: readonly World[] = (
+  [
+    { id: 'nebula', levels: NEBULA },
+    { id: 'neon', levels: NEON },
+    { id: 'abyss', levels: ABYSS },
+    { id: 'jewel', levels: JEWEL },
+    { id: 'volcano', levels: VOLCANO },
+    { id: 'singularity', levels: SINGULARITY },
+  ] as const satisfies readonly World[]
+).map((world, index) => (DEMO && index >= DEMO_WORLDS ? { ...world, levels: [] } : world));
+
+/** True if this build plays the world (the demo plays only the first ones). */
+export const playable = (id: WorldId): boolean =>
+  WORLDS.some((world) => world.id === id && world.levels.length > 0);
 
 export const CAMPAIGN: readonly CampaignLevel[] = WORLDS.flatMap((world) => world.levels);
 

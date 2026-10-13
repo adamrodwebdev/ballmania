@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
+import { DEMO } from '@/levels/edition';
 import { DIFFICULTIES } from '@/levels/difficulty';
 import StarRow from '@/ui/components/StarRow.vue';
 import SwiperDeck from '@/ui/components/SwiperDeck.vue';
@@ -51,6 +52,7 @@ const ORBS = [0, 1, 2, 3, 4] as const;
         <span>{{ t('campaign.back') }}</span>
       </button>
       <h1 id="campaign-title">{{ t('campaign.title') }}</h1>
+      <p v-if="DEMO" class="demo" data-testid="demo-note">{{ t('demo.note') }}</p>
       <p class="total" data-testid="stars-total">
         {{ t('campaign.stars', { count: total, total: order.length * 3 }) }}
       </p>
@@ -139,7 +141,7 @@ const ORBS = [0, 1, 2, 3, 4] as const;
               </button>
             </li>
           </ol>
-          <p v-else class="soon">{{ t('campaign.comingSoon') }}</p>
+          <p v-else class="soon">{{ t(DEMO ? 'demo.fullGame' : 'campaign.comingSoon') }}</p>
         </article>
       </div>
     </SwiperDeck>
@@ -165,6 +167,14 @@ const ORBS = [0, 1, 2, 3, 4] as const;
 .back {
   flex-direction: row;
   padding-inline: var(--space-3);
+}
+
+.demo {
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
 }
 
 h1 {

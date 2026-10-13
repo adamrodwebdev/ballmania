@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
+import { playable } from '@/levels/campaign';
 import { COSMETICS, SLOTS, type Cosmetic } from '@/player/catalog';
 import CosmeticPreview from '@/ui/components/CosmeticPreview.vue';
 import AdIcon from '@/ui/components/AdIcon.vue';
@@ -79,7 +80,11 @@ const equip = (item: Cosmetic) => {
             {{ t('shop.equip') }}
           </button>
           <p v-else-if="item.unlockedBy" class="state">
-            {{ t('shop.unlockHint', { world: t(`worlds.${item.unlockedBy}.name`) }) }}
+            {{
+              playable(item.unlockedBy)
+                ? t('shop.unlockHint', { world: t(`worlds.${item.unlockedBy}.name`) })
+                : t('demo.fullGame')
+            }}
           </p>
           <template v-else>
             <button

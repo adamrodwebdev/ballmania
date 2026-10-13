@@ -140,12 +140,15 @@ const platformOf = (mode: string): PlatformId =>
 // Relative base: the build can be served from any sub-folder or game portal.
 export default defineConfig(({ mode }) => {
   const platform = platformOf(mode);
-  const site = platform === 'standalone';
+  // The demo of the portfolio (lot 14): our site's build, two worlds, in dist-demo/.
+  const demo = mode === 'demo';
+  const site = platform === 'standalone' && !demo;
   return {
     base: './',
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
       __PLATFORM__: JSON.stringify(platform),
+      __DEMO__: JSON.stringify(demo),
     },
     plugins: [
       vue(),
@@ -160,13 +163,13 @@ export default defineConfig(({ mode }) => {
       }),
       // Search engines and the CSP concern our own site: on a portal, the
       // portal's page is the one indexed.
-      ...(site ? [contentSecurityPolicy(), seo()] : []),
+      ...(site ? [contentSecurityPolicy(), seo()] : demo ? [contentSecurityPolicy()] : []),
     ],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
     build: {
-      outDir: site ? 'dist' : `dist-${platform}`,
+      outDir: site ? 'dist' : demo ? 'dist-demo' : `dist-${platform}`,
       target: 'es2022',
       cssCodeSplit: true,
       reportCompressedSize: true,

@@ -7,6 +7,11 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ### Ajouté
 
+- Lot 14, démo du portfolio : `npm run build:demo` construit dans `dist-demo/` une édition
+  qui joue les deux premiers mondes (24 niveaux, deux Colosses) et les modes Infini et
+  Énigmes ; les autres mondes et modes restent visibles, fermés « Dans le jeu complet ».
+  Sans publicité ni SDK, CSP stricte, hébergeable dans n'importe quel sous-dossier.
+
 - Kit de soumission CrazyGames (`marketing/crazygames/`) : description et commandes en
   anglais, trois couvertures (16:9, 2:3, 1:1) dessinées avec les billes du
   jeu, deux vidéos de 20 s au plus (paysage 1080p, portrait 2:3) tournées image par image

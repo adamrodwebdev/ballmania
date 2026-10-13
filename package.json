@@ -15,6 +15,7 @@
     "build:poki": "vue-tsc --noEmit -p tsconfig.app.json && vite build --mode poki",
     "build:gamedistribution": "vue-tsc --noEmit -p tsconfig.app.json && vite build --mode gamedistribution",
     "build:portals": "npm run build:crazygames && npm run build:poki && npm run build:gamedistribution",
+    "build:demo": "vue-tsc --noEmit -p tsconfig.app.json && vite build --mode demo",
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "vue-tsc --noEmit -p tsconfig.vitest.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",
