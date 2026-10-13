@@ -11,6 +11,8 @@ export interface ProjectileView {
   readonly bounces: number;
   /** Who fired it: the player, or the rival of a duel. */
   readonly by: Side;
+  /** A charged shot: faster, and straight whatever the gravity or the wind. */
+  readonly powered: boolean;
 }
 
 /** A ball in flight, from the shooter to the chain or out of the board. */
@@ -28,6 +30,7 @@ export class Projectile implements ProjectileView {
     origin: Vec2,
     velocity: Vec2,
     readonly by: Side = 'player',
+    readonly powered = false,
   ) {
     this.positionValue = origin;
     this.velocityValue = velocity;

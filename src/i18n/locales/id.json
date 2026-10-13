@@ -26,7 +26,9 @@
     "effects": "Efek penghancuran",
     "volume": "Volume",
     "vibration": "Getaran",
-    "done": "Selesai"
+    "done": "Selesai",
+    "aimAssist": "Bantuan bidik",
+    "aimAssistHint": "Bola bayangan di titik tembakan dan kelompok yang akan meledak"
   },
   "theme": {
     "system": "Sistem",

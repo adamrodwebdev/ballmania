@@ -90,9 +90,10 @@ describe('campaign', () => {
     expect(starsFor(level, three, true)).toBe(3);
   });
 
-  it('picks the tall board for phones held upright', () => {
+  it('picks the tall board for phones held upright, the wide one for large screens', () => {
     expect(frameFor(390, 700)).toBe(FRAMES.portrait);
-    expect(frameFor(1000, 700)).toBe(FRAMES.square);
+    expect(frameFor(1000, 700)).toBe(FRAMES.landscape);
+    expect(frameFor(900, 800)).toBe(FRAMES.square);
     expect(frameFor(700, 700)).toBe(FRAMES.square);
   });
 });

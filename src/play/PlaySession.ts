@@ -67,6 +67,8 @@ export interface SessionOptions {
   readonly seed?: () => string;
   /** Key of the music in Rhythm mode, in hertz. */
   readonly root?: number;
+  /** Ghost ball and group preview on the aim line (§ 3.9); on by default. */
+  readonly aimAssist?: boolean;
 }
 
 /** Sound and vibrations, shared by every game of the visit. */
@@ -83,6 +85,10 @@ const DRAIN_SPEED = 1400;
 const DANGER_FROM = 0.8;
 /** Real seconds between two updates of the tug-of-war gauge. */
 const TUG_REFRESH = 0.1;
+/** Seconds of holding the shot that charge it fully (§ 3.9, module de tir). */
+export const CHARGE_TIME = 0.35;
+/** How fast the recoil of the shooter fades (per second). */
+const RECOIL_FADE = 7;
 
 /**
  * A level being played: owns the game, the loop, the renderer, the visual
@@ -116,6 +122,11 @@ export class PlaySession {
   private readonly look: Look;
   private readonly seed: () => string;
   private readonly root: number;
+  private aimAssist: boolean;
+  /** Seconds the shot has been held, or null when not charging. */
+  private charging: number | null = null;
+  private chargedOnce = false;
+  private recoil = 0;
 
   constructor(options: SessionOptions) {
     ({
@@ -129,6 +140,7 @@ export class PlaySession {
     } = options);
     this.seed = options.seed ?? (() => `${options.level.id}:${Date.now()}`);
     this.root = options.root ?? 55;
+    this.aimAssist = options.aimAssist ?? true;
     this.game = this.createGame();
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.destruction = this.createDestruction();
@@ -236,16 +248,43 @@ export class PlaySession {
     return this.renderer.toBoard(x, y).distanceTo(this.game.shooter.position) < 70;
   }
 
+  /** Turns the aim assistance (ghost ball, group preview) on or off. */
+  setAimAssist(enabled: boolean): void {
+    this.aimAssist = enabled;
+  }
+
+  /** Starts charging the shot (or starts again: the finger moved). */
+  charge(): void {
+    this.feedback.sound.unlock();
+    if (!this.acceptsCommands) return;
+    this.charging = 0;
+    this.chargedOnce = false;
+  }
+
+  /** True once the held shot is fully charged. */
+  private get powered(): boolean {
+    return this.charging !== null && this.charging >= CHARGE_TIME && !this.hud.magnetArmed;
+  }
+
+  /** Releases the shot: a powered one if it was held long enough. */
   fire(): void {
     this.feedback.sound.unlock();
+    const power = this.powered;
+    this.charging = null;
     if (!this.acceptsCommands) return;
     if (this.hud.magnetArmed) {
       // Without a ball under the aim, the magnet stays armed: the player aims again.
       if (this.game.pull()) this.hud.magnetArmed = false;
       return;
     }
-    if (this.game.fire()) {
-      this.feedback.sound.shoot();
+    const { shooter } = this.game;
+    const fired = { at: shooter.position, angle: shooter.angle, tone: shooter.current };
+    if (this.game.fire(power)) {
+      if (power) this.feedback.sound.powerShot();
+      else this.feedback.sound.shoot();
+      this.feedback.haptics.shot(power);
+      this.recoil = 1;
+      this.destruction.muzzle(fired.at, fired.angle, fired.tone, power);
       this.hud.shotsLeft = this.game.shotsLeft;
     }
   }
@@ -432,6 +471,14 @@ export class PlaySession {
     if (this.monitor.record(realDt)) this.lowerEffects();
     const dt = this.warp.update(realDt);
     this.time += dt;
+    this.recoil = Math.max(0, this.recoil - RECOIL_FADE * realDt);
+    if (this.charging !== null) {
+      this.charging += realDt;
+      if (!this.chargedOnce && this.charging >= CHARGE_TIME) {
+        this.chargedOnce = true;
+        this.feedback.sound.charged();
+      }
+    }
     if (this.turning !== 0 && this.acceptsCommands) {
       this.game.shooter.aim(this.game.shooter.angle + this.turning * 2.4 * realDt);
     }
@@ -490,7 +537,14 @@ export class PlaySession {
       game: this.game,
       motion: this.motion,
       destruction: this.destruction,
-      aim: this.game.state === 'playing' ? this.game.aimLine() : null,
+      aim: this.game.state === 'playing' ? this.game.aimLine(2, this.powered) : null,
+      preview:
+        this.aimAssist && this.game.state === 'playing' && !this.hud.magnetArmed
+          ? this.game.preview(this.powered)
+          : null,
+      assist: this.aimAssist,
+      charge: this.charging === null ? 0 : Math.min(1, this.charging / CHARGE_TIME),
+      recoil: this.recoil,
       magnetArmed: this.hud.magnetArmed,
       time: this.time,
       colossusFlash: this.colossusFlash,

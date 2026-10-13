@@ -4,6 +4,8 @@ type Vibrate = (pattern: number | number[]) => boolean;
 export const PATTERNS = {
   explosion: (depth: number): number[] => [Math.min(15 + 10 * (depth - 1), 60)],
   reaction: (depth: number): number[] => (depth >= 3 ? [25, 30, 40, 30, 60] : [25, 30, 40]),
+  shot: [8],
+  powerShot: [18, 20, 30],
   win: [30, 40, 30, 40, 140],
   lose: [90, 60, 220],
 } as const;
@@ -31,6 +33,11 @@ export class Haptics {
 
   explosion(depth: number): void {
     this.play(depth >= 2 ? PATTERNS.reaction(depth) : PATTERNS.explosion(depth));
+  }
+
+  /** A light tap on every shot, a stronger one for a powered shot. */
+  shot(powered: boolean): void {
+    this.play([...(powered ? PATTERNS.powerShot : PATTERNS.shot)]);
   }
 
   win(): void {

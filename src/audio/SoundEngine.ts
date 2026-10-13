@@ -69,6 +69,20 @@ export class SoundEngine {
     });
   }
 
+  /** A powered shot: a deep whoosh and a crack. */
+  powerShot(): void {
+    this.play((ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sawtooth', 420, 90, 0.22, 0.2, 1800);
+      this.noiseBurst(ctx, out, now, 0.12, 2500, 0.18);
+      this.thump(ctx, out, now, 0.35);
+    });
+  }
+
+  /** The held shot is fully charged: a short rising chime. */
+  charged(): void {
+    this.play((ctx, out, now) => this.sweep(ctx, out, now, 'sine', 880, 1760, 0.08, 0.08));
+  }
+
   land(): void {
     this.play((ctx, out, now) => this.bell(ctx, out, now, 1650, 0.06, 0.08));
   }

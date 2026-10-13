@@ -1,7 +1,10 @@
 import type { Point } from './LevelDefinition';
 
-/** The two board shapes: square for landscape screens, tall for phones held upright. */
-export type FrameKind = 'square' | 'portrait';
+/**
+ * The three board shapes: wide for large landscape screens, square in
+ * between, tall for phones held upright.
+ */
+export type FrameKind = 'square' | 'portrait' | 'landscape';
 
 export interface Frame {
   readonly kind: FrameKind;
@@ -12,13 +15,19 @@ export interface Frame {
 export const FRAMES: Record<FrameKind, Frame> = {
   square: { kind: 'square', width: 1000, height: 1000 },
   portrait: { kind: 'portrait', width: 1000, height: 1400 },
+  landscape: { kind: 'landscape', width: 1400, height: 1000 },
 };
 
 /** Screens at least this much taller than wide get the portrait board. */
 export const PORTRAIT_RATIO = 1.2;
 
+/** Screens at least this much wider than tall get the wide board. */
+export const LANDSCAPE_RATIO = 1.25;
+
 export function frameFor(width: number, height: number): Frame {
-  return height / Math.max(1, width) >= PORTRAIT_RATIO ? FRAMES.portrait : FRAMES.square;
+  if (height / Math.max(1, width) >= PORTRAIT_RATIO) return FRAMES.portrait;
+  if (width / Math.max(1, height) >= LANDSCAPE_RATIO) return FRAMES.landscape;
+  return FRAMES.square;
 }
 
 /**

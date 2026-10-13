@@ -17,6 +17,8 @@ export interface Settings {
   readonly volume: number;
   /** Vibrations on phones that support them. */
   readonly vibration: boolean;
+  /** Aim assistance: ghost ball where the shot lands and the group it would make (§ 3.9). */
+  readonly aimAssist: boolean;
 }
 
 /** Same key as the theme bootstrap script (public/theme-boot.js). */
@@ -64,6 +66,7 @@ export class SettingsService {
       settings.volume = record.volume;
     }
     if (typeof record.vibration === 'boolean') settings.vibration = record.vibration;
+    if (typeof record.aimAssist === 'boolean') settings.aimAssist = record.aimAssist;
     return settings;
   }
 }

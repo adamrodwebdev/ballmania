@@ -701,8 +701,11 @@ sensation de jeu, la profondeur et la rejouabilité. Livrés en quatre étapes (
     fragments d'étoiles ; une jauge circulaire autour du lanceur montre la charge.
   - **Retour physique** : recul du canon, éclair de bouche, légère secousse et vibration à
     chaque tir, rotation du lanceur amortie (ressort critique) pour une visée nette.
-  - **Visée fine au doigt** : en glissant, le doigt pilote l'angle avec une démultiplication
-    près du lanceur ; une loupe n'est pas nécessaire.
+  - **Le tir part au relâchement** (bouton de souris, Espace ou doigt) : appuyer vise,
+    maintenir charge, relâcher tire. Au doigt, la charge ne court que si le doigt reste
+    immobile (on peut viser longuement sans charger). Livré à l'étape 11.1 avec le format
+    paysage, la bille fantôme (glissée entre les deux billes où le tir s'insérera) et le
+    réglage « Aide à la visée ».
 
 #### 11.2 Difficulté et aléas
 

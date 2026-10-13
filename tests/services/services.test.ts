@@ -10,6 +10,7 @@ const DEFAULTS = {
   effects: 'spectacular',
   volume: 0.7,
   vibration: true,
+  aimAssist: true,
 } as const;
 
 describe('SettingsService', () => {

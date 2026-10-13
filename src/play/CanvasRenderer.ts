@@ -36,12 +36,29 @@ export interface Scene {
   readonly destruction: Destruction;
   /** The aim line, from the shooter to the first ball it meets; null to hide it. */
   readonly aim: AimLine | null;
+  /** Aim assistance: where the shot lands and the group it makes; null without. */
+  readonly preview: AimPreview | null;
+  /** Aim assistance on: the whole aim line; off: a short guide at the barrel. */
+  readonly assist: boolean;
+  /** How charged the held shot is, from 0 to 1 (1 = a powered shot). */
+  readonly charge: number;
+  /** Recoil of the shooter after a shot, from 1 down to 0. */
+  readonly recoil: number;
   /** The magnet is armed: the next "shot" pulls the aimed ball instead. */
   readonly magnetArmed: boolean;
   /** Seconds since the session started, for pulsing details. */
   readonly time: number;
   /** White flash of the Colossus when it is hit, from 1 down to 0. */
   readonly colossusFlash: number;
+}
+
+/** Length of the aim guide without aim assistance, in board units. */
+const GUIDE = 160;
+
+/** Where the loaded ball would land, and the balls that would explode with it. */
+export interface AimPreview {
+  readonly position: Vec2;
+  readonly group: readonly Vec2[];
 }
 
 /** The aim line: its points (curved by gravity) and where it bounces off mirrors. */
@@ -154,8 +171,9 @@ export class CanvasRenderer implements Renderer {
     this.blackHole?.drawRing(ctx, palette, scene.time);
     this.drawSwitches(radius, scene.time);
     this.drawReflectors(scene.time);
-    if (scene.aim) this.drawAim(scene.aim, radius, scene.magnetArmed, scene.time);
+    if (scene.aim) this.drawAim(scene, scene.aim, radius);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
+    if (scene.preview && scene.aim) this.drawPreview(scene.preview, radius, scene.time);
     game.chains.forEach((chain) => this.drawColossus(chain, scene));
     this.drawTrails(radius);
     for (const projectile of game.projectiles) {
@@ -166,7 +184,7 @@ export class CanvasRenderer implements Renderer {
     this.blackHole?.draw(ctx, palette, scene.time, this.danger());
     this.drawTempo(radius);
     this.drawRival(radius);
-    this.drawShooter(radius);
+    this.drawShooter(radius, scene);
     scene.destruction.draw(ctx, palette, this.sprites);
 
     const flash = scene.destruction.flash;
@@ -350,37 +368,46 @@ export class CanvasRenderer implements Renderer {
     if (sprite) this.ctx.drawImage(sprite, at.x - radius, at.y - radius, radius * 2, radius * 2);
   }
 
-  private drawAim(aim: AimLine, radius: number, magnet: boolean, time: number): void {
+  private drawAim(scene: Scene, aim: AimLine, radius: number): void {
     const { ctx, palette } = this;
-    const path = aim.points;
+    const { magnetArmed: magnet, time } = scene;
+    const powered = scene.charge >= 1 && !magnet;
     const from = this.game.shooter.position;
+    const start = from.add(Vec2.fromAngle(this.game.shooter.angle, SHOOTER_RADIUS + radius));
+    // Curve samples still inside the barrel would make the line start backwards.
+    const barrel = SHOOTER_RADIUS + radius;
+    const points = aim.points
+      .slice(1)
+      .filter((point, i, rest) => i === rest.length - 1 || point.distanceTo(from) > barrel);
+    const path = scene.assist || magnet ? [start, ...points] : guide([start, ...points], GUIDE);
     ctx.save();
-    ctx.setLineDash(magnet ? [18, 10] : [4, 18]);
+    ctx.setLineDash(magnet ? [18, 10] : powered ? [] : [4, 18]);
     ctx.lineDashOffset = magnet ? time * 60 : 0;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = magnet ? 8 : 6;
+    ctx.lineWidth = magnet ? 8 : powered ? 9 : 6;
     ctx.strokeStyle = magnet ? palette.tone(3) : palette.tone(this.game.shooter.current);
-    ctx.globalAlpha = magnet ? 0.85 : 0.6;
-    const start = from.add(Vec2.fromAngle(this.game.shooter.angle, SHOOTER_RADIUS + radius));
+    ctx.globalAlpha = magnet ? 0.85 : powered ? 0.75 + 0.2 * Math.sin(time * 18) : 0.6;
     ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    // Curve samples still inside the barrel would make the line start backwards.
-    const barrel = SHOOTER_RADIUS + radius;
-    path.slice(1).forEach((point, i, rest) => {
-      if (i === rest.length - 1 || point.distanceTo(from) > barrel) ctx.lineTo(point.x, point.y);
-    });
+    path.forEach((point, i) =>
+      i === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y),
+    );
     ctx.stroke();
+    if (!scene.assist && !magnet) {
+      ctx.restore();
+      return;
+    }
     // A dot on each rebound, so a bank shot reads at a glance.
     ctx.setLineDash([]);
     ctx.fillStyle = palette.tone(this.game.shooter.current);
     for (const point of aim.rebounds) {
+      if (!scene.assist) break;
       ctx.beginPath();
       ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
       ctx.fill();
     }
     // Jewel world: the touched ball would turn into the mix; show its colour.
-    const end = path[path.length - 1];
+    const end = aim.points[aim.points.length - 1];
     if (!magnet && end && this.game.setup.alchemy) {
       const target = this.game.aimTarget();
       const mixed = target ? mix(this.game.shooter.current, target.ball.tone) : null;
@@ -571,12 +598,67 @@ export class CanvasRenderer implements Renderer {
     );
   }
 
-  private drawShooter(radius: number): void {
+  /**
+   * Aim assistance: a ghost of the loaded ball in the slot it will take, and
+   * a ring on every ball that would explode with it, with the group's size.
+   */
+  private drawPreview(preview: AimPreview, radius: number, time: number): void {
+    const { ctx, palette } = this;
+    const tone = this.game.shooter.current;
+    const { position } = preview;
+    ctx.save();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 0.55;
+    this.drawBall(tone, position, radius * 0.8);
+    ctx.globalAlpha = 0.95;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = palette.tone(tone);
+    ctx.beginPath();
+    ctx.arc(position.x, position.y, radius * 0.88, 0, Math.PI * 2);
+    ctx.stroke();
+    if (preview.group.length > 0) {
+      const pulse = 1.15 + 0.08 * Math.sin(time * 9);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = palette.accent;
+      for (const ball of preview.group) {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, radius * pulse, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.font = `800 ${radius * 1.1}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = palette.board;
+      ctx.fillStyle = palette.accent;
+      const label = `×${preview.group.length + 1}`;
+      const at = position.add(new Vec2(0, -radius * 2));
+      ctx.strokeText(label, at.x, at.y);
+      ctx.fillText(label, at.x, at.y);
+    }
+    ctx.restore();
+  }
+
+  private drawShooter(radius: number, scene: Scene): void {
     const { ctx, palette } = this;
     const { shooter } = this.game;
+    // The barrel kicks back after a shot.
+    const kick = Vec2.fromAngle(shooter.angle, -12 * scene.recoil * scene.recoil);
     ctx.save();
-    ctx.translate(shooter.position.x, shooter.position.y);
+    ctx.translate(shooter.position.x + kick.x, shooter.position.y + kick.y);
     this.look.shooter.draw(ctx, palette, shooter.angle, radius, this.time);
+    if (scene.charge > 0) {
+      // The charge fills a ring around the shooter; full, it throbs.
+      const full = scene.charge >= 1;
+      ctx.lineCap = 'round';
+      ctx.lineWidth = full ? 8 : 6;
+      ctx.strokeStyle = palette.tone(shooter.current);
+      ctx.globalAlpha = full ? 0.7 + 0.3 * Math.sin(this.time * 20) : 0.85;
+      ctx.beginPath();
+      ctx.arc(0, 0, SHOOTER_RADIUS + 10, -Math.PI / 2, -Math.PI / 2 + scene.charge * Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
     ctx.restore();
     // Loaded ball in the barrel, next ball in the centre.
     this.drawBall(
@@ -586,4 +668,26 @@ export class CanvasRenderer implements Renderer {
     );
     this.drawBall(shooter.next, shooter.position, radius * 0.6);
   }
+}
+
+/** The first `length` units of a polyline. */
+function guide(points: readonly Vec2[], length: number): Vec2[] {
+  const kept: Vec2[] = [];
+  let left = length;
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i]!;
+    const previous = points[i - 1];
+    if (!previous) {
+      kept.push(point);
+      continue;
+    }
+    const step = point.distanceTo(previous);
+    if (step >= left) {
+      kept.push(previous.lerp(point, left / step));
+      break;
+    }
+    kept.push(point);
+    left -= step;
+  }
+  return kept;
 }

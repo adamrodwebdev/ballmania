@@ -94,6 +94,7 @@ onMounted(() => {
     look: resolveLook(player.view.equipped, mode.world),
     ...(seed === null ? {} : { seed: () => seed }),
     ...(request.kind === 'rhythm' ? { root: request.song.root } : {}),
+    aimAssist: settings.current.aimAssist,
   });
   session.value = play;
   if (hintVisible.value) window.setTimeout(() => (hintVisible.value = false), 6000);
@@ -103,6 +104,7 @@ onMounted(() => {
     isOnShooter: (x, y) => play.isOnShooter(x, y),
     flipSwitchAt: (x, y) => play.flipSwitchAt(x, y),
     flipNextSwitch: () => play.flipNextSwitch(),
+    charge: () => play.charge(),
     fire: () => play.fire(),
     swap: () => play.swap(),
     turn: (direction) => play.turn(direction),
@@ -144,6 +146,10 @@ watch([() => settings.current.effects, reducedMotion], () => session.value?.setP
 watch(
   () => settings.current.volume,
   (volume) => feedback.sound.setVolume(volume),
+);
+watch(
+  () => settings.current.aimAssist,
+  (enabled) => session.value?.setAimAssist(enabled),
 );
 watch(
   () => settings.current.vibration,
@@ -548,7 +554,7 @@ const quit = () => emit('quit');
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100vh;
   height: 100dvh;
-  width: min(100%, 64rem);
+  width: min(100%, 120rem);
   margin-inline: auto;
 }
 

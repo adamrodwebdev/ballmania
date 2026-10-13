@@ -31,6 +31,7 @@ export function createBrowserServices(
     effects: 'spectacular',
     volume: 0.7,
     vibration: true,
+    aimAssist: true,
   });
   return {
     settings,
