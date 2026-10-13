@@ -140,7 +140,12 @@
     "endless": "La chaîne ne s'arrête jamais : chaque palier l'accélère et peut ajouter une couleur. Tenez le plus longtemps possible.",
     "puzzle": "La chaîne est immobile et vos tirs sont comptés. « Couleur suivante » (ou X) choisit la couleur : pensez aux réactions en chaîne.",
     "rhythm": "La chaîne avance au rythme de la musique. Tirez quand l'anneau se referme sur le lanceur : le groove multiplie vos points jusqu'à ×4.",
-    "duel": "Chaque explosion pousse la chaîne vers le trou de l'adversaire. Faites-la tomber dans le sien avant qu'elle n'atteigne le vôtre."
+    "duel": "Chaque explosion pousse la chaîne vers le trou de l'adversaire. Faites-la tomber dans le sien avant qu'elle n'atteigne le vôtre.",
+    "arrhythmia": "Arythmie : la chaîne accélère puis ralentit sans prévenir. Le tracé rougit quand elle s'emballe.",
+    "meteors": "Des billes tombent du ciel : une ombre annonce où elles vont s'insérer.",
+    "wind": "Vents contraires : pendant une rafale, la ligne de visée montre la dérive de vos tirs. Un tir chargé (maintenir) ne dévie pas.",
+    "cold": "Froid mordant : les tirs ralentissent et des billes gèlent. Déclenchez une réaction en chaîne pour faire éclater toutes les billes gelées.",
+    "solar": "Tempête solaire : les billes deviennent indestructibles. Préparez des groupes : ils exploseront tous quand elle cessera."
   },
   "colossus": {
     "nebula": "Colosse stellaire",
@@ -418,6 +423,35 @@
       "final": "Score du rival : {score}",
       "wins": "Aucune victoire | {count} victoire | {count} victoires",
       "harder": "Rival plus fort"
+    }
+  },
+  "difficulty": {
+    "title": "Difficulté",
+    "explorer": {
+      "name": "Explorateur",
+      "hint": "Chaîne plus lente, aléas adoucis, points ×0,8"
+    },
+    "pilot": {
+      "name": "Pilote",
+      "hint": "L'expérience prévue"
+    },
+    "legend": {
+      "name": "Légende",
+      "hint": "Chaîne plus rapide, aléas déchaînés, points ×1,3"
+    }
+  },
+  "weather": {
+    "solar": {
+      "name": "Tempête solaire",
+      "announce": "Tempête solaire : les billes sont brûlantes et indestructibles. Les groupes formés exploseront à la fin."
+    },
+    "cold": {
+      "name": "Froid mordant",
+      "announce": "Froid mordant : vos tirs ralentissent. Une réaction en chaîne fera éclater les billes gelées."
+    },
+    "wind": {
+      "name": "Vents contraires",
+      "announce": "Rafale : vos tirs dérivent et la chaîne change d'allure."
     }
   }
 }

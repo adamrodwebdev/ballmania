@@ -128,6 +128,35 @@ export class SoundEngine {
   }
 
   /** A switch the chain has already reached: a dull refusal. */
+  /** Weather coming (§ 3.9): a roar of fire, an icy chime, or a gust; louder when massive. */
+  weather(kind: 'solar' | 'cold' | 'wind', massive: boolean): void {
+    this.play((ctx, out, now) => {
+      if (kind === 'solar') {
+        this.noiseBurst(ctx, out, now, 1.2, 300, 0.22);
+        this.sweep(ctx, out, now, 'sawtooth', 90, 180, 1, 0.12, 700);
+      } else if (kind === 'cold') {
+        [0, 5, 9].forEach((step, i) =>
+          this.bell(ctx, out, now + i * 0.07, semitones(1320, step), 1, 0.08),
+        );
+      } else {
+        this.noiseBurst(ctx, out, now, massive ? 1.4 : 0.9, 500, massive ? 0.3 : 0.18);
+      }
+    });
+  }
+
+  /** A ball starts falling from the sky: a short whistle going down. */
+  whistle(): void {
+    this.play((ctx, out, now) => this.sweep(ctx, out, now, 'sine', 1800, 500, 0.9, 0.05));
+  }
+
+  /** A ball from the sky lands in the chain. */
+  thud(): void {
+    this.play((ctx, out, now) => {
+      this.thump(ctx, out, now, 0.4);
+      this.bell(ctx, out, now, 520, 0.2, 0.06);
+    });
+  }
+
   /** A shot falling into the black hole: a long sigh down into the depths. */
   swallow(): void {
     this.play((ctx, out, now) => {

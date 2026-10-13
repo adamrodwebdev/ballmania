@@ -3,11 +3,12 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
+import { DIFFICULTIES } from '@/levels/difficulty';
 import StarRow from '@/ui/components/StarRow.vue';
 
 const emit = defineEmits<{ play: [level: CampaignLevel]; home: [] }>();
 const { t } = useI18n();
-const { progress } = useServices();
+const { progress, settings } = useServices();
 
 const order = CAMPAIGN.map((level) => level.id);
 
@@ -36,6 +37,24 @@ const worlds = computed(() =>
       </button>
       <h1 id="campaign-title">{{ t('campaign.title') }}</h1>
     </div>
+
+    <fieldset class="difficulty">
+      <legend>{{ t('difficulty.title') }}</legend>
+      <label v-for="level in DIFFICULTIES" :key="level" class="option">
+        <input
+          type="radio"
+          name="difficulty"
+          :value="level"
+          :checked="settings.current.difficulty === level"
+          :data-testid="`difficulty-${level}`"
+          @change="settings.update({ difficulty: level })"
+        />
+        <span>
+          <strong>{{ t(`difficulty.${level}.name`) }}</strong>
+          <small>{{ t(`difficulty.${level}.hint`) }}</small>
+        </span>
+      </label>
+    </fieldset>
 
     <article
       v-for="world in worlds"
@@ -204,5 +223,59 @@ h2 {
 .number {
   font-family: var(--font-display);
   font-size: 1.35rem;
+}
+.difficulty {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.difficulty legend {
+  margin-bottom: var(--space-2);
+  font-weight: 800;
+}
+
+.option {
+  position: relative;
+  display: flex;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.option input {
+  position: absolute;
+  opacity: 0;
+}
+
+.option span {
+  display: grid;
+  flex: 1;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.option small {
+  color: var(--text-muted);
+}
+
+.option input:checked + span {
+  border-color: var(--accent);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.option input:focus-visible + span {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
 </style>

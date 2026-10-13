@@ -1,5 +1,6 @@
 import type { GameReport } from '@/engine/Game';
 import { CAMPAIGN, nextLevel, starsFor, WORLDS, type CampaignLevel } from '@/levels/campaign';
+import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { resolveLevel } from '@/levels/resolveLevel';
 import type { Frame } from '@/levels/tracks';
@@ -52,8 +53,8 @@ export class CampaignMode implements PlayMode {
     return { key: won ? 'game.won' : 'game.lost' };
   }
 
-  definition(frame: Frame, assisted: boolean): LevelDefinition {
-    const resolved = resolveLevel(this.level, frame);
+  definition(frame: Frame, assisted: boolean, difficulty: Difficulty): LevelDefinition {
+    const resolved = resolveLevel(this.level, frame, difficulty);
     return assisted ? { ...resolved, speed: resolved.speed * ASSIST_SPEED } : resolved;
   }
 

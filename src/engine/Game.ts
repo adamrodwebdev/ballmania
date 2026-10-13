@@ -17,6 +17,15 @@ import {
 } from './objectives/Objective';
 import { PuzzleObjective } from './objectives/PuzzleObjective';
 import { Groove, Tempo, type RhythmSetup } from './rhythm/Tempo';
+import {
+  Arrhythmia,
+  METEOR_WARNING,
+  MeteorShower,
+  Weather,
+  type HazardSetup,
+  type WeatherEpisode,
+  type WeatherKind,
+} from './hazards/Hazards';
 import { Gravity, type GravitySetup } from './orbit/Gravity';
 import { Orbit, type OrbitSetup } from './orbit/Orbit';
 import type { Branch, ForkSpan, ForkedRoute } from './path/ForkedRoute';
@@ -82,6 +91,10 @@ export interface LevelSetup {
   readonly rhythm?: RhythmSetup;
   /** Duel mode: a computer rival shares the chain, which explosions push to and fro. */
   readonly duel?: DuelSetup & { readonly rival: RivalSetup };
+  /** Falling balls, arrhythmia and weather (§ 3.9). */
+  readonly hazards?: HazardSetup;
+  /** Every explosion's points are multiplied by this (campaign difficulty); 1 by default. */
+  readonly scoreFactor?: number;
 }
 
 export interface MagnetSetup {
@@ -133,6 +146,12 @@ export interface GameEvents {
   beat: { readonly index: number };
   /** Rhythm mode: a shot was judged on or off the beat. */
   groove: { readonly onBeat: boolean; readonly multiplier: number };
+  /** A ball is about to fall from the sky onto the chain, here. */
+  meteorWarning: { readonly position: Vec2 };
+  /** A ball fell from the sky into the chain. */
+  meteor: { readonly chain: number; readonly ball: BallView; readonly position: Vec2 };
+  /** An episode of weather starts or ends. */
+  weather: { readonly kind: WeatherKind; readonly active: boolean; readonly massive: boolean };
   /** Endless mode: a new stage, faster and maybe with one more colour. */
   stage: { readonly stage: number; readonly tones: number };
   bounced: { readonly projectile: ProjectileView; readonly position: Vec2 };
@@ -185,6 +204,12 @@ export const MAX_BOUNCES = 6;
 export const MAX_FLIGHT = 4;
 /** A charged shot flies this much faster (§ 3.9, module de tir). */
 export const POWER_SPEED = 2;
+/** Biting cold: how much slower shots fly, and the share of balls frosted, at strength 1. */
+export const COLD_SLOWDOWN = 0.35;
+export const FROST_SHARE = 0.18;
+/** Wind: sideways pull on shots (units/s²) and change of the chain's pace, at strength 1. */
+export const WIND_PULL = 700;
+export const WIND_PACE = 0.35;
 
 /** A shot bent at least this much by gravity is a curve (radians). */
 export const CURVE_ANGLE = Math.PI / 4;
@@ -213,6 +238,12 @@ export class Game {
   private bestGroove = 1;
   private beatIndex = 0;
   private shotsFired = 0;
+  private readonly random: RandomSource;
+  private readonly arrhythmia: Arrhythmia | null;
+  private readonly meteors: MeteorShower | null;
+  private readonly weatherSystem: Weather | null;
+  /** Balls on their way down from the sky: the ball they will land after, and the time left. */
+  private readonly falling: { chain: number; after: number; left: number; position: Vec2 }[] = [];
   private readonly balls = new BallFactory();
   private readonly flying: Projectile[] = [];
   private readonly objective: Objective;
@@ -240,6 +271,11 @@ export class Game {
     readonly setup: LevelSetup,
     random: RandomSource,
   ) {
+    this.random = random;
+    const hazards = setup.hazards;
+    this.arrhythmia = hazards?.arrhythmia ? new Arrhythmia(hazards.arrhythmia) : null;
+    this.meteors = hazards?.meteors ? new MeteorShower(hazards.meteors, random) : null;
+    this.weatherSystem = hazards?.weather ? new Weather(hazards.weather, random) : null;
     const generator = new ChainGenerator(random, setup.chain.minMatch);
     this.generator = generator;
     this.chains = setup.chains.map(({ path, recipe, tones, tail }) => {
@@ -286,6 +322,42 @@ export class Game {
     if (setup.puzzle) return new PuzzleObjective();
     if (setup.duel) return new DuelObjective(setup.duel);
     return new ClearObjective();
+  }
+
+  /** The weather now, or null in calm weather (or without weather). */
+  get weather(): WeatherEpisode | null {
+    return this.weatherSystem?.current ?? null;
+  }
+
+  /** Balls falling from the sky: where they will land, and how far down they are (0 to 1). */
+  get meteorsFalling(): readonly { readonly position: Vec2; readonly progress: number }[] {
+    return this.falling.map(({ position, left }) => ({
+      position,
+      progress: 1 - left / METEOR_WARNING,
+    }));
+  }
+
+  /** Arrhythmia: the chain's pace now (1 = normal), or null without. */
+  get arrhythmiaPace(): number | null {
+    return this.arrhythmia?.pace(this.elapsedValue) ?? null;
+  }
+
+  /** Speed factor of the shots now: biting cold slows them down. */
+  private get shotSpeedFactor(): number {
+    const weather = this.weather;
+    if (weather?.kind !== 'cold') return 1;
+    return Math.max(0.4, 1 - COLD_SLOWDOWN * this.strength);
+  }
+
+  /** Sideways pull of the wind on shots now, or null. */
+  private get windPull(): Vec2 | null {
+    const weather = this.weather;
+    if (weather?.kind !== 'wind') return null;
+    return new Vec2(weather.direction * WIND_PULL * this.strength, 0);
+  }
+
+  private get strength(): number {
+    return this.setup.hazards?.weather?.strength ?? 1;
   }
 
   /** Shots left in Puzzle mode, or null without a limit. */
@@ -503,8 +575,9 @@ export class Game {
   } {
     const radius = this.setup.chain.ballRadius;
     const gravity = power ? null : this.gravity;
-    const speed = this.setup.projectileSpeed * (power ? POWER_SPEED : 1);
-    const dt = gravity ? STEP : step / speed;
+    const wind = power ? null : this.windPull;
+    const speed = this.setup.projectileSpeed * (power ? POWER_SPEED : 1) * this.shotSpeedFactor;
+    const dt = gravity || wind ? STEP : step / speed;
     let position = this.shooter.position;
     let velocity = Vec2.fromAngle(this.shooter.angle, speed);
     const points = [position];
@@ -512,6 +585,7 @@ export class Game {
     let travelled = 0;
     for (let k = 0; travelled < reach && k * dt < MAX_FLIGHT; k++) {
       if (gravity) velocity = velocity.add(gravity.acceleration(position).scale(dt));
+      if (wind) velocity = velocity.add(wind.scale(dt));
       const move = velocity.scale(dt);
       position = position.add(move);
       travelled += move.length();
@@ -522,7 +596,7 @@ export class Game {
         points.push(position);
         rebounds.push(position);
         if (rebounds.length > maxBounces) return { points, rebounds, target: null };
-      } else if (gravity && k % 4 === 3) {
+      } else if ((gravity || wind) && k % 4 === 3) {
         points.push(position);
       }
       if (gravity?.swallows(position)) {
@@ -581,7 +655,10 @@ export class Game {
    */
   fire(power = false): boolean {
     if (this.stateValue !== 'playing' || this.shotsLeft === 0) return false;
-    const projectile = this.shooter.fire(this.shooterTones(), power ? POWER_SPEED : 1);
+    const projectile = this.shooter.fire(
+      this.shooterTones(),
+      (power ? POWER_SPEED : 1) * this.shotSpeedFactor,
+    );
     if (!projectile) return false;
     this.shotsFired++;
     this.flying.push(projectile);
@@ -610,6 +687,96 @@ export class Game {
     if (!projectile) return;
     this.flying.push(projectile);
     this.events.emit('fired', { projectile });
+  }
+
+  /** Falling balls, arrhythmia and weather (§ 3.9). */
+  private applyHazards(dt: number): void {
+    const change = this.weatherSystem?.update(dt) ?? {};
+    if (change.started) this.startWeather(change.started);
+    if (change.ended) this.endWeather(change.ended);
+    const weather = this.weather;
+    const wind = weather?.kind === 'wind' ? 1 + weather.direction * WIND_PACE * this.strength : 1;
+    const pace = (this.arrhythmia?.pace(this.elapsedValue) ?? 1) * Math.max(0.3, wind);
+    if (this.arrhythmia || this.weatherSystem) for (const chain of this.chains) chain.setPace(pace);
+    if (this.meteors?.update(dt)) this.aimMeteor();
+    for (let i = this.falling.length - 1; i >= 0; i--) {
+      const meteor = this.falling[i]!;
+      meteor.left -= dt;
+      if (meteor.left > 0) continue;
+      this.falling.splice(i, 1);
+      this.landMeteor(meteor.chain, meteor.after);
+    }
+  }
+
+  private startWeather(episode: WeatherEpisode): void {
+    if (episode.kind === 'solar') {
+      for (const chain of this.chains) chain.setImmunity(Infinity);
+    } else if (episode.kind === 'cold') {
+      for (const chain of this.chains) {
+        const visible = chain.balls.filter((ball) => ball.s >= 0 && ball.s <= chain.path.length);
+        chain.freeze(visible.filter(() => this.random.next() < FROST_SHARE * this.strength));
+      }
+    } else if (episode.massive) {
+      this.gust();
+    }
+    this.events.emit('weather', { kind: episode.kind, active: true, massive: episode.massive });
+  }
+
+  private endWeather(episode: WeatherEpisode): void {
+    if (episode.kind === 'solar') {
+      // The groups made during the storm go up at once.
+      this.chains.forEach((chain, index) => {
+        chain.setImmunity(0);
+        for (const explosion of chain.burstGroups()) this.report(index, chain, explosion);
+      });
+    } else if (episode.kind === 'cold') {
+      for (const chain of this.chains) chain.thaw();
+    }
+    this.events.emit('weather', { kind: episode.kind, active: false, massive: false });
+  }
+
+  /** A massive gust swaps a few neighbouring balls, never making a group explode. */
+  private gust(): void {
+    const swaps = 2 + Math.round(2 * this.strength);
+    let done = 0;
+    for (let tries = 0; tries < swaps * 4 && done < swaps; tries++) {
+      const chain = this.chains[this.random.nextInt(this.chains.length)]!;
+      const visible = chain.balls.filter((ball) => ball.s >= 0);
+      if (visible.length < 2) continue;
+      const ball = visible[this.random.nextInt(visible.length - 1)]!;
+      if (chain.swapTones(chain.balls.indexOf(ball))) done++;
+    }
+  }
+
+  /** Picks where the next ball falls: after a ball well inside the track. */
+  private aimMeteor(): void {
+    const options: { chain: number; after: number }[] = [];
+    this.chains.forEach((chain, index) => {
+      for (const ball of chain.balls) {
+        const along = ball.s / chain.path.length;
+        if (along > 0.1 && along < 0.8) options.push({ chain: index, after: ball.id });
+      }
+    });
+    if (options.length === 0) return;
+    const pick = options[this.random.nextInt(options.length)]!;
+    const chain = this.chains[pick.chain]!;
+    const ball = chain.balls.find((candidate) => candidate.id === pick.after)!;
+    const position = chain.positionOf(ball);
+    this.falling.push({ ...pick, left: METEOR_WARNING, position });
+    this.events.emit('meteorWarning', { position });
+  }
+
+  /** The ball lands after the one it aimed at, of a colour that makes no group. */
+  private landMeteor(index: number, after: number): void {
+    const chain = this.chains[index]!;
+    const at = chain.balls.findIndex((ball) => ball.id === after);
+    if (at < 0) return;
+    const neighbours = [chain.balls[at]!.tone, chain.balls[at + 1]?.tone];
+    const tones = this.availableTones().filter((tone) => !neighbours.includes(tone));
+    if (tones.length === 0) return;
+    const ball = this.balls.create(tones[this.random.nextInt(tones.length)]!);
+    chain.insert(ball, { index: at, after: true });
+    this.events.emit('meteor', { chain: index, ball, position: chain.positionOf(ball) });
   }
 
   /** Rhythm mode: the chain moves to the music, and every beat is announced. */
@@ -642,6 +809,7 @@ export class Game {
     }
     this.shooter.tick(dt);
     this.followTempo();
+    this.applyHazards(dt);
     this.playRival(dt);
     this.reflectors.update(dt);
     this.moveProjectiles(dt);
@@ -663,6 +831,8 @@ export class Game {
       if (this.gravity && !projectile.powered) {
         projectile.accelerate(this.gravity.acceleration(projectile.position), dt);
       }
+      const wind = this.windPull;
+      if (wind && !projectile.powered) projectile.accelerate(wind, dt);
       projectile.move(dt);
       const bounce = this.reflectors.bounce(
         projectile.position,
@@ -767,7 +937,7 @@ export class Game {
       explosion.depth,
       explosion.cause === 'shot',
       bounces,
-      (hot ? HOT_MULTIPLIER : 1) * groove,
+      (hot ? HOT_MULTIPLIER : 1) * groove * (this.setup.scoreFactor ?? 1),
     );
     this.events.emit('exploded', {
       chain: index,
@@ -783,6 +953,13 @@ export class Game {
     });
     this.objective.onExplosion(this.context, index, explosion, by);
     if (by === 'player') this.rechargeMagnet();
+    // Biting cold: a chain reaction shatters every frozen ball as well.
+    if (this.weather?.kind === 'cold' && explosion.depth >= 2) {
+      this.chains.forEach((other, i) => {
+        const shattered = other.shatterFrozen(explosion.depth + 1);
+        if (shattered) this.report(i, other, shattered);
+      });
+    }
   }
 
   /** Every few explosions, the magnet gets a charge back. */

@@ -1,3 +1,4 @@
+import type { WeatherKind } from '@/engine/hazards/Hazards';
 import type { TrackRecipe } from './tracks';
 
 export type WorldId = 'nebula' | 'neon' | 'abyss' | 'jewel' | 'volcano' | 'singularity';
@@ -24,7 +25,12 @@ export type HintId =
   | 'endless'
   | 'puzzle'
   | 'rhythm'
-  | 'duel';
+  | 'duel'
+  | 'arrhythmia'
+  | 'meteors'
+  | 'wind'
+  | 'cold'
+  | 'solar';
 
 /**
  * A mirror described in fractions of the board (0 to 1 on each axis), so it
@@ -73,6 +79,15 @@ export interface CampaignLevel {
   readonly gravity?: number;
   /** Singularity world: the shooter glides along a ring, at this many radians per second. */
   readonly orbit?: number;
+  /**
+   * Hazards (§ 3.9), at the Pilot difficulty: seconds between falling balls,
+   * amplitude of the arrhythmia, kinds of weather. The difficulty scales them.
+   */
+  readonly hazards?: {
+    readonly meteors?: number;
+    readonly arrhythmia?: number;
+    readonly weather?: readonly WeatherKind[];
+  };
   /** Abyss world: pull balls out of the chain. */
   readonly magnet?: {
     readonly charges: number;
@@ -333,6 +348,7 @@ const NEON: readonly CampaignLevel[] = [
     repeatChance: 0.4,
     speed: 50,
     hint: 'spin',
+    hazards: { arrhythmia: 0.25 },
   }),
   neon(6, {
     track: spiral(1.4, 0.5, true),
@@ -357,6 +373,8 @@ const NEON: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.42,
     speed: 44,
+    hazards: { meteors: 12 },
+    hint: 'meteors',
   }),
   neon(9, {
     track: spiral(1.1, 0.25, false, { arms: 2, inner: 0.4 }),
@@ -373,6 +391,8 @@ const NEON: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.45,
     speed: 44,
+    hazards: { arrhythmia: 0.3 },
+    hint: 'arrhythmia',
   }),
   neon(11, {
     track: spiral(1.7, 0.75, true, { squareness: 3, inner: 0.36, outer: 0.78 }),
@@ -381,6 +401,7 @@ const NEON: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.36,
     speed: 62,
+    hazards: { meteors: 9, arrhythmia: 0.2 },
   }),
   neon(12, {
     track: spiral(1.6, 0.25, true, { inner: 0.4 }),
@@ -391,6 +412,7 @@ const NEON: readonly CampaignLevel[] = [
     speed: 24,
     hint: 'colossus',
     colossus: { hp: 66, spit: 6 },
+    hazards: { meteors: 11 },
   }),
 ];
 
@@ -425,14 +447,17 @@ const ABYSS: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.4,
     speed: 54,
+    hazards: { weather: ['wind'] },
+    hint: 'wind',
   }),
   abyss(4, {
-    track: spiral(1.1, 0.75, true, { arms: 2, inner: 0.4 }),
+    track: { kind: 'twin' },
     magnet: magnet(2, 4),
-    length: 28,
+    length: 16,
     tones: 4,
     repeatChance: 0.42,
-    speed: 48,
+    speed: 17,
+    hint: 'twin',
   }),
   abyss(5, {
     track: { kind: 'serpentine', rows: 4 },
@@ -449,6 +474,7 @@ const ABYSS: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.45,
     speed: 44,
+    hazards: { meteors: 9 },
   }),
   abyss(7, {
     track: spiral(1.65, 0, false, { squareness: 3, inner: 0.38, outer: 0.84 }),
@@ -465,14 +491,16 @@ const ABYSS: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.4,
     speed: 54,
+    hazards: { weather: ['wind'], arrhythmia: 0.2 },
   }),
   abyss(9, {
-    track: spiral(1.15, 0.25, false, { arms: 2, inner: 0.4 }),
+    track: { kind: 'twin' },
     magnet: magnet(2, 5),
-    length: 30,
+    length: 16,
     tones: 4,
     repeatChance: 0.42,
-    speed: 50,
+    speed: 17,
+    hazards: { arrhythmia: 0.25 },
   }),
   abyss(10, {
     track: spiral(1.5, 0.75, true, { squareness: 2, outer: 0.86 }),
@@ -489,6 +517,7 @@ const ABYSS: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.36,
     speed: 70,
+    hazards: { weather: ['wind'], meteors: 10 },
   }),
   abyss(12, {
     track: spiral(1.6, 0.75, false, { inner: 0.4 }),
@@ -499,6 +528,7 @@ const ABYSS: readonly CampaignLevel[] = [
     speed: 26,
     hint: 'colossus',
     colossus: { hp: 66, spit: 6 },
+    hazards: { weather: ['wind'] },
   }),
 ];
 
@@ -534,6 +564,8 @@ const JEWEL: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.42,
     speed: 30,
+    hazards: { weather: ['cold'] },
+    hint: 'cold',
   }),
   jewel(4, {
     track: spiral(1.1, 0.75, true, { arms: 2, inner: 0.4 }),
@@ -566,6 +598,7 @@ const JEWEL: readonly CampaignLevel[] = [
     tones: 6,
     repeatChance: 0.4,
     speed: 36,
+    hazards: { weather: ['cold'] },
   }),
   jewel(8, {
     track: { kind: 'serpentine', rows: 3 },
@@ -598,6 +631,7 @@ const JEWEL: readonly CampaignLevel[] = [
     tones: 6,
     repeatChance: 0.38,
     speed: 42,
+    hazards: { weather: ['cold'], arrhythmia: 0.2 },
   }),
   jewel(12, {
     track: spiral(1.6, 0.75, false, { inner: 0.4 }),
@@ -608,6 +642,7 @@ const JEWEL: readonly CampaignLevel[] = [
     speed: 20,
     hint: 'colossus',
     colossus: { hp: 56, spit: 5 },
+    hazards: { weather: ['cold'] },
   }),
 ];
 
@@ -640,6 +675,8 @@ const VOLCANO: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.42,
     speed: 46,
+    hazards: { weather: ['solar'] },
+    hint: 'solar',
   }),
   volcano(4, {
     track: forked(3, 1),
@@ -654,7 +691,8 @@ const VOLCANO: readonly CampaignLevel[] = [
     length: 48,
     tones: 5,
     repeatChance: 0.4,
-    speed: 42,
+    speed: 36,
+    hazards: { weather: ['solar'] },
   }),
   volcano(6, {
     track: forked(3, 0, 1),
@@ -677,6 +715,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.4,
     speed: 40,
+    hazards: { weather: ['solar'] },
   }),
   volcano(9, {
     track: forked(3, 1),
@@ -693,6 +732,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.45,
     speed: 46,
+    hazards: { meteors: 9, arrhythmia: 0.2 },
   }),
   volcano(11, {
     track: forked(4, 0, 1, 2),
@@ -700,6 +740,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.38,
     speed: 46,
+    hazards: { weather: ['solar'], arrhythmia: 0.2 },
   }),
   volcano(12, {
     track: forked(3, 0, 1),
@@ -708,7 +749,8 @@ const VOLCANO: readonly CampaignLevel[] = [
     repeatChance: 0.4,
     speed: 20,
     hint: 'colossus',
-    colossus: { hp: 44, spit: 6 },
+    colossus: { hp: 40, spit: 6 },
+    hazards: { weather: ['solar'] },
   }),
 ];
 
@@ -747,6 +789,7 @@ const SINGULARITY: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.45,
     speed: 38,
+    hazards: { weather: ['wind'] },
   }),
   singularity(4, {
     track: orbital(1.3, 0.75, true, { arms: 2 }),
@@ -765,6 +808,7 @@ const SINGULARITY: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.4,
     speed: 44,
+    hazards: { weather: ['cold'] },
   }),
   singularity(6, {
     track: orbital(1.8, 0, true),
@@ -774,6 +818,7 @@ const SINGULARITY: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.45,
     speed: 38,
+    hazards: { arrhythmia: 0.2 },
   }),
   singularity(7, {
     track: orbital(2.2, 0.25, true),
@@ -784,6 +829,7 @@ const SINGULARITY: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.4,
     speed: 50,
+    hazards: { weather: ['solar'] },
   }),
   singularity(8, {
     track: orbital(1.5, 0.25, false, { arms: 2 }),
@@ -802,7 +848,8 @@ const SINGULARITY: readonly CampaignLevel[] = [
     length: 44,
     tones: 5,
     repeatChance: 0.4,
-    speed: 46,
+    speed: 42,
+    hazards: { meteors: 13, weather: ['wind'] },
   }),
   singularity(10, {
     track: orbital(1.8, 0.5, true),
@@ -822,6 +869,7 @@ const SINGULARITY: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.38,
     speed: 36,
+    hazards: { weather: ['solar', 'cold', 'wind'] },
   }),
   singularity(12, {
     track: orbital(2, 0.75, true),
@@ -833,6 +881,7 @@ const SINGULARITY: readonly CampaignLevel[] = [
     speed: 18,
     hint: 'colossus',
     colossus: { hp: 44, spit: 6 },
+    hazards: { weather: ['solar', 'cold'] },
   }),
 ];
 
@@ -863,7 +912,8 @@ export function nextLevel(current: CampaignLevel): CampaignLevel | undefined {
  * two stars, three need chain reactions. To be refined with play tests.
  */
 export function starThresholds(level: CampaignLevel): readonly [number, number] {
-  const arms = level.track.kind === 'spiral' ? (level.track.arms ?? 1) : 1;
+  const arms =
+    level.track.kind === 'spiral' ? (level.track.arms ?? 1) : level.track.kind === 'twin' ? 2 : 1;
   const balls = level.length * arms + (level.colossus ? level.colossus.hp / 3 : 0);
   const round = (value: number) => Math.round(value / 50) * 50;
   return [round(balls * 30 + 300), round(balls * 48 + 700)];

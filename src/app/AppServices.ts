@@ -32,6 +32,7 @@ export function createBrowserServices(
     volume: 0.7,
     vibration: true,
     aimAssist: true,
+    difficulty: 'pilot',
   });
   return {
     settings,

@@ -76,3 +76,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   bouche, vibrations ; aide à la visée activable (bille fantôme à l'arrivée du tir, groupe
   qui explosera et sa taille) ; plateau paysage 1 400 × 1 000 sur les écrans larges, écran
   de jeu en pleine largeur.
+- Lot 11.2, difficulté et aléas : trois difficultés de campagne (Explorateur, Pilote,
+  Légende) qui règlent la vitesse, les aléas et les points ; billes qui tombent du ciel,
+  arythmie, météo (tempête solaire, froid mordant, vents contraires et rafales massives) ;
+  tracés à deux entrées ; rendu et sons de chaque aléa ; robot d'équilibrage qui lit sa
+  ligne de visée.

@@ -3,6 +3,7 @@ import { SECONDARIES } from '@/engine/chain/Alchemy';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import type { LevelSetup, MagnetSetup } from '@/engine/Game';
 import type { DuelSetup } from '@/engine/objectives/DuelObjective';
+import type { HazardSetup } from '@/engine/hazards/Hazards';
 import type { EndlessSetup } from '@/engine/objectives/EndlessObjective';
 import type { RhythmSetup } from '@/engine/rhythm/Tempo';
 import { ForkedRoute, type RoutePart } from '@/engine/path/ForkedRoute';
@@ -102,6 +103,10 @@ export interface LevelDefinition {
   };
   /** Every gap of the chain closes (Duel). */
   readonly compact?: boolean;
+  /** Falling balls, arrhythmia and weather (§ 3.9). */
+  readonly hazards?: HazardSetup;
+  /** Factor of the points (campaign difficulty). */
+  readonly scoreFactor?: number;
   /** The ring the shooter glides along (Singularity world); `shooter` is then its start. */
   readonly orbit?: {
     readonly centre: Point;
@@ -175,6 +180,8 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
         }
       : {}),
     ...(level.endless ? { endless: level.endless } : {}),
+    ...(level.hazards ? { hazards: level.hazards } : {}),
+    ...(level.scoreFactor === undefined ? {} : { scoreFactor: level.scoreFactor }),
     ...(level.puzzle ? { puzzle: level.puzzle } : {}),
     ...(level.rhythm ? { rhythm: level.rhythm } : {}),
     ...(level.duel

@@ -55,6 +55,13 @@ export type TrackRecipe =
       readonly portal?: boolean;
     }
   | {
+      /**
+       * Two entrances, two exits (§ 3.9): a chain snakes down each side of the
+       * board towards its own hole, near the middle; the shooter stands between.
+       */
+      readonly kind: 'twin';
+    }
+  | {
       readonly kind: 'serpentine';
       readonly rows: number;
       /** Rows (not the last one) whose middle splits into a shortcut and a detour (Volcano world). */
@@ -78,7 +85,47 @@ export interface Track {
 const TUNNEL = 70;
 
 export function buildTrack(recipe: TrackRecipe, frame: Frame): Track {
-  return recipe.kind === 'spiral' ? spiralTrack(recipe, frame) : serpentineTrack(recipe, frame);
+  if (recipe.kind === 'spiral') return spiralTrack(recipe, frame);
+  if (recipe.kind === 'twin') return twinTrack(frame);
+  return serpentineTrack(recipe, frame);
+}
+
+/**
+ * Two mirrored serpentines, one on each half of the board, each ending in
+ * its own hole on either side of the middle, below the shooter.
+ */
+function twinTrack(frame: Frame): Track {
+  const top = 110;
+  const span = frame.height * 0.62 - top;
+  // An odd number of rows, about 125 units apart: the last one runs towards the middle.
+  const rows = 2 * Math.max(1, Math.floor(span / 250)) + 1;
+  const gap = span / (rows - 1);
+  const turn = gap / 2;
+  const middle = frame.width / 2;
+  const outer = 70 + turn;
+  const inner = middle - 130 - turn;
+  const last = top + (rows - 1) * gap;
+  const hole: Point = [middle - 70, last + 150];
+  const left: Point[] = [[-TUNNEL, top]];
+  for (let row = 0; row < rows; row++) {
+    const y = top + row * gap;
+    const inwards = row % 2 === 0;
+    left.push([inwards ? inner : outer, y]);
+    if (row === rows - 1) break;
+    for (let k = 1; k <= 24; k++) {
+      const a = -Math.PI / 2 + (k / 24) * Math.PI;
+      const x = inwards ? inner + Math.cos(a) * turn : outer - Math.cos(a) * turn;
+      left.push([x, y + turn + Math.sin(a) * turn]);
+    }
+  }
+  // A smooth bend from the last row down into the hole.
+  const [ex, ey] = left[left.length - 1]!;
+  for (let k = 1; k <= 16; k++) {
+    const t = k / 16;
+    left.push([ex + (hole[0] - ex) * Math.sin((t * Math.PI) / 2), ey + (hole[1] - ey) * t * t]);
+  }
+  const right = left.map(([x, y]): Point => [frame.width - x, y]);
+  return { paths: [left, right], shooter: [middle, (top + last) / 2] };
 }
 
 const signedPower = (value: number, power: number) => Math.sign(value) * Math.abs(value) ** power;

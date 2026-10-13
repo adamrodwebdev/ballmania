@@ -1,8 +1,10 @@
+import type { HazardSetup } from '@/engine/hazards/Hazards';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Path } from '@/engine/path/Path';
 import type { CampaignLevel, MirrorRecipe } from './campaign';
 import { LEVEL_DEFAULTS, type LevelDefinition, type ReflectorDefinition } from './LevelDefinition';
+import { DIFFICULTY_RULES, type Difficulty } from './difficulty';
 import { buildTrack, type Frame } from './tracks';
 
 /** Pull of the black hole at strength 1 (units³/s²), tuned so curves read clearly. */
@@ -14,8 +16,47 @@ export const RING_MARGIN = 70;
 /** Shots fly slower around the black hole, so their curve can be read. */
 export const ORBIT_SHOT_SPEED = 1050;
 
-/** Turns a campaign level into the geometry of one board shape. */
-export function resolveLevel(level: CampaignLevel, frame: Frame): LevelDefinition {
+/** Weather: seconds of calm between episodes, and how long they last, at the Pilot difficulty. */
+export const WEATHER_EVERY = 20;
+export const WEATHER_DURATION = 7;
+/** Seconds of one arrhythmia cycle. */
+export const ARRHYTHMIA_PERIOD = 9;
+
+/** The hazards of a level, scaled by the difficulty (§ 3.9). */
+function hazardsOf(level: CampaignLevel, factor: number): HazardSetup | undefined {
+  const hazards = level.hazards;
+  if (!hazards) return undefined;
+  return {
+    ...(hazards.meteors ? { meteors: hazards.meteors / factor } : {}),
+    ...(hazards.arrhythmia
+      ? {
+          arrhythmia: {
+            amplitude: Math.min(0.6, hazards.arrhythmia * factor),
+            period: ARRHYTHMIA_PERIOD,
+          },
+        }
+      : {}),
+    ...(hazards.weather
+      ? {
+          weather: {
+            kinds: hazards.weather,
+            every: WEATHER_EVERY / factor,
+            duration: WEATHER_DURATION,
+            strength: factor,
+          },
+        }
+      : {}),
+  };
+}
+
+/** Turns a campaign level into the geometry of one board shape, at a difficulty. */
+export function resolveLevel(
+  level: CampaignLevel,
+  frame: Frame,
+  difficulty: Difficulty = 'pilot',
+): LevelDefinition {
+  const rule = DIFFICULTY_RULES[difficulty];
+  const hazards = hazardsOf(level, rule.hazards);
   const track = buildTrack(level.track, frame);
   const radius = LEVEL_DEFAULTS.ballRadius;
   const longest = Math.max(
@@ -50,7 +91,7 @@ export function resolveLevel(level: CampaignLevel, frame: Frame): LevelDefinitio
       repeatChance: level.repeatChance,
       ...(level.palette ? { palette: level.palette } : {}),
     })),
-    speed: level.speed,
+    speed: level.speed * rule.speed,
     rushSpeed: 420,
     rushDistance: Math.min(900, longest * 0.3),
     // Par: a bit more than half the time the chain would take to reach the hole untouched.
@@ -68,6 +109,8 @@ export function resolveLevel(level: CampaignLevel, frame: Frame): LevelDefinitio
           projectileSpeed: ORBIT_SHOT_SPEED,
         }),
     ...(orbit ? { orbit } : {}),
+    ...(hazards ? { hazards } : {}),
+    ...(rule.score === 1 ? {} : { scoreFactor: rule.score }),
   };
 }
 

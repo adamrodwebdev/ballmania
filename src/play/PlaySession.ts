@@ -48,6 +48,8 @@ export interface HudState {
   stage: number | null;
   /** The rival's score in Duel mode, or null. */
   rivalScore: number | null;
+  /** The weather now (§ 3.9), or null in calm weather. */
+  weather: 'solar' | 'cold' | 'wind' | null;
   /**
    * Duel mode: where the chain stands between the two holes, from 0 (in the
    * rival's hole: won) to 1 (in the player's: lost); null elsewhere.
@@ -369,6 +371,18 @@ export class PlaySession {
       if (onBeat && multiplier > (this.hud.groove ?? 1)) sound.grooveUp(multiplier);
       this.hud.groove = multiplier;
     });
+    game.events.on('weather', ({ kind, active, massive }) => {
+      this.hud.weather = active ? kind : null;
+      if (active) {
+        sound.weather(kind, massive);
+        if (massive) this.destruction.impact(game.shooter.position, 0.5);
+      }
+    });
+    game.events.on('meteorWarning', () => sound.whistle());
+    game.events.on('meteor', ({ position }) => {
+      this.destruction.impact(position, 0.25);
+      sound.thud();
+    });
     game.events.on('stage', ({ stage }) => {
       this.hud.stage = stage;
       sound.stageUp();
@@ -454,6 +468,7 @@ export class PlaySession {
       stage: this.game.stage,
       rivalScore: this.game.rival ? 0 : null,
       tug: this.tug(),
+      weather: null,
     };
   }
 

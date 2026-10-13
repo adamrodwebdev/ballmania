@@ -140,7 +140,12 @@
     "endless": "Rantai tak pernah berhenti: setiap tahap mempercepatnya dan bisa menambah warna. Bertahanlah selama mungkin.",
     "puzzle": "Rantai diam dan tembakanmu terbatas. \"Warna berikutnya\" (atau X) memilih warna: manfaatkan reaksi berantai.",
     "rhythm": "Rantai bergerak mengikuti musik. Tembak saat cincin menutup pada penembak: groove melipatgandakan poin hingga ×4.",
-    "duel": "Setiap ledakan mendorong rantai ke lubang lawan. Jatuhkan ke lubang lawan sebelum mencapai lubangmu."
+    "duel": "Setiap ledakan mendorong rantai ke lubang lawan. Jatuhkan ke lubang lawan sebelum mencapai lubangmu.",
+    "arrhythmia": "Aritmia: rantai melaju lalu melambat tanpa peringatan. Lintasan memerah saat rantai melesat.",
+    "meteors": "Bola berjatuhan dari langit: bayangan menunjukkan tempat jatuhnya.",
+    "wind": "Angin sakal: saat embusan, garis bidik menunjukkan arah melesetnya tembakan. Tembakan bermuatan (tahan) tetap lurus.",
+    "cold": "Dingin menusuk: tembakan melambat dan bola membeku. Picu reaksi berantai untuk memecahkan semua bola beku.",
+    "solar": "Badai matahari: bola tak bisa dihancurkan. Bentuk kelompok: semuanya meledak saat badai usai."
   },
   "colossus": {
     "nebula": "Kolosus Bintang",
@@ -418,6 +423,35 @@
       "final": "Skor lawan: {score}",
       "wins": "Belum ada kemenangan | {count} kemenangan | {count} kemenangan",
       "harder": "Lawan lebih kuat"
+    }
+  },
+  "difficulty": {
+    "title": "Tingkat kesulitan",
+    "explorer": {
+      "name": "Penjelajah",
+      "hint": "Rantai lebih lambat, rintangan lebih ringan, poin ×0,8"
+    },
+    "pilot": {
+      "name": "Pilot",
+      "hint": "Pengalaman sesuai rancangan"
+    },
+    "legend": {
+      "name": "Legenda",
+      "hint": "Rantai lebih cepat, rintangan mengamuk, poin ×1,3"
+    }
+  },
+  "weather": {
+    "solar": {
+      "name": "Badai matahari",
+      "announce": "Badai matahari: bola membara dan tak bisa dihancurkan. Kelompok yang terbentuk akan meledak saat badai usai."
+    },
+    "cold": {
+      "name": "Dingin menusuk",
+      "announce": "Dingin menusuk: tembakanmu melambat. Reaksi berantai akan memecahkan bola yang membeku."
+    },
+    "wind": {
+      "name": "Angin sakal",
+      "announce": "Embusan: tembakanmu melenceng dan laju rantai berubah."
     }
   }
 }

@@ -140,7 +140,12 @@
     "endless": "The chain never stops: each stage speeds it up and may add a colour. Hold on as long as you can.",
     "puzzle": "The chain stands still and your shots are counted. \"Next colour\" (or X) picks the colour: think chain reactions.",
     "rhythm": "The chain moves to the music. Fire as the ring closes on the shooter: the groove multiplies your points up to ×4.",
-    "duel": "Every explosion pushes the chain towards the other hole. Make it fall into your rival's before it reaches yours."
+    "duel": "Every explosion pushes the chain towards the other hole. Make it fall into your rival's before it reaches yours.",
+    "arrhythmia": "Arrhythmia: the chain speeds up and slows down without warning. The track turns red when it races.",
+    "meteors": "Balls fall from the sky: a shadow shows where they will land.",
+    "wind": "Headwinds: during a gust, the aim line shows how your shots drift. A charged shot (hold) flies straight.",
+    "cold": "Biting cold: shots slow down and balls freeze. Set off a chain reaction to shatter every frozen ball.",
+    "solar": "Solar storm: the balls cannot be destroyed. Build groups: they will all explode when it ends."
   },
   "colossus": {
     "nebula": "Stellar Colossus",
@@ -418,6 +423,35 @@
       "final": "Rival's score: {score}",
       "wins": "No wins | {count} win | {count} wins",
       "harder": "Stronger rival"
+    }
+  },
+  "difficulty": {
+    "title": "Difficulty",
+    "explorer": {
+      "name": "Explorer",
+      "hint": "Slower chain, softer hazards, points ×0.8"
+    },
+    "pilot": {
+      "name": "Pilot",
+      "hint": "The experience as designed"
+    },
+    "legend": {
+      "name": "Legend",
+      "hint": "Faster chain, raging hazards, points ×1.3"
+    }
+  },
+  "weather": {
+    "solar": {
+      "name": "Solar storm",
+      "announce": "Solar storm: the balls are burning and cannot be destroyed. Groups made now will explode when it ends."
+    },
+    "cold": {
+      "name": "Biting cold",
+      "announce": "Biting cold: your shots slow down. A chain reaction will shatter the frozen balls."
+    },
+    "wind": {
+      "name": "Headwinds",
+      "announce": "Gust: your shots drift and the chain changes pace."
     }
   }
 }
