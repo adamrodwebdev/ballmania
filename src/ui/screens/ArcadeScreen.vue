@@ -7,6 +7,7 @@ import { DUEL_DIFFICULTIES } from '@/levels/arcade/duel';
 import { ARCADE_MODES } from '@/levels/arcade/modes';
 import { dailyPuzzle, PUZZLES } from '@/levels/arcade/puzzles';
 import { SONGS } from '@/levels/arcade/rhythm';
+import { playable } from '@/levels/campaign';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import StarRow from '@/ui/components/StarRow.vue';
 import SwiperDeck from '@/ui/components/SwiperDeck.vue';
@@ -77,7 +78,11 @@ const current = computed(() => {
                 d="M7 10V7a5 5 0 0 1 10 0v3h1v11H6V10zm2 0h6V7a3 3 0 0 0-6 0z"
               />
             </svg>
-            {{ t('arcade.locked', { world: t(`worlds.${mode.unlockedBy}.name`) }) }}
+            {{
+              playable(mode.unlockedBy)
+                ? t('arcade.locked', { world: t(`worlds.${mode.unlockedBy}.name`) })
+                : t('demo.fullGame')
+            }}
           </p>
 
           <div v-else-if="mode.id === 'endless'" class="choices stagger">

@@ -16,6 +16,7 @@ import type { PlayRequest } from '@/app/PlayRequest';
 import { ingredients, SECONDARIES } from '@/engine/chain/Alchemy';
 import { puzzleHint } from '@/levels/arcade/hint';
 import { CAMPAIGN } from '@/levels/campaign';
+import { DEMO } from '@/levels/edition';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { frameFor, type Frame } from '@/levels/tracks';
 import { ASSIST_AFTER } from '@/player/rewards';
@@ -662,7 +663,7 @@ const quit = () => emit('quit');
         {{ t('game.bonus', { points: number.format(hud?.bonus ?? 0) }) }}
       </p>
       <p v-if="campaignDone" class="record" data-testid="campaign-done">
-        {{ t('game.campaignDone') }}
+        {{ t(DEMO ? 'demo.done' : 'game.campaignDone') }}
       </p>
       <p v-if="puzzleResult" class="detail" data-testid="puzzle-result">
         {{ t('arcade.puzzle.result', { shots: puzzleResult.shots, par: puzzleResult.par }) }}

@@ -755,6 +755,15 @@ léger, effets visuels qui se remarquent dans les vignettes et vidéos de prése
 
 Ordre : notre site d'abord, puis builds portails, puis démo pour le portfolio.
 
+**Démo du portfolio (lot 14)** : `npm run build:demo` (`vite build --mode demo`, constante
+`__DEMO__`, `src/levels/edition.ts`) construit dans `dist-demo/` l'édition de notre site
+réduite aux deux premiers mondes, Nébuleuse et Néon : 24 niveaux, deux Colosses, l'Infini
+et les Énigmes (débloqués par ces mondes), le défi du jour (tiré du premier monde),
+l'Observatoire et l'atelier. Les quatre autres mondes restent sur la carte, fermés, avec
+« Dans le jeu complet » ; de même le Rythme, le Duel et les cosmétiques liés à ces mondes.
+Finir le Néon affiche la fin de la démo. Elle est publiée sur le portfolio
+(`/demos/ballmania/`), non indexée, comme la démo de Catapulte Mania.
+
 ### 3.9 Lot 11 « Expérience » : retours d'un joueur (v0.15)
 
 Retours de test reçus le 13/10/2026, après les six mondes et l'Arcade. Ils visent la
@@ -1274,7 +1283,7 @@ le moteur de tracés.
 | 11 ✅ | Expérience (§ 3.9) : 11.1 tir et plateau, 11.2 difficulté et aléas, 11.3 fragments et améliorations, 11.4 design et animations |
 | 12 ✅ | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                                                   |
 | 13 ✅ | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                                            |
-| 14    | Démo portfolio                                                                                                                 |
+| 14 ✅ | Démo portfolio                                                                                                                 |
 
 ## 10. Hors périmètre (v1)
 

@@ -6,6 +6,9 @@ declare const __APP_VERSION__: string;
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- a global declaration cannot import
 declare const __PLATFORM__: import('./src/platform/platforms').PlatformId;
 
+/** The demo of the portfolio (lot 14), from `vite build --mode demo`. */
+declare const __DEMO__: boolean;
+
 interface ImportMetaEnv {
   /** GameDistribution game id, for the GameDistribution build. */
   readonly VITE_GD_GAME_ID?: string;

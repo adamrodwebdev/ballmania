@@ -565,5 +565,10 @@
     "hintShown": "Petunjuk: tembak bola yang dilingkari.",
     "unavailable": "Belum ada iklan saat ini: tidak ada yang hilang, coba lagi nanti.",
     "blocked": "Bonus video tidak tersedia: pemblokir iklan aktif. Seluruh permainan tetap bisa dimainkan."
+  },
+  "demo": {
+    "fullGame": "Di game lengkap",
+    "note": "Demo: 2 dari 6 dunia",
+    "done": "Demo selesai! Empat dunia lagi menantimu di game lengkap."
   }
 }

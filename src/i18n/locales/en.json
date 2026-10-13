@@ -565,5 +565,10 @@
     "hintShown": "Hint: shoot at the circled ball.",
     "unavailable": "No ad available right now: nothing is lost, try again later.",
     "blocked": "Video bonuses are unavailable: an ad blocker is on. The whole game stays playable."
+  },
+  "demo": {
+    "fullGame": "In the full game",
+    "note": "Demo: 2 worlds out of 6",
+    "done": "End of the demo! Four more worlds await you in the full game."
   }
 }
