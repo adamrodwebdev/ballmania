@@ -4,6 +4,7 @@ import { mix } from '@/engine/chain/Alchemy';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import { BlackHole } from './BlackHole';
+import { WeatherLayer } from './WeatherLayer';
 import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
@@ -83,6 +84,8 @@ export class CanvasRenderer implements Renderer {
   private time = 0;
   /** Singularity world: the black hole and the shooter's ring. */
   private readonly blackHole: BlackHole | null;
+  /** Hazards: weather, falling balls, arrhythmia (§ 3.9). */
+  private readonly weather: WeatherLayer;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -96,6 +99,7 @@ export class CanvasRenderer implements Renderer {
     this.palette = palette;
     this.sprites = new BallSprites(() => document.createElement('canvas'));
     this.blackHole = game.gravity ? new BlackHole(game.gravity, game.ring) : null;
+    this.weather = new WeatherLayer(game);
   }
 
   resize(width: number, height: number, pixelRatio: number): void {
@@ -169,10 +173,23 @@ export class CanvasRenderer implements Renderer {
     const radius = game.setup.chain.ballRadius;
     for (const chain of game.chains) this.drawTrack(chain, radius);
     this.blackHole?.drawRing(ctx, palette, scene.time);
+    this.weather.drawUnder(
+      ctx,
+      palette,
+      game.chains.map((chain) => this.trackOf(chain)),
+      radius,
+    );
     this.drawSwitches(radius, scene.time);
     this.drawReflectors(scene.time);
     if (scene.aim) this.drawAim(scene, scene.aim, radius);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
+    this.weather.drawOver(
+      ctx,
+      palette,
+      (chain, index) => scene.motion.positionOf(chain, chain.balls[index]!),
+      radius,
+      scene.time,
+    );
     if (scene.preview && scene.aim) this.drawPreview(scene.preview, radius, scene.time);
     game.chains.forEach((chain) => this.drawColossus(chain, scene));
     this.drawTrails(radius);

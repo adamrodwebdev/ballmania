@@ -1,5 +1,6 @@
 import type { GameReport } from '@/engine/Game';
 import type { HintId, WorldId } from '@/levels/campaign';
+import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
 import type { Rewards } from '@/player/PlayerProfile';
@@ -47,8 +48,8 @@ export interface PlayMode {
   readonly home: 'campaign' | 'home' | 'arcade';
   /** Title of the end dialog. */
   outcome(won: boolean): Message;
-  /** The level for this board shape (slowed down when assisted). */
-  definition(frame: Frame, assisted: boolean): LevelDefinition;
+  /** The level for this board shape, slowed down when assisted, at the campaign difficulty. */
+  definition(frame: Frame, assisted: boolean, difficulty: Difficulty): LevelDefinition;
   /** Saves the finished game and pays its rewards. */
   settle(report: GameReport, services: AppServices): Settlement;
   /** What to offer after a win, with its button label, if anything is open. */

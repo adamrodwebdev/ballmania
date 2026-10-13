@@ -11,6 +11,7 @@ const DEFAULTS = {
   volume: 0.7,
   vibration: true,
   aimAssist: true,
+  difficulty: 'pilot',
 } as const;
 
 describe('SettingsService', () => {

@@ -9,10 +9,14 @@ export interface BallView {
   readonly tone: Tone;
   /** Arc length along the path; negative while still in the entrance tunnel. */
   readonly s: number;
+  /** Covered in frost (biting cold): a chain reaction shatters it too. */
+  readonly frozen: boolean;
 }
 
 /** A ball of a chain. Only `Chain` moves it (and, in the Jewel world, recolours it). */
 export class Ball implements BallView {
+  frozen = false;
+
   constructor(
     readonly id: number,
     private toneValue: Tone,

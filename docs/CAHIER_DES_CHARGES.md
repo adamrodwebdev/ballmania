@@ -734,6 +734,28 @@ sensation de jeu, la profondeur et la rejouabilité. Livrés en quatre étapes (
   météo par monde ensuite, combinées dans la Singularité) ; plus la difficulté est haute,
   plus ils sont fréquents et marqués.
 
+Livré à l'étape 11.2 :
+
+- Difficulté choisie sur la carte (réglage `difficulty`), badge dans l'écran de jeu ; le
+  défi du jour reste en Pilote pour l'équité.
+- Répartition : Néon (arythmie aux niveaux 5, 10 et 11, pluie de billes aux niveaux 8, 11
+  et 12), Abysses (vent aux niveaux 3, 8, 11 et 12, **tracés à deux entrées** aux niveaux 4
+  et 9, pluie et arythmie), Joaillerie (froid aux niveaux 3, 7, 11 et 12), Volcan (tempête
+  solaire aux niveaux 3, 5, 8, 11 et 12), Singularité (vent, froid, tempête et les trois à
+  la fois au niveau 11).
+- Réglages de référence (Pilote) : une météo toutes les 20 s environ, 7 s chacune ; tirs
+  ralentis de 35 % par le froid, 18 % des billes gelées ; rafale de 700 unités/s² et
+  allure de la chaîne ±35 % ; rafale massive dans 30 % des cas (2 à 4 échanges) ;
+  arythmie de ±20 à 30 % sur des cycles de 9 s ; une bille du ciel toutes les 9 à 13 s.
+- **Tracé à deux entrées** : deux serpentins symétriques de 5 rangées (7 en portrait), un
+  par moitié du plateau, chacun vers son trou de part et d'autre du milieu ; le lanceur au
+  centre. Les tests de géométrie couvrent les trois formats.
+- **Équilibrage** : le robot vérifie désormais que sa cible est bien la première bille sur
+  la ligne de visée (un joueur lit sa ligne de visée) ; sans cela, il visait des billes
+  masquées par une autre rangée. Il corrige aussi sa visée dans le vent. Chaque niveau reste
+  gagné au moins 4 fois sur 6 en Pilote. Les tracés à deux entrées, trop durs avec
+  l'alchimie, sont restés aux Abysses.
+
 #### 11.3 Fragments d'étoiles et améliorations
 
 - **Fragments d'étoiles** : des étoiles filantes traversent le plateau de temps en temps ;

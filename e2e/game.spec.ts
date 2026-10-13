@@ -361,3 +361,16 @@ test('plays around the black hole of the Singularity world', async ({ page }) =>
   await page.keyboard.press('Space');
   expect(errors).toEqual([]);
 });
+
+test('chooses the difficulty of the campaign on the map', async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' })),
+  );
+  await page.goto('./');
+  await page.getByTestId('play').click();
+  await expect(page.getByTestId('difficulty-pilot')).toBeChecked();
+  await page.getByText('Legend', { exact: true }).click();
+  await expect(page.getByTestId('difficulty-legend')).toBeChecked();
+  await page.getByTestId('level-nebula-01').click();
+  await expect(page.getByTestId('difficulty')).toHaveText('Legend');
+});

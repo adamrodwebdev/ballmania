@@ -100,8 +100,31 @@ export function playDefinition(
    * each ball.
    */
   let reach = new Map<number, number>();
+  /** Shots curve now: around a black hole, or in a gust of wind. */
+  const curving = () => gravity !== null || game.weather?.kind === 'wind';
   const sweep = () => {
     reach = new Map();
+    if (!gravity && curving()) {
+      // In the wind: for the best balls, the angle closest to straight that reaches them.
+      const saved = game.shooter.angle;
+      for (const tone of [game.shooter.current, game.shooter.next]) {
+        for (const candidate of candidates(tone).slice(0, 6)) {
+          if (reach.has(candidate.id)) continue;
+          const point = game.chains[candidate.chain]!.path.pointAt(candidate.s);
+          const direct = point.sub(game.shooter.position).angle();
+          for (let k = 0; k <= 40; k++) {
+            const angle = direct + (k % 2 === 1 ? 1 : -1) * Math.ceil(k / 2) * 0.012;
+            game.shooter.aim(angle);
+            if (game.aimTarget()?.ball.id === candidate.id) {
+              reach.set(candidate.id, angle);
+              break;
+            }
+          }
+        }
+      }
+      game.shooter.aim(saved);
+      return;
+    }
     if (!gravity) return;
     const found = new Map<number, number[]>();
     const saved = game.shooter.angle;
@@ -121,13 +144,13 @@ export function playDefinition(
 
   /**
    * The best candidate the shot would really reach, as a player reading the
-   * aim line would check (only where touching another ball matters: alchemy,
-   * or where shots curve: gravity).
+   * aim line checks: another ball may stand in the way (two rows, two chains),
+   * shots may curve (gravity, wind), and in the Jewel world what is touched
+   * matters. Without any reachable candidate, the best one anyway.
    */
   const target = (tone: number): Candidate | null => {
     const list = candidates(tone);
-    if (gravity) return list.find((candidate) => reach.has(candidate.id)) ?? null;
-    if (!alchemy) return list[0] ?? null;
+    if (curving()) return list.find((candidate) => reach.has(candidate.id)) ?? null;
     const saved = game.shooter.angle;
     for (const candidate of list.slice(0, 8)) {
       game.aimAt(game.chains[candidate.chain]!.path.pointAt(candidate.s));
@@ -137,7 +160,7 @@ export function playDefinition(
       }
     }
     game.shooter.aim(saved);
-    return null;
+    return alchemy ? null : (list[0] ?? null);
   };
 
   /**
@@ -165,7 +188,7 @@ export function playDefinition(
         const ball = balls[i]!;
         if (ball.s < 0 || balls[i - 1]!.tone !== balls[i + 1]!.tone) continue;
         if (ball.tone === balls[i - 1]!.tone) continue;
-        if (gravity && !reach.has(ball.id)) continue;
+        if (curving() && !reach.has(ball.id)) continue;
         if (!best || ball.s > best.s) best = { chain: index, s: ball.s, id: ball.id };
       }
     });

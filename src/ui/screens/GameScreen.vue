@@ -75,7 +75,8 @@ const feedback = sharedFeedback(settings.current.volume, settings.current.vibrat
 
 let frame: Frame | null = null;
 /** The level for this board shape, slowed down when the assistance is on. */
-const definition = (): LevelDefinition => mode.definition(frame!, assisted.value);
+const definition = (): LevelDefinition =>
+  mode.definition(frame!, assisted.value, settings.current.difficulty);
 
 let cleanups: (() => void)[] = [];
 
@@ -210,6 +211,13 @@ watch(
 );
 
 watch(
+  () => hud.value?.weather,
+  (weather) => {
+    if (weather) announcement.value = t(`weather.${weather}.announce`);
+  },
+);
+
+watch(
   () => hud.value?.stage,
   (stage) => {
     if (stage) announcement.value = t('arcade.endless.stage', { stage: stage + 1 });
@@ -280,6 +288,9 @@ const quit = () => emit('quit');
     <div class="bar">
       <p class="level" data-testid="level">{{ say(mode.label) }}</p>
       <p v-if="assisted" class="assisted" data-testid="assisted">{{ t('assist.active') }}</p>
+      <p v-if="request.kind === 'campaign'" class="assisted" data-testid="difficulty">
+        {{ t(`difficulty.${settings.current.difficulty}.name`) }}
+      </p>
       <p class="score">
         <span class="label">{{ t('game.score') }}</span>
         <span class="value" data-testid="score">{{ number.format(hud?.score ?? 0) }}</span>
@@ -292,6 +303,9 @@ const quit = () => emit('quit');
       </p>
       <p v-if="hud?.groove" class="badge groove" data-testid="groove">
         {{ t('arcade.rhythm.groove', { multiplier: hud.groove }) }}
+      </p>
+      <p v-if="hud?.weather" class="badge weather" :class="hud.weather" data-testid="weather">
+        {{ t(`weather.${hud.weather}.name`) }}
       </p>
       <p v-if="hud && hud.stage !== null" class="badge" data-testid="stage">
         {{ t('arcade.endless.stage', { stage: hud.stage + 1 }) }}
@@ -738,6 +752,34 @@ const quit = () => emit('quit');
 
 .groove {
   color: var(--orb-cyan);
+}
+
+.weather {
+  animation: weather 1.2s ease-in-out infinite alternate;
+}
+
+.weather.solar {
+  color: var(--orb-amber);
+}
+
+.weather.cold {
+  color: var(--orb-cyan);
+}
+
+.weather.wind {
+  color: var(--orb-violet);
+}
+
+@keyframes weather {
+  to {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather {
+    animation: none;
+  }
 }
 
 .duel {

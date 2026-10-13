@@ -1,5 +1,6 @@
 import { reactive, readonly } from 'vue';
 import { isLocale, type Locale } from '@/i18n/locales';
+import { isDifficulty, type Difficulty } from '@/levels/difficulty';
 import { readJson, type KeyValueStorage } from './KeyValueStorage';
 
 export const EFFECT_LEVELS = ['spectacular', 'balanced', 'subtle'] as const;
@@ -19,6 +20,8 @@ export interface Settings {
   readonly vibration: boolean;
   /** Aim assistance: ghost ball where the shot lands and the group it would make (§ 3.9). */
   readonly aimAssist: boolean;
+  /** Difficulty of the campaign (§ 3.9). */
+  readonly difficulty: Difficulty;
 }
 
 /** Same key as the theme bootstrap script (public/theme-boot.js). */
@@ -67,6 +70,7 @@ export class SettingsService {
     }
     if (typeof record.vibration === 'boolean') settings.vibration = record.vibration;
     if (typeof record.aimAssist === 'boolean') settings.aimAssist = record.aimAssist;
+    if (isDifficulty(record.difficulty)) settings.difficulty = record.difficulty;
     return settings;
   }
 }

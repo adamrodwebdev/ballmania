@@ -60,6 +60,10 @@ export class Chain {
   private reaction = 0;
   private pusher: Pusher | null = null;
   private speedFactor = 1;
+  /** Speed factor of the hazards (arrhythmia, wind), on top of `speedFactor`. */
+  private paceValue = 1;
+  /** Smallest group that still explodes during a solar storm; 0 without a storm. */
+  private immunity = 0;
 
   constructor(
     private pathValue: Path,
@@ -143,6 +147,89 @@ export class Chain {
   /** Multiplies the pushing speed (a Colossus getting angry). */
   setSpeedFactor(factor: number): void {
     this.speedFactor = factor;
+  }
+
+  /** Multiplies the pushing speed again, for the hazards (arrhythmia, gusts of wind). */
+  setPace(factor: number): void {
+    this.paceValue = factor;
+  }
+
+  /**
+   * Solar storm: groups smaller than `size` no longer explode (Infinity: none
+   * does); 0 lifts the immunity.
+   */
+  setImmunity(size: number): void {
+    this.immunity = size;
+  }
+
+  /**
+   * Explodes every group large enough, from the head down: the groups made
+   * while a solar storm made the balls immune go up when it ends.
+   */
+  burstGroups(): Explosion[] {
+    const explosions: Explosion[] = [];
+    for (let index = this.items.length - 1; index >= 0; index--) {
+      if (index >= this.items.length) continue;
+      const explosion = this.explodeAround(index, 'reaction');
+      if (explosion) explosions.push(explosion);
+    }
+    return explosions;
+  }
+
+  /** Biting cold: frosts these balls. */
+  freeze(balls: readonly BallView[]): void {
+    for (const ball of this.items) if (balls.includes(ball)) ball.frozen = true;
+  }
+
+  /** The cold is over: every ball thaws. */
+  thaw(): void {
+    for (const ball of this.items) ball.frozen = false;
+  }
+
+  /** A chain reaction in the cold: every frozen ball shatters; null if none. */
+  shatterFrozen(depth: number): Explosion | null {
+    const balls = this.items.filter((ball) => ball.frozen);
+    if (balls.length === 0) return null;
+    for (const ball of balls) this.items.splice(this.items.indexOf(ball), 1);
+    return { balls, cause: 'reaction', depth };
+  }
+
+  /**
+   * Massive gust: swaps the colours of the ball at `index` and the next one,
+   * unless that would make a group explode; true if it did.
+   */
+  swapTones(index: number): boolean {
+    const a = this.items[index];
+    const b = this.items[index + 1];
+    if (!a || !b || a.tone === b.tone) return false;
+    const [first, second] = [a.tone, b.tone];
+    a.recolour(second);
+    b.recolour(first);
+    if (
+      this.runAround(index) >= this.params.minMatch ||
+      this.runAround(index + 1) >= this.params.minMatch
+    ) {
+      a.recolour(first);
+      b.recolour(second);
+      return false;
+    }
+    return true;
+  }
+
+  /** Size of the touching same-colour group around `index`. */
+  private runAround(index: number): number {
+    const tone = this.items[index]!.tone;
+    let first = index;
+    while (first > 0 && this.items[first - 1]!.tone === tone && this.touching(first - 1)) first--;
+    let last = index;
+    while (
+      last + 1 < this.items.length &&
+      this.items[last + 1]!.tone === tone &&
+      this.touching(last)
+    ) {
+      last++;
+    }
+    return last - first + 1;
   }
 
   /** New balls appear just in front of the pusher (or behind the tail) and push the rest. */
@@ -229,7 +316,8 @@ export class Chain {
     const front = head?.s ?? this.pusher?.s ?? 0;
     const speed =
       (front < this.params.rushDistance ? this.params.rushSpeed : this.params.speed) *
-      this.speedFactor;
+      this.speedFactor *
+      this.paceValue;
     if (this.pusher) this.pusher.s += speed * dt;
     if (this.isEmpty) return [];
     const wasTouching = this.items.slice(0, -1).map((_, i) => this.touching(i));
@@ -371,8 +459,9 @@ export class Chain {
     ) {
       last++;
     }
-    if (last - first + 1 < this.params.minMatch) return null;
-    const balls = this.items.splice(first, last - first + 1);
+    const size = last - first + 1;
+    if (size < this.params.minMatch || (this.immunity > 0 && size < this.immunity)) return null;
+    const balls = this.items.splice(first, size);
     this.reaction++;
     return { balls, cause, depth: this.reaction };
   }
