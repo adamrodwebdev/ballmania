@@ -316,13 +316,15 @@ test('flips the switches of the Volcano world by touch and by keyboard', async (
   await page.getByTestId('level-volcano-01').click();
   const board = page.getByTestId('board');
   const box = (await board.boundingBox())!;
-  // The first fork starts 30 % along the first row (y = 110), on a square or tall board.
-  const tall = box.height / box.width >= 1.2;
-  const [width, height] = tall ? [1000, 1400] : [1000, 1000];
+  // The first fork starts 30 % along the first row (y = 110), on any board shape.
+  const ratio = box.width / box.height;
+  const [width, height] =
+    box.height / box.width >= 1.2 ? [1000, 1400] : ratio >= 1.25 ? [1400, 1000] : [1000, 1000];
   const scale = Math.min(box.width / width, box.height / height);
   const left = (box.width - width * scale) / 2;
   const top = (box.height - height * scale) / 2;
-  const forkX = tall ? 291 : 298.5;
+  const turn = Math.min(300, (height * 0.62 - 110) / 2) / 2;
+  const forkX = 90 + (width - 90 - turn - 90) * 0.3;
   const live = page.locator('[aria-live="polite"]');
   await board.click({ position: { x: left + forkX * scale, y: top + 110 * scale } });
   await expect(live).toHaveText('Switch set to the detour');

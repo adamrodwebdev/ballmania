@@ -6,6 +6,8 @@ export interface PlayCommands {
   flipSwitchAt(x: number, y: number): boolean;
   /** Flips the next switch the chain has not reached yet (keyboard). */
   flipNextSwitch(): void;
+  /** Starts (or starts again) charging a shot; `fire` releases it. */
+  charge(): void;
   fire(): void;
   swap(): void;
   turn(direction: number): void;
@@ -14,14 +16,21 @@ export interface PlayCommands {
   toggleMagnet(): void;
 }
 
+/** A finger moving less than this (CSS pixels) keeps charging the shot. */
+const STILL = 6;
+
 /**
- * Mouse: aim by moving, fire with the main button, swap with the secondary one.
- * Touch and pen: aim by dragging and fire on release, so the player can adjust
- * first (specification § 3.3); a tap on the shooter swaps the balls.
+ * Mouse: aim by moving, fire by releasing the main button (holding it charges
+ * a powered shot), swap with the secondary one. Touch and pen: aim by
+ * dragging and fire on release, so the player can adjust first
+ * (specification § 3.3); holding the finger still charges the shot; a tap on
+ * the shooter swaps the balls.
  */
 export class PointerControls {
   private aiming: number | null = null;
   private swapping: number | null = null;
+  private pressed = false;
+  private still: [number, number] | null = null;
   private readonly abort = new AbortController();
 
   constructor(
@@ -51,7 +60,8 @@ export class PointerControls {
       if (event.button === 2) this.commands.swap();
       else if (event.button === 0 && !this.commands.flipSwitchAt(x, y)) {
         this.commands.aimAt(x, y);
-        this.commands.fire();
+        this.commands.charge();
+        this.pressed = true;
       }
       return;
     }
@@ -64,17 +74,28 @@ export class PointerControls {
     }
     this.aiming = event.pointerId;
     this.commands.aimAt(x, y);
+    this.commands.charge();
+    this.still = [x, y];
   };
 
   private readonly move = (event: PointerEvent): void => {
-    if (event.pointerType === 'mouse' || event.pointerId === this.aiming) {
-      const [x, y] = this.local(event);
-      this.commands.aimAt(x, y);
+    if (event.pointerType !== 'mouse' && event.pointerId !== this.aiming) return;
+    const [x, y] = this.local(event);
+    this.commands.aimAt(x, y);
+    // A finger that moves is still aiming: the charge starts again once it stops.
+    if (this.still && Math.hypot(x - this.still[0], y - this.still[1]) > STILL) {
+      this.still = [x, y];
+      this.commands.charge();
     }
   };
 
   private readonly up = (event: PointerEvent): void => {
     const [x, y] = this.local(event);
+    if (event.pointerType === 'mouse') {
+      if (event.button === 0 && this.pressed) this.commands.fire();
+      this.pressed = false;
+      return;
+    }
     if (event.pointerId === this.swapping) {
       if (this.commands.isOnShooter(x, y)) this.commands.swap();
     } else if (event.pointerId === this.aiming) {
@@ -87,12 +108,15 @@ export class PointerControls {
   private readonly cancel = (): void => {
     this.aiming = null;
     this.swapping = null;
+    this.still = null;
   };
 }
 
 /** Keys of the specification § 3.3; ignored while a form field or a button has the focus. */
 export class KeyboardControls {
   private readonly held = new Set<string>();
+  /** Space is down: releasing it fires (holding it charges). */
+  private charging = false;
   private readonly abort = new AbortController();
 
   constructor(
@@ -119,7 +143,8 @@ export class KeyboardControls {
         break;
       case 'Space':
         if (event.repeat) return;
-        this.commands.fire();
+        this.commands.charge();
+        this.charging = true;
         break;
       case 'KeyX':
       case 'KeyC':
@@ -146,11 +171,17 @@ export class KeyboardControls {
   };
 
   private readonly up = (event: KeyboardEvent): void => {
+    if (event.code === 'Space' && this.charging) {
+      this.charging = false;
+      if (!KeyboardControls.isTyping(event.target)) this.commands.fire();
+      return;
+    }
     if (this.held.delete(event.code)) this.updateTurn(event.shiftKey);
   };
 
   private readonly release = (): void => {
     this.held.clear();
+    this.charging = false;
     this.commands.turn(0);
   };
 

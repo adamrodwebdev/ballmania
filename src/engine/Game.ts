@@ -183,6 +183,9 @@ export const MAX_BOUNCES = 6;
 
 /** Seconds a shot may fly before it is given up (one circling the black hole). */
 export const MAX_FLIGHT = 4;
+/** A charged shot flies this much faster (§ 3.9, module de tir). */
+export const POWER_SPEED = 2;
+
 /** A shot bent at least this much by gravity is a curve (radians). */
 export const CURVE_ANGLE = Math.PI / 4;
 
@@ -347,10 +350,52 @@ export class Game {
     return this.trace(maxBounces).points;
   }
 
-  /** The aim line and, apart, the points where it bounces off a mirror. */
-  aimLine(maxBounces = 2): { readonly points: Vec2[]; readonly rebounds: Vec2[] } {
-    const { points, rebounds } = this.trace(maxBounces);
+  /**
+   * The aim line and, apart, the points where it bounces off a mirror; for a
+   * charged shot, straight and fast whatever the gravity.
+   */
+  aimLine(maxBounces = 2, power = false): { readonly points: Vec2[]; readonly rebounds: Vec2[] } {
+    const { points, rebounds } = this.trace(maxBounces, power);
     return { points, rebounds };
+  }
+
+  /**
+   * Where the loaded ball would land and the group it would make (aim
+   * assistance, § 3.9): the slot it takes, and the balls of its colour that
+   * would explode with it, if they are enough. Null without a target, or when
+   * the shot would fuse instead (Jewel world).
+   */
+  preview(power = false): {
+    readonly position: Vec2;
+    readonly group: readonly Vec2[];
+  } | null {
+    const target = this.trace(2, power).target;
+    if (!target) return null;
+    const chain = this.chains[target.chain]!;
+    const balls = chain.balls;
+    const touched = balls[target.index]!;
+    const tone = this.shooter.current;
+    if (this.setup.alchemy && mix(tone, touched.tone) !== null) return null;
+    const diameter = chain.diameter;
+    // Between the touched ball and its neighbour, where the shot wedges itself in.
+    const position = chain.path.pointAt(touched.s + (target.after ? diameter : -diameter) / 2);
+    const touching = (a: number, b: number) =>
+      Math.abs(balls[b]!.s - balls[a]!.s) <= diameter + 1e-6;
+    const group: Vec2[] = [];
+    // The ball before the new one is the touched one when it lands after it.
+    let behind = target.after ? target.index : target.index - 1;
+    for (let i = behind; i >= 0 && balls[i]!.tone === tone; i--) {
+      if (i < behind && !touching(i, i + 1)) break;
+      group.push(chain.positionOf(balls[i]!));
+      behind = i;
+    }
+    const ahead = target.after ? target.index + 1 : target.index;
+    for (let i = ahead; i < balls.length && balls[i]!.tone === tone; i++) {
+      if (i > ahead && !touching(i - 1, i)) break;
+      group.push(chain.positionOf(balls[i]!));
+    }
+    const enough = group.length + 1 >= this.setup.chain.minMatch;
+    return { position, group: enough ? group : [] };
   }
 
   /** The ring the shooter glides along, or null when it stands still. */
@@ -447,17 +492,18 @@ export class Game {
    */
   private trace(
     maxBounces: number,
+    power = false,
     reach = 1800,
     step = 12,
     skip = 80,
   ): {
     points: Vec2[];
     rebounds: Vec2[];
-    target: { chain: number; index: number } | null;
+    target: { chain: number; index: number; after: boolean } | null;
   } {
     const radius = this.setup.chain.ballRadius;
-    const gravity = this.gravity;
-    const speed = this.setup.projectileSpeed;
+    const gravity = power ? null : this.gravity;
+    const speed = this.setup.projectileSpeed * (power ? POWER_SPEED : 1);
     const dt = gravity ? STEP : step / speed;
     let position = this.shooter.position;
     let velocity = Vec2.fromAngle(this.shooter.angle, speed);
@@ -488,7 +534,7 @@ export class Game {
         const hit = this.chains[chain]!.hitTest(position);
         if (!hit) continue;
         points.push(position);
-        return { points, rebounds, target: { chain, index: hit.index } };
+        return { points, rebounds, target: { chain, index: hit.index, after: hit.after } };
       }
     }
     points.push(position);
@@ -529,10 +575,13 @@ export class Game {
     this.swaps++;
   }
 
-  /** Fires the loaded ball; false while reloading, out of shots or once the game is over. */
-  fire(): boolean {
+  /**
+   * Fires the loaded ball, charged or not; false while reloading, out of
+   * shots or once the game is over.
+   */
+  fire(power = false): boolean {
     if (this.stateValue !== 'playing' || this.shotsLeft === 0) return false;
-    const projectile = this.shooter.fire(this.shooterTones());
+    const projectile = this.shooter.fire(this.shooterTones(), power ? POWER_SPEED : 1);
     if (!projectile) return false;
     this.shotsFired++;
     this.flying.push(projectile);
@@ -611,7 +660,9 @@ export class Game {
   private moveProjectiles(dt: number): void {
     for (let i = this.flying.length - 1; i >= 0; i--) {
       const projectile = this.flying[i]!;
-      if (this.gravity) projectile.accelerate(this.gravity.acceleration(projectile.position), dt);
+      if (this.gravity && !projectile.powered) {
+        projectile.accelerate(this.gravity.acceleration(projectile.position), dt);
+      }
       projectile.move(dt);
       const bounce = this.reflectors.bounce(
         projectile.position,

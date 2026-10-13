@@ -121,8 +121,11 @@ export class Shooter {
     this.cooldownLeft = Math.max(0, this.cooldownLeft - dt);
   }
 
-  /** Launches the loaded ball, or returns null while reloading. */
-  fire(available: readonly Tone[]): Projectile | null {
+  /**
+   * Launches the loaded ball, or returns null while reloading; a powered shot
+   * flies `power` times faster.
+   */
+  fire(available: readonly Tone[], power = 1): Projectile | null {
     if (!this.ready) return null;
     // The rival's shots count down, so no two projectiles share an id.
     const id = this.side === 'rival' ? -++this.shots : ++this.shots;
@@ -130,8 +133,9 @@ export class Shooter {
       id,
       this.currentTone,
       this.position,
-      Vec2.fromAngle(this.angleValue, this.projectileSpeed),
+      Vec2.fromAngle(this.angleValue, this.projectileSpeed * power),
       this.side,
+      power > 1,
     );
     this.cooldownLeft = this.cooldown;
     if (this.options.choosing) {

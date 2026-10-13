@@ -34,6 +34,8 @@ const changeVolume = (event: Event) => {
 };
 const changeVibration = (event: Event) =>
   settings.update({ vibration: (event.target as HTMLInputElement).checked });
+const changeAimAssist = (event: Event) =>
+  settings.update({ aimAssist: (event.target as HTMLInputElement).checked });
 
 defineExpose({
   open: () => dialog.value?.showModal(),
@@ -98,6 +100,18 @@ const close = () => dialog.value?.close();
           :checked="settings.current.vibration"
           data-testid="vibration"
           @change="changeVibration"
+        />
+      </label>
+      <label class="row check">
+        <span>
+          {{ t('settings.aimAssist') }}
+          <small class="hint">{{ t('settings.aimAssistHint') }}</small>
+        </span>
+        <input
+          type="checkbox"
+          :checked="settings.current.aimAssist"
+          data-testid="aim-assist"
+          @change="changeAimAssist"
         />
       </label>
     </div>
@@ -189,5 +203,11 @@ input[type='checkbox'] {
 .done {
   width: 100%;
   margin-top: var(--space-6);
+}
+.hint {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
 }
 </style>

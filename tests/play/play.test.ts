@@ -102,6 +102,7 @@ describe('KeyboardControls', () => {
       isOnShooter: vi.fn(() => false),
       flipSwitchAt: vi.fn(() => false),
       flipNextSwitch: vi.fn(),
+      charge: vi.fn(),
       fire: vi.fn(),
       swap: vi.fn(),
       turn: vi.fn(),
@@ -125,6 +126,9 @@ describe('KeyboardControls', () => {
     const { commands, press } = setup();
     press('keydown', 'Space');
     press('keydown', 'Space', { repeat: true });
+    expect(commands.charge).toHaveBeenCalledTimes(1);
+    expect(commands.fire).not.toHaveBeenCalled();
+    press('keyup', 'Space');
     press('keydown', 'KeyX');
     press('keydown', 'Escape');
     press('keydown', 'KeyM');

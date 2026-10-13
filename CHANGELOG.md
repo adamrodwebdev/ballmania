@@ -71,3 +71,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   chaîne qui bondit sur le temps, groove jusqu'à ×4) et **Duel** (tir à la corde contre un
   rival en trois niveaux) ; écran Arcade, records sauvegardés, quatre objectifs ; l'écran
   de jeu passe par des modes de jeu (stratégies) au lieu de tester le type de partie.
+- Lot 11.1, module de tir : tir au relâchement, tir chargé (maintenir 0,35 s : deux fois
+  plus rapide, insensible à la gravité), jauge de charge, recul du lanceur, éclair de
+  bouche, vibrations ; aide à la visée activable (bille fantôme à l'arrivée du tir, groupe
+  qui explosera et sa taille) ; plateau paysage 1 400 × 1 000 sur les écrans larges, écran
+  de jeu en pleine largeur.

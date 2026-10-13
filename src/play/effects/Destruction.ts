@@ -246,6 +246,37 @@ export class Destruction {
     });
   }
 
+  /**
+   * The flash at the mouth of the shooter: a few sparks along the shot and a
+   * glow; bigger, with a shake, for a powered shot.
+   */
+  muzzle(at: Vec2, angle: number, tone: Tone, powered: boolean): void {
+    const mouth = at.add(Vec2.fromAngle(angle, this.ballRadius * 3));
+    this.glows.push({
+      x: mouth.x,
+      y: mouth.y,
+      life: 0.14,
+      maxLife: 0.14,
+      tone,
+      size: powered ? 2.6 : 1.5,
+    });
+    const count = Math.min(powered ? 16 : 6, this.budget());
+    for (let i = 0; i < count; i++) {
+      const spread = (this.random() - 0.5) * (powered ? 0.9 : 0.6);
+      const speed = (powered ? 900 : 500) * (0.5 + this.random());
+      this.sparks.push({
+        x: mouth.x,
+        y: mouth.y,
+        vx: Math.cos(angle + spread) * speed,
+        vy: Math.sin(angle + spread) * speed,
+        life: 0.18,
+        maxLife: 0.18,
+        tone,
+      });
+    }
+    if (powered) this.shaker.add(0.25);
+  }
+
   /** The last balls are gone: one big burst of light from `centre`. */
   finale(centre: Vec2, tones: readonly Tone[], colour: string): void {
     this.flashAmount = Math.max(this.flashAmount, 0.55);
