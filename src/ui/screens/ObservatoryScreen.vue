@@ -65,7 +65,11 @@ const buy = (id: UpgradeId) => {
         :data-testid="`upgrade-${upgrade.id}`"
       >
         <h2>{{ t(`upgrades.${upgrade.id}.name`) }}</h2>
-        <p class="pips" :aria-label="t('observatory.rank', { rank: upgrade.rank, max: MAX_RANK })">
+        <p
+          class="pips"
+          role="img"
+          :aria-label="t('observatory.rank', { rank: upgrade.rank, max: MAX_RANK })"
+        >
           <span
             v-for="pip in MAX_RANK"
             :key="pip"

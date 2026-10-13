@@ -68,7 +68,8 @@
     "homeButton": "Home",
     "campaignDone": "Campaign complete: all six worlds are yours!",
     "arcadeButton": "Arcade",
-    "starsGained": "+{count} stars | +{count} star | +{count} stars"
+    "starsGained": "+{count} stars | +{count} star | +{count} stars",
+    "danger": "Careful: the chain is nearing the hole!"
   },
   "effects": {
     "spectacular": {

@@ -1,6 +1,6 @@
 {
   "name": "ballmania",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Jeu de tir de billes en chaîne réinventé : campagne, nouveaux modes, destruction spectaculaire, en français, anglais et indonésien. Vue 3, TypeScript, mobile d'abord.",
   "type": "module",
@@ -26,6 +26,7 @@
     "vue-i18n": "11.4.14"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@intlify/unplugin-vue-i18n": "11.2.5",
     "@playwright/test": "1.64.0",
     "@types/node": "24.13.4",

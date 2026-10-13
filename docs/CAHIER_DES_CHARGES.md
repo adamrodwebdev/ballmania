@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                           |
-| ------- | ---------- | ------------------------------------------------ |
-| 0.15    | 13/10/2026 | Lot 11 « Expérience » spécifié (retours de test) |
+| Version | Date       | Statut                        |
+| ------- | ---------- | ----------------------------- |
+| 1.0     | 13/10/2026 | Version 1.0.0 livrée (lot 12) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -856,6 +856,29 @@ Livré à l'étape 11.4 :
 - Couleurs des billes **doublées d'un motif** (symbole gravé) pour les daltoniens.
 - Contrastes AA dans les deux thèmes ; annonces des événements clés via `aria-live`.
 
+Livré au lot 12 :
+
+- **Audits automatiques** axe-core (règles WCAG 2.1 A et AA) de chaque écran — accueil,
+  carte, Observatoire, Arcade, Atelier, objectifs, réglages, partie, pause, bilan — dans
+  les deux thèmes, sur mobile et ordinateur, à chaque série de parcours. Corrigés : un
+  libellé ARIA sur un élément sans rôle (rangs de l'Observatoire), le contraste des
+  badges colorés (météo, groove, fragments : texte neutre, liseré coloré).
+- **Clavier** : un parcours va de l'accueil à la partie et au menu pause sans souris
+  (viser, tirer, tir chargé, échanger, pause, reprendre ; le focus revient au plateau).
+- **Lecteurs d'écran** : nouvelle annonce quand une chaîne approche du trou (une fois par
+  approche), en plus des réactions, aiguillages, météo, paliers et fins de partie.
+- **Mise en page** : aucun défilement horizontal de 320 à 1 920 px, vérifié écran par
+  écran (en indonésien, la langue aux textes les plus longs).
+
+### 4.3 bis Référencement (livré au lot 12)
+
+- Titre et description traduits suivant la langue ; cartes Open Graph et Twitter (image
+  1 200 × 630) ; données structurées schema.org `VideoGame` ; manifeste ; message pour
+  les navigateurs sans JavaScript.
+- Avec `SITE_URL` au build : lien canonique, adresses absolues des cartes, `sitemap.xml`
+  et `robots.txt` qui le cite. Sans adresse connue, le build reste relatif et déployable
+  partout.
+
 ### 4.4 Internationalisation
 
 - `vue-i18n`, textes dans `fr.json`, `en.json`, `id.json` (mêmes clés, vérifié par test).
@@ -1139,8 +1162,8 @@ le moteur de tracés.
 | 8 ✅  | Monde 4 Joaillerie : alchimie des couleurs, Colosse de cristal                                                                 |
 | 9 ✅  | Monde 5 Volcan : aiguillages, raccourcis en fusion, Colosse de lave                                                            |
 | 10 ✅ | Monde 6 Singularité : gravité, orbite, Colosse ultime ; modes Arcade Infini, Énigmes, Rythme, Duel                             |
-| 11    | Expérience (§ 3.9) : 11.1 tir et plateau, 11.2 difficulté et aléas, 11.3 fragments et améliorations, 11.4 design et animations |
-| 12    | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                                                   |
+| 11 ✅ | Expérience (§ 3.9) : 11.1 tir et plateau, 11.2 difficulté et aléas, 11.3 fragments et améliorations, 11.4 design et animations |
+| 12 ✅ | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                                                   |
 | 13    | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                                            |
 | 14    | Démo portfolio                                                                                                                 |
 
@@ -1171,3 +1194,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                       |
 | 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                 |
 | 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                   |
+| 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                        |

@@ -217,6 +217,13 @@ watch(
 );
 
 watch(
+  () => hud.value?.danger,
+  (danger) => {
+    if (danger) announcement.value = t('game.danger');
+  },
+);
+
+watch(
   () => hud.value?.secondChance,
   (used) => {
     if (used) announcement.value = t('upgrades.secondChance.used');
@@ -791,11 +798,11 @@ const quit = () => emit('quit');
 }
 
 .groove {
-  color: var(--orb-cyan);
+  box-shadow: inset 0 0 0 2px var(--orb-cyan);
 }
 
 .fragments {
-  color: var(--orb-cyan);
+  box-shadow: inset 0 0 0 2px var(--orb-cyan);
 }
 
 .nova {
@@ -816,15 +823,15 @@ const quit = () => emit('quit');
 }
 
 .weather.solar {
-  color: var(--orb-amber);
+  box-shadow: inset 0 0 0 2px var(--orb-amber);
 }
 
 .weather.cold {
-  color: var(--orb-cyan);
+  box-shadow: inset 0 0 0 2px var(--orb-cyan);
 }
 
 .weather.wind {
-  color: var(--orb-violet);
+  box-shadow: inset 0 0 0 2px var(--orb-violet);
 }
 
 @keyframes weather {
