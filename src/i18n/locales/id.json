@@ -31,8 +31,8 @@
     "aimAssist": "Bantuan bidik",
     "aimAssistHint": "Bola bayangan di titik tembakan dan kelompok yang akan meledak",
     "music": "Musik",
-    "musicOn": "Matikan musik",
-    "musicOff": "Nyalakan musik"
+    "soundOn": "Matikan suara",
+    "soundOff": "Nyalakan suara"
   },
   "theme": {
     "system": "Sistem",

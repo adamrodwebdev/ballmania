@@ -26,18 +26,27 @@ const toDataUrl = (blob: Blob) =>
     reader.readAsDataURL(blob);
   });
 
-const cover = async (width: number, height: number): Promise<HTMLCanvasElement> => {
+const cover = async (
+  width: number,
+  height: number,
+  title = 'Ballmania',
+): Promise<HTMLCanvasElement> => {
   await document.fonts.load(`100px "${TITLE_FONT}"`);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  drawCover(canvas, palette());
+  drawCover(canvas, palette(), title);
   return canvas;
 };
 
 const kit = {
-  async cover(width: number, height: number, type = 'image/png'): Promise<string> {
-    const canvas = await cover(width, height);
+  async cover(
+    width: number,
+    height: number,
+    type = 'image/png',
+    title = 'Ballmania',
+  ): Promise<string> {
+    const canvas = await cover(width, height, title);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.92));
     return toDataUrl(blob!);
   },

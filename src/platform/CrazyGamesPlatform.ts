@@ -98,6 +98,11 @@ export class CrazyGamesPlatform implements PlatformAdapter {
     return this.storage;
   }
 
+  /** Settings stay in the browser: the theme script reads them before the SDK loads. */
+  preferences(): KeyValueStorage {
+    return BrowserStorage.local();
+  }
+
   locale(): string | null {
     return this.sdk?.user.systemInfo?.locale ?? null;
   }
@@ -113,6 +118,8 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   gameplayStop(): void {
     this.call((sdk) => sdk.game.gameplayStop());
   }
+
+  levelEnded(_won: boolean): void {}
 
   celebrate(): void {
     this.call((sdk) => sdk.game.happytime());
@@ -142,6 +149,10 @@ export class CrazyGamesPlatform implements PlatformAdapter {
 
   muted(): boolean {
     return this.sdk?.game.settings.muteAudio === true;
+  }
+
+  onPausedChange(): () => void {
+    return () => {};
   }
 
   onMutedChange(listener: (muted: boolean) => void): () => void {

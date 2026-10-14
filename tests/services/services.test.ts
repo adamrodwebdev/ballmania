@@ -10,6 +10,7 @@ const DEFAULTS = {
   effects: 'spectacular',
   volume: 0.7,
   music: 0.6,
+  muted: false,
   vibration: true,
   aimAssist: true,
   difficulty: 'pilot',

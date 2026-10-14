@@ -31,8 +31,8 @@
     "aimAssist": "Aide à la visée",
     "aimAssistHint": "Bille fantôme à l'arrivée du tir et groupe qui explosera",
     "music": "Musique",
-    "musicOn": "Couper la musique",
-    "musicOff": "Remettre la musique"
+    "soundOn": "Couper le son",
+    "soundOff": "Remettre le son"
   },
   "theme": {
     "system": "Système",

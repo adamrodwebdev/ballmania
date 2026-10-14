@@ -131,6 +131,50 @@ Sitemap: ${SITE_URL}sitemap.xml
 });
 
 /**
+ * Playgama: its Bridge SDK loaded in the <head> before the game (the portal's
+ * build check looks for it there), and its configuration next to index.html.
+ * Interstitials between games, rewarded ads for bonuses, both orientations.
+ */
+const PLAYGAMA_CONFIG = {
+  advertisement: {
+    minimumDelayBetweenInterstitial: 60,
+    interstitial: {
+      placementFallback: 'between_games',
+      placements: [{ id: 'between_games' }],
+    },
+    rewarded: {
+      preloadOnStart: 'bonus',
+      placementFallback: 'bonus',
+      placements: [{ id: 'bonus' }],
+    },
+  },
+  device: {
+    useBuiltInOrientationPopup: false,
+    supportedOrientations: ['portrait', 'landscape'],
+  },
+};
+
+const playgama = (): Plugin => ({
+  name: 'ballmania:playgama',
+  apply: 'build',
+  transformIndexHtml: () => [
+    {
+      tag: 'script',
+      attrs: { src: 'https://bridge.playgama.com/v2/stable/playgama-bridge.js' },
+      injectTo: 'head-prepend',
+    },
+  ],
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'playgama-bridge-config.json',
+      source: `${JSON.stringify(PLAYGAMA_CONFIG, null, 2)}
+`,
+    });
+  },
+});
+
+/**
  * The platform of a build (specification § 3.7): `vite build --mode poki`
  * builds for Poki into `dist-poki/`; any other mode builds our own site.
  */
@@ -164,6 +208,7 @@ export default defineConfig(({ mode }) => {
       // Search engines and the CSP concern our own site: on a portal, the
       // portal's page is the one indexed.
       ...(site ? [contentSecurityPolicy(), seo()] : demo ? [contentSecurityPolicy()] : []),
+      ...(platform === 'playgama' ? [playgama()] : []),
     ],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

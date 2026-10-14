@@ -79,7 +79,8 @@ publicité ni SDK.
 | `npm run build:crazygames`       | CrazyGames, dans `dist-crazygames/`                                      |
 | `npm run build:poki`             | Poki, dans `dist-poki/`                                                  |
 | `npm run build:gamedistribution` | GameDistribution, dans `dist-gamedistribution/` (avec `VITE_GD_GAME_ID`) |
-| `npm run build:portals`          | Les trois                                                                |
+| `npm run build:playgama`         | Playgama, dans `dist-playgama/` (titre « Ball Mania »)                   |
+| `npm run build:portals`          | Les quatre                                                               |
 | `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités)              |
 
 On envoie ensuite au portail une archive zip du dossier. Pour CrazyGames, le
