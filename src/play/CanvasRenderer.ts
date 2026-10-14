@@ -312,17 +312,33 @@ export class CanvasRenderer implements Renderer {
     return track;
   }
 
+  /**
+   * The track: a soft halo, a lit rim, a dark groove, and a thread of light
+   * flowing towards the hole, so the chain's way reads at a glance.
+   */
   private drawTrack(chain: Chain, radius: number): void {
     const { ctx, palette } = this;
     const track = this.trackOf(chain);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = palette.trackEdge;
-    ctx.lineWidth = radius * 2 + 14;
+    ctx.globalAlpha = 0.16;
+    ctx.lineWidth = radius * 2 + 34;
+    ctx.stroke(track);
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = radius * 2 + 12;
     ctx.stroke(track);
     ctx.strokeStyle = palette.track;
     ctx.lineWidth = radius * 2 + 4;
     ctx.stroke(track);
+    ctx.strokeStyle = palette.trackEdge;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([2, 22]);
+    ctx.lineDashOffset = -this.time * 40;
+    ctx.stroke(track);
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
   }
 
   /** How close the nearest chain head is to its hole, from 0 (far) to 1 (in). */
@@ -341,9 +357,15 @@ export class CanvasRenderer implements Renderer {
     if (this.game.setup.puzzle) return;
     const { ctx, palette } = this;
     const start = chain.path.pointAt(0);
+    // The entrance: a small portal the chain pours out of.
+    const portal = ctx.createRadialGradient(start.x, start.y, 0, start.x, start.y, radius * 2);
+    portal.addColorStop(0, palette.hole);
+    portal.addColorStop(0.55, palette.hole);
+    portal.addColorStop(0.7, palette.trackEdge);
+    portal.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = portal;
     ctx.beginPath();
-    ctx.arc(start.x, start.y, radius * 1.3, 0, Math.PI * 2);
-    ctx.fillStyle = palette.trackEdge;
+    ctx.arc(start.x, start.y, radius * 2, 0, Math.PI * 2);
     ctx.fill();
     if (this.blackHole) {
       // Singularity world: balls come out of a glowing portal; the black hole is the hole.
@@ -369,20 +391,51 @@ export class CanvasRenderer implements Renderer {
     }
   }
 
-  /** A hole, its glow pulsing in `colour` as `danger` (0 to 1) rises. */
+  /**
+   * A hole: a small black hole with a turning disc of light, gold at rest,
+   * pulsing in `colour` as `danger` (0 to 1) rises.
+   */
   private drawHole(at: Vec2, radius: number, time: number, danger: number, colour: string): void {
     const { ctx, palette } = this;
-    const glow = radius * (1.7 + 0.25 * danger * Math.sin(time * 10));
+    const tint = danger > 0 ? colour : palette.accent;
+    const pulse = 1 + 0.25 * danger * Math.sin(time * 10);
+    const reach = radius * 3.2 * pulse;
+    ctx.save();
+    ctx.translate(at.x, at.y);
+    ctx.globalCompositeOperation = 'lighter';
+    const halo = ctx.createRadialGradient(0, 0, radius, 0, 0, reach);
+    halo.addColorStop(0, tint);
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = 0.35 + 0.45 * danger;
+    ctx.fillStyle = halo;
     ctx.beginPath();
-    ctx.arc(at.x, at.y, glow, 0, Math.PI * 2);
-    ctx.fillStyle = danger > 0 ? colour : palette.accent;
-    ctx.globalAlpha = 0.25 + 0.5 * danger;
+    ctx.arc(0, 0, reach, 0, Math.PI * 2);
     ctx.fill();
+    // Two dashed rings orbit the hole, faster as danger rises.
+    ctx.strokeStyle = tint;
+    ctx.lineWidth = 2.5;
+    for (let ring = 0; ring < 2; ring++) {
+      const r = radius * (1.75 + ring * 0.55);
+      ctx.globalAlpha = 0.55 - ring * 0.2;
+      ctx.setLineDash([r * 0.8, r * 0.45]);
+      ctx.lineDashOffset = -time * r * (1.2 + danger * 2) * (ring === 0 ? 1 : -0.7);
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
+    const core = ctx.createRadialGradient(0, 0, 0, 0, 0, radius * 1.45);
+    core.addColorStop(0, palette.hole);
+    core.addColorStop(0.78, palette.hole);
+    core.addColorStop(0.9, tint);
+    core.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = core;
     ctx.beginPath();
-    ctx.arc(at.x, at.y, radius * 1.25, 0, Math.PI * 2);
-    ctx.fillStyle = palette.hole;
+    ctx.arc(0, 0, radius * 1.45, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
   }
 
   private drawChain(chain: Chain, motion: BallMotion, radius: number): void {
@@ -832,6 +885,18 @@ export class CanvasRenderer implements Renderer {
     const kick = Vec2.fromAngle(shooter.angle, -12 * scene.recoil * scene.recoil);
     ctx.save();
     ctx.translate(shooter.position.x + kick.x, shooter.position.y + kick.y);
+    // A glow of the loaded colour under the shooter: the colour reads from afar.
+    const aura = ctx.createRadialGradient(0, 0, SHOOTER_RADIUS * 0.6, 0, 0, SHOOTER_RADIUS * 2.2);
+    aura.addColorStop(0, palette.tone(shooter.current));
+    aura.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.32 + 0.08 * Math.sin(this.time * 3);
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(0, 0, SHOOTER_RADIUS * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
     this.look.shooter.draw(ctx, palette, shooter.angle, radius, this.time);
     if (scene.charge > 0) {
       // The charge fills a ring around the shooter; full, it throbs.

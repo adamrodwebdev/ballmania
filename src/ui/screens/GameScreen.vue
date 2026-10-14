@@ -863,15 +863,17 @@ const quit = () => emit('quit');
 .hint {
   position: absolute;
   inset-inline: var(--space-4);
-  top: var(--space-4);
+  /* At the foot of the board: the chain enters from the top on many tracks. */
+  bottom: var(--space-4);
   margin-inline: auto;
   width: fit-content;
-  max-width: 32rem;
-  padding: var(--space-3) var(--space-4);
+  max-width: 30rem;
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
   box-shadow: var(--shadow);
+  font-weight: 700;
   text-align: center;
   pointer-events: none;
   animation: hint 6s ease forwards;
@@ -971,9 +973,11 @@ const quit = () => emit('quit');
 }
 
 .value {
+  color: var(--accent);
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
-  font-weight: 800;
+  font-size: clamp(1.5rem, 1.25rem + 1.2vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
 
