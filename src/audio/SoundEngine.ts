@@ -1,3 +1,6 @@
+import { MusicPlayer } from './MusicPlayer';
+import type { MusicThemeId } from './score';
+
 /** Pentatonic steps (semitones) climbed by the chain reaction: it always sounds right. */
 const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
 /** Inharmonic partials of a glass bell. */
@@ -17,16 +20,26 @@ const CHORD = [0, 3, 7];
  */
 export class SoundEngine {
   private context: AudioContext | null = null;
+  /** Sound effects, at the player's effects volume. */
   private master: GainNode | null = null;
+  /** The music, at its own volume. */
+  private musicGain: GainNode | null = null;
+  /** Shared reverb (a synthesised room): bells and pads sing in it. */
+  private reverbSend: GainNode | null = null;
   private noise: AudioBuffer | null = null;
+  private musicPlayer: MusicPlayer | null = null;
+  private theme: MusicThemeId | null = null;
   private volume: number;
+  private music: number;
 
   constructor(
     volume: number,
     private readonly createContext: () => AudioContext | null = () =>
       typeof AudioContext === 'undefined' ? null : new AudioContext(),
+    music = 0.6,
   ) {
     this.volume = volume;
+    this.music = music;
   }
 
   /** Call from a user gesture (pointer or key): creates or wakes the audio context. */
@@ -38,12 +51,63 @@ export class SoundEngine {
         this.context = null;
       }
       if (!this.context) return;
-      this.master = this.context.createGain();
-      this.master.gain.value = this.volume;
-      this.master.connect(this.context.destination);
-      this.noise = this.whiteNoise(this.context);
+      this.buildMix(this.context);
     }
     if (this.context.state === 'suspended') void this.context.resume();
+  }
+
+  /**
+   * The mixing desk: effects and music on their own faders, a shared reverb,
+   * and a gentle compressor that glues everything and keeps big chain
+   * reactions from clipping.
+   */
+  private buildMix(ctx: AudioContext): void {
+    const glue = ctx.createDynamicsCompressor();
+    glue.threshold.value = -16;
+    glue.knee.value = 12;
+    glue.ratio.value = 3.5;
+    glue.attack.value = 0.005;
+    glue.release.value = 0.2;
+    glue.connect(ctx.destination);
+    const room = ctx.createConvolver();
+    // Short and mono: a long stereo convolution costs a modest device dearly.
+    room.buffer = this.impulse(ctx, 1.2);
+    const roomReturn = ctx.createGain();
+    roomReturn.gain.value = 0.32;
+    room.connect(roomReturn);
+    roomReturn.connect(glue);
+    this.reverbSend = ctx.createGain();
+    this.reverbSend.gain.value = 0.6;
+    this.reverbSend.connect(room);
+    this.master = ctx.createGain();
+    this.master.gain.value = this.volume;
+    this.master.connect(glue);
+    this.musicGain = ctx.createGain();
+    this.musicGain.gain.value = this.music;
+    this.musicGain.connect(glue);
+    this.noise = this.whiteNoise(ctx);
+    this.musicPlayer = new MusicPlayer(ctx, this.musicGain, this.reverbSend, this.noise);
+    this.musicPlayer.play(this.music > 0 ? this.theme : null);
+  }
+
+  /** The music to play now (a world, the menus) or none; it starts once sound is unlocked. */
+  playMusic(theme: MusicThemeId | null): void {
+    this.theme = theme;
+    this.musicPlayer?.play(this.music > 0 ? theme : null);
+  }
+
+  /** How close the danger is, 0 to 1: the music tightens. */
+  setTension(tension: number): void {
+    this.musicPlayer?.setIntensity(tension);
+  }
+
+  setMusicVolume(volume: number): void {
+    // Music off: nothing is scheduled at all, which spares the processor too.
+    if (volume > 0 !== this.music > 0) this.musicPlayer?.play(volume > 0 ? this.theme : null);
+    this.music = volume;
+    if (this.musicGain && this.context) {
+      this.musicGain.gain.setTargetAtTime(volume, this.context.currentTime, 0.05);
+    }
   }
 
   setVolume(volume: number): void {
@@ -91,15 +155,27 @@ export class SoundEngine {
     this.play((ctx, out, now) => this.sweep(ctx, out, now, 'sine', 520, 880, 0.06, 0.12));
   }
 
-  /** Glass bursting; pitch climbs with the depth of the chain reaction. */
+  /**
+   * Glass bursting: a crack of noise, a scatter of tiny shards, a bell whose
+   * pitch climbs with the depth of the chain reaction, a sub thump for big
+   * groups, and from depth 3 a rising sparkle, a reward the ear expects.
+   */
   explode(balls: number, depth: number): void {
     this.play((ctx, out, now) => {
       const step = SCALE[Math.min(depth - 1, SCALE.length - 1)]!;
       const note = semitones(784, step);
-      this.noiseBurst(ctx, out, now, 0.28, 2600, 0.32);
-      this.bell(ctx, out, now, note, 0.7, 0.22);
-      this.bell(ctx, out, now + 0.03, note * 1.5, 0.5, 0.12);
+      this.noiseBurst(ctx, out, now, 0.28, 2600, 0.3);
+      for (let i = 0; i < Math.min(6, balls + 1); i++) {
+        this.bell(ctx, out, now + i * 0.018, 2600 + Math.random() * 2400, 0.12, 0.04);
+      }
+      this.bell(ctx, out, now, note, 0.8, 0.22);
+      this.bell(ctx, out, now + 0.03, note * 1.5, 0.6, 0.12);
       if (balls >= 4 || depth >= 2) this.thump(ctx, out, now, 0.35 + 0.08 * Math.min(depth, 4));
+      if (depth >= 3) {
+        [0, 4, 7, 12].forEach((up, i) =>
+          this.bell(ctx, out, now + 0.08 + i * 0.05, semitones(note, up + 12), 0.5, 0.06),
+        );
+      }
     });
   }
 
@@ -343,7 +419,10 @@ export class SoundEngine {
       const osc = ctx.createOscillator();
       osc.type = 'sine';
       osc.frequency.value = frequency * ratio;
-      osc.connect(this.envelope(ctx, out, at, peak / (i + 1), decay / (i + 1)));
+      const voice = this.envelope(ctx, out, at, peak / (i + 1), decay / (i + 1));
+      // Glass rings on in the room.
+      if (this.reverbSend) voice.connect(this.reverbSend);
+      osc.connect(voice);
       osc.start(at);
       osc.stop(at + decay + 0.05);
     });
@@ -371,6 +450,15 @@ export class SoundEngine {
 
   private thump(ctx: AudioContext, out: AudioNode, at: number, peak: number): void {
     this.sweep(ctx, out, at, 'sine', 110, 38, 0.22, peak);
+  }
+
+  /** A room's echo, synthesised: noise fading out over `seconds`. */
+  private impulse(ctx: AudioContext, seconds: number): AudioBuffer {
+    const length = Math.round(ctx.sampleRate * seconds);
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 3;
+    return buffer;
   }
 
   private whiteNoise(ctx: AudioContext): AudioBuffer {

@@ -16,7 +16,8 @@
     "pitch": "Six mondes à conquérir, des explosions en chaîne et des modes que vous n'avez jamais joués.",
     "campaign": "Campagne",
     "play": "Jouer",
-    "demo": "Monde 1 : Nébuleuse"
+    "demo": "Monde 1 : Nébuleuse",
+    "next": "{world} · niveau {number}"
   },
   "settings": {
     "language": "Langue",
@@ -24,11 +25,14 @@
     "title": "Réglages",
     "open": "Ouvrir les réglages",
     "effects": "Effets de destruction",
-    "volume": "Volume",
+    "volume": "Effets sonores",
     "vibration": "Vibrations",
     "done": "Terminé",
     "aimAssist": "Aide à la visée",
-    "aimAssistHint": "Bille fantôme à l'arrivée du tir et groupe qui explosera"
+    "aimAssistHint": "Bille fantôme à l'arrivée du tir et groupe qui explosera",
+    "music": "Musique",
+    "musicOn": "Couper la musique",
+    "musicOff": "Remettre la musique"
   },
   "theme": {
     "system": "Système",
@@ -69,7 +73,13 @@
     "campaignDone": "Campagne terminée : les six mondes sont à vous !",
     "arcadeButton": "Arcade",
     "starsGained": "+{count} étoile | +{count} étoile | +{count} étoiles",
-    "danger": "Attention : la chaîne approche du trou !"
+    "danger": "Attention : la chaîne approche du trou !",
+    "cheer": {
+      "3": "Super !",
+      "4": "Génial !",
+      "5": "Incroyable !",
+      "6": "Cosmique !"
+    }
   },
   "effects": {
     "spectacular": {
@@ -177,7 +187,9 @@
       "copied": "Résultat copié : collez-le où vous voulez.",
       "cancelled": "Partage annulé.",
       "unavailable": "Le partage n'est pas disponible sur cet appareil."
-    }
+    },
+    "new": "Nouveau",
+    "doneShort": "{score} pts"
   },
   "shop": {
     "title": "Atelier",

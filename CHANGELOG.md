@@ -3,15 +3,26 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié]
+## [1.2.0] — 2026-10-14
+
+Refonte visuelle et sonore après le refus de CrazyGames (« qualité générale ») : le jeu prend
+l'allure de ses couvertures.
 
 ### Ajouté
 
+- Écran titre de jeu : logo en lettres d'or, scène animée (spirale de billes vers un trou
+  noir, tir et éclatement réguliers), grand bouton Jouer vers le prochain niveau, tuiles
+  Arcade, Défi, Atelier et Observatoire, boutons musique, objectifs et réglages.
+- Musique synthétisée : un thème pour les menus et un par monde, qui se resserre quand la
+  chaîne approche du trou ; réglage « Musique » à part des effets sonores.
+- Table de mixage (réverbération, compresseur) et explosions plus riches.
+- Mot d'encouragement pour les grandes réactions en chaîne, en trois langues.
+- Plateau lumineux : tracé en relief et filet de lumière vers le trou, trou en petit trou
+  noir qui tourne et rougit au danger, portail d'entrée, halo de la couleur chargée.
 - Lot 14, démo du portfolio : `npm run build:demo` construit dans `dist-demo/` une édition
   qui joue les deux premiers mondes (24 niveaux, deux Colosses) et les modes Infini et
   Énigmes ; les autres mondes et modes restent visibles, fermés « Dans le jeu complet ».
   Sans publicité ni SDK, CSP stricte, hébergeable dans n'importe quel sous-dossier.
-
 - Kit de soumission CrazyGames (`marketing/crazygames/`) : description et commandes en
   anglais, trois couvertures (16:9, 2:3, 1:1) dessinées avec les billes du
   jeu, deux vidéos de 20 s au plus (paysage 1080p, portrait 2:3) tournées image par image
@@ -21,6 +32,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ### Modifié
 
+- Thème sombre « cosmos » par défaut, polices du jeu (Lilita One, Fredoka) servies avec
+  lui, boutons dorés et tuiles de verre ; la langue et le thème passent dans les réglages.
+- Points et multiplicateurs dans la police du jeu, qui jaillissent ; rendu allégé pour les
+  appareils modestes.
 - Portails : pas d'intro du studio, et « Jouer » mène un nouveau joueur directement au
   niveau 1-1 (un clic pour jouer).
 - Portails : jamais de publicité en revenant à un menu, ni au « Rejouer » d'un écran qui

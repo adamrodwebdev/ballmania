@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                  |
-| ------- | ---------- | --------------------------------------- |
-| 1.2     | 13/10/2026 | Exigences CrazyGames, kit de soumission |
+| Version | Date       | Statut                              |
+| ------- | ---------- | ----------------------------------- |
+| 1.3     | 14/10/2026 | Refonte visuelle et sonore (v1.2.0) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -520,6 +520,28 @@ Précisions du lot 2 :
   l'imposent. Aucune donnée personnelle.
 
 ### 3.5 Direction artistique et destruction
+
+**Refonte de la v1.2.0 (14/10/2026)**, après le refus de CrazyGames pour « qualité
+générale » : le jeu ressemblait à une application web (page claire, menus en cartes,
+petit plateau, aucune musique) alors que ses couvertures montraient un jeu spatial.
+Décisions :
+
+- **Identité « cosmos »** par défaut : violets profonds, lumière dorée, comme les
+  couvertures ; le thème clair reste un réglage. Polices du jeu servies avec lui : Lilita
+  One (titres, chiffres) et Fredoka (interface), sans requête externe.
+- **Écran titre de jeu** (maquette validée) : logo en lettres d'or, scène vivante dessinée
+  sur un canvas chargé après le premier affichage (image fixe en mouvement réduit), un
+  seul grand bouton Jouer qui mène au prochain niveau, quatre tuiles, trois icônes
+  (musique, objectifs, réglages). Étoiles et éclats seulement pour un joueur qui revient.
+- **Plateau lumineux** : couches fixes du tracé peintes une fois (appareils modestes),
+  filet de lumière qui coule vers le trou, trou en petit trou noir, portail d'entrée,
+  halo de la couleur chargée sous le lanceur ; l'aide passe au pied du plateau.
+- **Musique** (`src/audio/score.ts`, `MusicPlayer`) : partition en données, un thème
+  pour les menus et un par monde, ordonnancée en avance sur l'horloge audio ; la tension
+  du plateau ajoute des percussions ; rien n'est programmé quand la musique est coupée.
+  Table de mixage : effets et musique séparés, réverbération synthétisée, compresseur.
+- **Récompenses visibles** : points et multiplicateurs qui jaillissent dans la police du
+  jeu, multiplicateur doré, mot d'encouragement dès une réaction de profondeur 3.
 
 Principe : **chaque bille est un objet physique** qui réagit quand on la détruit. Chaque
 monde a sa **matière** et donc sa façon d'exploser : verre et énergie (Nébuleuse), pixels et
@@ -1315,3 +1337,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                        |
 | 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                             |
 | 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                     |
+| 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                   |

@@ -9,8 +9,38 @@
 :root {
   color-scheme: light;
 
-  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
-  --font-display: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+  /* Rounded game type (Fredoka) and a bold display face (Lilita One), served with the game. */
+  --font-ui: 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Lilita One', 'Fredoka', system-ui, sans-serif;
+
+  /* The big gold button (Play, Next level): the same in both themes. */
+  --primary-top: #ffe680;
+  --primary-mid: #ffbf2e;
+  --primary-bottom: #f2801c;
+  --primary-edge: #a8440d;
+  --primary-glow: rgb(255 170 40 / 0.4);
+  --on-primary: #3a1300;
+  /* The title: gold glass letters, a deep violet outline and glow. */
+  --title-top: #fffbe6;
+  --title-mid: #ffd34d;
+  --title-low: #ff8a3d;
+  --title-bottom: #ff4f8b;
+  --title-edge: #1c0636;
+  --title-depth: #3b0f63;
+  --title-glow: rgb(190 90 255 / 0.7);
+  /* The title screen is a night sky in both themes: it is art, like the covers. */
+  --scene-core: #3a1670;
+  --scene-mid: #1a0b3d;
+  --scene-edge: #05030d;
+  --scene-pink: rgb(255 70 170 / 0.2);
+  --scene-cyan: rgb(60 200 255 / 0.14);
+  --scene-text: #f4ecff;
+  --scene-muted: #d4c4f2;
+  --tile-top: #3a2178;
+  --tile-bottom: #1e0f48;
+  --tile-edge: rgb(190 160 255 / 0.42);
+  --tile-shadow: rgb(8 3 26 / 0.85);
+  --badge: #c8195f;
 
   --bg: #f4f2fb;
   --bg-glow: rgb(123 60 255 / 0.12);
@@ -58,18 +88,19 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #07060f;
-  --bg-glow: rgb(123 60 255 / 0.28);
-  --surface: #13112a;
-  --surface-2: #1d1a3a;
-  --border: #36305e;
-  --text: #eeebff;
-  --text-muted: #b1abd3;
-  --accent: #b69bff;
-  --accent-strong: #cdb9ff;
-  --on-accent: #10062e;
-  --focus: #7cc4ff;
-  --path: rgb(238 235 255 / 0.16);
+  /* Cosmos: deep space violets, gold light, as on the covers. */
+  --bg: #05030d;
+  --bg-glow: rgb(110 50 220 / 0.38);
+  --surface: #1a0f3a;
+  --surface-2: #28175a;
+  --border: #4a3488;
+  --text: #f4ecff;
+  --text-muted: #c9b8ec;
+  --accent: #ffc94a;
+  --accent-strong: #ffe08a;
+  --on-accent: #2a1000;
+  --focus: #7cd8ff;
+  --path: rgb(244 236 255 / 0.16);
 
   --orb-ruby: #ff3b6b;
   --orb-amber: #ffb020;
@@ -78,11 +109,11 @@
   --orb-violet: #9d7bff;
   --orb-rose: #f472d0;
 
-  --board-bg: #0c0a1c;
-  --track: #1a1636;
-  --track-edge: #2b2552;
+  --board-bg: #0a0520;
+  --track: #1c1040;
+  --track-edge: #6b4ad6;
   --hole: #000000;
-  --shooter: #1d1a3a;
+  --shooter: #241452;
   --danger: #ff4d6d;
   --star: #ffc93c;
   --star-edge: #ffe39a;

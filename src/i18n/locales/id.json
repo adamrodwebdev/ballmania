@@ -16,7 +16,8 @@
     "pitch": "Enam dunia untuk ditaklukkan, ledakan berantai, dan mode yang belum pernah kamu mainkan.",
     "campaign": "Kampanye",
     "play": "Main",
-    "demo": "Dunia 1: Nebula"
+    "demo": "Dunia 1: Nebula",
+    "next": "{world} · Level {number}"
   },
   "settings": {
     "language": "Bahasa",
@@ -24,11 +25,14 @@
     "title": "Pengaturan",
     "open": "Buka pengaturan",
     "effects": "Efek penghancuran",
-    "volume": "Volume",
+    "volume": "Efek suara",
     "vibration": "Getaran",
     "done": "Selesai",
     "aimAssist": "Bantuan bidik",
-    "aimAssistHint": "Bola bayangan di titik tembakan dan kelompok yang akan meledak"
+    "aimAssistHint": "Bola bayangan di titik tembakan dan kelompok yang akan meledak",
+    "music": "Musik",
+    "musicOn": "Matikan musik",
+    "musicOff": "Nyalakan musik"
   },
   "theme": {
     "system": "Sistem",
@@ -69,7 +73,13 @@
     "campaignDone": "Kampanye selesai: keenam dunia milikmu!",
     "arcadeButton": "Arkade",
     "starsGained": "+{count} bintang | +{count} bintang | +{count} bintang",
-    "danger": "Awas: rantai mendekati lubang!"
+    "danger": "Awas: rantai mendekati lubang!",
+    "cheer": {
+      "3": "Hebat!",
+      "4": "Luar biasa!",
+      "5": "Menakjubkan!",
+      "6": "Kosmik!"
+    }
   },
   "effects": {
     "spectacular": {
@@ -177,7 +187,9 @@
       "copied": "Hasil disalin: tempel di mana saja.",
       "cancelled": "Berbagi dibatalkan.",
       "unavailable": "Berbagi tidak tersedia di perangkat ini."
-    }
+    },
+    "new": "Baru",
+    "doneShort": "{score} poin"
   },
   "shop": {
     "title": "Bengkel",

@@ -89,7 +89,10 @@ const profile = () => EffectProfile.for(settings.current.effects, reducedMotion.
 /** The portal may ask for silence (§ 3.7): it overrides the game's own volume. */
 const portalMuted = ref(platform.muted());
 const volume = () => (portalMuted.value ? 0 : settings.current.volume);
-const feedback = sharedFeedback(volume(), settings.current.vibration);
+const musicVolume = () => (portalMuted.value ? 0 : settings.current.music);
+const feedback = sharedFeedback(volume(), settings.current.vibration, musicVolume());
+// Each world has its theme; Rhythm mode plays its own song, beat by beat.
+feedback.sound.playMusic(request.kind === 'rhythm' ? null : mode.world);
 const stopListeningToPortal = platform.onMutedChange((muted) => (portalMuted.value = muted));
 
 /** An ad covers the game (§ 3.7): time and sound stop until it is over. */
@@ -179,6 +182,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(cheerTimer);
   settleNow();
   gameplay.stop();
   stopListeningToPortal();
@@ -194,6 +198,9 @@ watchEffect(() => {
 
 watch([() => settings.current.effects, reducedMotion], () => session.value?.setProfile(profile()));
 watch([() => settings.current.volume, portalMuted], () => feedback.sound.setVolume(volume()));
+watch([() => settings.current.music, portalMuted], () =>
+  feedback.sound.setMusicVolume(musicVolume()),
+);
 watch(
   () => settings.current.aimAssist,
   (enabled) => session.value?.setAimAssist(enabled),
@@ -273,10 +280,18 @@ watch(
   },
 );
 
+/** A word of praise for a big chain reaction (depth 3 and more), popping over the board. */
+const cheer = ref<{ readonly word: string; readonly serial: number } | null>(null);
+let cheerTimer: ReturnType<typeof setTimeout> | undefined;
 watch(
   () => hud.value?.reaction,
   (reaction) => {
-    if (reaction) announcement.value = t('game.reaction', { depth: reaction.depth });
+    if (!reaction) return;
+    announcement.value = t('game.reaction', { depth: reaction.depth });
+    if (reaction.depth < 3) return;
+    cheer.value = { word: t(`game.cheer.${Math.min(reaction.depth, 6)}`), serial: reaction.serial };
+    clearTimeout(cheerTimer);
+    cheerTimer = setTimeout(() => (cheer.value = null), 1400);
   },
 );
 
@@ -555,6 +570,7 @@ const quit = () => emit('quit');
           data-testid="board"
         ></canvas>
         <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
+        <p v-if="cheer" :key="cheer.serial" class="cheer" aria-hidden="true">{{ cheer.word }}</p>
         <p v-if="hintVisible && mode.hint" class="hint" role="status" data-testid="hint">
           {{ t(`hints.${mode.hint}`) }}
         </p>
@@ -863,15 +879,17 @@ const quit = () => emit('quit');
 .hint {
   position: absolute;
   inset-inline: var(--space-4);
-  top: var(--space-4);
+  /* At the foot of the board: the chain enters from the top on many tracks. */
+  bottom: var(--space-4);
   margin-inline: auto;
   width: fit-content;
-  max-width: 32rem;
-  padding: var(--space-3) var(--space-4);
+  max-width: 30rem;
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
   box-shadow: var(--shadow);
+  font-weight: 700;
   text-align: center;
   pointer-events: none;
   animation: hint 6s ease forwards;
@@ -889,6 +907,60 @@ const quit = () => emit('quit');
   }
   100% {
     opacity: 0;
+  }
+}
+
+.cheer {
+  position: absolute;
+  inset-inline: 0;
+  top: 38%;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 2rem + 4vw, 5rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  background: linear-gradient(
+    180deg,
+    var(--title-top) 0%,
+    var(--title-mid) 40%,
+    var(--title-low) 75%,
+    var(--title-bottom) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0.03em var(--title-edge);
+  filter: drop-shadow(0 0.05em 0 var(--title-depth)) drop-shadow(0 0 0.25em var(--title-glow));
+  pointer-events: none;
+  animation: cheer 1.4s ease-out forwards;
+}
+
+@keyframes cheer {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-6deg);
+  }
+  14% {
+    opacity: 1;
+    transform: scale(1.18) rotate(-3deg);
+  }
+  26% {
+    transform: scale(1) rotate(-3deg);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.04) rotate(-3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1) translateY(-0.4em) rotate(-3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cheer {
+    animation: none;
   }
 }
 
@@ -971,9 +1043,11 @@ const quit = () => emit('quit');
 }
 
 .value {
+  color: var(--accent);
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
-  font-weight: 800;
+  font-size: clamp(1.5rem, 1.25rem + 1.2vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
 

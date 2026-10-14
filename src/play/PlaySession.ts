@@ -638,6 +638,9 @@ export class PlaySession {
         return head ? head.s / chain.path.length : 0;
       }),
     );
+    this.feedback.sound.setTension(
+      Math.max(0, (danger - DANGER_FROM + 0.15) / (1 - DANGER_FROM + 0.15)),
+    );
     if (danger < DANGER_FROM) {
       this.heartIn = 0;
       // Far enough again: the next approach will be announced too.

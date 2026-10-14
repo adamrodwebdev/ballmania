@@ -40,9 +40,11 @@ export function createBrowserServices(
   const portalLocale = platform.locale();
   const settings = new SettingsService(storage, {
     locale: detectLocale(portalLocale ? [portalLocale] : navigator.languages),
-    theme: 'system',
+    // The game's look is the dark cosmos; light stays one setting away.
+    theme: 'dark',
     effects: 'spectacular',
     volume: 0.7,
+    music: 0.6,
     vibration: true,
     aimAssist: true,
     difficulty: 'pilot',

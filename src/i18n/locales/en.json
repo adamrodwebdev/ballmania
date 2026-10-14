@@ -16,7 +16,8 @@
     "pitch": "Six worlds to conquer, chain explosions and modes you have never played.",
     "campaign": "Campaign",
     "play": "Play",
-    "demo": "World 1: Nebula"
+    "demo": "World 1: Nebula",
+    "next": "{world} · Level {number}"
   },
   "settings": {
     "language": "Language",
@@ -24,11 +25,14 @@
     "title": "Settings",
     "open": "Open the settings",
     "effects": "Destruction effects",
-    "volume": "Volume",
+    "volume": "Sound effects",
     "vibration": "Vibrations",
     "done": "Done",
     "aimAssist": "Aim assist",
-    "aimAssistHint": "Ghost ball where the shot lands and the group it will burst"
+    "aimAssistHint": "Ghost ball where the shot lands and the group it will burst",
+    "music": "Music",
+    "musicOn": "Turn the music off",
+    "musicOff": "Turn the music on"
   },
   "theme": {
     "system": "System",
@@ -69,7 +73,13 @@
     "campaignDone": "Campaign complete: all six worlds are yours!",
     "arcadeButton": "Arcade",
     "starsGained": "+{count} stars | +{count} star | +{count} stars",
-    "danger": "Careful: the chain is nearing the hole!"
+    "danger": "Careful: the chain is nearing the hole!",
+    "cheer": {
+      "3": "Great!",
+      "4": "Amazing!",
+      "5": "Incredible!",
+      "6": "Cosmic!"
+    }
   },
   "effects": {
     "spectacular": {
@@ -177,7 +187,9 @@
       "copied": "Result copied: paste it anywhere.",
       "cancelled": "Sharing cancelled.",
       "unavailable": "Sharing is not available on this device."
-    }
+    },
+    "new": "New",
+    "doneShort": "{score} pts"
   },
   "shop": {
     "title": "Workshop",

@@ -189,7 +189,6 @@ test.describe('progression', () => {
 
   test('lists the goals with their progress', async ({ page }) => {
     await page.goto('./');
-    await expect(page.getByTestId('achievements')).toContainText(/1 \/ \d+ reached/);
     await page.getByTestId('achievements').click();
     await expect(page.getByTestId('achievement-first-win')).toContainText('Reached');
     await expect(page.getByTestId('achievement-colossus')).toContainText('+100 shards');
@@ -199,7 +198,7 @@ test.describe('progression', () => {
     test.setTimeout(90_000);
     await page.clock.install();
     await page.goto('./');
-    await expect(page.getByTestId('daily')).toContainText('To play');
+    await expect(page.getByTestId('daily-new')).toBeVisible();
     await page.getByTestId('daily').click();
     await expect(page.getByTestId('board')).toBeVisible();
     await expect(page.getByTestId('level')).toHaveText('Daily');
@@ -209,7 +208,7 @@ test.describe('progression', () => {
     await expect(dialog.getByTestId('shards-earned')).toHaveText('+10 shards');
     await expect(dialog.getByTestId('share')).toBeVisible();
     await dialog.getByTestId('map').click();
-    await expect(page.getByTestId('daily')).toContainText('Done');
+    await expect(page.getByTestId('daily-done')).toBeVisible();
   });
 });
 

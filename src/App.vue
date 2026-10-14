@@ -2,10 +2,10 @@
 import { defineAsyncComponent, ref, shallowRef, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
+import type { SoundEngine } from '@/audio/SoundEngine';
 import { loadMessages } from '@/i18n';
 import type { PlayRequest } from '@/app/PlayRequest';
 import type { CampaignLevel } from '@/levels/campaign';
-import AppHeader from '@/ui/components/AppHeader.vue';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
 import StudioIntro from '@/ui/components/StudioIntro.vue';
 
@@ -31,7 +31,6 @@ type Screen =
 const i18n = useI18n();
 const { t, locale } = i18n;
 const { settings, platform, progress } = useServices();
-const version = __APP_VERSION__;
 
 const screen = shallowRef<Screen>({ kind: 'home' });
 let games = 0;
@@ -56,6 +55,36 @@ const introDone = () => {
     // Without storage, the intro plays again on the next visit.
   }
 };
+
+/**
+ * The conductor (§ 3.5): sound and music wake at the player's first gesture
+ * (browsers require it) and the engine is downloaded only then. Menus play
+ * the title theme; the game screen chooses its world's.
+ */
+const engine = shallowRef<SoundEngine | null>(null);
+const portalMuted = ref(platform.muted());
+platform.onMutedChange((muted) => (portalMuted.value = muted));
+const musicVolume = () => (portalMuted.value ? 0 : settings.current.music);
+const start = async () => {
+  const { sharedFeedback } = await import('@/play/feedback');
+  const feedback = sharedFeedback(
+    portalMuted.value ? 0 : settings.current.volume,
+    settings.current.vibration,
+    musicVolume(),
+  );
+  feedback.sound.unlock();
+  engine.value = feedback.sound;
+};
+const wake = () => {
+  window.removeEventListener('pointerdown', wake);
+  window.removeEventListener('keydown', wake);
+  void start();
+};
+window.addEventListener('pointerdown', wake);
+window.addEventListener('keydown', wake);
+watch([() => settings.current.music, portalMuted], () =>
+  engine.value?.setMusicVolume(musicVolume()),
+);
 
 /** True after the first change of screen: from then on, screens slide in. */
 const navigated = ref(false);
@@ -90,6 +119,11 @@ const leave = (request: PlayRequest) => {
   else arcade();
 };
 
+// Every screen but the game plays the title theme (the game sets its own).
+watchEffect(() => {
+  if (screen.value.kind !== 'game') engine.value?.playMusic('title');
+});
+
 // Language: the messages are downloaded on first use, then the interface,
 // <html lang>, title and description follow.
 watch(
@@ -114,7 +148,6 @@ watchEffect(() => {
   <StudioIntro v-if="showIntro" @done="introDone" />
   <template v-if="screen.kind === 'home'">
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
-    <AppHeader />
     <main id="main" tabindex="-1" :class="{ enter: navigated }">
       <HomeScreen
         @play="startCampaign"
@@ -125,9 +158,6 @@ watchEffect(() => {
         @achievements="show({ kind: 'achievements' })"
       />
     </main>
-    <footer class="footer">
-      <p>{{ t('app.version', { version }) }}</p>
-    </footer>
   </template>
   <main
     v-else-if="screen.kind === 'campaign'"
@@ -191,12 +221,5 @@ watchEffect(() => {
 
 main {
   outline: none;
-}
-
-.footer {
-  padding: var(--space-6) var(--space-4);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  text-align: center;
 }
 </style>

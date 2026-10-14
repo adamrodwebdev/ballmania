@@ -62,7 +62,8 @@ test.describe('portal build', () => {
   });
 
   test('continues once after a defeat, then shows an ad before replaying', async ({ page }) => {
-    test.setTimeout(180_000);
+    // Six and a half minutes of play, simulated frame by frame.
+    test.setTimeout(300_000);
     await english(page);
     await page.clock.install();
     await page.goto('./');
