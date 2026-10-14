@@ -73,7 +73,13 @@
     "campaignDone": "Kampanye selesai: keenam dunia milikmu!",
     "arcadeButton": "Arkade",
     "starsGained": "+{count} bintang | +{count} bintang | +{count} bintang",
-    "danger": "Awas: rantai mendekati lubang!"
+    "danger": "Awas: rantai mendekati lubang!",
+    "cheer": {
+      "3": "Hebat!",
+      "4": "Luar biasa!",
+      "5": "Menakjubkan!",
+      "6": "Kosmik!"
+    }
   },
   "effects": {
     "spectacular": {

@@ -102,7 +102,16 @@ interface Fading {
   readonly implode?: boolean;
   /** Drawn in the danger colour (the rival's points in a duel). */
   readonly danger?: boolean;
+  /** The chain-reaction multiplier: gold letters, as the title. */
+  readonly gold?: boolean;
 }
+
+/** A label pops in: it overshoots, then settles (scale over its first fifth of a second). */
+const popScale = (age: number): number => {
+  if (age < 0.1) return 0.5 + (age / 0.1) * 0.85;
+  if (age < 0.22) return 1.35 - ((age - 0.1) / 0.12) * 0.35;
+  return 1;
+};
 
 /** A ball pulled out of the chain on its way to the shooter. */
 interface Tractor {
@@ -487,17 +496,29 @@ export class Destruction {
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.lineWidth = 6;
+    ctx.lineJoin = 'round';
     ctx.strokeStyle = palette.board;
     ctx.fillStyle = palette.text;
     for (const label of this.labels) {
       ctx.globalAlpha = Math.min(1, label.life / (LABEL_LIFE * 0.5));
-      ctx.font = `800 ${label.size}px system-ui, sans-serif`;
-      ctx.fillStyle = label.danger
-        ? palette.danger
-        : label.ricochet || label.coloured
-          ? palette.tone(label.tone)
-          : palette.text;
+      // The game's display face, popping in; reduced motion skips the bounce.
+      const size =
+        label.size * (this.profile.reducedMotion ? 1 : popScale(label.maxLife - label.life));
+      ctx.font = `400 ${size.toFixed(1)}px "Lilita One", system-ui, sans-serif`;
+      ctx.lineWidth = Math.max(5, size * 0.16);
+      if (label.gold) {
+        const gold = ctx.createLinearGradient(0, label.y - size / 2, 0, label.y + size / 2);
+        gold.addColorStop(0, '#fffbe6');
+        gold.addColorStop(0.45, '#ffd34d');
+        gold.addColorStop(1, '#ff7a3c');
+        ctx.fillStyle = gold;
+      } else {
+        ctx.fillStyle = label.danger
+          ? palette.danger
+          : label.ricochet || label.coloured
+            ? palette.tone(label.tone)
+            : palette.text;
+      }
       ctx.strokeText(label.text ?? '', label.x, label.y);
       ctx.fillText(label.text ?? '', label.x, label.y);
       if (label.ricochet)
@@ -719,8 +740,9 @@ export class Destruction {
         life: LABEL_LIFE,
         maxLife: LABEL_LIFE,
         tone: ball.tone,
-        size: 44 + 8 * Math.min(depth, 5),
+        size: 48 + 10 * Math.min(depth, 5),
         text: `×${depth}`,
+        gold: true,
       });
     }
     if (group.hot) {

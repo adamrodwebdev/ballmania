@@ -70,7 +70,8 @@ export class SoundEngine {
     glue.release.value = 0.2;
     glue.connect(ctx.destination);
     const room = ctx.createConvolver();
-    room.buffer = this.impulse(ctx, 2.4);
+    // Short and mono: a long stereo convolution costs a modest device dearly.
+    room.buffer = this.impulse(ctx, 1.2);
     const roomReturn = ctx.createGain();
     roomReturn.gain.value = 0.32;
     room.connect(roomReturn);
@@ -86,13 +87,13 @@ export class SoundEngine {
     this.musicGain.connect(glue);
     this.noise = this.whiteNoise(ctx);
     this.musicPlayer = new MusicPlayer(ctx, this.musicGain, this.reverbSend, this.noise);
-    this.musicPlayer.play(this.theme);
+    this.musicPlayer.play(this.music > 0 ? this.theme : null);
   }
 
   /** The music to play now (a world, the menus) or none; it starts once sound is unlocked. */
   playMusic(theme: MusicThemeId | null): void {
     this.theme = theme;
-    this.musicPlayer?.play(theme);
+    this.musicPlayer?.play(this.music > 0 ? theme : null);
   }
 
   /** How close the danger is, 0 to 1: the music tightens. */
@@ -101,6 +102,8 @@ export class SoundEngine {
   }
 
   setMusicVolume(volume: number): void {
+    // Music off: nothing is scheduled at all, which spares the processor too.
+    if (volume > 0 !== this.music > 0) this.musicPlayer?.play(volume > 0 ? this.theme : null);
     this.music = volume;
     if (this.musicGain && this.context) {
       this.musicGain.gain.setTargetAtTime(volume, this.context.currentTime, 0.05);
@@ -449,16 +452,12 @@ export class SoundEngine {
     this.sweep(ctx, out, at, 'sine', 110, 38, 0.22, peak);
   }
 
-  /** A room's echo, synthesised: stereo noise fading out over `seconds`. */
+  /** A room's echo, synthesised: noise fading out over `seconds`. */
   private impulse(ctx: AudioContext, seconds: number): AudioBuffer {
     const length = Math.round(ctx.sampleRate * seconds);
-    const buffer = ctx.createBuffer(2, length, ctx.sampleRate);
-    for (let channel = 0; channel < 2; channel++) {
-      const data = buffer.getChannelData(channel);
-      for (let i = 0; i < length; i++) {
-        data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 3;
-      }
-    }
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 3;
     return buffer;
   }
 

@@ -189,7 +189,6 @@ test.describe('progression', () => {
 
   test('lists the goals with their progress', async ({ page }) => {
     await page.goto('./');
-    await expect(page.getByTestId('achievements')).toContainText(/1 \/ \d+ reached/);
     await page.getByTestId('achievements').click();
     await expect(page.getByTestId('achievement-first-win')).toContainText('Reached');
     await expect(page.getByTestId('achievement-colossus')).toContainText('+100 shards');

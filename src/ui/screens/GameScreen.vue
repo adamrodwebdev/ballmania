@@ -182,6 +182,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(cheerTimer);
   settleNow();
   gameplay.stop();
   stopListeningToPortal();
@@ -279,10 +280,18 @@ watch(
   },
 );
 
+/** A word of praise for a big chain reaction (depth 3 and more), popping over the board. */
+const cheer = ref<{ readonly word: string; readonly serial: number } | null>(null);
+let cheerTimer: ReturnType<typeof setTimeout> | undefined;
 watch(
   () => hud.value?.reaction,
   (reaction) => {
-    if (reaction) announcement.value = t('game.reaction', { depth: reaction.depth });
+    if (!reaction) return;
+    announcement.value = t('game.reaction', { depth: reaction.depth });
+    if (reaction.depth < 3) return;
+    cheer.value = { word: t(`game.cheer.${Math.min(reaction.depth, 6)}`), serial: reaction.serial };
+    clearTimeout(cheerTimer);
+    cheerTimer = setTimeout(() => (cheer.value = null), 1400);
   },
 );
 
@@ -561,6 +570,7 @@ const quit = () => emit('quit');
           data-testid="board"
         ></canvas>
         <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
+        <p v-if="cheer" :key="cheer.serial" class="cheer" aria-hidden="true">{{ cheer.word }}</p>
         <p v-if="hintVisible && mode.hint" class="hint" role="status" data-testid="hint">
           {{ t(`hints.${mode.hint}`) }}
         </p>
@@ -897,6 +907,60 @@ const quit = () => emit('quit');
   }
   100% {
     opacity: 0;
+  }
+}
+
+.cheer {
+  position: absolute;
+  inset-inline: 0;
+  top: 38%;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 2rem + 4vw, 5rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  background: linear-gradient(
+    180deg,
+    var(--title-top) 0%,
+    var(--title-mid) 40%,
+    var(--title-low) 75%,
+    var(--title-bottom) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0.03em var(--title-edge);
+  filter: drop-shadow(0 0.05em 0 var(--title-depth)) drop-shadow(0 0 0.25em var(--title-glow));
+  pointer-events: none;
+  animation: cheer 1.4s ease-out forwards;
+}
+
+@keyframes cheer {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-6deg);
+  }
+  14% {
+    opacity: 1;
+    transform: scale(1.18) rotate(-3deg);
+  }
+  26% {
+    transform: scale(1) rotate(-3deg);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.04) rotate(-3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1) translateY(-0.4em) rotate(-3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cheer {
+    animation: none;
   }
 }
 

@@ -104,6 +104,15 @@ export class CanvasRenderer implements Renderer {
   /** Hazards: weather, falling balls, arrhythmia (§ 3.9). */
   private readonly weather: WeatherLayer;
   private readonly ambience: Ambience;
+  /**
+   * The tracks' fixed layers (halo, rim, groove), painted once per size and
+   * per route: wide strokes along a whole track are costly every frame on a
+   * modest device. Only the flowing thread is drawn live.
+   */
+  private trackLayer: HTMLCanvasElement | null = null;
+  /** Glows by colour (holes, the shooter's aura), painted once. */
+  private readonly glows = new Map<string, HTMLCanvasElement>();
+  private trackPaths: readonly unknown[] = [];
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -131,12 +140,51 @@ export class CanvasRenderer implements Renderer {
     this.offsetY = (height - board.height * this.scale) / 2;
     this.rebuildSprites();
     this.repaintBackground();
+    this.trackLayer = null;
   }
 
   setPalette(palette: Palette): void {
     this.palette = palette;
     this.rebuildSprites();
     this.repaintBackground();
+    this.trackLayer = null;
+  }
+
+  /** The tracks' fixed layers, repainted when the size, the colours or a route (switch) change. */
+  private tracksLayer(): HTMLCanvasElement | null {
+    const paths = this.game.chains.map((chain) => chain.path);
+    const same =
+      this.trackLayer !== null &&
+      paths.length === this.trackPaths.length &&
+      paths.every((path, i) => path === this.trackPaths[i]);
+    if (same) return this.trackLayer;
+    const layer = this.trackLayer ?? document.createElement('canvas');
+    layer.width = this.canvas.width;
+    layer.height = this.canvas.height;
+    const ctx = layer.getContext('2d');
+    if (!ctx) return null;
+    ctx.clearRect(0, 0, layer.width, layer.height);
+    const k = this.scale * this.pixelRatio;
+    ctx.setTransform(k, 0, 0, k, this.offsetX * this.pixelRatio, this.offsetY * this.pixelRatio);
+    const radius = this.game.setup.chain.ballRadius;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const chain of this.game.chains) {
+      const track = this.trackOf(chain);
+      ctx.strokeStyle = this.palette.trackEdge;
+      ctx.globalAlpha = 0.16;
+      ctx.lineWidth = radius * 2 + 34;
+      ctx.stroke(track);
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = radius * 2 + 12;
+      ctx.stroke(track);
+      ctx.strokeStyle = this.palette.track;
+      ctx.lineWidth = radius * 2 + 4;
+      ctx.stroke(track);
+    }
+    this.trackLayer = layer;
+    this.trackPaths = paths;
+    return layer;
   }
 
   private repaintBackground(): void {
@@ -186,6 +234,15 @@ export class CanvasRenderer implements Renderer {
     if (!scene.reducedMotion) {
       this.ambience.draw(ctx, this.canvas.width, this.canvas.height, palette, scene.time);
     }
+    const tracks = this.tracksLayer();
+    if (tracks) {
+      const shaken = scene.destruction.shakeOffset;
+      ctx.drawImage(
+        tracks,
+        shaken.x * this.scale * this.pixelRatio,
+        shaken.y * this.scale * this.pixelRatio,
+      );
+    }
     const k = this.scale * this.pixelRatio;
     const shake = scene.destruction.shakeOffset;
     ctx.transform(
@@ -200,7 +257,7 @@ export class CanvasRenderer implements Renderer {
     const { game } = scene;
     this.time = scene.time;
     const radius = game.setup.chain.ballRadius;
-    for (const chain of game.chains) this.drawTrack(chain, radius);
+    for (const chain of game.chains) this.drawTrack(chain);
     this.blackHole?.drawRing(ctx, palette, scene.time);
     this.weather.drawUnder(
       ctx,
@@ -313,32 +370,44 @@ export class CanvasRenderer implements Renderer {
   }
 
   /**
-   * The track: a soft halo, a lit rim, a dark groove, and a thread of light
-   * flowing towards the hole, so the chain's way reads at a glance.
+   * Over the track's fixed layers (`tracksLayer`): a thread of light flowing
+   * towards the hole, so the chain's way reads at a glance.
    */
-  private drawTrack(chain: Chain, radius: number): void {
+  private drawTrack(chain: Chain): void {
     const { ctx, palette } = this;
-    const track = this.trackOf(chain);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = palette.trackEdge;
-    ctx.globalAlpha = 0.16;
-    ctx.lineWidth = radius * 2 + 34;
-    ctx.stroke(track);
+    const path = chain.path;
+    // Small points placed along the path, one fill: far cheaper than a dashed stroke.
+    const spacing = 24;
+    const shift = (this.time * 40) % spacing;
+    ctx.beginPath();
+    for (let s = shift; s < path.length; s += spacing) {
+      const point = path.pointAt(s);
+      ctx.rect(point.x - 1.5, point.y - 1.5, 3, 3);
+    }
+    ctx.fillStyle = palette.trackEdge;
+    ctx.globalAlpha = 0.5;
+    ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.lineWidth = radius * 2 + 12;
-    ctx.stroke(track);
-    ctx.strokeStyle = palette.track;
-    ctx.lineWidth = radius * 2 + 4;
-    ctx.stroke(track);
-    ctx.strokeStyle = palette.trackEdge;
-    ctx.globalAlpha = 0.45;
-    ctx.lineWidth = 3;
-    ctx.setLineDash([2, 22]);
-    ctx.lineDashOffset = -this.time * 40;
-    ctx.stroke(track);
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 1;
+  }
+
+  /** A soft round glow of `colour`, painted once and reused (gradients cost every frame). */
+  private glowOf(colour: string): HTMLCanvasElement {
+    let glow = this.glows.get(colour);
+    if (!glow) {
+      glow = document.createElement('canvas');
+      glow.width = glow.height = 128;
+      const ctx = glow.getContext('2d');
+      if (ctx) {
+        const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        gradient.addColorStop(0, colour);
+        gradient.addColorStop(0.3, colour);
+        gradient.addColorStop(1, withAlpha(colour, 0));
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 128, 128);
+      }
+      this.glows.set(colour, glow);
+    }
+    return glow;
   }
 
   /** How close the nearest chain head is to its hole, from 0 (far) to 1 (in). */
@@ -403,14 +472,8 @@ export class CanvasRenderer implements Renderer {
     ctx.save();
     ctx.translate(at.x, at.y);
     ctx.globalCompositeOperation = 'lighter';
-    const halo = ctx.createRadialGradient(0, 0, radius, 0, 0, reach);
-    halo.addColorStop(0, tint);
-    halo.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.globalAlpha = 0.35 + 0.45 * danger;
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(0, 0, reach, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.drawImage(this.glowOf(tint), -reach, -reach, reach * 2, reach * 2);
     // Two dashed rings orbit the hole, faster as danger rises.
     ctx.strokeStyle = tint;
     ctx.lineWidth = 2.5;
@@ -886,15 +949,10 @@ export class CanvasRenderer implements Renderer {
     ctx.save();
     ctx.translate(shooter.position.x + kick.x, shooter.position.y + kick.y);
     // A glow of the loaded colour under the shooter: the colour reads from afar.
-    const aura = ctx.createRadialGradient(0, 0, SHOOTER_RADIUS * 0.6, 0, 0, SHOOTER_RADIUS * 2.2);
-    aura.addColorStop(0, palette.tone(shooter.current));
-    aura.addColorStop(1, 'rgba(0,0,0,0)');
+    const aura = SHOOTER_RADIUS * 2.2;
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.32 + 0.08 * Math.sin(this.time * 3);
-    ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.arc(0, 0, SHOOTER_RADIUS * 2.2, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.globalAlpha = 0.28 + 0.08 * Math.sin(this.time * 3);
+    ctx.drawImage(this.glowOf(palette.tone(shooter.current)), -aura, -aura, aura * 2, aura * 2);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
     this.look.shooter.draw(ctx, palette, shooter.angle, radius, this.time);

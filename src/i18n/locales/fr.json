@@ -73,7 +73,13 @@
     "campaignDone": "Campagne terminée : les six mondes sont à vous !",
     "arcadeButton": "Arcade",
     "starsGained": "+{count} étoile | +{count} étoile | +{count} étoiles",
-    "danger": "Attention : la chaîne approche du trou !"
+    "danger": "Attention : la chaîne approche du trou !",
+    "cheer": {
+      "3": "Super !",
+      "4": "Génial !",
+      "5": "Incroyable !",
+      "6": "Cosmique !"
+    }
   },
   "effects": {
     "spectacular": {

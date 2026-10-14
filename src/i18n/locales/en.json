@@ -73,7 +73,13 @@
     "campaignDone": "Campaign complete: all six worlds are yours!",
     "arcadeButton": "Arcade",
     "starsGained": "+{count} stars | +{count} star | +{count} stars",
-    "danger": "Careful: the chain is nearing the hole!"
+    "danger": "Careful: the chain is nearing the hole!",
+    "cheer": {
+      "3": "Great!",
+      "4": "Amazing!",
+      "5": "Incredible!",
+      "6": "Cosmic!"
+    }
   },
   "effects": {
     "spectacular": {
