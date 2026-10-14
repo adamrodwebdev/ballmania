@@ -12,6 +12,7 @@ import {
 } from '@/platform/GameDistributionPlatform';
 import type { PlatformAdapter } from '@/platform/PlatformAdapter';
 import { PLATFORM_IDS } from '@/platform/platforms';
+import { PlaygamaPlatform, type PlaygamaBridge } from '@/platform/PlaygamaPlatform';
 import { POKI_SDK, PokiPlatform, type PokiSdk } from '@/platform/PokiPlatform';
 import { StandalonePlatform } from '@/platform/StandalonePlatform';
 import { MemoryStorage } from '@/services/KeyValueStorage';
@@ -380,5 +381,122 @@ describe('GameDistributionPlatform', () => {
     await portal.init();
     expect(load).not.toHaveBeenCalled();
     expect(portal.rewardedAvailable()).toBe(false);
+  });
+});
+
+describe('PlaygamaPlatform', () => {
+  const fakeBridge = (options: { rewarded?: boolean; audio?: boolean } = {}) => {
+    const messages: string[] = [];
+    const stored = new Map<string, string>([['ballmania:player', '{"version":1}']]);
+    const platformListeners = new Map<string, (value: boolean) => void>();
+    const adListeners = new Map<string, (state: string) => void>();
+    const bridge: PlaygamaBridge = {
+      initialize: () => Promise.resolve(),
+      EVENT_NAME: {
+        AUDIO_STATE_CHANGED: 'audio',
+        PAUSE_STATE_CHANGED: 'pause',
+        INTERSTITIAL_STATE_CHANGED: 'interstitial',
+        REWARDED_STATE_CHANGED: 'rewarded',
+      },
+      platform: {
+        language: 'id',
+        isAudioEnabled: options.audio ?? true,
+        sendMessage: (message) => messages.push(message),
+        on: (event, listener) => void platformListeners.set(event, listener as never),
+        off: (event) => void platformListeners.delete(event),
+      },
+      storage: {
+        get: (keys) => Promise.resolve(keys.map((key) => stored.get(key) ?? null)),
+        set: (keys, values) => {
+          keys.forEach((key, i) => stored.set(key, values[i]!));
+          return Promise.resolve();
+        },
+      },
+      advertisement: {
+        isInterstitialSupported: true,
+        isRewardedSupported: true,
+        showInterstitial: () => {
+          const emit = adListeners.get('interstitial')!;
+          emit('opened');
+          emit('closed');
+        },
+        showRewarded: () => {
+          const emit = adListeners.get('rewarded')!;
+          emit('opened');
+          if (options.rewarded ?? true) emit('rewarded');
+          emit('closed');
+        },
+        on: (event, listener) => void adListeners.set(event, listener as never),
+        off: (event) => void adListeners.delete(event),
+      },
+    };
+    return { bridge, messages, stored, platformListeners };
+  };
+
+  it('loads every save in one call and writes through Bridge storage', async () => {
+    const { bridge, stored } = fakeBridge();
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    expect(portal.saves().get('ballmania:player')).toBe('{"version":1}');
+    expect(portal.preferences()).toBe(portal.saves());
+    portal.saves().set('ballmania:progress', '{}');
+    expect(stored.get('ballmania:progress')).toBe('{}');
+    expect(portal.locale()).toBe('id');
+  });
+
+  it('tells the portal the game is ready and the levels it plays', async () => {
+    const { bridge, messages } = fakeBridge();
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    portal.loaded();
+    portal.gameplayStart();
+    portal.gameplayStop();
+    portal.gameplayStart();
+    portal.levelEnded(true);
+    portal.gameplayStart();
+    portal.levelEnded(false);
+    expect(messages).toEqual([
+      'game_ready',
+      'level_started',
+      'level_paused',
+      'level_resumed',
+      'level_completed',
+      'level_started',
+      'level_failed',
+    ]);
+  });
+
+  it('follows the portal sound and pause, and grants a reward only when rewarded', async () => {
+    const { bridge, platformListeners } = fakeBridge({ audio: false });
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    expect(portal.muted()).toBe(true);
+    const muted = vi.fn();
+    const paused = vi.fn();
+    portal.onMutedChange(muted);
+    portal.onPausedChange(paused);
+    platformListeners.get('audio')!(true);
+    platformListeners.get('pause')!(true);
+    expect(muted).toHaveBeenCalledWith(false);
+    expect(paused).toHaveBeenCalledWith(true);
+    const started = vi.fn();
+    await portal.interstitial(started);
+    expect(await portal.rewarded(started)).toBe(true);
+    expect(started).toHaveBeenCalledTimes(2);
+    expect(await portal.shareLink()).toBeNull();
+
+    const refused = fakeBridge({ rewarded: false });
+    const other = new PlaygamaPlatform({ bridge: refused.bridge });
+    await other.init();
+    expect(await other.rewarded(() => {})).toBe(false);
+  });
+
+  it('runs without Bridge (blocked script)', async () => {
+    const portal = new PlaygamaPlatform({});
+    await portal.init();
+    expect(portal.rewardedAvailable()).toBe(false);
+    portal.saves().set('k', 'v');
+    expect(portal.saves().get('k')).toBe('v');
+    portal.loaded();
   });
 });

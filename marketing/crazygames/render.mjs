@@ -7,14 +7,23 @@ import { chromium } from '@playwright/test';
 import { createServer } from 'vite';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const out = fileURLToPath(new URL('./out/', import.meta.url));
 const only = process.argv[2];
+// `playgama`: that portal's cover sizes and its two-word title, in marketing/playgama/out/.
+const playgama = only === 'playgama';
+const out = fileURLToPath(new URL(playgama ? '../playgama/out/' : './out/', import.meta.url));
+const TITLE = playgama ? 'Ball Mania' : 'Ballmania';
 
-const COVERS = [
-  ['cover-landscape-1920x1080', 1920, 1080],
-  ['cover-portrait-800x1200', 800, 1200],
-  ['cover-square-800x800', 800, 800],
-];
+const COVERS = playgama
+  ? [
+      ['cover-landscape-1920x1080', 1920, 1080],
+      ['cover-portrait-1080x1920', 1080, 1920],
+      ['cover-square-800x800', 800, 800],
+    ]
+  : [
+      ['cover-landscape-1920x1080', 1920, 1080],
+      ['cover-portrait-800x1200', 800, 1200],
+      ['cover-square-800x800', 800, 800],
+    ];
 const VIDEOS = [
   ['trailer-landscape-1920x1080', 1920, 1080],
   ['trailer-portrait-1080x1620', 1080, 1620],
@@ -44,15 +53,21 @@ try {
     for (const [name, width, height] of COVERS) {
       await save(
         `${name}.png`,
-        await page.evaluate(([w, h]) => window.kit.cover(w, h), [width, height]),
+        await page.evaluate(
+          ([w, h, t]) => window.kit.cover(w, h, 'image/png', t),
+          [width, height, TITLE],
+        ),
       );
       await save(
         `${name}.jpg`,
-        await page.evaluate(([w, h]) => window.kit.cover(w, h, 'image/jpeg'), [width, height]),
+        await page.evaluate(
+          ([w, h, t]) => window.kit.cover(w, h, 'image/jpeg', t),
+          [width, height, TITLE],
+        ),
       );
     }
   }
-  if (only !== 'covers') {
+  if (only !== 'covers' && !playgama) {
     for (const [name, width, height] of VIDEOS) {
       const video = await page.evaluate(([w, h]) => window.kit.trailer(w, h), [width, height]);
       await save(`${name}.mp4`, video);

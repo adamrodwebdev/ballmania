@@ -25,6 +25,10 @@ export class StandalonePlatform implements PlatformAdapter {
     return this.storage;
   }
 
+  preferences(): KeyValueStorage {
+    return this.storage;
+  }
+
   locale(): null {
     return null;
   }
@@ -32,6 +36,7 @@ export class StandalonePlatform implements PlatformAdapter {
   loaded(): void {}
   gameplayStart(): void {}
   gameplayStop(): void {}
+  levelEnded(_won: boolean): void {}
   celebrate(): void {}
 
   interstitial(_onStart: AdStart): Promise<void> {
@@ -55,6 +60,10 @@ export class StandalonePlatform implements PlatformAdapter {
   }
 
   onMutedChange(): () => void {
+    return () => {};
+  }
+
+  onPausedChange(): () => void {
     return () => {};
   }
 }

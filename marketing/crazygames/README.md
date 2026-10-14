@@ -78,7 +78,9 @@ cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes 
 
 ## Formulaire : réponses à préparer
 
-- **Build** : `npm run build:crazygames`, puis zipper le **contenu** de `dist-crazygames/`
+- **Build** : `npm run build:crazygames`, puis `python scripts/zip-build.py dist-crazygames ballmania-crazygames.zip` (le
+  `Compress-Archive` de Windows PowerShell 5.1 écrit des chemins à barres obliques
+  inverses qui cassent le jeu sur un serveur Linux) ; contenu de `dist-crazygames/`
   (l'`index.html` à la racine de l'archive). Chemins relatifs, 42 fichiers, 665 Ko en
   tout (limites : 1 500 fichiers, 50 Mo au premier chargement, 20 Mo pour la page
   d'accueil mobile).

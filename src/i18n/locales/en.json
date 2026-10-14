@@ -31,8 +31,8 @@
     "aimAssist": "Aim assist",
     "aimAssistHint": "Ghost ball where the shot lands and the group it will burst",
     "music": "Music",
-    "musicOn": "Turn the music off",
-    "musicOff": "Turn the music on"
+    "soundOn": "Mute the sound",
+    "soundOff": "Unmute the sound"
   },
   "theme": {
     "system": "System",

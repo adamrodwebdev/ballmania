@@ -64,11 +64,12 @@ const introDone = () => {
 const engine = shallowRef<SoundEngine | null>(null);
 const portalMuted = ref(platform.muted());
 platform.onMutedChange((muted) => (portalMuted.value = muted));
-const musicVolume = () => (portalMuted.value ? 0 : settings.current.music);
+const silent = () => portalMuted.value || settings.current.muted;
+const musicVolume = () => (silent() ? 0 : settings.current.music);
 const start = async () => {
   const { sharedFeedback } = await import('@/play/feedback');
   const feedback = sharedFeedback(
-    portalMuted.value ? 0 : settings.current.volume,
+    silent() ? 0 : settings.current.volume,
     settings.current.vibration,
     musicVolume(),
   );
@@ -88,9 +89,17 @@ const wake = () => {
 };
 window.addEventListener('pointerdown', wake);
 window.addEventListener('keydown', wake);
-watch([() => settings.current.music, portalMuted], () =>
+watch([() => settings.current.music, () => settings.current.muted, portalMuted], () =>
   engine.value?.setMusicVolume(musicVolume()),
 );
+watch([() => settings.current.volume, () => settings.current.muted, portalMuted], () =>
+  engine.value?.setVolume(silent() ? 0 : settings.current.volume),
+);
+// The portal pauses the game (its own ads, a hidden tab): silence until it resumes.
+platform.onPausedChange((paused) => {
+  if (paused) engine.value?.suspend();
+  else engine.value?.resume();
+});
 
 /** True after the first change of screen: from then on, screens slide in. */
 const navigated = ref(false);
@@ -143,7 +152,9 @@ watch(
 );
 watchEffect(() => {
   document.documentElement.lang = locale.value;
-  document.title = t('meta.title');
+  // Playgama: the two-word title, the same in the game and on the portal's page.
+  const title = t('meta.title');
+  document.title = __PLATFORM__ === 'playgama' ? title.replace('Ballmania', 'Ball Mania') : title;
   document
     .querySelector('meta[name="description"]')
     ?.setAttribute('content', t('meta.description'));

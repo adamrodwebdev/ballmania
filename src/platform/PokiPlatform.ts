@@ -54,6 +54,10 @@ export class PokiPlatform implements PlatformAdapter {
     return this.storage;
   }
 
+  preferences(): KeyValueStorage {
+    return this.storage;
+  }
+
   locale(): null {
     return null;
   }
@@ -71,6 +75,7 @@ export class PokiPlatform implements PlatformAdapter {
   }
 
   celebrate(): void {}
+  levelEnded(_won: boolean): void {}
 
   async interstitial(onStart: AdStart): Promise<void> {
     if (!this.sdk) return;
@@ -108,6 +113,10 @@ export class PokiPlatform implements PlatformAdapter {
   }
 
   onMutedChange(): () => void {
+    return () => {};
+  }
+
+  onPausedChange(): () => void {
     return () => {};
   }
 

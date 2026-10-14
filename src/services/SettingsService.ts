@@ -18,6 +18,8 @@ export interface Settings {
   readonly volume: number;
   /** Volume of the music, from 0 (off) to 1. */
   readonly music: number;
+  /** Everything silent (the mute button), whatever the volumes. */
+  readonly muted: boolean;
   /** Vibrations on phones that support them. */
   readonly vibration: boolean;
   /** Aim assistance: ghost ball where the shot lands and the group it would make (§ 3.9). */
@@ -73,6 +75,7 @@ export class SettingsService {
     if (typeof record.music === 'number' && record.music >= 0 && record.music <= 1) {
       settings.music = record.music;
     }
+    if (typeof record.muted === 'boolean') settings.muted = record.muted;
     if (typeof record.vibration === 'boolean') settings.vibration = record.vibration;
     if (typeof record.aimAssist === 'boolean') settings.aimAssist = record.aimAssist;
     if (isDifficulty(record.difficulty)) settings.difficulty = record.difficulty;

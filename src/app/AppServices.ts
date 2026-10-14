@@ -5,7 +5,7 @@ import type { PlatformAdapter } from '@/platform/PlatformAdapter';
 import { PlayerProfile } from '@/player/PlayerProfile';
 import { ArcadeProgress } from '@/services/ArcadeProgress';
 import { CampaignProgress } from '@/services/CampaignProgress';
-import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage';
+import type { KeyValueStorage } from '@/services/KeyValueStorage';
 import { SettingsService } from '@/services/SettingsService';
 import { ShareService } from '@/services/ShareService';
 import { ThemeController } from '@/services/ThemeController';
@@ -34,7 +34,7 @@ export const APP_SERVICES: InjectionKey<AppServices> = Symbol('AppServices');
  */
 export function createBrowserServices(
   platform: PlatformAdapter,
-  storage: KeyValueStorage = BrowserStorage.local(),
+  storage: KeyValueStorage = platform.preferences(),
 ): AppServices {
   const saves = platform.saves();
   const portalLocale = platform.locale();
@@ -45,6 +45,7 @@ export function createBrowserServices(
     effects: 'spectacular',
     volume: 0.7,
     music: 0.6,
+    muted: false,
     vibration: true,
     aimAssist: true,
     difficulty: 'pilot',

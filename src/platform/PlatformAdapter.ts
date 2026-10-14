@@ -22,6 +22,11 @@ export interface PlatformAdapter {
   init(): Promise<void>;
   /** Where saves go: the SDK's storage when the portal asks for it. */
   saves(): KeyValueStorage;
+  /**
+   * Where the settings go: the browser (the theme script reads them before
+   * the first paint), or the SDK's storage where the portal forbids any other.
+   */
+  preferences(): KeyValueStorage;
   /** The player's language according to the portal (a BCP 47 tag), or null. */
   locale(): string | null;
   /** The game is loaded and can be played. */
@@ -30,6 +35,8 @@ export interface PlatformAdapter {
   gameplayStart(): void;
   /** The player stops playing: pause, end of a game, menus. */
   gameplayStop(): void;
+  /** A game ended, won or lost (some portals count levels). */
+  levelEnded(won: boolean): void;
   /** A rare moment of joy (a world finished, a record): some portals celebrate it. */
   celebrate(): void;
   /** An ad between two games; the portal may decline to show one. */
@@ -47,6 +54,8 @@ export interface PlatformAdapter {
   muted(): boolean;
   /** Calls `listener` when the portal's wish for silence changes; returns how to stop. */
   onMutedChange(listener: (muted: boolean) => void): () => void;
+  /** Calls `listener` when the portal pauses or resumes the game (its own ads, tabs). */
+  onPausedChange(listener: (paused: boolean) => void): () => void;
 }
 
 /** Loads an external script; resolves false if it fails or takes too long. */

@@ -17,7 +17,7 @@ interface Layout {
   readonly shotTurn: number;
 }
 
-const LAYOUTS: Record<'landscape' | 'portrait' | 'square', Layout> = {
+const LAYOUTS: Record<'landscape' | 'portrait' | 'tall' | 'square', Layout> = {
   landscape: {
     vortex: [0.5, 0.6],
     spiral: 0.62,
@@ -32,12 +32,21 @@ const LAYOUTS: Record<'landscape' | 'portrait' | 'square', Layout> = {
     titleSize: 0.2,
     shotTurn: 1.05,
   },
+  // 9:16 (Playgama): a bigger spiral fills the height under the title.
+  tall: {
+    vortex: [0.5, 0.63],
+    spiral: 0.9,
+    title: [0.5, 0.17],
+    titleSize: 0.2,
+    shotTurn: 1.05,
+  },
   square: { vortex: [0.5, 0.6], spiral: 0.58, title: [0.5, 0.18], titleSize: 0.18, shotTurn: 0.5 },
 };
 
 const layoutOf = (width: number, height: number): Layout => {
   const ratio = width / height;
   if (ratio > 1.2) return LAYOUTS.landscape;
+  if (ratio < 0.6) return LAYOUTS.tall;
   if (ratio < 0.85) return LAYOUTS.portrait;
   return LAYOUTS.square;
 };
@@ -51,7 +60,7 @@ const RUNS = [0, 0, 1, 1, 1, 2, 2, 4, 4, 4, 3, 3, 0, 0, 5, 5, 5, 2, 2, 1, 1, 4, 
  * glass marbles spirals into a black hole, a group bursts in the foreground
  * as a shot flies in, under the title. No other text, no border, no logo.
  */
-export function drawCover(canvas: HTMLCanvasElement, palette: Palette): void {
+export function drawCover(canvas: HTMLCanvasElement, palette: Palette, title = 'Ballmania'): void {
   const { width: W, height: H } = canvas;
   const ctx = canvas.getContext('2d')!;
   const layout = layoutOf(W, H);
@@ -256,7 +265,7 @@ export function drawCover(canvas: HTMLCanvasElement, palette: Palette): void {
     ctx.drawImage(shotSprite, shot.x - biggest, shot.y - biggest, biggest * 2, biggest * 2);
   }
 
-  drawTitle(ctx, layout.title[0] * W, layout.title[1] * H, layout.titleSize * W);
+  drawTitle(ctx, layout.title[0] * W, layout.title[1] * H, layout.titleSize * W, title, W * 0.9);
 
   // A soft vignette keeps the eye in the middle.
   const vignette = ctx.createRadialGradient(
@@ -274,8 +283,17 @@ export function drawCover(canvas: HTMLCanvasElement, palette: Palette): void {
 }
 
 /** "Ballmania": gold glass letters, a deep violet outline, a glow and a little depth. */
-function drawTitle(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-  const text = 'Ballmania';
+function drawTitle(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  wanted: number,
+  text: string,
+  maxWidth: number,
+): void {
+  // A longer title (two words) shrinks to stay inside the cover.
+  ctx.font = `${wanted}px "${TITLE_FONT}"`;
+  const size = Math.min(wanted, (wanted * maxWidth) / ctx.measureText(text).width);
   // Drawn apart first, so the shine only lights the letters.
   const art = document.createElement('canvas');
   art.width = Math.ceil(size * 7);

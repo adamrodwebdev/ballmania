@@ -11,3 +11,4 @@ Thumbs.db
 *.log
 dist-*/
 marketing/crazygames/out/*.mp4
+marketing/playgama/out/*.zip

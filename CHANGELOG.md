@@ -3,6 +3,22 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.4.0] — 2026-10-14
+
+### Ajouté
+
+- Portail Playgama (`npm run build:playgama`) : Bridge SDK v2 dans le `<head>` et sa
+  configuration, sauvegardes et réglages par `bridge.storage` (un seul chargement au
+  départ), langue du portail, son et pause du portail suivis, messages de niveau,
+  interstitielles et publicités récompensées par Bridge ; titre « Ball Mania » en deux
+  mots, comme sur la fiche du portail. Kit de soumission dans `marketing/playgama/`.
+- Bouton de coupure du son sur l'écran titre et en jeu (réglage « muted »).
+
+### Modifié
+
+- Écran titre sans défilement sur les petits téléphones en portrait (360×640).
+- Couvertures : titre ajusté à la largeur, format 9:16.
+
 ## [1.3.0] — 2026-10-14
 
 ### Ajouté

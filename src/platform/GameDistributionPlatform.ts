@@ -66,6 +66,10 @@ export class GameDistributionPlatform implements PlatformAdapter {
     return this.storage;
   }
 
+  preferences(): KeyValueStorage {
+    return this.storage;
+  }
+
   locale(): null {
     return null;
   }
@@ -74,6 +78,7 @@ export class GameDistributionPlatform implements PlatformAdapter {
   gameplayStart(): void {}
   gameplayStop(): void {}
   celebrate(): void {}
+  levelEnded(_won: boolean): void {}
 
   async interstitial(onStart: AdStart): Promise<void> {
     await this.show('interstitial', onStart);
@@ -99,6 +104,10 @@ export class GameDistributionPlatform implements PlatformAdapter {
   }
 
   onMutedChange(): () => void {
+    return () => {};
+  }
+
+  onPausedChange(): () => void {
     return () => {};
   }
 

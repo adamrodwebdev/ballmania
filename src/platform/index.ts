@@ -2,6 +2,7 @@ import { loadScript, type PlatformAdapter } from './PlatformAdapter';
 import { StandalonePlatform } from './StandalonePlatform';
 import type { CrazyGamesHost } from './CrazyGamesPlatform';
 import type { GameDistributionHost } from './GameDistributionPlatform';
+import type { PlaygamaHost } from './PlaygamaPlatform';
 import type { PokiHost } from './PokiPlatform';
 
 export type { PlatformAdapter, PlatformId } from './PlatformAdapter';
@@ -29,6 +30,9 @@ export async function createPlatform(): Promise<PlatformAdapter> {
       loadScript(document),
       import.meta.env.VITE_GD_GAME_ID ?? '',
     );
+  } else if (__PLATFORM__ === 'playgama') {
+    const { PlaygamaPlatform } = await import('./PlaygamaPlatform');
+    platform = new PlaygamaPlatform(window as Window & PlaygamaHost);
   } else if (__PLATFORM__ === 'simulated') {
     const { SimulatedPlatform } = await import('./SimulatedPlatform');
     const ads = new URLSearchParams(window.location.search).get('ads');

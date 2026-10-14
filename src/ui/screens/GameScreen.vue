@@ -30,6 +30,7 @@ import { PlaySession } from '@/play/PlaySession';
 import type { Silence } from '@/platform/AdService';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import AdIcon from '@/ui/components/AdIcon.vue';
+import SoundToggle from '@/ui/components/SoundToggle.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 
 const props = defineProps<{ request: PlayRequest }>();
@@ -88,8 +89,9 @@ motionQuery.addEventListener('change', onMotionChange);
 const profile = () => EffectProfile.for(settings.current.effects, reducedMotion.value);
 /** The portal may ask for silence (§ 3.7): it overrides the game's own volume. */
 const portalMuted = ref(platform.muted());
-const volume = () => (portalMuted.value ? 0 : settings.current.volume);
-const musicVolume = () => (portalMuted.value ? 0 : settings.current.music);
+const silent = () => portalMuted.value || settings.current.muted;
+const volume = () => (silent() ? 0 : settings.current.volume);
+const musicVolume = () => (silent() ? 0 : settings.current.music);
 const feedback = sharedFeedback(volume(), settings.current.vibration, musicVolume());
 // Each world has its theme; Rhythm mode plays its own song, beat by beat.
 feedback.sound.playMusic(request.kind === 'rhythm' ? null : mode.world);
@@ -189,6 +191,7 @@ onBeforeUnmount(() => {
   settleNow();
   gameplay.stop();
   stopListeningToPortal();
+  stopFollowingPause();
   for (const cleanup of cleanups) cleanup();
 });
 
@@ -200,10 +203,17 @@ watchEffect(() => {
 });
 
 watch([() => settings.current.effects, reducedMotion], () => session.value?.setProfile(profile()));
-watch([() => settings.current.volume, portalMuted], () => feedback.sound.setVolume(volume()));
-watch([() => settings.current.music, portalMuted], () =>
+watch([() => settings.current.volume, () => settings.current.muted, portalMuted], () =>
+  feedback.sound.setVolume(volume()),
+);
+watch([() => settings.current.music, () => settings.current.muted, portalMuted], () =>
   feedback.sound.setMusicVolume(musicVolume()),
 );
+// The portal pauses the game (its own ads, a hidden tab): time and sound stop.
+const stopFollowingPause = platform.onPausedChange((paused) => {
+  if (paused) session.value?.hold();
+  else session.value?.release();
+});
 watch(
   () => settings.current.aimAssist,
   (enabled) => session.value?.setAimAssist(enabled),
@@ -247,7 +257,9 @@ const pendingLoss = ref(false);
 const settle = () => {
   const play = session.value;
   if (!play) return;
-  const result = mode.settle(play.summary(), services);
+  const report = play.summary();
+  const result = mode.settle(report, services);
+  platform.levelEnded(report.outcome === 'won');
   settlement.value = result;
   const finishedWorld = result.rewards.unlocked.length > 0 || campaignDone.value;
   const endlessRecord = request.kind === 'endless' && result.record?.newBest === true;
@@ -547,6 +559,7 @@ const quit = () => emit('quit');
       <p v-if="hud && hud.stage !== null" class="badge" data-testid="stage">
         {{ t('arcade.endless.stage', { stage: hud.stage + 1 }) }}
       </p>
+      <SoundToggle class="bar-sound" />
       <button
         class="btn icon"
         type="button"
@@ -1206,6 +1219,14 @@ const quit = () => emit('quit');
 
 .icon {
   padding: 0;
+}
+
+.bar-sound {
+  width: var(--touch);
+  height: var(--touch);
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .stage {

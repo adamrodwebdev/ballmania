@@ -34,6 +34,10 @@ export class SimulatedPlatform implements PlatformAdapter {
     return this.storage;
   }
 
+  preferences(): KeyValueStorage {
+    return this.storage;
+  }
+
   locale(): null {
     return null;
   }
@@ -52,6 +56,10 @@ export class SimulatedPlatform implements PlatformAdapter {
 
   celebrate(): void {
     this.record('celebrate');
+  }
+
+  levelEnded(won: boolean): void {
+    this.record(won ? 'levelWon' : 'levelLost');
   }
 
   async interstitial(onStart: AdStart): Promise<void> {
@@ -80,6 +88,10 @@ export class SimulatedPlatform implements PlatformAdapter {
   }
 
   onMutedChange(): () => void {
+    return () => {};
+  }
+
+  onPausedChange(): () => void {
     return () => {};
   }
 
