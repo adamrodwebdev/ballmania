@@ -161,7 +161,12 @@ export class CrazyGamesPlatform implements PlatformAdapter {
         sdk.ad.requestAd(type, {
           adStarted: onStart,
           adFinished: () => resolve(true),
-          adError: () => resolve(false),
+          adError: (error) => {
+            // Ads are off (Basic Launch) or blocked: no rewarded button may stay without effect.
+            const code = (error as { code?: unknown } | null)?.code;
+            if (code === 'adsDisabledBasicLaunch' || code === 'adblock') this.adblock = true;
+            resolve(false);
+          },
         });
       } catch {
         resolve(false);

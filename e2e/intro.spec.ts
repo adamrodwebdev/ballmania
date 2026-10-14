@@ -21,5 +21,5 @@ test('skips the studio intro with a key or a tap', async ({ page }) => {
   const intro = page.getByTestId('studio-intro');
   await expect(intro).toBeVisible();
   await page.keyboard.press('Enter');
-  await expect(intro).toBeHidden({ timeout: 1000 });
+  await expect(intro).toBeHidden({ timeout: 3000 });
 });

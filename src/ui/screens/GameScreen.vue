@@ -19,7 +19,7 @@ import { CAMPAIGN } from '@/levels/campaign';
 import { DEMO } from '@/levels/edition';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { frameFor, type Frame } from '@/levels/tracks';
-import { ASSIST_AFTER } from '@/player/rewards';
+import { ASSIST_AFTER, CONTINUE_PRICE, HINT_COOLDOWN, HINT_PRICE } from '@/player/rewards';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
 import { resolveLook } from '@/play/cosmetics/Look';
 import { DistortionLayer } from '@/play/effects/DistortionLayer';
@@ -183,6 +183,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearTimeout(cheerTimer);
+  clearTimeout(hintTimer);
   settleNow();
   gameplay.stop();
   stopListeningToPortal();
@@ -263,7 +264,7 @@ watch(
   (state) => {
     const play = session.value;
     if (!play || state === undefined || state === 'playing') return;
-    if (state === 'lost' && mode.continuable && !continued.value && ads.rewardsOffered) {
+    if (state === 'lost' && platform.hasAds && mode.continuable && !continued.value) {
       pendingLoss.value = play.revivable;
       if (pendingLoss.value) return;
     }
@@ -354,24 +355,32 @@ const offerAssist = computed(
     player.failures(request.level.id) + (pendingLoss.value ? 1 : 0) >= ASSIST_AFTER,
 );
 
-/** After a defeat, continue once with a rewarded ad: the chain is pushed back. */
-const offerContinue = computed(
-  () => pendingLoss.value && hud.value?.over === 'lost' && ads.rewardsOffered,
-);
+/**
+ * After a defeat on a portal, continue once per game: for a rewarded ad (once
+ * per visit, portals' rule) or for shards, the way without an ad.
+ */
+const offerContinue = computed(() => pendingLoss.value && hud.value?.over === 'lost');
+const revived = (play: PlaySession) => {
+  if (!play.revive()) return false;
+  continued.value = true;
+  pendingLoss.value = false;
+  adMessage.value = t('ads.continued');
+  canvas.value?.focus();
+  return true;
+};
 const continueGame = async () => {
   const play = session.value;
   if (!play) return;
   endDialog.value?.close();
-  const watched = await ads.reward(silence());
-  if (watched && play.revive()) {
-    continued.value = true;
-    pendingLoss.value = false;
-    adMessage.value = t('ads.continued');
-    canvas.value?.focus();
-    return;
-  }
+  if ((await ads.revive(silence())) && revived(play)) return;
   adMessage.value = t('ads.unavailable');
   endDialog.value?.showModal();
+};
+const continueForShards = () => {
+  const play = session.value;
+  if (!play || !play.revivable || !player.spendShards(CONTINUE_PRICE)) return;
+  endDialog.value?.close();
+  revived(play);
 };
 
 /** The shards of a game doubled by a rewarded ad, once. */
@@ -398,19 +407,44 @@ const doubleShards = async () => {
  * Puzzle mode: a hint for a rewarded ad, offered in the pause menu (never on
  * the board while playing); the best next shot is then circled.
  */
+/** A minute between two hints: offers are not made too often (portals' rule). */
+const hintResting = ref(false);
+let hintTimer: ReturnType<typeof setTimeout> | undefined;
+const rest = () => {
+  hintResting.value = true;
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => (hintResting.value = false), HINT_COOLDOWN * 1000);
+};
 const offerHint = computed(
-  () => request.kind === 'puzzle' && hud.value?.state === 'playing' && ads.rewardsOffered,
+  () =>
+    request.kind === 'puzzle' &&
+    platform.hasAds &&
+    hud.value?.state === 'playing' &&
+    !hintResting.value,
 );
+const giveHint = (play: PlaySession) => {
+  play.resume();
+  const shown = play.showHint(puzzleHint);
+  if (shown) rest();
+  adMessage.value = shown ? t('ads.hintShown') : t('ads.unavailable');
+  canvas.value?.focus();
+};
 const showHint = async () => {
   const play = session.value;
   if (!play) return;
   // The game stays paused while the ad is asked for and shown.
   pauseDialog.value?.close();
-  const watched = await ads.reward(silence());
-  play.resume();
-  adMessage.value =
-    watched && play.showHint(puzzleHint) ? t('ads.hintShown') : t('ads.unavailable');
-  canvas.value?.focus();
+  if (await ads.reward(silence())) giveHint(play);
+  else {
+    play.resume();
+    adMessage.value = t('ads.unavailable');
+  }
+};
+const hintForShards = () => {
+  const play = session.value;
+  if (!play || !player.spendShards(HINT_PRICE)) return;
+  pauseDialog.value?.close();
+  giveHint(play);
 };
 
 /** A portal with ads, but none can be offered: an ad blocker. Said, never punished. */
@@ -629,17 +663,29 @@ const quit = () => emit('quit');
         <button class="btn btn-primary" type="button" autofocus @click="resume">
           {{ t('game.resume') }}
         </button>
-        <button v-if="offerHint" class="btn" type="button" data-testid="ad-hint" @click="showHint">
-          <span class="ad-label"><AdIcon />{{ t('ads.hint') }}</span>
-          <small>{{ t('ads.hintDetail') }}</small>
-        </button>
-        <p
-          v-else-if="request.kind === 'puzzle' && adsBlocked"
-          class="detail"
-          data-testid="ads-blocked"
-        >
-          {{ t('ads.blocked') }}
-        </p>
+        <template v-if="offerHint">
+          <button
+            v-if="ads.rewardsOffered"
+            class="btn"
+            type="button"
+            data-testid="ad-hint"
+            @click="showHint"
+          >
+            <span class="ad-label"><AdIcon />{{ t('ads.hint') }}</span>
+            <small>{{ t('ads.hintDetail') }}</small>
+          </button>
+          <p v-else class="detail" data-testid="ads-blocked">{{ t('ads.blocked') }}</p>
+          <button
+            class="btn"
+            type="button"
+            :disabled="player.view.shards < HINT_PRICE"
+            data-testid="shard-hint"
+            @click="hintForShards"
+          >
+            <span>{{ t('ads.hint') }}</span>
+            <small>{{ t('ads.forShards', { price: HINT_PRICE }) }}</small>
+          </button>
+        </template>
         <button class="btn" type="button" @click="restart">{{ t('game.restart') }}</button>
         <button
           class="btn"
@@ -745,17 +791,29 @@ const quit = () => emit('quit');
       </p>
 
       <div class="actions">
-        <button
-          v-if="offerContinue"
-          class="btn btn-primary"
-          type="button"
-          autofocus
-          data-testid="ad-continue"
-          @click="continueGame"
-        >
-          <span class="ad-label"><AdIcon />{{ t('ads.continue') }}</span>
-          <small>{{ t('ads.continueDetail') }}</small>
-        </button>
+        <template v-if="offerContinue">
+          <!-- The offer looks like every other choice: no button pushes the ad. -->
+          <button
+            v-if="ads.reviveOffered"
+            class="btn"
+            type="button"
+            data-testid="ad-continue"
+            @click="continueGame"
+          >
+            <span class="ad-label"><AdIcon />{{ t('ads.continue') }}</span>
+            <small>{{ t('ads.continueDetail') }}</small>
+          </button>
+          <button
+            class="btn"
+            type="button"
+            :disabled="player.view.shards < CONTINUE_PRICE"
+            data-testid="shard-continue"
+            @click="continueForShards"
+          >
+            <span>{{ t('ads.continue') }}</span>
+            <small>{{ t('ads.forShards', { price: CONTINUE_PRICE }) }}</small>
+          </button>
+        </template>
         <button
           v-if="offerDouble"
           class="btn"
@@ -820,6 +878,7 @@ const quit = () => emit('quit');
 
 <style scoped>
 .game {
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100vh;
@@ -833,7 +892,10 @@ const quit = () => emit('quit');
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
+  /* Clear of the notch and rounded corners in the CrazyGames app. */
+  padding: max(var(--space-2), env(safe-area-inset-top))
+    max(var(--space-4), env(safe-area-inset-right)) var(--space-2)
+    max(var(--space-4), env(safe-area-inset-left));
 }
 
 .level {
@@ -1253,5 +1315,28 @@ const quit = () => emit('quit');
   display: grid;
   gap: var(--space-2);
   margin-top: var(--space-6);
+}
+
+/* Short landscape frames (portal iframes, phones on their side): the board takes
+   the height; the buttons float over its bottom corner, the hint is one line. */
+@media (min-aspect-ratio: 5/4) and (max-height: 620px) {
+  .bar {
+    gap: var(--space-2);
+    padding-block: max(var(--space-1), env(safe-area-inset-top)) var(--space-1);
+  }
+
+  .controls {
+    position: absolute;
+    right: max(var(--space-4), env(safe-area-inset-right));
+    bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    z-index: 2;
+    padding: 0;
+  }
+
+  .hint {
+    bottom: var(--space-2);
+    max-width: min(26rem, 60%);
+    font-size: 0.85rem;
+  }
 }
 </style>

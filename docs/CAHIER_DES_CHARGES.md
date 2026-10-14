@@ -758,6 +758,14 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
   vidéo sur ces boutons ; message dans la page avec un bloqueur ; pas de sélection de texte
   sur appui long ; lettres des raccourcis selon la disposition du clavier. Kit de
   soumission (description, commandes, couvertures, vidéos) : `marketing/crazygames/`.
+- **Deuxième revue (14/10/2026, référence complète de CrazyGames)** : le bouton vidéo a
+  l'allure des autres choix ; chaque aide a son prix en éclats, le chemin sans publicité
+  (continuer : 60, indice : 20, sur les portails seulement) ; une reprise par publicité
+  au plus par visite ; une minute entre deux indices ; boutons vidéo retirés dès que les
+  publicités se révèlent coupées (Basic Launch) ou bloquées ; mises en page des écrans
+  paysage bas (821×462, 800×450) ; zones de sécurité ; reprise du son iOS à chaque geste.
+  Les éclats, monnaie du jeu, peuvent donc acheter ces deux aides sur les portails : une
+  entorse assumée au § 3.6, exigée par le portail.
 - **À faire par l'éditeur, hors code** : créer les comptes développeur, soumettre les
   archives de `dist-<portail>/` (zip), vérifier chaque intégration avec l'outil du portail
   (CrazyGames : `?useLocalSdk=true` et le QA tool ; Poki : Poki for Developers ;

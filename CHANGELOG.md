@@ -3,6 +3,18 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.2.1] — 2026-10-14
+
+### Modifié
+
+- Portails, d'après la référence complète de CrazyGames : bouton vidéo de même allure
+  que les autres choix ; continuer (60 éclats) et indice (20 éclats) aussi en éclats ;
+  une reprise par publicité au plus par visite ; une minute entre deux indices ; boutons
+  vidéo retirés quand les publicités sont coupées (Basic Launch) ou bloquées.
+- Écran titre et plateau adaptés aux écrans paysage bas (cadres de portail 821×462,
+  téléphones à l'horizontale) ; zones de sécurité de l'appli CrazyGames ; le son reprend
+  à chaque geste après une interruption sur iOS.
+
 ## [1.2.0] — 2026-10-14
 
 Refonte visuelle et sonore après le refus de CrazyGames (« qualité générale ») : le jeu prend

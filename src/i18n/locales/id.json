@@ -576,7 +576,8 @@
     "doubled": "{count} kepingan tambahan!",
     "hintShown": "Petunjuk: tembak bola yang dilingkari.",
     "unavailable": "Belum ada iklan saat ini: tidak ada yang hilang, coba lagi nanti.",
-    "blocked": "Bonus video tidak tersedia: pemblokir iklan aktif. Seluruh permainan tetap bisa dimainkan."
+    "blocked": "Bonus video belum tersedia saat ini. Seluruh permainan tetap bisa dimainkan.",
+    "forShards": "Dengan {price} kepingan"
   },
   "demo": {
     "fullGame": "Di game lengkap",

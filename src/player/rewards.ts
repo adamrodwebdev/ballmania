@@ -26,6 +26,14 @@ export const REWARDS = {
   endlessMax: 40,
 } as const;
 
+/**
+ * Portals (§ 3.7): what a continue or a puzzle hint costs in shards, the
+ * way to get them without watching an ad; and the wait between two hints.
+ */
+export const CONTINUE_PRICE = 60;
+export const HINT_PRICE = 20;
+export const HINT_COOLDOWN = 60;
+
 /** Failures in a row after which the assistance is offered (specification § 3.2). */
 export const ASSIST_AFTER = 3;
 /** The assisted chain moves this much slower. */

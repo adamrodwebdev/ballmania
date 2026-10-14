@@ -46,9 +46,25 @@ export class AdService {
     private readonly now: () => number,
   ) {}
 
+  /** A revive was already watched this visit: portals allow one per session. */
+  private revived = false;
+
   /** True if a rewarded ad can be offered now. */
   get rewardsOffered(): boolean {
     return this.platform.hasAds && this.platform.rewardedAvailable();
+  }
+
+  /** True if a revive ad can be offered: one per visit at most. */
+  get reviveOffered(): boolean {
+    return this.rewardsOffered && !this.revived;
+  }
+
+  /** A revive ad (continue after a defeat); true if watched. Once per visit. */
+  async revive(silence: Silence): Promise<boolean> {
+    if (!this.reviveOffered) return false;
+    const watched = await this.reward(silence);
+    if (watched) this.revived = true;
+    return watched;
   }
 
   /** Between two games: maybe an ad. Resolves when the game may go on. */

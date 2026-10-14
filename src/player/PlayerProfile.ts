@@ -177,6 +177,14 @@ export class PlayerProfile {
     return look;
   }
 
+  /** Spends shards on a help that can also be had for an ad (§ 3.7); false if too few. */
+  spendShards(amount: number): boolean {
+    if (!(amount > 0) || this.state.shards < amount) return false;
+    this.state.shards -= amount;
+    this.save();
+    return true;
+  }
+
   /** Extra shards (§ 3.7: a game's shards doubled after a rewarded ad). */
   grantShards(amount: number): void {
     if (!(amount > 0)) return;

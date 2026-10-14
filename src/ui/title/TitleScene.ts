@@ -93,12 +93,12 @@ export class TitleScene {
     this.canvas.height = Math.round(this.height * ratio);
     const wide = this.width / this.height > 1.15;
     // Wide: the hole on the right, clear of the menu on the left. Tall: in the middle.
-    this.centre = wide
-      ? { x: this.width * 0.7, y: this.height * 0.55 }
-      : { x: this.width * 0.5, y: this.height * 0.5 };
     this.outer = wide
-      ? Math.min(this.width * 0.28, this.height * 0.62)
+      ? Math.min(this.width * 0.26, this.height * 0.62)
       : Math.min(this.width * 0.46, this.height * 0.3);
+    this.centre = wide
+      ? { x: Math.min(this.width * 0.7, this.width - this.outer * 1.08), y: this.height * 0.55 }
+      : { x: this.width * 0.5, y: this.height * 0.5 };
     this.inner = this.outer * 0.12;
     this.k = Math.log(this.outer / this.inner) / (TURNS * Math.PI * 2);
     this.biggest = Math.max(14, this.outer * 0.11);

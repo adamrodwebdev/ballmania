@@ -175,6 +175,15 @@ describe('PlayerProfile', () => {
     expect(profile.owns('shooter-eye')).toBe(false);
   });
 
+  it('spends shards on a help, never more than the wallet holds', () => {
+    const profile = new PlayerProfile(new MemoryStorage());
+    profile.grantShards(50);
+    expect(profile.spendShards(60)).toBe(false);
+    expect(profile.spendShards(20)).toBe(true);
+    expect(profile.spendShards(0)).toBe(false);
+    expect(profile.shards).toBe(30);
+  });
+
   it('adds the doubled shards of a game (rewarded ad)', () => {
     const storage = new MemoryStorage();
     const profile = new PlayerProfile(storage);

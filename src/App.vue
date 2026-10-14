@@ -75,9 +75,15 @@ const start = async () => {
   feedback.sound.unlock();
   engine.value = feedback.sound;
 };
+let started = false;
 const wake = () => {
-  window.removeEventListener('pointerdown', wake);
-  window.removeEventListener('keydown', wake);
+  // iOS interrupts the audio when the app goes to the background or a call
+  // comes in; only a gesture may resume it, so every gesture tries.
+  if (started) {
+    engine.value?.unlock();
+    return;
+  }
+  started = true;
   void start();
 };
 window.addEventListener('pointerdown', wake);

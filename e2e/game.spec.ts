@@ -195,7 +195,8 @@ test.describe('progression', () => {
   });
 
   test('plays the daily challenge once for rewards, then offers to share', async ({ page }) => {
-    test.setTimeout(90_000);
+    // Two and a half minutes of play, simulated frame by frame.
+    test.setTimeout(150_000);
     await page.clock.install();
     await page.goto('./');
     await expect(page.getByTestId('daily-new')).toBeVisible();

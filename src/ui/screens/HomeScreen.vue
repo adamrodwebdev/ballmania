@@ -272,7 +272,10 @@ onBeforeUnmount(() => stopScene());
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-4) clamp(var(--space-4), 3vw, var(--space-8)) 0;
+  /* Clear of the notch and rounded corners in the CrazyGames app. */
+  padding: max(var(--space-4), env(safe-area-inset-top))
+    max(clamp(var(--space-4), 3vw, var(--space-8)), env(safe-area-inset-right)) 0
+    max(clamp(var(--space-4), 3vw, var(--space-8)), env(safe-area-inset-left));
 }
 
 .chips,
@@ -505,7 +508,7 @@ onBeforeUnmount(() => stopScene());
 }
 
 /* Wide screens: the menu on the left, the black hole on the right, as on the cover. */
-@media (min-width: 900px) and (min-aspect-ratio: 5/4) {
+@media (min-width: 640px) and (min-aspect-ratio: 5/4) {
   .content {
     align-items: flex-start;
     justify-content: center;
@@ -544,6 +547,63 @@ onBeforeUnmount(() => stopScene());
     position: absolute;
     right: clamp(var(--space-4), 3vw, var(--space-8));
     bottom: var(--space-4);
+  }
+}
+
+/* Short landscape frames (portal iframes down to 821×462, phones on their side):
+   everything shrinks with the height so Play and the tiles stay in view. */
+@media (min-aspect-ratio: 5/4) and (max-height: 620px) {
+  .top {
+    padding-top: max(var(--space-2), env(safe-area-inset-top));
+  }
+
+  .round {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .content {
+    min-height: calc(100dvh - 3.5rem);
+    padding-bottom: var(--space-2);
+  }
+
+  .title {
+    font-size: clamp(2.6rem, 17vh, 6rem);
+  }
+
+  .tagline {
+    margin-top: var(--space-2);
+    font-size: clamp(0.95rem, 3.6vh, 1.4rem);
+  }
+
+  .spacer {
+    flex-basis: clamp(var(--space-3), 4vh, var(--space-8));
+  }
+
+  .actions {
+    gap: var(--space-3);
+  }
+
+  .play {
+    min-height: clamp(3.5rem, 15vh, 5.5rem);
+  }
+
+  .play-word {
+    font-size: clamp(1.8rem, 8vh, 2.6rem);
+  }
+
+  .tile {
+    min-height: clamp(3.6rem, 17vh, 6.5rem);
+    font-size: 0.85rem;
+  }
+
+  .tile .icon {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  .version {
+    display: none;
   }
 }
 </style>

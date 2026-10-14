@@ -48,6 +48,10 @@ test.describe('portal build', () => {
     await expect(page.getByTestId('simulated-ad')).toBeHidden();
     await expect(page.getByRole('status').filter({ hasText: 'circled ball' })).toBeAttached();
     expect(await log(page)).toContain('rewarded');
+    // Not offered again at once: a minute between two hints.
+    await page.getByTestId('pause').click();
+    await expect(page.getByTestId('ad-hint')).toHaveCount(0);
+    await expect(page.getByTestId('shard-hint')).toHaveCount(0);
   });
 
   test('lands a new player in the first level in one click, without the intro', async ({
@@ -73,6 +77,10 @@ test.describe('portal build', () => {
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('ad-continue')).toContainText('Watch an ad');
+    // The ad offer looks like any other choice, and shards are the way without an ad.
+    await expect(dialog.getByTestId('ad-continue')).not.toHaveClass(/btn-primary/);
+    await expect(dialog.getByTestId('shard-continue')).toContainText('For 60 shards');
+    await expect(dialog.getByTestId('shard-continue')).toBeDisabled();
     await dialog.getByTestId('ad-continue').click();
     await page.clock.runFor(1000);
     await expect(dialog).toBeHidden();
@@ -126,7 +134,7 @@ test.describe('portal build', () => {
     await page.getByTestId('shop').click();
     await expect(page.getByTestId('item-shooter-eye')).toBeVisible();
     await expect(page.getByTestId('try-shooter-eye')).toHaveCount(0);
-    await expect(page.getByTestId('ads-blocked')).toContainText('ad blocker');
+    await expect(page.getByTestId('ads-blocked')).toContainText('Video bonuses are unavailable');
     await page.getByTestId('home').click();
     await page.getByTestId('arcade').click();
     await page.getByRole('button', { name: 'Puzzles', exact: true }).click();

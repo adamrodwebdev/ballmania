@@ -576,7 +576,8 @@
     "doubled": "{count} éclats de plus !",
     "hintShown": "Indice : tirez sur la bille entourée.",
     "unavailable": "Aucune publicité disponible pour le moment : rien n'est perdu, réessayez plus tard.",
-    "blocked": "Bonus vidéo indisponibles : un bloqueur de publicité est actif. Le jeu reste entièrement jouable."
+    "blocked": "Bonus vidéo indisponibles pour le moment. Le jeu reste entièrement jouable.",
+    "forShards": "Pour {price} éclats"
   },
   "demo": {
     "fullGame": "Dans le jeu complet",

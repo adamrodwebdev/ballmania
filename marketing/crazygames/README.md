@@ -105,9 +105,16 @@ cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes 
 - Récompensées : toujours facultatives, annoncées par une icône vidéo et « Regarder une
   publicité », jamais sur l'écran de jeu actif (l'indice d'énigme est dans le menu
   pause), jamais nécessaires pour finir un niveau, rien n'est donné si la publicité
-  échoue, message « réessayez plus tard » sinon.
-- Bloqueur de publicité : le jeu reste entier ; un message dans la page (pas une fenêtre)
-  explique que les bonus vidéo sont indisponibles.
+  échoue, message « réessayez plus tard » sinon. Le bouton vidéo a exactement l'allure
+  des autres choix ; chaque aide s'obtient aussi en éclats (continuer : 60, indice : 20) ;
+  une reprise par publicité au plus par visite ; une minute entre deux indices.
+- Bloqueur de publicité ou Basic Launch (publicités coupées) : le jeu reste entier ; dès
+  la première erreur `adblock` ou `adsDisabledBasicLaunch`, les boutons vidéo
+  disparaissent et un message dans la page (pas une fenêtre) dit que les bonus vidéo sont
+  indisponibles.
+- Lisible aux cadres les plus petits (821×462, 800×450) : l'écran titre et le plateau
+  s'adaptent aux écrans paysage bas ; zones de sécurité respectées (appli CrazyGames) ;
+  le son reprend au premier geste après une interruption iOS.
 - Silence demandé par le portail (`muteAudio`) prioritaire sur le volume du jeu.
 - Mobile : `user-select: none`, pas de loupe ni de menu sur appui long, zones de sécurité
   respectées.
@@ -118,9 +125,9 @@ cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes 
 
 ## Écarts assumés
 
-- **Alternative en monnaie du jeu** aux récompensées (recommandée par CrazyGames) : non
-  proposée. Les éclats n'achètent que des cosmétiques, jamais d'aide (cahier des charges
-  § 3.6) ; on garde cette règle.
+- **Éclats doublés** : pas d'équivalent en éclats (doubler ses éclats avec des éclats
+  n'aurait pas de sens) ; c'est un multiplicateur de fin de partie, placement que la
+  documentation cite comme bon exemple.
 - **Publicités bannières** : non utilisées.
 
 [intro]: https://docs.crazygames.com/requirements/intro/

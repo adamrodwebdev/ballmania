@@ -123,6 +123,22 @@ describe('AdService', () => {
   });
 });
 
+describe('revive ads', () => {
+  it('offer one revive per visit at most', async () => {
+    const portal = new FakePortal();
+    const ads = new AdService(portal, new AdPolicy(0), () => 0);
+    expect(ads.reviveOffered).toBe(true);
+    portal.watched = false;
+    expect(await ads.revive(silence())).toBe(false);
+    expect(ads.reviveOffered).toBe(true);
+    portal.watched = true;
+    expect(await ads.revive(silence())).toBe(true);
+    expect(ads.reviveOffered).toBe(false);
+    expect(await ads.revive(silence())).toBe(false);
+    expect(portal.calls.filter((call) => call === 'rewarded')).toHaveLength(2);
+  });
+});
+
 describe('GameplaySignals', () => {
   it('tells the portal each start and stop once', () => {
     const portal = new FakePortal();
@@ -217,6 +233,22 @@ describe('CrazyGamesPlatform', () => {
       'midgame',
       'rewarded',
     ]);
+  });
+
+  it('hides rewarded offers once ads turn out to be off (Basic Launch)', async () => {
+    const { sdk } = crazySdk({
+      ad: {
+        requestAd: (_type, callbacks) => callbacks.adError?.({ code: 'adsDisabledBasicLaunch' }),
+        hasAdblock: () => Promise.resolve(false),
+      },
+    });
+    const portal = new CrazyGamesPlatform({ CrazyGames: { SDK: sdk } }, () =>
+      Promise.resolve(true),
+    );
+    await portal.init();
+    expect(portal.rewardedAvailable()).toBe(true);
+    expect(await portal.rewarded(() => {})).toBe(false);
+    expect(portal.rewardedAvailable()).toBe(false);
   });
 
   it('runs without ads when the SDK cannot load or an ad fails', async () => {
