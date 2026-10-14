@@ -17,9 +17,10 @@ test.describe('home', () => {
 
   test('switches language and remembers it', async ({ page }) => {
     await page.goto('./');
+    await page.getByTestId('open-settings').click();
     await page.getByTestId('locale').selectOption('id');
     await expect(page.locator('html')).toHaveAttribute('lang', 'id');
-    await expect(page.getByText('Tantangan harian').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Pengaturan' })).toBeVisible();
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('lang', 'id');
     await expect(page).toHaveTitle(/tembak bola/);
@@ -27,9 +28,12 @@ test.describe('home', () => {
 
   test('keeps the chosen theme from the first paint after a reload', async ({ page }) => {
     await page.goto('./');
-    await page.getByTestId('theme').selectOption('dark');
+    // The cosmos (dark) is the game's own look, from the very first visit.
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page.getByTestId('open-settings').click();
+    await page.getByTestId('theme').selectOption('light');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     await page.reload();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   });
 });

@@ -16,7 +16,8 @@
     "pitch": "Six mondes à conquérir, des explosions en chaîne et des modes que vous n'avez jamais joués.",
     "campaign": "Campagne",
     "play": "Jouer",
-    "demo": "Monde 1 : Nébuleuse"
+    "demo": "Monde 1 : Nébuleuse",
+    "next": "{world} · niveau {number}"
   },
   "settings": {
     "language": "Langue",
@@ -177,7 +178,9 @@
       "copied": "Résultat copié : collez-le où vous voulez.",
       "cancelled": "Partage annulé.",
       "unavailable": "Le partage n'est pas disponible sur cet appareil."
-    }
+    },
+    "new": "Nouveau",
+    "doneShort": "{score} pts"
   },
   "shop": {
     "title": "Atelier",

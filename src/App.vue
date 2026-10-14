@@ -5,7 +5,6 @@ import { useServices } from '@/app/AppServices';
 import { loadMessages } from '@/i18n';
 import type { PlayRequest } from '@/app/PlayRequest';
 import type { CampaignLevel } from '@/levels/campaign';
-import AppHeader from '@/ui/components/AppHeader.vue';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
 import StudioIntro from '@/ui/components/StudioIntro.vue';
 
@@ -31,7 +30,6 @@ type Screen =
 const i18n = useI18n();
 const { t, locale } = i18n;
 const { settings, platform, progress } = useServices();
-const version = __APP_VERSION__;
 
 const screen = shallowRef<Screen>({ kind: 'home' });
 let games = 0;
@@ -114,7 +112,6 @@ watchEffect(() => {
   <StudioIntro v-if="showIntro" @done="introDone" />
   <template v-if="screen.kind === 'home'">
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
-    <AppHeader />
     <main id="main" tabindex="-1" :class="{ enter: navigated }">
       <HomeScreen
         @play="startCampaign"
@@ -125,9 +122,6 @@ watchEffect(() => {
         @achievements="show({ kind: 'achievements' })"
       />
     </main>
-    <footer class="footer">
-      <p>{{ t('app.version', { version }) }}</p>
-    </footer>
   </template>
   <main
     v-else-if="screen.kind === 'campaign'"
@@ -191,12 +185,5 @@ watchEffect(() => {
 
 main {
   outline: none;
-}
-
-.footer {
-  padding: var(--space-6) var(--space-4);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  text-align: center;
 }
 </style>

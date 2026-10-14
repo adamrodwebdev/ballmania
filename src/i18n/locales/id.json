@@ -16,7 +16,8 @@
     "pitch": "Enam dunia untuk ditaklukkan, ledakan berantai, dan mode yang belum pernah kamu mainkan.",
     "campaign": "Kampanye",
     "play": "Main",
-    "demo": "Dunia 1: Nebula"
+    "demo": "Dunia 1: Nebula",
+    "next": "{world} · Level {number}"
   },
   "settings": {
     "language": "Bahasa",
@@ -177,7 +178,9 @@
       "copied": "Hasil disalin: tempel di mana saja.",
       "cancelled": "Berbagi dibatalkan.",
       "unavailable": "Berbagi tidak tersedia di perangkat ini."
-    }
+    },
+    "new": "Baru",
+    "doneShort": "{score} poin"
   },
   "shop": {
     "title": "Bengkel",

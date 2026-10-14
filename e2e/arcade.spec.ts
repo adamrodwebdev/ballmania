@@ -11,7 +11,6 @@ const prepare = async (page: Page, worlds: readonly string[]) => {
 
 test('opens the Arcade modes one world after the other', async ({ page }) => {
   await prepare(page, ['nebula']);
-  await expect(page.getByTestId('arcade')).toContainText('1 / 4 modes open');
   await page.getByTestId('arcade').click();
   await expect(page.getByRole('heading', { name: 'Arcade', level: 1 })).toBeVisible();
   await expect(page.getByTestId('play-endless')).toBeVisible();

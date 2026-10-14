@@ -49,7 +49,12 @@ const close = () => dialog.value?.close();
     <div class="fields">
       <label class="row">
         <span>{{ t('settings.language') }}</span>
-        <select class="field" :value="settings.current.locale" @change="changeLocale">
+        <select
+          class="field"
+          :value="settings.current.locale"
+          data-testid="locale"
+          @change="changeLocale"
+        >
           <option v-for="code in LOCALES" :key="code" :value="code" :lang="code">
             {{ t(`language.${code}`) }}
           </option>
@@ -57,7 +62,12 @@ const close = () => dialog.value?.close();
       </label>
       <label class="row">
         <span>{{ t('settings.theme') }}</span>
-        <select class="field" :value="settings.current.theme" @change="changeTheme">
+        <select
+          class="field"
+          :value="settings.current.theme"
+          data-testid="theme"
+          @change="changeTheme"
+        >
           <option v-for="theme in THEME_PREFERENCES" :key="theme" :value="theme">
             {{ t(`theme.${theme}`) }}
           </option>

@@ -16,7 +16,8 @@
     "pitch": "Six worlds to conquer, chain explosions and modes you have never played.",
     "campaign": "Campaign",
     "play": "Play",
-    "demo": "World 1: Nebula"
+    "demo": "World 1: Nebula",
+    "next": "{world} · Level {number}"
   },
   "settings": {
     "language": "Language",
@@ -177,7 +178,9 @@
       "copied": "Result copied: paste it anywhere.",
       "cancelled": "Sharing cancelled.",
       "unavailable": "Sharing is not available on this device."
-    }
+    },
+    "new": "New",
+    "doneShort": "{score} pts"
   },
   "shop": {
     "title": "Workshop",

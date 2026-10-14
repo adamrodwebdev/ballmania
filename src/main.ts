@@ -3,6 +3,9 @@ import App from './App.vue';
 import { APP_SERVICES, createBrowserServices } from './app/AppServices';
 import { createAppI18n } from './i18n';
 import { createPlatform } from './platform';
+import '@fontsource/lilita-one/latin-400.css';
+import '@fontsource/fredoka/latin-500.css';
+import '@fontsource/fredoka/latin-700.css';
 import './styles/tokens.css';
 import './styles/base.css';
 
