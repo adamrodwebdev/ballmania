@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                              |
-| ------- | ---------- | ----------------------------------- |
-| 1.3     | 14/10/2026 | Refonte visuelle et sonore (v1.2.0) |
+| Version | Date       | Statut                                         |
+| ------- | ---------- | ---------------------------------------------- |
+| 1.4     | 14/10/2026 | Premier niveau : bombe offerte, geste (v1.3.0) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -540,6 +540,11 @@ Décisions :
   pour les menus et un par monde, ordonnancée en avance sur l'horloge audio ; la tension
   du plateau ajoute des percussions ; rien n'est programmé quand la musique est coupée.
   Table de mixage : effets et musique séparés, réverbération synthétisée, compresseur.
+- **Premier niveau (v1.3.0)** : le premier tir du niveau 1-1 est une bombe Nova offerte
+  (`LevelSetup.gift`, rayon 170, plus large que la Nova à son meilleur rang), pour que
+  les 30 premières secondes montrent ce que le jeu a de neuf ; l'aide écrite cède la
+  place à un geste dessiné sur le plateau (une main glisse du lanceur à la chaîne et
+  relâche), affiché jusqu'au premier tir.
 - **Récompenses visibles** : points et multiplicateurs qui jaillissent dans la police du
   jeu, multiplicateur doré, mot d'encouragement dès une réaction de profondeur 3.
 
@@ -1346,3 +1351,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                             |
 | 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                     |
 | 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                   |
+| 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                         |

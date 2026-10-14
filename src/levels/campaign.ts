@@ -66,6 +66,8 @@ export interface CampaignLevel {
   readonly repeatChance: number;
   readonly speed: number;
   readonly hint?: HintId;
+  /** The first shot is a Nova bomb (level 1-1: the first seconds show what the game holds). */
+  readonly gift?: 'bomb';
   readonly colossus?: { readonly hp: number; readonly spit: number };
   readonly mirrors?: readonly MirrorRecipe[];
   /**
@@ -215,6 +217,7 @@ const NEBULA: readonly CampaignLevel[] = [
     repeatChance: 0.55,
     speed: 30,
     hint: 'aim',
+    gift: 'bomb',
   }),
   level(2, {
     track: spiral(1.35, 0.25, false),

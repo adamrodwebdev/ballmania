@@ -112,6 +112,8 @@ export interface LevelDefinition {
   readonly upgrades?: UpgradeRanks;
   /** Star fragments cross the board (campaign). */
   readonly fragments?: { readonly every: number };
+  /** The first shot is a gift bomb (level 1-1). */
+  readonly gift?: 'bomb';
   /** The ring the shooter glides along (Singularity world); `shooter` is then its start. */
   readonly orbit?: {
     readonly centre: Point;
@@ -188,6 +190,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     ...(level.hazards ? { hazards: level.hazards } : {}),
     ...(level.upgrades ? { upgrades: level.upgrades } : {}),
     ...(level.fragments ? { fragments: level.fragments } : {}),
+    ...(level.gift ? { gift: level.gift } : {}),
     ...(level.scoreFactor === undefined ? {} : { scoreFactor: level.scoreFactor }),
     ...(level.puzzle ? { puzzle: level.puzzle } : {}),
     ...(level.rhythm ? { rhythm: level.rhythm } : {}),

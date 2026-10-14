@@ -78,7 +78,8 @@
       "3": "Great!",
       "4": "Amazing!",
       "5": "Incredible!",
-      "6": "Cosmic!"
+      "6": "Cosmic!",
+      "nova": "Nova!"
     }
   },
   "effects": {
@@ -133,7 +134,7 @@
     }
   },
   "hints": {
-    "aim": "Aim at the chain and shoot: three balls of the same colour explode.",
+    "aim": "Your first ball is a Nova bomb: aim at the chain and release!",
     "swap": "Swap the loaded ball with the next one: tap the shooter or press X.",
     "reaction": "When two pieces of the same colour meet, they explode in turn: that's a chain reaction.",
     "colours": "A fourth colour joins the game.",

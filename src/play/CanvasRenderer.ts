@@ -66,6 +66,8 @@ export interface Scene {
   readonly colossusFlash: number;
   /** Puzzle hint (§ 3.7): the ball to shoot at, circled; null without. */
   readonly hint?: Vec2 | null;
+  /** First level: a hand drags from the shooter to the chain and lets go; null without. */
+  readonly tutorial?: { readonly from: Vec2; readonly to: Vec2; readonly time: number } | null;
 }
 
 /** Length of the aim guide without aim assistance, in board units. */
@@ -292,6 +294,7 @@ export class CanvasRenderer implements Renderer {
     this.drawRival(radius);
     this.drawShooter(radius, scene);
     scene.destruction.draw(ctx, palette, this.sprites);
+    if (scene.tutorial) this.drawTutorial(scene.tutorial, scene.reducedMotion);
 
     if (scene.swallow && scene.swallow.progress > 0) this.drawSwallowed(scene.swallow);
     const flash = scene.destruction.flash;
@@ -571,6 +574,73 @@ export class CanvasRenderer implements Renderer {
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+  }
+
+  /**
+   * The tutorial gesture, a picture rather than a sentence: a hand presses on
+   * the shooter, drags to the chain drawing the aim, and lets go (a ripple).
+   * With reduced motion, the hand rests on the chain, the path dotted.
+   */
+  private drawTutorial(tutorial: NonNullable<Scene['tutorial']>, still: boolean): void {
+    const { ctx, palette } = this;
+    const { from, to } = tutorial;
+    const t = still ? 0.75 : (tutorial.time % 2.6) / 2.6;
+    const ease = (x: number) => x * x * (3 - 2 * x);
+    const drag = ease(Math.min(1, Math.max(0, (t - 0.18) / 0.5)));
+    const at = from.lerp(to, drag);
+    const fade = t > 0.85 ? 1 - (t - 0.85) / 0.15 : t < 0.06 ? t / 0.06 : 1;
+    const pressed = t > 0.1 && t < 0.72;
+    ctx.save();
+    ctx.globalAlpha = fade;
+    // The aim being drawn behind the finger.
+    ctx.strokeStyle = palette.text;
+    ctx.lineWidth = 4;
+    ctx.setLineDash([4, 14]);
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = fade * 0.7;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(at.x, at.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Ripples: the press at the start, the release at the end.
+    const ripple = (centre: Vec2, progress: number) => {
+      if (progress <= 0 || progress >= 1) return;
+      ctx.globalAlpha = fade * (1 - progress);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = palette.accent;
+      ctx.beginPath();
+      ctx.arc(centre.x, centre.y, 18 + progress * 46, 0, Math.PI * 2);
+      ctx.stroke();
+    };
+    ripple(from, (t - 0.08) / 0.22);
+    ripple(to, (t - 0.72) / 0.22);
+    if (still) ripple(to, 0.4);
+    ctx.globalAlpha = fade;
+    ctx.translate(at.x, at.y);
+    ctx.rotate(-0.35);
+    const scale = pressed ? 0.92 : 1.05;
+    ctx.scale(scale, scale);
+    // A hand drawn from rounded shapes, the fingertip on the point.
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetY = 6;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = palette.board;
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    const hand = new Path2D();
+    hand.roundRect(-10, 0, 20, 52, 10);
+    hand.roundRect(-10, 30, 56, 50, 16);
+    hand.roundRect(10, 22, 16, 30, 8);
+    hand.roundRect(26, 26, 16, 28, 8);
+    hand.roundRect(-28, 42, 20, 30, 10);
+    ctx.fill(hand);
+    ctx.shadowColor = 'transparent';
+    // Stroke, then fill again: the outline stays outside, the seams between parts vanish.
+    ctx.stroke(hand);
+    ctx.fill(hand);
     ctx.restore();
   }
 

@@ -97,6 +97,7 @@ export function resolveLevel(
     // Par: a bit more than half the time the chain would take to reach the hole untouched.
     parTime: Math.round((longest / level.speed) * 0.55),
     ...(colossus ? { colossus } : {}),
+    ...(level.gift ? { gift: level.gift } : {}),
     ...(level.mirrors
       ? { reflectors: level.mirrors.map((mirror) => placeMirror(mirror, frame)) }
       : {}),

@@ -3,6 +3,16 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.3.0] — 2026-10-14
+
+### Ajouté
+
+- Niveau 1-1 : le tout premier tir est une bombe Nova offerte (une amélioration gagnée
+  bien plus tard d'habitude) ; une grosse explosion et « Nova ! » dès les premières
+  secondes.
+- Tutoriel en geste : une main part du lanceur, trace la visée jusqu'à la chaîne et
+  relâche, jusqu'au premier tir du joueur ; image fixe en mouvement réduit.
+
 ## [1.2.1] — 2026-10-14
 
 ### Modifié

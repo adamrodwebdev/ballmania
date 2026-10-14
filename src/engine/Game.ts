@@ -101,6 +101,12 @@ export interface LevelSetup {
   readonly upgrades?: UpgradeRanks;
   /** Star fragments cross the board every `every` seconds, on average (campaign). */
   readonly fragments?: { readonly every: number };
+  /**
+   * A present for the very first shot (level 1-1): it is a Nova bomb, an
+   * upgrade the player otherwise earns much later. A big burst in the first
+   * seconds, and a glimpse of what the game holds.
+   */
+  readonly gift?: 'bomb';
 }
 
 export interface MagnetSetup {
@@ -221,6 +227,9 @@ export const MAX_BOUNCES = 6;
 /** Share of its track a chain is pushed back by when the player continues after a defeat. */
 export const REVIVE_SHARE = 0.35;
 
+/** Radius of a gift bomb (level 1-1): wider than the Nova at its best, for a first wow. */
+export const GIFT_BOMB_RADIUS = 170;
+
 /** Seconds a shot may fly before it is given up (one circling the black hole). */
 export const MAX_FLIGHT = 4;
 /** A charged shot flies this much faster (§ 3.9, module de tir). */
@@ -268,6 +277,8 @@ export class Game {
   private secondChanceUsed = false;
   /** A bomb is going off: its balls do not charge the next one. */
   private bombing = false;
+  /** The first shot is a gift bomb, until it is fired. */
+  private gift: boolean;
   private readonly arrhythmia: Arrhythmia | null;
   private readonly meteors: MeteorShower | null;
   private readonly weatherSystem: Weather | null;
@@ -302,6 +313,7 @@ export class Game {
   ) {
     this.random = random;
     this.upgrades = new Upgrades(setup.upgrades);
+    this.gift = setup.gift === 'bomb';
     this.starFragments = setup.fragments
       ? new StarFragments(setup.fragments.every * this.upgrades.fragmentEvery, setup.board, random)
       : null;
@@ -408,7 +420,7 @@ export class Game {
 
   /** What the loaded ball is: a bomb (Nova), a rainbow ball (prism), or a plain ball. */
   get loadedSpecial(): ProjectileSpecial {
-    if (this.nova === 1) return 'bomb';
+    if (this.gift || this.nova === 1) return 'bomb';
     const every = this.upgrades.prismEvery;
     return every !== null && (this.shotsFired + 1) % every === 0 ? 'wild' : null;
   }
@@ -506,7 +518,7 @@ export class Game {
     const special = this.loadedSpecial;
     if (special === 'bomb') {
       // A bomb: every ball within its radius.
-      const radius = this.upgrades.novaRadius;
+      const radius = this.bombRadius;
       const group = this.chains.flatMap((other) =>
         other.balls
           .filter((ball) => ball.s >= 0 && other.positionOf(ball).distanceTo(position) <= radius)
@@ -745,7 +757,10 @@ export class Game {
       special,
     );
     if (!projectile) return false;
-    if (special === 'bomb') this.novaCharge = 0;
+    if (special === 'bomb') {
+      this.novaCharge = 0;
+      this.gift = false;
+    }
     this.shotsFired++;
     this.flying.push(projectile);
     this.events.emit('fired', { projectile });
@@ -980,8 +995,13 @@ export class Game {
   }
 
   /** Nova: every ball within the bomb's radius goes up, whatever its colour. */
+  /** A bomb's reach: the Nova's, or the gift's without the upgrade. */
+  private get bombRadius(): number {
+    return this.upgrades.novaRadius > 0 ? this.upgrades.novaRadius : GIFT_BOMB_RADIUS;
+  }
+
   private explodeBomb(position: Vec2): void {
-    const radius = this.upgrades.novaRadius;
+    const radius = this.bombRadius;
     this.events.emit('bomb', { position, radius });
     this.bombing = true;
     this.chains.forEach((chain, index) => {
