@@ -78,7 +78,8 @@
       "3": "Super !",
       "4": "Génial !",
       "5": "Incroyable !",
-      "6": "Cosmique !"
+      "6": "Cosmique !",
+      "nova": "Nova !"
     }
   },
   "effects": {
@@ -133,7 +134,7 @@
     }
   },
   "hints": {
-    "aim": "Visez la chaîne et tirez : trois billes de la même couleur explosent.",
+    "aim": "Votre première bille est une bombe Nova : visez la chaîne et relâchez !",
     "swap": "Échangez la bille chargée avec la suivante : touchez le lanceur ou appuyez sur X.",
     "reaction": "Quand deux morceaux de même couleur se rejoignent, ils explosent à leur tour : c'est la réaction en chaîne.",
     "colours": "Une quatrième couleur entre en jeu.",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Game, type LevelSetup } from '@/engine/Game';
+import { Game, GIFT_BOMB_RADIUS, type LevelSetup } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { StarFragments } from '@/engine/upgrades/StarFragments';
 import { Upgrades, type UpgradeRanks } from '@/engine/upgrades/Upgrades';
@@ -114,5 +114,25 @@ describe('upgrades', () => {
     run(game, 5);
     expect(game.state).toBe('lost');
     expect(events).toHaveLength(1);
+  });
+});
+
+describe('the gift bomb of the first level', () => {
+  it('makes the very first shot a bomb, once, even without the Nova upgrade', () => {
+    const setup = { ...level([0, 1, 2, 0, 1, 2, 0, 1, 2, 0], {}), gift: 'bomb' as const };
+    const game = new Game(setup, new FixedRandom(0));
+    const bombs: number[] = [];
+    game.events.on('bomb', ({ radius }) => bombs.push(radius));
+    expect(game.loadedSpecial).toBe('bomb');
+    game.aimAt(new Vec2(400, 100));
+    expect(game.fire()).toBe(true);
+    expect(game.loadedSpecial).toBeNull();
+    run(game, 1);
+    expect(bombs).toEqual([GIFT_BOMB_RADIUS]);
+    expect(game.chains[0]!.balls.length).toBeLessThan(10);
+  });
+
+  it('is not given on other levels', () => {
+    expect(new Game(level([0, 1, 2], {}), new FixedRandom(0)).loadedSpecial).toBeNull();
   });
 });

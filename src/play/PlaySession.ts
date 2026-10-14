@@ -56,6 +56,8 @@ export interface HudState {
   nova: number | null;
   /** Latest use of the second chance, for the announcement. */
   secondChance: number | null;
+  /** Bombs gone off this game (a gift or the Nova), for the cheer over the board. */
+  bombs: number;
   /** A chain is close to its hole (the heart beats): said once each time it gets there. */
   danger: boolean;
   /**
@@ -79,6 +81,8 @@ export interface SessionOptions {
   readonly root?: number;
   /** Ghost ball and group preview on the aim line (§ 3.9); on by default. */
   readonly aimAssist?: boolean;
+  /** The first level: a hand shows how to aim and shoot, until the first shot. */
+  readonly tutorial?: boolean;
 }
 
 /** Sound and vibrations, shared by every game of the visit. */
@@ -145,6 +149,8 @@ export class PlaySession {
   private charging: number | null = null;
   private chargedOnce = false;
   private recoil = 0;
+  /** The first level's hand, shown until the player's first shot. */
+  private tutorial: boolean;
   /** Puzzle hint: the ball circled, and until when (session time). */
   private hinted: { readonly at: Vec2; readonly until: number } | null = null;
   /** An ad is playing over the game: time stands still, without the pause menu. */
@@ -163,6 +169,7 @@ export class PlaySession {
     this.seed = options.seed ?? (() => `${options.level.id}:${Date.now()}`);
     this.root = options.root ?? 55;
     this.aimAssist = options.aimAssist ?? true;
+    this.tutorial = options.tutorial ?? false;
     this.game = this.createGame();
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.destruction = this.createDestruction();
@@ -433,6 +440,7 @@ export class PlaySession {
     });
     game.events.on('fired', ({ projectile }) => {
       if (projectile.by === 'rival') sound.rivalShoot();
+      else this.tutorial = false;
     });
     game.events.on('beat', ({ index }) => {
       if (game.tempo) sound.beat(index, game.tempo.beat, this.root);
@@ -457,6 +465,7 @@ export class PlaySession {
     });
     game.events.on('novaReady', () => sound.novaReady());
     game.events.on('bomb', ({ position, radius }) => {
+      this.hud.bombs++;
       this.destruction.blast(position, radius);
       sound.bomb();
       haptics.explosion(4);
@@ -567,6 +576,7 @@ export class PlaySession {
       fragments: this.game.setup.fragments ? 0 : null,
       nova: this.game.nova,
       secondChance: null,
+      bombs: 0,
       danger: false,
     };
   }
@@ -681,6 +691,7 @@ export class PlaySession {
       time: this.time,
       colossusFlash: this.colossusFlash,
       hint: this.hinted && this.time < this.hinted.until ? this.hinted.at : null,
+      tutorial: this.tutorial && this.acceptsCommands ? this.tutorialPath() : null,
     });
     if (!this.distortion) return;
     const k = this.renderer.deviceScale;
@@ -692,6 +703,20 @@ export class PlaySession {
       }),
       42 * k,
     );
+  }
+
+  /** The tutorial hand's way: from the shooter to a ball in the middle of the visible chain. */
+  private tutorialPath(): { readonly from: Vec2; readonly to: Vec2; readonly time: number } | null {
+    const chain = this.game.chains[0];
+    if (!chain) return null;
+    const visible = chain.balls.filter((ball) => ball.s > chain.diameter * 2);
+    const ball = visible[Math.floor(visible.length * 0.4)];
+    if (!ball) return null;
+    return {
+      from: this.game.shooter.position,
+      to: this.motion.positionOf(chain, ball),
+      time: this.time,
+    };
   }
 
   private syncTones(): void {

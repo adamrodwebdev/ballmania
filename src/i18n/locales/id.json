@@ -78,7 +78,8 @@
       "3": "Hebat!",
       "4": "Luar biasa!",
       "5": "Menakjubkan!",
-      "6": "Kosmik!"
+      "6": "Kosmik!",
+      "nova": "Nova!"
     }
   },
   "effects": {
@@ -133,7 +134,7 @@
     }
   },
   "hints": {
-    "aim": "Bidik rantai lalu tembak: tiga bola berwarna sama akan meledak.",
+    "aim": "Bola pertamamu adalah bom Nova: bidik rantai lalu lepaskan!",
     "swap": "Tukar bola yang siap dengan bola berikutnya: sentuh penembak atau tekan X.",
     "reaction": "Saat dua bagian berwarna sama bertemu, keduanya ikut meledak: itulah reaksi berantai.",
     "colours": "Warna keempat ikut bermain.",

@@ -138,6 +138,8 @@ onMounted(() => {
     ...(seed === null ? {} : { seed: () => seed }),
     ...(request.kind === 'rhythm' ? { root: request.song.root } : {}),
     aimAssist: settings.current.aimAssist,
+    // The very first level teaches by a gesture, not a sentence.
+    tutorial: request.kind === 'campaign' && request.level.hint === 'aim',
   });
   session.value = play;
   if (hintVisible.value) window.setTimeout(() => (hintVisible.value = false), 6000);
@@ -291,6 +293,16 @@ watch(
     announcement.value = t('game.reaction', { depth: reaction.depth });
     if (reaction.depth < 3) return;
     cheer.value = { word: t(`game.cheer.${Math.min(reaction.depth, 6)}`), serial: reaction.serial };
+    clearTimeout(cheerTimer);
+    cheerTimer = setTimeout(() => (cheer.value = null), 1400);
+  },
+);
+
+watch(
+  () => hud.value?.bombs,
+  (bombs) => {
+    if (!bombs) return;
+    cheer.value = { word: t('game.cheer.nova'), serial: -bombs };
     clearTimeout(cheerTimer);
     cheerTimer = setTimeout(() => (cheer.value = null), 1400);
   },
