@@ -44,6 +44,7 @@ export function createBrowserServices(
     theme: 'dark',
     effects: 'spectacular',
     volume: 0.7,
+    music: 0.6,
     vibration: true,
     aimAssist: true,
     difficulty: 'pilot',

@@ -25,11 +25,14 @@
     "title": "Settings",
     "open": "Open the settings",
     "effects": "Destruction effects",
-    "volume": "Volume",
+    "volume": "Sound effects",
     "vibration": "Vibrations",
     "done": "Done",
     "aimAssist": "Aim assist",
-    "aimAssistHint": "Ghost ball where the shot lands and the group it will burst"
+    "aimAssistHint": "Ghost ball where the shot lands and the group it will burst",
+    "music": "Music",
+    "musicOn": "Turn the music off",
+    "musicOff": "Turn the music on"
   },
   "theme": {
     "system": "System",

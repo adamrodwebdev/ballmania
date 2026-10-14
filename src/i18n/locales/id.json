@@ -25,11 +25,14 @@
     "title": "Pengaturan",
     "open": "Buka pengaturan",
     "effects": "Efek penghancuran",
-    "volume": "Volume",
+    "volume": "Efek suara",
     "vibration": "Getaran",
     "done": "Selesai",
     "aimAssist": "Bantuan bidik",
-    "aimAssistHint": "Bola bayangan di titik tembakan dan kelompok yang akan meledak"
+    "aimAssistHint": "Bola bayangan di titik tembakan dan kelompok yang akan meledak",
+    "music": "Musik",
+    "musicOn": "Matikan musik",
+    "musicOff": "Nyalakan musik"
   },
   "theme": {
     "system": "Sistem",

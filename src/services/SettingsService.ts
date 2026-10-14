@@ -16,6 +16,8 @@ export interface Settings {
   readonly effects: EffectLevel;
   /** Volume of the sound effects, from 0 (muted) to 1. */
   readonly volume: number;
+  /** Volume of the music, from 0 (off) to 1. */
+  readonly music: number;
   /** Vibrations on phones that support them. */
   readonly vibration: boolean;
   /** Aim assistance: ghost ball where the shot lands and the group it would make (§ 3.9). */
@@ -67,6 +69,9 @@ export class SettingsService {
     if (isEffectLevel(record.effects)) settings.effects = record.effects;
     if (typeof record.volume === 'number' && record.volume >= 0 && record.volume <= 1) {
       settings.volume = record.volume;
+    }
+    if (typeof record.music === 'number' && record.music >= 0 && record.music <= 1) {
+      settings.music = record.music;
     }
     if (typeof record.vibration === 'boolean') settings.vibration = record.vibration;
     if (typeof record.aimAssist === 'boolean') settings.aimAssist = record.aimAssist;

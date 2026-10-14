@@ -89,7 +89,10 @@ const profile = () => EffectProfile.for(settings.current.effects, reducedMotion.
 /** The portal may ask for silence (§ 3.7): it overrides the game's own volume. */
 const portalMuted = ref(platform.muted());
 const volume = () => (portalMuted.value ? 0 : settings.current.volume);
-const feedback = sharedFeedback(volume(), settings.current.vibration);
+const musicVolume = () => (portalMuted.value ? 0 : settings.current.music);
+const feedback = sharedFeedback(volume(), settings.current.vibration, musicVolume());
+// Each world has its theme; Rhythm mode plays its own song, beat by beat.
+feedback.sound.playMusic(request.kind === 'rhythm' ? null : mode.world);
 const stopListeningToPortal = platform.onMutedChange((muted) => (portalMuted.value = muted));
 
 /** An ad covers the game (§ 3.7): time and sound stop until it is over. */
@@ -194,6 +197,9 @@ watchEffect(() => {
 
 watch([() => settings.current.effects, reducedMotion], () => session.value?.setProfile(profile()));
 watch([() => settings.current.volume, portalMuted], () => feedback.sound.setVolume(volume()));
+watch([() => settings.current.music, portalMuted], () =>
+  feedback.sound.setMusicVolume(musicVolume()),
+);
 watch(
   () => settings.current.aimAssist,
   (enabled) => session.value?.setAimAssist(enabled),

@@ -2,6 +2,7 @@
 import { defineAsyncComponent, ref, shallowRef, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
+import type { SoundEngine } from '@/audio/SoundEngine';
 import { loadMessages } from '@/i18n';
 import type { PlayRequest } from '@/app/PlayRequest';
 import type { CampaignLevel } from '@/levels/campaign';
@@ -55,6 +56,36 @@ const introDone = () => {
   }
 };
 
+/**
+ * The conductor (§ 3.5): sound and music wake at the player's first gesture
+ * (browsers require it) and the engine is downloaded only then. Menus play
+ * the title theme; the game screen chooses its world's.
+ */
+const engine = shallowRef<SoundEngine | null>(null);
+const portalMuted = ref(platform.muted());
+platform.onMutedChange((muted) => (portalMuted.value = muted));
+const musicVolume = () => (portalMuted.value ? 0 : settings.current.music);
+const start = async () => {
+  const { sharedFeedback } = await import('@/play/feedback');
+  const feedback = sharedFeedback(
+    portalMuted.value ? 0 : settings.current.volume,
+    settings.current.vibration,
+    musicVolume(),
+  );
+  feedback.sound.unlock();
+  engine.value = feedback.sound;
+};
+const wake = () => {
+  window.removeEventListener('pointerdown', wake);
+  window.removeEventListener('keydown', wake);
+  void start();
+};
+window.addEventListener('pointerdown', wake);
+window.addEventListener('keydown', wake);
+watch([() => settings.current.music, portalMuted], () =>
+  engine.value?.setMusicVolume(musicVolume()),
+);
+
 /** True after the first change of screen: from then on, screens slide in. */
 const navigated = ref(false);
 const show = (next: Screen) => {
@@ -87,6 +118,11 @@ const leave = (request: PlayRequest) => {
   else if (request.kind === 'daily') home();
   else arcade();
 };
+
+// Every screen but the game plays the title theme (the game sets its own).
+watchEffect(() => {
+  if (screen.value.kind !== 'game') engine.value?.playMusic('title');
+});
 
 // Language: the messages are downloaded on first use, then the interface,
 // <html lang>, title and description follow.

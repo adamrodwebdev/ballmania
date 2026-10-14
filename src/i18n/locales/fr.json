@@ -25,11 +25,14 @@
     "title": "Réglages",
     "open": "Ouvrir les réglages",
     "effects": "Effets de destruction",
-    "volume": "Volume",
+    "volume": "Effets sonores",
     "vibration": "Vibrations",
     "done": "Terminé",
     "aimAssist": "Aide à la visée",
-    "aimAssistHint": "Bille fantôme à l'arrivée du tir et groupe qui explosera"
+    "aimAssistHint": "Bille fantôme à l'arrivée du tir et groupe qui explosera",
+    "music": "Musique",
+    "musicOn": "Couper la musique",
+    "musicOff": "Remettre la musique"
   },
   "theme": {
     "system": "Système",

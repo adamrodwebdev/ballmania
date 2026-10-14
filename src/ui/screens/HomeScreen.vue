@@ -7,7 +7,7 @@ import { DailyChallenge } from '@/player/DailyChallenge';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 
 const { t, locale } = useI18n();
-const { player, progress, today } = useServices();
+const { player, progress, today, settings } = useServices();
 const emit = defineEmits<{
   play: [];
   daily: [challenge: DailyChallenge];
@@ -36,6 +36,15 @@ const nextLabel = computed(() => {
   return t('home.next', { world: t(`worlds.${level.world}.name`), number: level.number });
 });
 const version = __APP_VERSION__;
+/** The music button: off, or back to the level it had. */
+const musicOn = computed(() => settings.current.music > 0);
+let musicLevel = settings.current.music || 0.6;
+const toggleMusic = () => {
+  if (musicOn.value) {
+    musicLevel = settings.current.music;
+    settings.update({ music: 0 });
+  } else settings.update({ music: musicLevel });
+};
 const settingsDialog = ref<{ open: () => void } | null>(null);
 
 /** The living backdrop is drawn after the first paint, from its own small module. */
@@ -95,6 +104,34 @@ onBeforeUnmount(() => stopScene());
         </template>
       </div>
       <div class="tools">
+        <button
+          class="round"
+          type="button"
+          :aria-label="t(musicOn ? 'settings.musicOn' : 'settings.musicOff')"
+          :aria-pressed="musicOn"
+          data-testid="music-toggle"
+          @click="toggleMusic"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path
+              d="M9 18V5l11-2v13"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle cx="6" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+            <circle cx="17" cy="16" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+            <path
+              v-if="!musicOn"
+              d="M3 3l18 18"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
         <button
           class="round"
           type="button"

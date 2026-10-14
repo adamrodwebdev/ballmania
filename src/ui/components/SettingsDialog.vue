@@ -32,6 +32,10 @@ const changeVolume = (event: Event) => {
   const value = Number(valueOf(event)) / 100;
   if (value >= 0 && value <= 1) settings.update({ volume: value });
 };
+const changeMusic = (event: Event) => {
+  const value = Number(valueOf(event)) / 100;
+  if (value >= 0 && value <= 1) settings.update({ music: value });
+};
 const changeVibration = (event: Event) =>
   settings.update({ vibration: (event.target as HTMLInputElement).checked });
 const changeAimAssist = (event: Event) =>
@@ -101,6 +105,19 @@ const close = () => dialog.value?.close();
           :value="Math.round(settings.current.volume * 100)"
           data-testid="volume"
           @input="changeVolume"
+        />
+      </label>
+      <label class="row">
+        <span>{{ t('settings.music') }}</span>
+        <input
+          class="range"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          :value="Math.round(settings.current.music * 100)"
+          data-testid="music"
+          @input="changeMusic"
         />
       </label>
       <label class="row check">
