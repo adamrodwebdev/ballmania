@@ -389,7 +389,9 @@ describe('PlaygamaPlatform', () => {
     const messages: string[] = [];
     const stored = new Map<string, string>([['ballmania:player', '{"version":1}']]);
     const platformListeners = new Map<string, (value: boolean) => void>();
-    const adListeners = new Map<string, (state: string) => void>();
+    const adListeners = new Map<string, Set<(state: string) => void>>();
+    const emitAd = (event: string, state: string) =>
+      [...(adListeners.get(event) ?? [])].forEach((listener) => listener(state));
     const bridge: PlaygamaBridge = {
       initialize: () => Promise.resolve(),
       EVENT_NAME: {
@@ -416,21 +418,23 @@ describe('PlaygamaPlatform', () => {
         isInterstitialSupported: true,
         isRewardedSupported: true,
         showInterstitial: () => {
-          const emit = adListeners.get('interstitial')!;
-          emit('opened');
-          emit('closed');
+          emitAd('interstitial', 'opened');
+          emitAd('interstitial', 'closed');
         },
         showRewarded: () => {
-          const emit = adListeners.get('rewarded')!;
-          emit('opened');
-          if (options.rewarded ?? true) emit('rewarded');
-          emit('closed');
+          emitAd('rewarded', 'opened');
+          if (options.rewarded ?? true) emitAd('rewarded', 'rewarded');
+          emitAd('rewarded', 'closed');
         },
-        on: (event, listener) => void adListeners.set(event, listener as never),
-        off: (event) => void adListeners.delete(event),
+        on: (event, listener) => {
+          const listeners = adListeners.get(event) ?? new Set();
+          listeners.add(listener as never);
+          adListeners.set(event, listeners);
+        },
+        off: (event, listener) => void adListeners.get(event)?.delete(listener as never),
       },
     };
-    return { bridge, messages, stored, platformListeners };
+    return { bridge, messages, stored, platformListeners, emitAd };
   };
 
   it('loads every save in one call and writes through Bridge storage', async () => {
@@ -489,6 +493,39 @@ describe('PlaygamaPlatform', () => {
     const other = new PlaygamaPlatform({ bridge: refused.bridge });
     await other.init();
     expect(await other.rewarded(() => {})).toBe(false);
+  });
+
+  it('pauses the game while an ad the portal launched by itself is open', async () => {
+    const { bridge, platformListeners, emitAd } = fakeBridge();
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    const paused = vi.fn();
+    portal.onPausedChange(paused);
+    emitAd('interstitial', 'loading');
+    expect(paused).not.toHaveBeenCalled();
+    emitAd('interstitial', 'opened');
+    platformListeners.get('pause')!(true);
+    emitAd('interstitial', 'closed');
+    expect(paused).toHaveBeenCalledTimes(1);
+    platformListeners.get('pause')!(false);
+    expect(paused.mock.calls).toEqual([[true], [false]]);
+    emitAd('rewarded', 'opened');
+    emitAd('rewarded', 'failed');
+    expect(paused.mock.calls.slice(2)).toEqual([[true], [false]]);
+  });
+
+  it('starts paused if an ad is already open when the game loads', async () => {
+    const { bridge } = fakeBridge();
+    const portal = new PlaygamaPlatform({
+      bridge: {
+        ...bridge,
+        advertisement: { ...bridge.advertisement, interstitialState: 'opened' },
+      },
+    });
+    await portal.init();
+    const paused = vi.fn();
+    portal.onPausedChange(paused);
+    expect(paused).toHaveBeenCalledWith(true);
   });
 
   it('runs without Bridge (blocked script)', async () => {

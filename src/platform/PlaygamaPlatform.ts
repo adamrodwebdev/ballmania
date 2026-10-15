@@ -40,6 +40,7 @@ export interface PlaygamaBridge {
   readonly advertisement: {
     readonly isInterstitialSupported: boolean;
     readonly isRewardedSupported: boolean;
+    readonly interstitialState?: string;
     showInterstitial(placement?: string): void;
     showRewarded(placement?: string): void;
     on(event: string, listener: Listener): void;
@@ -64,6 +65,12 @@ export class PlaygamaPlatform implements PlatformAdapter {
   private bridge: PlaygamaBridge | null = null;
   private readonly cache = new Map<string, string>();
   private inLevel = false;
+  /** The portal paused the game (hidden tab, its own overlay). */
+  private portalPaused = false;
+  /** A full-screen ad is open, ours or one the portal launched by itself. */
+  private adOpen = false;
+  private paused = false;
+  private readonly pauseListeners = new Set<(paused: boolean) => void>();
   private readonly store: KeyValueStorage = {
     get: (key) => this.cache.get(key) ?? null,
     set: (key, value) => {
@@ -83,6 +90,7 @@ export class PlaygamaPlatform implements PlatformAdapter {
       return;
     }
     this.bridge = bridge;
+    this.followPause(bridge);
     try {
       const values = await bridge.storage.get(SAVE_KEYS, false);
       SAVE_KEYS.forEach((key, i) => {
@@ -162,8 +170,40 @@ export class PlaygamaPlatform implements PlatformAdapter {
     );
   }
 
+  /**
+   * Paused while the portal says so or while any full-screen ad is open:
+   * Playgama may show ads by itself ("smart ads"), and the game must then be
+   * silent and still as for its own.
+   */
   onPausedChange(listener: (paused: boolean) => void): () => void {
-    return this.listen(this.bridge?.EVENT_NAME.PAUSE_STATE_CHANGED, listener);
+    this.pauseListeners.add(listener);
+    if (this.paused) listener(true);
+    return () => this.pauseListeners.delete(listener);
+  }
+
+  private followPause(bridge: PlaygamaBridge): void {
+    this.portalPaused = bridge.platform.isPaused === true;
+    this.adOpen = bridge.advertisement.interstitialState === 'opened';
+    this.tellPaused();
+    bridge.platform.on(bridge.EVENT_NAME.PAUSE_STATE_CHANGED, (paused: boolean) => {
+      this.portalPaused = paused;
+      this.tellPaused();
+    });
+    const onAd = ((state: string) => {
+      if (state === 'opened') this.adOpen = true;
+      else if (state === 'closed' || state === 'failed') this.adOpen = false;
+      else return;
+      this.tellPaused();
+    }) as Listener;
+    bridge.advertisement.on(bridge.EVENT_NAME.INTERSTITIAL_STATE_CHANGED, onAd);
+    bridge.advertisement.on(bridge.EVENT_NAME.REWARDED_STATE_CHANGED, onAd);
+  }
+
+  private tellPaused(): void {
+    const paused = this.portalPaused || this.adOpen;
+    if (paused === this.paused) return;
+    this.paused = paused;
+    this.pauseListeners.forEach((listener) => listener(paused));
   }
 
   private listen(event: string | undefined, listener: (value: boolean) => void): () => void {
