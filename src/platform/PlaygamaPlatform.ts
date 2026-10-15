@@ -9,10 +9,18 @@ export const SAVE_KEYS = [
   'ballmania:player',
 ] as const;
 
-/** Longest wait for an ad's outcome before the game goes on, in milliseconds. */
-const AD_TIMEOUT = 90_000;
 /** An ad that has not even started loading by then was skipped (too soon, none): go on. */
 const AD_START_TIMEOUT = 4_000;
+/**
+ * An ad still loading by then will not open. On Playgama's own pages, an ad
+ * whose request fails (ad blocker) leaves Bridge "loading" for good, with no
+ * failure ever told, and every later request is ignored.
+ */
+const AD_OPEN_TIMEOUT = 12_000;
+/** Longest an open ad may last before the game goes on regardless, in milliseconds. */
+const AD_TIMEOUT = 120_000;
+/** Bridge ad states during which it ignores any other ad request. */
+const AD_BUSY: readonly string[] = ['loading', 'opened', 'rewarded'];
 
 type Listener = (value: never) => void;
 
@@ -41,6 +49,9 @@ export interface PlaygamaBridge {
     readonly isInterstitialSupported: boolean;
     readonly isRewardedSupported: boolean;
     readonly interstitialState?: string;
+    readonly rewardedState?: string;
+    /** True if ads are blocked; checked at the boundary, Bridge being outside our types. */
+    checkAdBlock?(): Promise<unknown>;
     showInterstitial(placement?: string): void;
     showRewarded(placement?: string): void;
     on(event: string, listener: Listener): void;
@@ -57,7 +68,8 @@ export interface PlaygamaHost {
  * sites. Saves (settings included) go through `bridge.storage`, loaded in one
  * call at start and kept in memory so the game reads them synchronously; the
  * portal's language, sound and pause states are followed; the moments of
- * play are told as level messages; ads come from Bridge only.
+ * play are told as level messages; ads come from Bridge only, and are not
+ * offered when Bridge finds them blocked.
  */
 export class PlaygamaPlatform implements PlatformAdapter {
   readonly id = 'playgama';
@@ -69,6 +81,8 @@ export class PlaygamaPlatform implements PlatformAdapter {
   private portalPaused = false;
   /** A full-screen ad is open, ours or one the portal launched by itself. */
   private adOpen = false;
+  /** Bridge found the ads blocked: an ad blocker, or the portal's ad SDK missing. */
+  private adsBlocked = false;
   private paused = false;
   private readonly pauseListeners = new Set<(paused: boolean) => void>();
   private readonly store: KeyValueStorage = {
@@ -91,6 +105,7 @@ export class PlaygamaPlatform implements PlatformAdapter {
     }
     this.bridge = bridge;
     this.followPause(bridge);
+    this.checkAds();
     try {
       const values = await bridge.storage.get(SAVE_KEYS, false);
       SAVE_KEYS.forEach((key, i) => {
@@ -137,19 +152,19 @@ export class PlaygamaPlatform implements PlatformAdapter {
 
   async interstitial(onStart: AdStart): Promise<void> {
     const ads = this.bridge?.advertisement;
-    if (!ads?.isInterstitialSupported || !this.bridge) return;
+    if (!this.bridge || !ads || !this.canShow(ads.isInterstitialSupported)) return;
     await this.watch(this.bridge.EVENT_NAME.INTERSTITIAL_STATE_CHANGED, onStart, () =>
       ads.showInterstitial('between_games'),
     );
   }
 
   rewardedAvailable(): boolean {
-    return this.bridge?.advertisement.isRewardedSupported === true;
+    return this.canShow(this.bridge?.advertisement.isRewardedSupported === true);
   }
 
   async rewarded(onStart: AdStart): Promise<boolean> {
     const ads = this.bridge?.advertisement;
-    if (!ads?.isRewardedSupported || !this.bridge) return false;
+    if (!this.bridge || !ads || !this.rewardedAvailable()) return false;
     return this.watch(this.bridge.EVENT_NAME.REWARDED_STATE_CHANGED, onStart, () =>
       ads.showRewarded('bonus'),
     );
@@ -183,7 +198,10 @@ export class PlaygamaPlatform implements PlatformAdapter {
 
   private followPause(bridge: PlaygamaBridge): void {
     this.portalPaused = bridge.platform.isPaused === true;
-    this.adOpen = bridge.advertisement.interstitialState === 'opened';
+    this.adOpen = [
+      bridge.advertisement.interstitialState,
+      bridge.advertisement.rewardedState,
+    ].includes('opened');
     this.tellPaused();
     bridge.platform.on(bridge.EVENT_NAME.PAUSE_STATE_CHANGED, (paused: boolean) => {
       this.portalPaused = paused;
@@ -215,8 +233,38 @@ export class PlaygamaPlatform implements PlatformAdapter {
   }
 
   /**
+   * True if Bridge can show an ad now: the format is supported, ads are not
+   * blocked, and no ad is under way (Bridge would ignore the request).
+   */
+  private canShow(supported: boolean): boolean {
+    const ads = this.bridge?.advertisement;
+    if (!ads || !supported || this.adsBlocked) return false;
+    return (
+      !AD_BUSY.includes(ads.interstitialState ?? '') && !AD_BUSY.includes(ads.rewardedState ?? '')
+    );
+  }
+
+  /**
+   * Asks Bridge once whether ads can run at all: if not, no ad is offered and
+   * no request is left hanging. A check that fails changes nothing.
+   */
+  private checkAds(): void {
+    try {
+      void this.bridge?.advertisement.checkAdBlock?.().then(
+        (blocked) => {
+          this.adsBlocked = blocked === true;
+        },
+        () => undefined,
+      );
+    } catch {
+      // No answer: ads stay offered, and a request that hangs is given up.
+    }
+  }
+
+  /**
    * Shows an ad and follows its states: `opened` silences the game; the ad is
-   * over at `closed` or `failed`. True if `rewarded` came on the way.
+   * over at `closed` or `failed`, or when it never opens. True if `rewarded`
+   * came on the way.
    */
   private watch(event: string, onStart: AdStart, show: () => void): Promise<boolean> {
     const ads = this.bridge?.advertisement;
@@ -224,22 +272,28 @@ export class PlaygamaPlatform implements PlatformAdapter {
     return new Promise((resolve) => {
       let rewarded = false;
       let started = false;
+      let timer: ReturnType<typeof setTimeout> | undefined;
       const finish = () => {
         clearTimeout(timer);
-        clearTimeout(silence);
         ads.off?.(event, handler);
         resolve(rewarded);
       };
+      /** Each state gives the ad a new deadline to reach the next one. */
+      const wait = (delay: number) => {
+        clearTimeout(timer);
+        timer = setTimeout(finish, delay);
+      };
       const handler = ((state: string) => {
-        clearTimeout(silence);
-        if (state === 'opened' && !started) {
+        if (state === 'loading') wait(AD_OPEN_TIMEOUT);
+        else if (state === 'opened') {
+          wait(AD_TIMEOUT);
+          if (started) return;
           started = true;
           onStart();
         } else if (state === 'rewarded') rewarded = true;
         else if (state === 'closed' || state === 'failed') finish();
       }) as Listener;
-      const timer = setTimeout(finish, AD_TIMEOUT);
-      const silence = setTimeout(finish, AD_START_TIMEOUT);
+      wait(AD_START_TIMEOUT);
       ads.on(event, handler);
       try {
         show();

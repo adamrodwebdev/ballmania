@@ -8,7 +8,7 @@ titre qui diffère entre le jeu et la fiche.
 ## Fichiers
 
 - Archive : `npm run build:playgama`, puis
-  `python scripts/zip-build.py dist-playgama marketing/playgama/out/ball-mania-1.4.1.zip`
+  `python scripts/zip-build.py dist-playgama marketing/playgama/out/ball-mania-1.4.2.zip`
   (`index.html` à la racine, chemins à barres obliques ; le `Compress-Archive` de Windows
   PowerShell 5.1 écrit des barres obliques inverses qui cassent le jeu une fois décompressé).
 - Couvertures (`npm run kit:crazygames -- playgama`, dans `out/`) :
@@ -63,6 +63,11 @@ Claude Opus 5.5) sous la direction de l'auteur ; les visuels sont dessinés par 
 - Pause et silence pendant toute publicité plein écran, y compris celles que Playgama
   lance de lui-même (états `INTERSTITIAL_STATE_CHANGED` / `REWARDED_STATE_CHANGED` suivis en
   permanence, `interstitialState` lu au démarrage).
+- Bloqueur de publicité : `checkAdBlock` au démarrage ; si les publicités sont bloquées,
+  aucune n'est proposée (alternatives en éclats, message dans la page). Une publicité qui
+  reste « en chargement » est abandonnée au bout de 12 s : sur les pages de Playgama, le
+  SDK publicitaire absent (« Playgama Ads SDK is not initialized ») ne renvoie jamais
+  d'échec à Bridge.
 - Interstitielles seulement entre deux parties, au plus toutes les 3 minutes ; publicités
   récompensées au choix, annoncées (icône vidéo, « Regarder une publicité »), récompense
   seulement à l'état `rewarded`, aussi disponibles en éclats.

@@ -385,13 +385,35 @@ describe('GameDistributionPlatform', () => {
 });
 
 describe('PlaygamaPlatform', () => {
-  const fakeBridge = (options: { rewarded?: boolean; audio?: boolean } = {}) => {
+  /**
+   * A Bridge whose ads open and close at once, unless they are blocked or
+   * stall: a request on Playgama's page without its ad SDK stays "loading".
+   */
+  const fakeBridge = (
+    options: { rewarded?: boolean; audio?: boolean; blocked?: boolean; stall?: boolean } = {},
+  ) => {
     const messages: string[] = [];
     const stored = new Map<string, string>([['ballmania:player', '{"version":1}']]);
     const platformListeners = new Map<string, (value: boolean) => void>();
     const adListeners = new Map<string, Set<(state: string) => void>>();
-    const emitAd = (event: string, state: string) =>
+    const adStates = new Map<string, string>();
+    const emitAd = (event: string, state: string) => {
+      adStates.set(event, state);
       [...(adListeners.get(event) ?? [])].forEach((listener) => listener(state));
+    };
+    const showInterstitial = vi.fn(() => {
+      emitAd('interstitial', 'loading');
+      if (options.stall) return;
+      emitAd('interstitial', 'opened');
+      emitAd('interstitial', 'closed');
+    });
+    const showRewarded = vi.fn(() => {
+      emitAd('rewarded', 'loading');
+      if (options.stall) return;
+      emitAd('rewarded', 'opened');
+      if (options.rewarded ?? true) emitAd('rewarded', 'rewarded');
+      emitAd('rewarded', 'closed');
+    });
     const bridge: PlaygamaBridge = {
       initialize: () => Promise.resolve(),
       EVENT_NAME: {
@@ -417,15 +439,15 @@ describe('PlaygamaPlatform', () => {
       advertisement: {
         isInterstitialSupported: true,
         isRewardedSupported: true,
-        showInterstitial: () => {
-          emitAd('interstitial', 'opened');
-          emitAd('interstitial', 'closed');
+        get interstitialState() {
+          return adStates.get('interstitial') ?? 'closed';
         },
-        showRewarded: () => {
-          emitAd('rewarded', 'opened');
-          if (options.rewarded ?? true) emitAd('rewarded', 'rewarded');
-          emitAd('rewarded', 'closed');
+        get rewardedState() {
+          return adStates.get('rewarded') ?? 'closed';
         },
+        checkAdBlock: () => Promise.resolve(options.blocked ?? false),
+        showInterstitial,
+        showRewarded,
         on: (event, listener) => {
           const listeners = adListeners.get(event) ?? new Set();
           listeners.add(listener as never);
@@ -434,7 +456,7 @@ describe('PlaygamaPlatform', () => {
         off: (event, listener) => void adListeners.get(event)?.delete(listener as never),
       },
     };
-    return { bridge, messages, stored, platformListeners, emitAd };
+    return { bridge, messages, stored, platformListeners, emitAd, showInterstitial, showRewarded };
   };
 
   it('loads every save in one call and writes through Bridge storage', async () => {
@@ -526,6 +548,42 @@ describe('PlaygamaPlatform', () => {
     const paused = vi.fn();
     portal.onPausedChange(paused);
     expect(paused).toHaveBeenCalledWith(true);
+  });
+
+  it('offers no ad when Bridge finds the ads blocked, and never asks for one', async () => {
+    const { bridge, showInterstitial, showRewarded } = fakeBridge({ blocked: true });
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    expect(portal.rewardedAvailable()).toBe(false);
+    await portal.interstitial(() => {});
+    expect(await portal.rewarded(() => {})).toBe(false);
+    expect(showInterstitial).not.toHaveBeenCalled();
+    expect(showRewarded).not.toHaveBeenCalled();
+  });
+
+  it('gives up on an ad that never opens, then asks for none while Bridge is stuck', async () => {
+    vi.useFakeTimers();
+    try {
+      const { bridge, showInterstitial } = fakeBridge({ stall: true });
+      const portal = new PlaygamaPlatform({ bridge });
+      await portal.init();
+      expect(portal.rewardedAvailable()).toBe(true);
+      const started = vi.fn();
+      const outcome = portal.rewarded(started);
+      await vi.advanceTimersByTimeAsync(11_000);
+      let settled = false;
+      void outcome.then(() => (settled = true));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(settled).toBe(false);
+      await vi.advanceTimersByTimeAsync(1_000);
+      expect(await outcome).toBe(false);
+      expect(started).not.toHaveBeenCalled();
+      expect(portal.rewardedAvailable()).toBe(false);
+      await portal.interstitial(() => {});
+      expect(showInterstitial).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('runs without Bridge (blocked script)', async () => {

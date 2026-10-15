@@ -3,6 +3,19 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.4.2] — 2026-10-15
+
+### Corrigé
+
+- Playgama avec un bloqueur de publicité : le jeu pouvait rester figé jusqu'à 90 secondes
+  après un niveau, puis ne plus jamais montrer de publicité. Sur les pages de Playgama, une
+  publicité refusée par le SDK publicitaire du portail (« Playgama Ads SDK is not
+  initialized ») laisse Bridge en chargement sans jamais signaler l'échec. Le jeu demande
+  désormais à Bridge si les publicités sont bloquées (`checkAdBlock`) : si oui, il n'en
+  propose aucune, affiche les alternatives en éclats et le message « bonus vidéo
+  indisponibles ». Une publicité qui ne s'ouvre pas en 12 secondes est abandonnée, et
+  aucune autre n'est demandée tant que Bridge en a une en cours.
+
 ## [1.4.1] — 2026-10-15
 
 ### Corrigé
