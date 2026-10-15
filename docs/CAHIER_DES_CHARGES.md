@@ -779,6 +779,11 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
   (`between_games`, `bonus`), toujours sous notre politique de 3 minutes. Le titre affiché
   est « Ball Mania » dans ce build : Playgama demande 2 à 4 mots, identiques dans le jeu et
   sur la fiche. Un bouton de coupure du son, exigé, rejoint l'écran titre et le jeu.
+  Depuis la v1.4.2, le jeu suit les publicités que le portail lance seul, demande à Bridge
+  si les publicités sont bloquées (`checkAdBlock`, une fois au démarrage) et n'en demande
+  aucune tant que Bridge en a une en cours : sur les pages de Playgama, une publicité
+  refusée (bloqueur) laisse Bridge « en chargement » sans jamais signaler l'échec ; elle
+  est abandonnée au bout de 12 secondes.
 - **À faire par l'éditeur, hors code** : créer les comptes développeur, soumettre les
   archives de `dist-<portail>/` (zip), vérifier chaque intégration avec l'outil du portail
   (CrazyGames : `?useLocalSdk=true` et le QA tool ; Poki : Poki for Developers ;
