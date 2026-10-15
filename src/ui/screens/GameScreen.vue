@@ -478,9 +478,10 @@ const adsBlocked = computed(() => platform.hasAds && !ads.rewardsOffered);
  * Starting another game from the end dialog is a natural break: maybe an ad
  * first (§ 3.7, at most one every three minutes), above the game once the
  * dialog is closed. Never on the way back to a menu, and never after offering
- * to continue for an ad: one ad offer per break.
+ * to continue for an ad: one ad offer per break (continuing for shards only
+ * is no ad offer).
  */
-const afterBreak = async (action: () => void, ad = !offerContinue.value) => {
+const afterBreak = async (action: () => void, ad = !(offerContinue.value && ads.reviveOffered)) => {
   settleNow();
   endDialog.value?.close();
   if (ad) await ads.betweenGames(silence());

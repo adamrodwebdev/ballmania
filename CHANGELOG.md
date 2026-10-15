@@ -3,6 +3,15 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.4.1] — 2026-10-15
+
+### Corrigé
+
+- Playgama : le jeu se met en pause et se tait aussi pendant les publicités que le portail
+  lance de lui-même (« smart ads ») et quand une publicité est déjà ouverte au chargement.
+- Une interstitielle peut passer après une défaite quand seule la reprise contre des éclats
+  était proposée (aucune publicité n'avait été offerte pendant cette pause).
+
 ## [1.4.0] — 2026-10-14
 
 ### Ajouté
