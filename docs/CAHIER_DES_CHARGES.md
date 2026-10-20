@@ -483,16 +483,16 @@ complet), puis un monde par lot, les modes Arcade s'intercalant.
 
 ### 3.3 Commandes
 
-| Action                          | Souris / clavier             | Tactile                                      |
-| ------------------------------- | ---------------------------- | -------------------------------------------- |
-| Viser                           | Pointeur                     | Glisser le doigt (ligne de visée)            |
-| Tirer                           | Clic gauche, Espace          | Relâcher le doigt                            |
-| Échanger bille / suivante       | Clic droit, X, C             | Toucher le lanceur ou le bouton « Échanger » |
-| Couleur suivante (Énigmes)      | Clic droit, X, C             | Toucher le lanceur ou le bouton              |
-| Armer l'aimant (Abysses)        | M, bouton « Aimant »         | Bouton « Aimant »                            |
-| Basculer un aiguillage (Volcan) | Clic sur le levier, S        | Toucher le levier                            |
-| Pause                           | Échap, P                     | Bouton pause (≥ 44 × 44 px)                  |
-| Viser au clavier (a11y)         | Flèches gauche/droite (+Maj) | —                                            |
+| Action                          | Souris / clavier              | Tactile                                      |
+| ------------------------------- | ----------------------------- | -------------------------------------------- |
+| Viser                           | Pointeur                      | Glisser le doigt (ligne de visée)            |
+| Tirer                           | Clic gauche, Espace           | Relâcher le doigt                            |
+| Échanger bille / suivante       | Clic droit, X, C              | Toucher le lanceur ou le bouton « Échanger » |
+| Couleur suivante (Énigmes)      | Clic droit, X, C              | Toucher le lanceur ou le bouton              |
+| Armer l'aimant (Abysses)        | M, bouton « Aimant »          | Bouton « Aimant »                            |
+| Basculer un aiguillage (Volcan) | Clic sur le levier, S         | Toucher le levier                            |
+| Pause                           | P (Échap reste au navigateur) | Bouton pause (≥ 44 × 44 px)                  |
+| Viser au clavier (a11y)         | Flèches gauche/droite (+Maj)  | —                                            |
 
 La visée tactile se fait **en relâchant**, jamais au toucher, pour qu'on puisse corriger
 avant de tirer. Aucune action n'est réservée au survol.

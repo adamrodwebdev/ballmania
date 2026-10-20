@@ -3,6 +3,14 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Corrigé
+
+- La touche Échap n'est plus utilisée par le jeu : sur CrazyGames, elle sert à quitter le
+  plein écran. Elle mettait le jeu en pause et, sur l'écran de fin, ramenait au menu ; la
+  pause se fait désormais avec P ou le bouton, et aucune fenêtre ne se ferme sur Échap.
+
 ## [1.6.0] — 2026-10-20
 
 ### Modifié

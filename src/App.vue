@@ -89,6 +89,18 @@ const wake = () => {
 };
 window.addEventListener('pointerdown', wake);
 window.addEventListener('keydown', wake);
+/*
+ * Escape is the browser's: it leaves fullscreen on CrazyGames, so the game
+ * never answers it. Cancelling it also keeps the dialogs open (a browser
+ * closes a dialog on Escape, and lets the page veto that only once).
+ */
+window.addEventListener(
+  'keydown',
+  (event) => {
+    if (event.key === 'Escape') event.preventDefault();
+  },
+  true,
+);
 watch([() => settings.current.music, () => settings.current.muted, portalMuted], () =>
   engine.value?.setMusicVolume(musicVolume()),
 );
