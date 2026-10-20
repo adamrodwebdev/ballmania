@@ -6,6 +6,7 @@ import { Game, type GameReport, type GameState } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
+import { NO_INSETS, type Insets } from './BoardView';
 import { CanvasRenderer, SWITCH_RADIUS, type Renderer } from './CanvasRenderer';
 import { Destruction } from './effects/Destruction';
 import type { DistortionLayer } from './effects/DistortionLayer';
@@ -133,7 +134,12 @@ export class PlaySession {
   private tugIn = 0;
   /** After a win: the hole that swallows the board, and the seconds since the win. */
   private swallow: { readonly at: Vec2; elapsed: number } | null = null;
-  private size = { width: 1, height: 1, pixelRatio: 1 };
+  private size: { width: number; height: number; pixelRatio: number; insets: Insets } = {
+    width: 1,
+    height: 1,
+    pixelRatio: 1,
+    insets: NO_INSETS,
+  };
   private colossusFlash = 0;
   private readonly canvas: HTMLCanvasElement;
   private readonly distortion: DistortionLayer | null;
@@ -265,7 +271,7 @@ export class PlaySession {
     this.game.events.clear();
     this.game = this.createGame();
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
-    this.renderer.resize(this.size.width, this.size.height, this.size.pixelRatio);
+    this.renderer.resize(this.size.width, this.size.height, this.size.pixelRatio, this.size.insets);
     this.motion = new BallMotion();
     this.destruction = this.createDestruction();
     this.overIn = null;
@@ -275,9 +281,10 @@ export class PlaySession {
     Object.assign(this.hud, this.initialHud());
   }
 
-  resize(width: number, height: number, pixelRatio: number): void {
-    this.size = { width, height, pixelRatio };
-    this.renderer.resize(width, height, pixelRatio);
+  /** The canvas's size, and the room the interface takes along its edges (see BoardView). */
+  resize(width: number, height: number, pixelRatio: number, insets: Insets = NO_INSETS): void {
+    this.size = { width, height, pixelRatio, insets };
+    this.renderer.resize(width, height, pixelRatio, insets);
     const { surface } = this.renderer;
     this.distortion?.resize(surface.width, surface.height);
     this.render();

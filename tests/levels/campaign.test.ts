@@ -13,7 +13,7 @@ import {
 } from '@/levels/campaign';
 import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup } from '@/levels/LevelDefinition';
-import { FRAMES, frameFor } from '@/levels/tracks';
+import { FRAMES } from '@/levels/tracks';
 
 const SHOOTER_RADIUS = 58;
 
@@ -88,13 +88,6 @@ describe('campaign', () => {
     expect(starsFor(level, 0, true)).toBe(1);
     expect(starsFor(level, two, true)).toBe(2);
     expect(starsFor(level, three, true)).toBe(3);
-  });
-
-  it('picks the tall board for phones held upright, the wide one for large screens', () => {
-    expect(frameFor(390, 700)).toBe(FRAMES.portrait);
-    expect(frameFor(1000, 700)).toBe(FRAMES.landscape);
-    expect(frameFor(900, 800)).toBe(FRAMES.square);
-    expect(frameFor(700, 700)).toBe(FRAMES.square);
   });
 });
 

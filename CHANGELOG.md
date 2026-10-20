@@ -3,6 +3,31 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.5.0] — 2026-10-20
+
+### Modifié
+
+- Écran de jeu en plein écran, comme une application : le niveau occupe tout l'écran, le
+  HUD (pause, niveau, score, son) et les boutons flottent sur ses bords, dans des bandes de
+  taille fixe. Sur un écran large (téléphone couché, ordinateur), ils passent en rails sur
+  les côtés pour laisser toute la hauteur au niveau.
+- Le niveau ne change plus jamais de taille pendant la partie : la barre du haut ne passe
+  plus sur deux lignes quand une série ou un badge apparaît, et une barre de navigateur qui
+  se replie ne le réajuste plus (il garde sa taille et sa place tant qu'il tient à
+  l'écran) ; seule une rotation le réajuste.
+- Le niveau est ajusté à ce qui doit être vu (tracés, lanceur, miroirs, entrées), plus au
+  plateau entier : sur le cadre de Playgama au téléphone (375 × 768), il prend 95 % de la
+  largeur, et ses billes sont en moyenne 11 % plus grosses (jusqu'à 80 %, jamais plus
+  petites) ; 22 % sur un téléphone couché, 28 % sur ordinateur.
+- Deux nouveaux plateaux, haut (1000 × 1700) et large (1700 × 1000) ; chaque niveau prend
+  celui qui le montre le plus grand sur l'écran. Les entrées de chaîne ne passent plus sous
+  le HUD.
+
+### Tests
+
+- Géométrie des 72 niveaux et résolution des 30 énigmes par le moteur vérifiées sur les
+  cinq plateaux ; règles d'ajustement et de stabilité du plateau testées.
+
 ## [1.4.2] — 2026-10-15
 
 ### Corrigé

@@ -1,10 +1,12 @@
 import type { Point } from './LevelDefinition';
 
 /**
- * The three board shapes: wide for large landscape screens, square in
- * between, tall for phones held upright.
+ * The board shapes: square, a little tall or wide (tablets), and very tall or
+ * very wide (phones, desktop windows), so that the level fills the screen
+ * whatever its proportions. The short side is always 1000 units: tracks keep
+ * the same spacing, only the long side stretches.
  */
-export type FrameKind = 'square' | 'portrait' | 'landscape';
+export type FrameKind = 'square' | 'portrait' | 'landscape' | 'tall' | 'wide';
 
 export interface Frame {
   readonly kind: FrameKind;
@@ -16,23 +18,13 @@ export const FRAMES: Record<FrameKind, Frame> = {
   square: { kind: 'square', width: 1000, height: 1000 },
   portrait: { kind: 'portrait', width: 1000, height: 1400 },
   landscape: { kind: 'landscape', width: 1400, height: 1000 },
+  tall: { kind: 'tall', width: 1000, height: 1700 },
+  wide: { kind: 'wide', width: 1700, height: 1000 },
 };
-
-/** Screens at least this much taller than wide get the portrait board. */
-export const PORTRAIT_RATIO = 1.2;
-
-/** Screens at least this much wider than tall get the wide board. */
-export const LANDSCAPE_RATIO = 1.25;
-
-export function frameFor(width: number, height: number): Frame {
-  if (height / Math.max(1, width) >= PORTRAIT_RATIO) return FRAMES.portrait;
-  if (width / Math.max(1, height) >= LANDSCAPE_RATIO) return FRAMES.landscape;
-  return FRAMES.square;
-}
 
 /**
  * A track described by intent rather than coordinates, so that one level fits
- * both board shapes (specification § 3.2). Sizes are fractions of the board.
+ * every board shape (specification § 3.2). Sizes are fractions of the board.
  */
 export type TrackRecipe =
   | {

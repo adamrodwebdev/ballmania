@@ -50,29 +50,31 @@ describe('puzzles', () => {
     expect(average(20)).toBeGreaterThan(average(10));
   });
 
-  it.each(PUZZLES.map((puzzle) => [puzzle.id, puzzle] as const))(
-    '%s is solved by the game itself in par shots',
-    (_, puzzle) => {
-      const game = new Game(
-        toLevelSetup(puzzleLevel(puzzle, FRAMES.square)),
-        SeededRandom.fromString(puzzle.id),
-      );
-      const chain = game.chains[0]!;
-      for (const move of new PuzzleSolver().solution(puzzle.sequence)) {
-        const [tone, index] = runsOf(game)[move]!;
-        for (let i = 0; i < 6 && game.shooter.current !== tone; i++) game.swap();
-        game.aimAt(chain.positionOf(chain.balls[index]!));
-        expect(game.fire()).toBe(true);
-        // Let the shot land and every chain reaction play out.
-        for (let i = 0; i < 240 && (game.projectiles.length > 0 || !chain.settled); i++) {
-          game.update(1 / 60);
-        }
-        game.update(0.2);
+  // On every board shape: the spiral stretches with the screen, and no ring may hide a target.
+  it.each(
+    Object.values(FRAMES).flatMap((frame) =>
+      PUZZLES.map((puzzle) => [puzzle.id, frame.kind, puzzle, frame] as const),
+    ),
+  )('%s is solved by the game itself in par shots on the %s board', (_, __, puzzle, frame) => {
+    const game = new Game(
+      toLevelSetup(puzzleLevel(puzzle, frame)),
+      SeededRandom.fromString(puzzle.id),
+    );
+    const chain = game.chains[0]!;
+    for (const move of new PuzzleSolver().solution(puzzle.sequence)) {
+      const [tone, index] = runsOf(game)[move]!;
+      for (let i = 0; i < 6 && game.shooter.current !== tone; i++) game.swap();
+      game.aimAt(chain.positionOf(chain.balls[index]!));
+      expect(game.fire()).toBe(true);
+      // Let the shot land and every chain reaction play out.
+      for (let i = 0; i < 240 && (game.projectiles.length > 0 || !chain.settled); i++) {
+        game.update(1 / 60);
       }
-      expect(game.state).toBe('won');
-      expect(game.summary().shots).toBe(puzzle.par);
-    },
-  );
+      game.update(0.2);
+    }
+    expect(game.state).toBe('won');
+    expect(game.summary().shots).toBe(puzzle.par);
+  });
 
   it('gives everyone the same puzzle of the day, of middle difficulty', () => {
     const today = dailyPuzzle('20261012');
