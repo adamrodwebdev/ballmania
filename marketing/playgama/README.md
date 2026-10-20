@@ -8,7 +8,7 @@ titre qui diffère entre le jeu et la fiche.
 ## Fichiers
 
 - Archive : `npm run build:playgama`, puis
-  `python scripts/zip-build.py dist-playgama marketing/playgama/out/ball-mania-1.4.2.zip`
+  `python scripts/zip-build.py dist-playgama marketing/playgama/out/ball-mania-1.5.0.zip`
   (`index.html` à la racine, chemins à barres obliques ; le `Compress-Archive` de Windows
   PowerShell 5.1 écrit des barres obliques inverses qui cassent le jeu une fois décompressé).
 - Couvertures (`npm run kit:crazygames -- playgama`, dans `out/`) :
@@ -71,5 +71,9 @@ Claude Opus 5.5) sous la direction de l'auteur ; les visuels sont dessinés par 
 - Interstitielles seulement entre deux parties, au plus toutes les 3 minutes ; publicités
   récompensées au choix, annoncées (icône vidéo, « Regarder une publicité »), récompense
   seulement à l'état `rewarded`, aussi disponibles en éclats.
-- Aucune barre de défilement, rien de coupé à 360×640, 390×844, 915×412, 1280×720 et
-  1920×1080 ; pas de sélection de texte sur appui long ; aucun lien externe.
+- Aucune barre de défilement, rien de coupé à 360×640, 375×768 (cadre de Playgama au
+  téléphone), 390×844, 915×412, 1280×720 et 1920×1080 ; pas de sélection de texte sur appui
+  long ; aucun lien externe.
+- Jeu en plein écran (v1.5.0) : le niveau occupe tout l'écran, 95 % de la largeur au
+  téléphone, HUD et boutons dans des bandes de taille fixe (rails sur les côtés dès 3:2) ;
+  le niveau ne change jamais de taille pendant la partie, seule une rotation le réajuste.

@@ -146,12 +146,17 @@ Deux portes d'entrée depuis l'accueil :
 - **Tracés par recette** plutôt qu'en coordonnées : spirale (nombre de tours, rayons de
   départ et d'arrivée, angle de départ, sens, « carré » de 1 = ellipse à 3 = rectangle
   arrondi, 1 ou 2 bras entrelacés) ou serpentin (rangées en lacets, lanceur en bas). Une
-  même recette produit **deux plateaux** : carré (1000 × 1000) pour les écrans larges et
-  **portrait (1000 × 1400)** pour les téléphones tenus droits (hauteur ≥ 1,2 × largeur). En
-  portrait, les billes gardent la même taille et le plateau occupe tout l'écran.
-- Chaque niveau est vérifié automatiquement sur les deux plateaux : tracé dans le plateau,
+  même recette produit **cinq plateaux**, au petit côté toujours de 1000 (les tracés gardent
+  leurs écarts, seul le grand côté s'étire) : carré (1000 × 1000), portrait (1000 × 1400) et
+  paysage (1400 × 1000) pour les tablettes, **haut (1000 × 1700)** pour les téléphones tenus
+  droits, **large (1700 × 1000)** pour les téléphones couchés et les fenêtres d'ordinateur
+  (v1.5.0). Au lancement d'une partie, le jeu dessine le niveau sur chacun et garde celui qui
+  le montre le plus grand sur cet écran ; entre des plateaux presque à égalité (2 % sur
+  téléphone, 12 % quand les billes dépassent 14 px de rayon), celui qui remplit le plus
+  l'écran.
+- Chaque niveau est vérifié automatiquement sur les cinq plateaux : tracé dans le plateau,
   aucun chevauchement entre deux portions de tracé, place autour du lanceur, longueur
-  suffisante, partie qui démarre.
+  suffisante, partie qui démarre ; chaque énigme est résolue par le vrai moteur sur chacun.
 
 | Niveau | Tracé                                    | Billes        | Couleurs | Vitesse | Conseil affiché          |
 | ------ | ---------------------------------------- | ------------- | -------- | ------- | ------------------------ |
@@ -997,6 +1002,16 @@ Livré à l'étape 11.4 :
 - Mobile d'abord (≈ 360 px), puis points de rupture 640 / 768 / 1024 / 1280 px.
 - Aucun défilement horizontal de 320 à 1920 px ; aire de jeu mise à l'échelle en conservant
   ses proportions, portrait et paysage.
+- **Écran de jeu en plein écran** (v1.5.0) : le niveau occupe tout l'écran, le HUD et les
+  boutons flottent sur ses bords dans des bandes de taille fixe (en haut et en bas sur un
+  écran droit, en rails à gauche et à droite sur un écran large, dès 3:2). Le niveau est
+  ajusté à ce qui doit être vu (tracés sur le plateau, lanceur et son anneau, miroirs,
+  entrées que le HUD cacherait), pas au plateau entier : sur le cadre de Playgama au
+  téléphone (375 × 768), il prend en moyenne 95 % de la largeur et 72 % de l'écran, billes
+  11 % plus grosses qu'avant (jusqu'à 80 %). Sa taille ne change jamais pendant la partie :
+  ni une série, ni un badge, ni une barre de navigateur qui se replie (le plateau garde sa
+  taille et sa place tant que le niveau tient à l'écran) ; seule une rotation ou un grand
+  changement le réajuste.
 - Typographie fluide (`clamp()`), espacements en `rem`, cibles tactiles ≥ 44 × 44 px.
 
 ### 4.3 Accessibilité

@@ -4,6 +4,14 @@ import { mix } from '@/engine/chain/Alchemy';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import { BlackHole } from './BlackHole';
+import {
+  contentBounds,
+  NO_INSETS,
+  settleBoard,
+  type BoardView,
+  type Content,
+  type Insets,
+} from './BoardView';
 import { withAlpha } from './themes/WorldTheme';
 import { Ambience } from './themes/Ambience';
 import { WeatherLayer } from './WeatherLayer';
@@ -20,8 +28,11 @@ import { TRAIL_LENGTH } from './cosmetics/Trails';
 
 /** What every renderer offers the play session. */
 export interface Renderer {
-  /** Size of the drawing surface in CSS pixels, and the device pixel ratio. */
-  resize(width: number, height: number, pixelRatio: number): void;
+  /**
+   * Size of the drawing surface in CSS pixels, the device pixel ratio, and the
+   * room the interface takes along each edge (the level is fitted beside it).
+   */
+  resize(width: number, height: number, pixelRatio: number, insets?: Insets): void;
   setPalette(palette: Palette): void;
   /** Board coordinates of a point given in CSS pixels relative to the canvas. */
   toBoard(x: number, y: number): Vec2;
@@ -96,6 +107,10 @@ export class CanvasRenderer implements Renderer {
   private offsetX = 0;
   private offsetY = 0;
   private pixelRatio = 1;
+  /** The part of the board fitted to the screen: the level, without the board's margins. */
+  private readonly content: Content;
+  /** Where the board is drawn; kept through small changes of the screen. */
+  private view: BoardView | null = null;
   /** Track shapes, per path: flipping a switch gives the chain a new path. */
   private readonly tracks = new Map<Path, Path2D>();
   private background: HTMLCanvasElement | null = null;
@@ -130,16 +145,25 @@ export class CanvasRenderer implements Renderer {
     this.blackHole = game.gravity ? new BlackHole(game.gravity, game.ring) : null;
     this.weather = new WeatherLayer(game);
     this.ambience = new Ambience(look.theme.ambience);
+    this.content = contentBounds(game.setup);
   }
 
-  resize(width: number, height: number, pixelRatio: number): void {
-    const { board } = this.game.setup;
+  resize(width: number, height: number, pixelRatio: number, insets: Insets = NO_INSETS): void {
     this.pixelRatio = pixelRatio;
     this.canvas.width = Math.max(1, Math.round(width * pixelRatio));
     this.canvas.height = Math.max(1, Math.round(height * pixelRatio));
-    this.scale = Math.min(width / board.width, height / board.height);
-    this.offsetX = (width - board.width * this.scale) / 2;
-    this.offsetY = (height - board.height * this.scale) / 2;
+    this.view = settleBoard(this.view, this.content, width, height, insets);
+    this.scale = this.view.scale;
+    this.offsetX = this.view.offsetX;
+    this.offsetY = this.view.offsetY;
+    // Read by the end-to-end tests, which aim at board points.
+    Object.assign(this.canvas.dataset, {
+      scale: String(this.scale),
+      offsetX: String(this.offsetX),
+      offsetY: String(this.offsetY),
+      boardWidth: String(this.game.setup.board.width),
+      boardHeight: String(this.game.setup.board.height),
+    });
     this.rebuildSprites();
     this.repaintBackground();
     this.trackLayer = null;

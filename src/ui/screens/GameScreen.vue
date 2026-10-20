@@ -17,8 +17,8 @@ import { ingredients, SECONDARIES } from '@/engine/chain/Alchemy';
 import { puzzleHint } from '@/levels/arcade/hint';
 import { CAMPAIGN } from '@/levels/campaign';
 import { DEMO } from '@/levels/edition';
-import type { LevelDefinition } from '@/levels/LevelDefinition';
-import { frameFor, type Frame } from '@/levels/tracks';
+import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
+import type { Frame } from '@/levels/tracks';
 import { ASSIST_AFTER, CONTINUE_PRICE, HINT_COOLDOWN, HINT_PRICE } from '@/player/rewards';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
 import { resolveLook } from '@/play/cosmetics/Look';
@@ -27,6 +27,7 @@ import { EffectProfile } from '@/play/effects/EffectProfile';
 import { sharedFeedback } from '@/play/feedback';
 import { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
+import { chooseFrame, contentBounds, NO_INSETS, type Insets } from '@/play/BoardView';
 import type { Silence } from '@/platform/AdService';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import AdIcon from '@/ui/components/AdIcon.vue';
@@ -65,9 +66,21 @@ const HOME_LABELS = {
   arcade: 'game.arcadeButton',
 } as const;
 
+const root = ref<HTMLElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const overlay = ref<HTMLCanvasElement | null>(null);
 const surface = ref<HTMLElement | null>(null);
+const hudBar = ref<HTMLElement | null>(null);
+const hudExtra = ref<HTMLElement | null>(null);
+const controlsBar = ref<HTMLElement | null>(null);
+/**
+ * A boss's health, the alchemy recipes or the duel's rope: a second line of
+ * the HUD, whose room is kept from the start so that the board never moves.
+ */
+const extraRow =
+  alchemy ||
+  request.kind === 'duel' ||
+  (request.kind === 'campaign' && request.level.colossus !== undefined);
 const settingsDialog = ref<{ open: () => void } | null>(null);
 const pauseDialog = ref<HTMLDialogElement | null>(null);
 const endDialog = ref<HTMLDialogElement | null>(null);
@@ -113,20 +126,52 @@ const silence = (): Silence => ({
 });
 
 let frame: Frame | null = null;
-/** The level for this board shape, slowed down when the assistance is on. */
-const definition = (): LevelDefinition =>
-  mode.definition(frame!, {
+/** The level for a board shape, slowed down when the assistance is on. */
+const definitionOn = (shape: Frame): LevelDefinition =>
+  mode.definition(shape, {
     assisted: assisted.value,
     difficulty: settings.current.difficulty,
     upgrades: player.upgrades,
   });
+const definition = (): LevelDefinition => definitionOn(frame!);
+
+/**
+ * Room the HUD and the buttons take along the screen's edges, in CSS pixels:
+ * strips along the top and the bottom on an upright screen, rails along the
+ * sides on a wide one. Their sizes are fixed, so the board never moves when
+ * their content changes (a streak, a weather badge).
+ */
+const measureInsets = (): Insets => {
+  const box = root.value?.getBoundingClientRect();
+  if (!box) return NO_INSETS;
+  const insets = { top: 0, right: 0, bottom: 0, left: 0 };
+  for (const element of [hudBar.value, hudExtra.value, controlsBar.value]) {
+    if (!element) continue;
+    const area = element.getBoundingClientRect();
+    if (area.width === 0 || area.height === 0) continue;
+    if (area.width >= area.height) {
+      if (area.top - box.top < box.height / 2) {
+        insets.top = Math.max(insets.top, area.bottom - box.top);
+      } else insets.bottom = Math.max(insets.bottom, box.bottom - area.top);
+    } else if (area.left - box.left < box.width / 2) {
+      insets.left = Math.max(insets.left, area.right - box.left);
+    } else insets.right = Math.max(insets.right, box.right - area.left);
+  }
+  return insets;
+};
 
 let cleanups: (() => void)[] = [];
 
 onMounted(() => {
-  if (!canvas.value || !surface.value) return;
+  if (!canvas.value || !surface.value || !root.value) return;
   const box = surface.value.getBoundingClientRect();
-  frame = frameFor(box.width, box.height);
+  // The board shape that shows this level largest on this screen.
+  frame = chooseFrame(
+    (shape) => contentBounds(toLevelSetup(definitionOn(shape))),
+    box.width,
+    box.height,
+    measureInsets(),
+  );
   const seed = mode.seed;
   const play = new PlaySession({
     canvas: canvas.value,
@@ -164,7 +209,7 @@ onMounted(() => {
   const observer = new ResizeObserver(([entry]) => {
     if (!entry) return;
     const { width, height } = entry.contentRect;
-    play.resize(width, height, Math.min(window.devicePixelRatio || 1, 2));
+    play.resize(width, height, Math.min(window.devicePixelRatio || 1, 2), measureInsets());
   });
   observer.observe(surface.value);
 
@@ -526,43 +571,27 @@ const quit = () => emit('quit');
 </script>
 
 <template>
-  <section class="game" :aria-label="t('game.board')">
-    <div class="bar">
-      <p class="level" data-testid="level">{{ say(mode.label) }}</p>
-      <p v-if="assisted" class="assisted" data-testid="assisted">{{ t('assist.active') }}</p>
-      <p v-if="request.kind === 'campaign'" class="assisted" data-testid="difficulty">
-        {{ t(`difficulty.${settings.current.difficulty}.name`) }}
+  <section ref="root" class="game" :aria-label="t('game.board')">
+    <!-- The level fills the screen; the HUD and the buttons float over its edges. -->
+    <div ref="surface" class="surface">
+      <canvas
+        ref="canvas"
+        class="board"
+        tabindex="0"
+        :aria-label="t('game.board')"
+        aria-describedby="game-help"
+        data-testid="board"
+      ></canvas>
+      <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
+      <p v-if="cheer" :key="cheer.serial" class="cheer" aria-hidden="true">{{ cheer.word }}</p>
+      <p v-if="hintVisible && mode.hint" class="hint" role="status" data-testid="hint">
+        {{ t(`hints.${mode.hint}`) }}
       </p>
-      <p class="score">
-        <span class="label">{{ t('game.score') }}</span>
-        <span class="value" data-testid="score">{{ number.format(hud?.score ?? 0) }}</span>
-      </p>
-      <p v-if="(hud?.streak ?? 0) >= 2" class="streak">
-        {{ t('game.streak', { count: hud?.streak ?? 0 }) }}
-      </p>
-      <p v-if="hud && hud.shotsLeft !== null" class="badge" data-testid="shots">
-        {{ t('arcade.puzzle.shotsLeft', { count: hud.shotsLeft }, hud.shotsLeft) }}
-      </p>
-      <p v-if="hud?.groove" class="badge groove" data-testid="groove">
-        {{ t('arcade.rhythm.groove', { multiplier: hud.groove }) }}
-      </p>
-      <p
-        v-if="hud && hud.fragments !== null"
-        class="badge fragments"
-        :aria-label="t('observatory.caught', { count: hud.fragments }, hud.fragments)"
-        data-testid="fragments"
-      >
-        {{ FRAGMENT }} {{ hud.fragments }}
-      </p>
-      <p v-if="hud?.weather" class="badge weather" :class="hud.weather" data-testid="weather">
-        {{ t(`weather.${hud.weather}.name`) }}
-      </p>
-      <p v-if="hud && hud.stage !== null" class="badge" data-testid="stage">
-        {{ t('arcade.endless.stage', { stage: hud.stage + 1 }) }}
-      </p>
-      <SoundToggle class="bar-sound" />
+    </div>
+
+    <div ref="hudBar" class="hud">
       <button
-        class="btn icon"
+        class="btn hud-button"
         type="button"
         :aria-label="t('game.pause')"
         data-testid="pause"
@@ -573,6 +602,50 @@ const quit = () => emit('quit');
           <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" />
         </svg>
       </button>
+      <p class="level">
+        <span class="level-name" data-testid="level">{{ say(mode.label) }}</span>
+        <span v-if="request.kind === 'campaign'" class="level-detail" data-testid="difficulty">
+          {{ t(`difficulty.${settings.current.difficulty}.name`) }}
+        </span>
+      </p>
+      <p class="score">
+        <span class="label">{{ t('game.score') }}</span>
+        <span class="value" data-testid="score">{{ number.format(hud?.score ?? 0) }}</span>
+        <span v-if="(hud?.streak ?? 0) >= 2" class="streak">
+          {{ t('game.streak', { count: hud?.streak ?? 0 }) }}
+        </span>
+      </p>
+      <div class="hud-end">
+        <p v-if="hud && hud.shotsLeft !== null" class="badge" data-testid="shots">
+          {{ t('arcade.puzzle.shotsLeft', { count: hud.shotsLeft }, hud.shotsLeft) }}
+        </p>
+        <p
+          v-if="hud && hud.fragments !== null"
+          class="badge fragments"
+          :aria-label="t('observatory.caught', { count: hud.fragments }, hud.fragments)"
+          data-testid="fragments"
+        >
+          {{ FRAGMENT }} {{ hud.fragments }}
+        </p>
+        <p v-if="hud && hud.stage !== null" class="badge" data-testid="stage">
+          {{ t('arcade.endless.stage', { stage: hud.stage + 1 }) }}
+        </p>
+        <SoundToggle class="btn hud-sound" />
+      </div>
+    </div>
+
+    <!-- What comes and goes floats beside the HUD: it never takes room from the board. -->
+    <div class="chips" :class="{ low: extraRow }">
+      <p v-if="assisted" class="chip" data-testid="assisted">{{ t('assist.active') }}</p>
+      <p v-if="hud?.groove" class="chip groove" data-testid="groove">
+        {{ t('arcade.rhythm.groove', { multiplier: hud.groove }) }}
+      </p>
+      <p v-if="hud?.weather" class="chip weather" :class="hud.weather" data-testid="weather">
+        {{ t(`weather.${hud.weather}.name`) }}
+      </p>
+    </div>
+
+    <div v-if="extraRow" ref="hudExtra" class="hud-extra">
       <p v-if="alchemy" class="alchemy" :aria-label="t('alchemy.title')" data-testid="alchemy">
         <span v-for="recipe in RECIPES" :key="recipe.result" class="recipe">
           <span class="sr-only">
@@ -619,37 +692,25 @@ const quit = () => emit('quit');
       </div>
     </div>
 
-    <div class="stage">
-      <div ref="surface" class="surface">
-        <canvas
-          ref="canvas"
-          class="board"
-          tabindex="0"
-          :aria-label="t('game.board')"
-          aria-describedby="game-help"
-          data-testid="board"
-        ></canvas>
-        <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
-        <p v-if="cheer" :key="cheer.serial" class="cheer" aria-hidden="true">{{ cheer.word }}</p>
-        <p v-if="hintVisible && mode.hint" class="hint" role="status" data-testid="hint">
-          {{ t(`hints.${mode.hint}`) }}
-        </p>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button class="btn swap" type="button" data-testid="swap" @click="session?.swap()">
-        <span class="dot" :class="`tone-${hud?.current ?? 0}`" aria-hidden="true"></span>
-        <span class="dot small" :class="`tone-${hud?.next ?? 0}`" aria-hidden="true"></span>
-        <span>{{ t(request.kind === 'puzzle' ? 'arcade.puzzle.nextColour' : 'game.swap') }}</span>
+    <div ref="controlsBar" class="controls">
+      <button class="btn control swap" type="button" data-testid="swap" @click="session?.swap()">
+        <span class="balls" aria-hidden="true">
+          <span class="dot" :class="`tone-${hud?.current ?? 0}`"></span>
+          <span class="dot small" :class="`tone-${hud?.next ?? 0}`"></span>
+        </span>
+        <span class="control-label">
+          {{ t(request.kind === 'puzzle' ? 'arcade.puzzle.nextColour' : 'game.swap') }}
+        </span>
       </button>
-      <label v-if="hud && hud.nova !== null" class="nova" data-testid="nova">
-        <span>{{ t(hud.nova >= 1 ? 'upgrades.nova.ready' : 'upgrades.nova.name') }}</span>
+      <label v-if="hud && hud.nova !== null" class="control nova" data-testid="nova">
+        <span class="control-label">
+          {{ t(hud.nova >= 1 ? 'upgrades.nova.ready' : 'upgrades.nova.name') }}
+        </span>
         <progress class="gauge" max="1" :value="hud.nova"></progress>
       </label>
       <button
         v-if="hud?.magnet"
-        class="btn magnet"
+        class="btn control magnet"
         :class="{ armed: hud.magnetArmed }"
         type="button"
         :aria-pressed="hud.magnetArmed"
@@ -667,7 +728,7 @@ const quit = () => emit('quit');
             stroke-linejoin="round"
           />
         </svg>
-        <span aria-hidden="true">{{ t('magnet.button') }}</span>
+        <span class="control-label" aria-hidden="true">{{ t('magnet.button') }}</span>
         <span class="charges" aria-hidden="true">
           <span
             v-for="index in hud.magnet.max"
@@ -903,40 +964,228 @@ const quit = () => emit('quit');
 </template>
 
 <style scoped>
+/*
+ * The game screen is an application screen, not a page: the level fills the
+ * whole screen and the HUD and buttons float over its edges, in strips of a
+ * fixed size (the board is fitted beside them, so it never moves or resizes
+ * while the level is played).
+ */
 .game {
+  --hud-row: 3.25rem;
+  --extra-row: 2.25rem;
+  --controls-row: 3.75rem;
+  --rail: 6rem;
+  --scrim: color-mix(in srgb, var(--bg) 84%, transparent);
   position: relative;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
-  width: min(100%, 120rem);
-  margin-inline: auto;
+  overflow: hidden;
+  background: var(--bg);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.bar {
+.surface {
+  position: absolute;
+  inset: 0;
+}
+
+.board {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.hud,
+.hud-extra,
+.chips,
+.controls {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+  pointer-events: none;
+  /* A drag that starts on the HUD neither scrolls nor zooms the page. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hud :is(button, label),
+.hud-extra :is(button, label),
+.controls :is(button, label) {
+  pointer-events: auto;
+}
+
+/* Upright screens: a strip along the top… */
+.hud {
+  inset: 0 0 auto;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
-  /* Clear of the notch and rounded corners in the CrazyGames app. */
-  padding: max(var(--space-2), env(safe-area-inset-top))
-    max(var(--space-4), env(safe-area-inset-right)) var(--space-2)
-    max(var(--space-4), env(safe-area-inset-left));
+  gap: var(--space-2);
+  height: calc(var(--hud-row) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) max(var(--space-3), env(safe-area-inset-right)) 0
+    max(var(--space-3), env(safe-area-inset-left));
+  background: linear-gradient(to bottom, var(--scrim), transparent);
+}
+
+.hud-button,
+.hud-sound {
+  flex: none;
+  width: var(--touch);
+  height: var(--touch);
+  min-width: 0;
+  padding: 0;
+  border-color: var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
 }
 
 .level {
+  display: grid;
+  min-width: 0;
+  max-width: 32%;
+  margin: 0;
   padding: var(--space-1) var(--space-3);
   border-radius: 999px;
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+  line-height: 1.15;
+}
+
+.level-name {
+  overflow: hidden;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.level-detail {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + var(--hud-row) / 2);
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  margin: 0;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+.label {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.value {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.25rem + 1.2vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Under the score, out of the flow: a streak never moves anything. */
+.streak {
+  position: absolute;
+  top: calc(100% + 0.2rem);
+  padding: 0.1rem var(--space-2);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hud-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.badge,
+.chip {
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chip {
+  font-size: 0.8rem;
+  box-shadow: var(--shadow);
+}
+
+.groove,
+.fragments {
+  box-shadow: inset 0 0 0 2px var(--orb-cyan);
+}
+
+/* …what comes and goes floats just below it, on the right… */
+.chips {
+  top: calc(env(safe-area-inset-top) + var(--hud-row) + var(--space-1));
+  right: max(var(--space-3), env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.chips.low {
+  top: calc(env(safe-area-inset-top) + var(--hud-row) + var(--extra-row) + var(--space-1));
+}
+
+/* …a boss's health, the recipes or the rope get a second line of their own… */
+.hud-extra {
+  top: calc(env(safe-area-inset-top) + var(--hud-row));
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--extra-row);
+  padding-inline: max(var(--space-4), env(safe-area-inset-right))
+    max(var(--space-4), env(safe-area-inset-left));
 }
 
 .colossus {
   display: flex;
-  flex-basis: 100%;
   align-items: center;
   gap: var(--space-3);
+  width: min(100%, 32rem);
   color: var(--danger);
   font-weight: 800;
 }
@@ -964,14 +1213,128 @@ const quit = () => emit('quit');
   background: var(--danger);
 }
 
+.alchemy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  font-weight: 800;
+}
+
+.recipe {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.op {
+  color: var(--text-muted);
+}
+
+.duel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: min(100%, 32rem);
+  font-weight: 800;
+}
+
+.rope {
+  flex: 1;
+  height: 0.75rem;
+}
+
+.side.rival {
+  color: var(--danger);
+}
+
+/* …and the buttons along the bottom. */
+.controls {
+  inset: auto 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: calc(var(--controls-row) + env(safe-area-inset-bottom));
+  padding: 0 max(var(--space-3), env(safe-area-inset-right)) env(safe-area-inset-bottom)
+    max(var(--space-3), env(safe-area-inset-left));
+  background: linear-gradient(to top, var(--scrim), transparent);
+}
+
+.control {
+  flex-direction: row;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  border-radius: 999px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.control:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.balls {
+  display: inline-flex;
+  align-items: center;
+}
+
+.magnet.armed {
+  border-color: var(--orb-cyan);
+  background: var(--orb-cyan);
+  color: var(--on-accent);
+}
+
+.charges {
+  display: inline-flex;
+  gap: 0.2rem;
+}
+
+.charge {
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.charge.full {
+  background: currentColor;
+}
+
+.nova {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.gauge {
+  width: 4.5rem;
+  height: 0.6rem;
+  accent-color: var(--orb-cyan);
+}
+
+.dot {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+}
+
+.dot.small {
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-left: -0.35rem;
+}
+
 .hint {
   position: absolute;
   inset-inline: var(--space-4);
-  /* At the foot of the board: the chain enters from the top on many tracks. */
-  bottom: var(--space-4);
+  /* Above the buttons: the chain enters from the top on many tracks. */
+  bottom: calc(var(--controls-row) + env(safe-area-inset-bottom) + var(--space-2));
+  z-index: 1;
   margin-inline: auto;
   width: fit-content;
-  max-width: 30rem;
+  max-width: min(30rem, 100% - 2rem);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -988,13 +1351,108 @@ const quit = () => emit('quit');
     opacity: 0;
     transform: translateY(-0.5rem);
   }
+
   8%,
   85% {
     opacity: 1;
     transform: none;
   }
+
   100% {
     opacity: 0;
+  }
+}
+
+/*
+ * Wide screens (phones on their side, desktop windows): the height is what
+ * the level lacks, so the HUD becomes a rail on the left and the buttons a
+ * rail on the right.
+ */
+@media (min-aspect-ratio: 3/2) {
+  .hud {
+    inset: 0 auto 0 0;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: calc(var(--rail) + env(safe-area-inset-left));
+    height: auto;
+    padding: max(var(--space-3), env(safe-area-inset-top)) var(--space-2)
+      max(var(--space-3), env(safe-area-inset-bottom))
+      max(var(--space-2), env(safe-area-inset-left));
+    background: linear-gradient(to right, var(--scrim), transparent);
+  }
+
+  .level {
+    max-width: 100%;
+    justify-items: center;
+    padding-inline: var(--space-2);
+    text-align: center;
+  }
+
+  .level-name {
+    white-space: normal;
+  }
+
+  .score {
+    position: static;
+    transform: none;
+  }
+
+  .value {
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  }
+
+  .hud-end {
+    flex-direction: column;
+    margin: auto 0 0;
+  }
+
+  .chips {
+    top: max(var(--space-3), env(safe-area-inset-top));
+    right: auto;
+    left: calc(var(--rail) + env(safe-area-inset-left) + var(--space-2));
+    align-items: flex-start;
+  }
+
+  .chips.low {
+    top: calc(var(--extra-row) + max(var(--space-3), env(safe-area-inset-top)));
+  }
+
+  .hud-extra {
+    top: 0;
+    right: calc(var(--rail) + env(safe-area-inset-right));
+    left: calc(var(--rail) + env(safe-area-inset-left));
+    height: calc(var(--extra-row) + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .controls {
+    inset: 0 0 0 auto;
+    flex-direction: column;
+    width: calc(var(--rail) + env(safe-area-inset-right));
+    height: auto;
+    padding: max(var(--space-3), env(safe-area-inset-top))
+      max(var(--space-2), env(safe-area-inset-right))
+      max(var(--space-3), env(safe-area-inset-bottom)) var(--space-2);
+    background: linear-gradient(to left, var(--scrim), transparent);
+  }
+
+  .control,
+  .nova {
+    flex-direction: column;
+    gap: var(--space-1);
+    width: 100%;
+    padding: var(--space-2) var(--space-1);
+    border-radius: var(--radius);
+    white-space: normal;
+    text-align: center;
+  }
+
+  .gauge {
+    width: 100%;
+  }
+
+  .hint {
+    bottom: max(var(--space-4), env(safe-area-inset-bottom));
   }
 }
 
@@ -1002,6 +1460,7 @@ const quit = () => emit('quit');
   position: absolute;
   inset-inline: 0;
   top: 38%;
+  z-index: 1;
   margin: 0;
   text-align: center;
   font-family: var(--font-display);
@@ -1029,60 +1488,60 @@ const quit = () => emit('quit');
     opacity: 0;
     transform: scale(0.4) rotate(-6deg);
   }
+
   14% {
     opacity: 1;
     transform: scale(1.18) rotate(-3deg);
   }
+
   26% {
     transform: scale(1) rotate(-3deg);
   }
+
   75% {
     opacity: 1;
     transform: scale(1.04) rotate(-3deg);
   }
+
   100% {
     opacity: 0;
     transform: scale(1.1) translateY(-0.4em) rotate(-3deg);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cheer {
-    animation: none;
+.weather {
+  animation: weather 1.2s ease-in-out infinite alternate;
+}
+
+.weather.solar {
+  box-shadow: inset 0 0 0 2px var(--orb-amber);
+}
+
+.weather.cold {
+  box-shadow: inset 0 0 0 2px var(--orb-cyan);
+}
+
+.weather.wind {
+  box-shadow: inset 0 0 0 2px var(--orb-violet);
+}
+
+@keyframes weather {
+  to {
+    transform: scale(1.06);
   }
 }
 
-.alchemy {
-  display: flex;
-  flex-basis: 100%;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-2) var(--space-4);
-  font-weight: 800;
-}
-
-.recipe {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.op {
-  color: var(--text-muted);
+@media (prefers-reduced-motion: reduce) {
+  .cheer,
+  .weather {
+    animation: none;
+  }
 }
 
 .eyebrow {
   color: var(--accent);
   font-size: 0.875rem;
   font-weight: 700;
-}
-
-.assisted {
-  padding: var(--space-1) var(--space-3);
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-size: 0.875rem;
 }
 
 .gains {
@@ -1118,209 +1577,15 @@ const quit = () => emit('quit');
   font-weight: 800;
 }
 
-.score {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  margin-right: auto;
-}
-
-.label {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.value {
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 1.25rem + 1.2vw, 2.1rem);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.streak {
-  color: var(--accent);
-  font-weight: 800;
-}
-
-.badge {
-  padding: var(--space-1) var(--space-3);
-  border-radius: 999px;
-  background: var(--surface-2);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.groove {
-  box-shadow: inset 0 0 0 2px var(--orb-cyan);
-}
-
-.fragments {
-  box-shadow: inset 0 0 0 2px var(--orb-cyan);
-}
-
-.nova {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-weight: 800;
-}
-
-.gauge {
-  width: 5rem;
-  height: 0.6rem;
-  accent-color: var(--orb-cyan);
-}
-
-.weather {
-  animation: weather 1.2s ease-in-out infinite alternate;
-}
-
-.weather.solar {
-  box-shadow: inset 0 0 0 2px var(--orb-amber);
-}
-
-.weather.cold {
-  box-shadow: inset 0 0 0 2px var(--orb-cyan);
-}
-
-.weather.wind {
-  box-shadow: inset 0 0 0 2px var(--orb-violet);
-}
-
-@keyframes weather {
-  to {
-    transform: scale(1.06);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .weather {
-    animation: none;
-  }
-}
-
-.duel {
-  display: flex;
-  flex-basis: 100%;
-  align-items: center;
-  gap: var(--space-3);
-  font-weight: 800;
-}
-
-.rope {
-  flex: 1;
-  height: 0.75rem;
-}
-
-.side.rival {
-  color: var(--danger);
-}
-
-.icon {
-  padding: 0;
-}
-
-.bar-sound {
-  width: var(--touch);
-  height: var(--touch);
-  border-color: var(--border);
-  background: var(--surface);
-  color: var(--text);
-}
-
-.stage {
-  position: relative;
-  min-height: 0;
-  padding-inline: var(--space-2);
-}
-
-.surface {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius);
-  pointer-events: none;
-}
-
-.overlay[hidden] {
-  display: none;
-}
-
-.board {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius);
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-2) var(--space-3);
-  padding: var(--space-2) var(--space-4) max(var(--space-2), env(safe-area-inset-bottom));
-}
-
 .ad-label {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.swap,
-.magnet {
-  flex-direction: row;
-}
-
-.magnet.armed {
-  border-color: var(--orb-cyan);
-  background: var(--orb-cyan);
-  color: var(--on-accent);
-}
-
-.charges {
-  display: inline-flex;
-  gap: 0.2rem;
-}
-
-.charge {
-  width: 0.55rem;
-  height: 0.55rem;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-}
-
-.charge.full {
-  background: currentColor;
-}
-
-.dot {
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 50%;
-}
-
-.dot.small {
-  width: 0.8rem;
-  height: 0.8rem;
-  margin-left: -0.35rem;
-}
-
 .dialog {
   width: min(100% - 2rem, 24rem);
+  max-height: calc(100% - 2rem);
   padding: var(--space-6);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1349,28 +1614,5 @@ const quit = () => emit('quit');
   display: grid;
   gap: var(--space-2);
   margin-top: var(--space-6);
-}
-
-/* Short landscape frames (portal iframes, phones on their side): the board takes
-   the height; the buttons float over its bottom corner, the hint is one line. */
-@media (min-aspect-ratio: 5/4) and (max-height: 620px) {
-  .bar {
-    gap: var(--space-2);
-    padding-block: max(var(--space-1), env(safe-area-inset-top)) var(--space-1);
-  }
-
-  .controls {
-    position: absolute;
-    right: max(var(--space-4), env(safe-area-inset-right));
-    bottom: max(var(--space-3), env(safe-area-inset-bottom));
-    z-index: 2;
-    padding: 0;
-  }
-
-  .hint {
-    bottom: var(--space-2);
-    max-width: min(26rem, 60%);
-    font-size: 0.85rem;
-  }
 }
 </style>

@@ -4,13 +4,14 @@ import { CampaignMode } from '@/app/modes/CampaignModes';
 import type { Game } from '@/engine/Game';
 import { MAX_RANK, UPGRADE_IDS, type UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import { CAMPAIGN } from '@/levels/campaign';
-import { frameFor } from '@/levels/tracks';
+import { toLevelSetup } from '@/levels/LevelDefinition';
 import { resolveLook } from '@/play/cosmetics/Look';
 import { DistortionLayer } from '@/play/effects/DistortionLayer';
 import { EffectProfile } from '@/play/effects/EffectProfile';
 import { Haptics } from '@/play/Haptics';
 import type { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
+import { chooseFrame, contentBounds } from '@/play/BoardView';
 
 /** Frames per second of the trailer, and simulation steps per frame. */
 const FPS = 30;
@@ -110,11 +111,14 @@ export class Trailer {
     const canvas = document.createElement('canvas');
     const overlay = document.createElement('canvas');
     const mode = new CampaignMode({ kind: 'campaign', level });
-    const definition = mode.definition(frameFor(this.width, this.height), {
-      assisted: false,
-      difficulty: 'explorer',
-      upgrades: UPGRADES,
-    });
+    const play = { assisted: false, difficulty: 'explorer', upgrades: UPGRADES } as const;
+    // The board shape that shows the level largest in the video's frame, as in the game.
+    const frame = chooseFrame(
+      (shape) => contentBounds(toLevelSetup(mode.definition(shape, play))),
+      this.width,
+      this.height,
+    );
+    const definition = mode.definition(frame, play);
     const session = new PlaySession({
       canvas,
       distortion: DistortionLayer.create(overlay),
