@@ -8,7 +8,7 @@ titre qui diffère entre le jeu et la fiche.
 ## Fichiers
 
 - Archive : `npm run build:playgama`, puis
-  `python scripts/zip-build.py dist-playgama marketing/playgama/out/ball-mania-1.5.0.zip`
+  `python scripts/zip-build.py dist-playgama marketing/playgama/out/ball-mania-1.6.0.zip`
   (`index.html` à la racine, chemins à barres obliques ; le `Compress-Archive` de Windows
   PowerShell 5.1 écrit des barres obliques inverses qui cassent le jeu une fois décompressé).
 - Couvertures (`npm run kit:crazygames -- playgama`, dans `out/`) :
