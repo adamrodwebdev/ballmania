@@ -13,6 +13,18 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  /*
+   * A game, not a page: no rubber-band bounce, no pull-to-refresh, and no
+   * scroll handed on to a portal's page around the game.
+   */
+  overscroll-behavior: none;
+}
+
+/* While a level is played, the screen never moves (GameScreen sets the class). */
+html.in-game,
+html.in-game body {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {

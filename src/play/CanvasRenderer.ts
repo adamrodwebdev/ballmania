@@ -15,6 +15,18 @@ import {
 import { withAlpha } from './themes/WorldTheme';
 import { Ambience } from './themes/Ambience';
 import { WeatherLayer } from './WeatherLayer';
+import {
+  afterglow,
+  gathering,
+  moteAt,
+  novaAge,
+  novaCore,
+  shockRings,
+  stardust,
+  surge,
+  SURGE,
+  type Mote,
+} from './effects/Victory';
 import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
@@ -61,12 +73,12 @@ export interface Scene {
   /** The player asked for less motion: the backdrop stays still. */
   readonly reducedMotion: boolean;
   /**
-   * After a win, the hole swallowing the board: where, how far along (0 to
-   * 1), and whether to fade instead of spinning (reduced motion).
+   * After a win (effects/Victory): the hole the light runs to, real seconds
+   * since the win, and whether to keep it still (reduced motion).
    */
-  readonly swallow: {
+  readonly victory: {
     readonly at: Vec2;
-    readonly progress: number;
+    readonly elapsed: number;
     readonly reducedMotion: boolean;
   } | null;
   /** The magnet is armed: the next "shot" pulls the aimed ball instead. */
@@ -130,6 +142,10 @@ export class CanvasRenderer implements Renderer {
   /** Glows by colour (holes, the shooter's aura), painted once. */
   private readonly glows = new Map<string, HTMLCanvasElement>();
   private trackPaths: readonly unknown[] = [];
+  /** After a win: the tracks full of light, painted once for the afterglow. */
+  private litLayer: HTMLCanvasElement | null = null;
+  /** After a win: the stardust of the supernova. */
+  private dust: Mote[] | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -167,6 +183,7 @@ export class CanvasRenderer implements Renderer {
     this.rebuildSprites();
     this.repaintBackground();
     this.trackLayer = null;
+    this.litLayer = null;
   }
 
   setPalette(palette: Palette): void {
@@ -244,14 +261,7 @@ export class CanvasRenderer implements Renderer {
 
   draw(scene: Scene): void {
     const { ctx, palette } = this;
-    const swallow = this.swallowMatrix(scene);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    if (swallow) {
-      // Behind the board being swallowed: the void.
-      ctx.fillStyle = palette.hole;
-      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      ctx.setTransform(swallow);
-    }
     if (this.background) ctx.drawImage(this.background, 0, 0);
     else {
       ctx.fillStyle = palette.board;
@@ -284,6 +294,7 @@ export class CanvasRenderer implements Renderer {
     this.time = scene.time;
     const radius = game.setup.chain.ballRadius;
     for (const chain of game.chains) this.drawTrack(chain);
+    if (scene.victory) this.drawSurge(scene.victory, radius);
     this.blackHole?.drawRing(ctx, palette, scene.time);
     this.weather.drawUnder(
       ctx,
@@ -319,8 +330,7 @@ export class CanvasRenderer implements Renderer {
     this.drawShooter(radius, scene);
     scene.destruction.draw(ctx, palette, this.sprites);
     if (scene.tutorial) this.drawTutorial(scene.tutorial, scene.reducedMotion);
-
-    if (scene.swallow && scene.swallow.progress > 0) this.drawSwallowed(scene.swallow);
+    if (scene.victory) this.drawNova(scene.victory, radius);
     const flash = scene.destruction.flash;
     if (flash.amount > 0) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -332,48 +342,169 @@ export class CanvasRenderer implements Renderer {
   }
 
   /**
-   * The board spinning down into the hole after a win (in device pixels), or
-   * null before it starts and with reduced motion.
+   * After a win: light runs along every track from its entrance to the hole,
+   * leaving the groove lit; then the light fades (from a layer painted once:
+   * wide strokes along whole tracks are costly every frame on a modest phone).
+   * With reduced motion, the tracks simply light up and fade.
    */
-  private swallowMatrix(scene: Scene): DOMMatrix | null {
-    const swallow = scene.swallow;
-    if (!swallow || swallow.progress <= 0 || swallow.reducedMotion) return null;
-    const t = swallow.progress;
-    const eased = t * t * (3 - 2 * t);
-    const hole = this.toDevice(swallow.at);
-    return new DOMMatrix()
-      .translate(hole.x, hole.y)
-      .rotate(eased * 540)
-      .scale(Math.max(0.001, 1 - eased))
-      .translate(-hole.x, -hole.y);
-  }
-
-  /** Over the swallowed board: the hole's glow closing; a plain fade with reduced motion. */
-  private drawSwallowed(swallow: NonNullable<Scene['swallow']>): void {
+  private drawSurge(victory: NonNullable<Scene['victory']>, radius: number): void {
     const { ctx, palette } = this;
+    const still = victory.reducedMotion;
+    const glow = afterglow(victory.elapsed) * (still ? Math.min(1, victory.elapsed / SURGE) : 1);
+    if (glow <= 0.01) return;
+    const lighten = palette.dark ? 'lighter' : 'source-over';
+    if (still || victory.elapsed >= SURGE) {
+      const layer = this.litTracks(radius);
+      if (!layer) return;
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = lighten;
+      ctx.globalAlpha = glow;
+      ctx.drawImage(layer, 0, 0);
+      ctx.restore();
+      return;
+    }
+    const progress = surge(victory.elapsed);
     ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    if (swallow.reducedMotion) {
-      ctx.globalAlpha = swallow.progress;
-      ctx.fillStyle = palette.board;
-      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    } else {
-      const hole = this.toDevice(swallow.at);
-      const reach = Math.hypot(this.canvas.width, this.canvas.height);
-      const glow = ctx.createRadialGradient(
-        hole.x,
-        hole.y,
-        0,
-        hole.x,
-        hole.y,
-        reach * (1 - swallow.progress) + 1,
-      );
-      glow.addColorStop(0, withAlpha(palette.accent, 0.8 * (1 - swallow.progress)));
-      glow.addColorStop(1, withAlpha(palette.accent, 0));
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.globalCompositeOperation = lighten;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const chain of this.game.chains) {
+      const track = this.trackOf(chain);
+      const length = chain.path.length;
+      const lit = progress * length;
+      // Behind the light, the groove stays lit…
+      ctx.setLineDash([lit, length * 2]);
+      ctx.lineDashOffset = 0;
+      this.strokeLit(ctx, track, radius);
+      // …and the light itself: a white-hot dash in a halo.
+      const head = Math.min(lit, radius * 9);
+      ctx.setLineDash([head, length * 2]);
+      ctx.lineDashOffset = head - lit;
+      ctx.strokeStyle = palette.accent;
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = radius * 3.2;
+      ctx.stroke(track);
+      ctx.strokeStyle = palette.dark ? '#ffffff' : palette.accent;
+      ctx.globalAlpha = 0.95;
+      ctx.lineWidth = radius * 0.9;
+      ctx.stroke(track);
+      ctx.globalAlpha = 1;
     }
     ctx.restore();
+  }
+
+  /** A lit groove: a wide soft glow and a bright thread. */
+  private strokeLit(ctx: CanvasRenderingContext2D, track: Path2D, radius: number): void {
+    ctx.strokeStyle = this.palette.accent;
+    ctx.globalAlpha = 0.28;
+    ctx.lineWidth = radius * 2 + 16;
+    ctx.stroke(track);
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = radius * 0.7;
+    ctx.stroke(track);
+    ctx.globalAlpha = 1;
+  }
+
+  /** Every track full of light, painted once (device pixels, the whole canvas). */
+  private litTracks(radius: number): HTMLCanvasElement | null {
+    if (this.litLayer) return this.litLayer;
+    const layer = document.createElement('canvas');
+    layer.width = this.canvas.width;
+    layer.height = this.canvas.height;
+    const ctx = layer.getContext('2d');
+    if (!ctx) return null;
+    const k = this.scale * this.pixelRatio;
+    ctx.setTransform(k, 0, 0, k, this.offsetX * this.pixelRatio, this.offsetY * this.pixelRatio);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const chain of this.game.chains) this.strokeLit(ctx, this.trackOf(chain), radius);
+    this.litLayer = layer;
+    return layer;
+  }
+
+  /**
+   * After a win: the hole gathers the light, then bursts: a white-hot core,
+   * shock rings running off the screen, stardust drifting up. With reduced
+   * motion, a glow that swells and fades in place.
+   */
+  private drawNova(victory: NonNullable<Scene['victory']>, radius: number): void {
+    const { ctx, palette } = this;
+    const { at } = victory;
+    const bright = palette.dark ? '#ffffff' : palette.accent;
+    ctx.save();
+    ctx.globalCompositeOperation = palette.dark ? 'lighter' : 'source-over';
+    const gather = gathering(victory.elapsed);
+    if (gather > 0) this.drawGlow(at, radius * (1.5 + 3 * gather), gather);
+    const age = novaAge(victory.elapsed);
+    if (age !== null) {
+      if (victory.reducedMotion) {
+        this.drawGlow(at, radius * 6, Math.max(0, 1 - age / 0.9));
+      } else {
+        const core = novaCore(age);
+        if (core) this.drawGlow(at, radius * core.size, core.alpha);
+        const reach = this.reachFrom(at);
+        // Neon: a white ring with a cyan glow, then a soft rose wave and a violet echo.
+        const colours = [bright, palette.tone(5), palette.tone(4)];
+        for (const ring of shockRings(age, reach)) {
+          ctx.globalAlpha = ring.alpha * (ring.layer === 1 ? 0.3 : 0.9);
+          ctx.strokeStyle = colours[ring.layer] ?? bright;
+          ctx.lineWidth = ring.width;
+          ctx.beginPath();
+          ctx.arc(at.x, at.y, ring.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          if (ring.layer === 0) {
+            // A cyan glow just inside the leading ring.
+            ctx.globalAlpha = ring.alpha * 0.4;
+            ctx.strokeStyle = palette.tone(3);
+            ctx.lineWidth = ring.width * 3;
+            ctx.beginPath();
+            ctx.arc(at.x, at.y, Math.max(0, ring.radius - ring.width * 2.5), 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+        this.dust ??= stardust(42, reach * 0.4, seededRandom(at.x * 31 + at.y * 17));
+        for (const mote of this.dust) {
+          const speck = moteAt(mote, age);
+          if (!speck) continue;
+          ctx.globalAlpha = speck.alpha;
+          ctx.fillStyle = mote.tone % 2 === 0 ? bright : palette.tone(mote.tone);
+          ctx.beginPath();
+          ctx.arc(at.x + speck.dx, at.y + speck.dy, mote.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  /** A soft round glow: white at the heart, golden at the edge. */
+  private drawGlow(at: Vec2, size: number, alpha: number): void {
+    if (alpha <= 0 || size <= 0) return;
+    const { ctx, palette } = this;
+    const glow = ctx.createRadialGradient(at.x, at.y, 0, at.x, at.y, size);
+    glow.addColorStop(0, palette.dark ? '#ffffff' : palette.accent);
+    glow.addColorStop(0.35, palette.accent);
+    glow.addColorStop(1, withAlpha(palette.accent, 0));
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  /** Board units from a point to the farthest corner of the screen. */
+  private reachFrom(at: Vec2): number {
+    const width = this.canvas.width / this.pixelRatio;
+    const height = this.canvas.height / this.pixelRatio;
+    const corners: readonly (readonly [number, number])[] = [
+      [0, 0],
+      [width, 0],
+      [0, height],
+      [width, height],
+    ];
+    return Math.max(...corners.map(([x, y]) => this.toBoard(x, y).distanceTo(at)));
   }
 
   private rebuildSprites(): void {
@@ -1092,4 +1223,16 @@ function guide(points: readonly Vec2[], length: number): Vec2[] {
     left -= step;
   }
   return kept;
+}
+
+/** A small seeded random source: the same stardust for the same win. */
+function seededRandom(seed: number): () => number {
+  let state = Math.floor(Math.abs(seed)) >>> 0 || 1;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
