@@ -12,6 +12,7 @@ import { Destruction } from './effects/Destruction';
 import type { DistortionLayer } from './effects/DistortionLayer';
 import type { EffectProfile } from './effects/EffectProfile';
 import { FrameMonitor } from './effects/FrameMonitor';
+import { NOVA, RESULT } from './effects/Victory';
 import { TimeWarp } from './effects/TimeWarp';
 import { GameLoop } from './GameLoop';
 import type { Haptics } from './Haptics';
@@ -97,9 +98,6 @@ const HINT_TIME = 6;
 
 /** Real seconds between the end of a game and the result dialog. */
 const RESULT_DELAY = 1.6;
-/** After a win: seconds of debris spiralling into the hole, then of the board swallowed. */
-const VORTEX_TIME = 0.7;
-const SWALLOW_TIME = 1.3;
 /** Speed at which a lost chain is swallowed by the hole, in units per second. */
 const DRAIN_SPEED = 1400;
 /** Share of the track from which the heart starts beating. */
@@ -132,8 +130,8 @@ export class PlaySession {
   private reactions = 0;
   private switchSerial = 0;
   private tugIn = 0;
-  /** After a win: the hole that swallows the board, and the seconds since the win. */
-  private swallow: { readonly at: Vec2; elapsed: number } | null = null;
+  /** After a win: the hole the light runs to, the seconds since, and whether it burst yet. */
+  private victory: { readonly at: Vec2; elapsed: number; burst: boolean } | null = null;
   private size: { width: number; height: number; pixelRatio: number; insets: Insets } = {
     width: 1,
     height: 1,
@@ -275,7 +273,7 @@ export class PlaySession {
     this.motion = new BallMotion();
     this.destruction = this.createDestruction();
     this.overIn = null;
-    this.swallow = null;
+    this.victory = null;
     this.hinted = null;
     this.feedback.sound.resume();
     Object.assign(this.hud, this.initialHud());
@@ -538,10 +536,11 @@ export class PlaySession {
       this.hud.bestDepth = game.bestDepth;
       this.overIn = RESULT_DELAY;
       if (outcome === 'won') {
-        // The hole (or the black hole) swallows what is left, then the board.
+        // Light surges along the tracks to the hole (or the black hole), which
+        // gathers what is left and bursts into a supernova (effects/Victory).
         const hole = game.gravity?.centre ?? game.chains[0]?.path.end ?? game.shooter.position;
-        this.swallow = { at: hole, elapsed: 0 };
-        this.overIn = VORTEX_TIME + SWALLOW_TIME;
+        this.victory = { at: hole, elapsed: 0, burst: false };
+        this.overIn = RESULT;
         this.destruction.vortex(hole, game.setup.board, [0, 1, 2, 3, 4, 5]);
         if (this.profile.slowMotion) this.warp.trigger(0.35, 0.4, 0.5);
         sound.win();
@@ -603,7 +602,7 @@ export class PlaySession {
     const dt = this.warp.update(realDt);
     this.time += dt;
     this.recoil = Math.max(0, this.recoil - RECOIL_FADE * realDt);
-    if (this.swallow) this.swallow.elapsed += realDt;
+    if (this.victory) this.updateVictory(realDt);
     if (this.charging !== null) {
       this.charging += realDt;
       if (!this.chargedOnce && this.charging >= CHARGE_TIME) {
@@ -638,6 +637,18 @@ export class PlaySession {
       }
     }
     this.render();
+  }
+
+  /** After a win: the seconds of the effect, and the supernova when its time comes. */
+  private updateVictory(realDt: number): void {
+    const victory = this.victory;
+    if (!victory) return;
+    victory.elapsed += realDt;
+    if (victory.burst || victory.elapsed < NOVA) return;
+    victory.burst = true;
+    this.destruction.supernova(victory.at, [0, 1, 2, 3, 4, 5]);
+    this.feedback.sound.nova();
+    this.feedback.haptics.win();
   }
 
   /** The frame rate dropped: one step less spectacle, for the rest of the game. */
@@ -689,9 +700,9 @@ export class PlaySession {
       charge: this.charging === null ? 0 : Math.min(1, this.charging / CHARGE_TIME),
       recoil: this.recoil,
       reducedMotion: this.profile.reducedMotion,
-      swallow: this.swallow && {
-        at: this.swallow.at,
-        progress: Math.min(1, Math.max(0, (this.swallow.elapsed - VORTEX_TIME) / SWALLOW_TIME)),
+      victory: this.victory && {
+        at: this.victory.at,
+        elapsed: this.victory.elapsed,
         reducedMotion: this.profile.reducedMotion,
       },
       magnetArmed: this.hud.magnetArmed,

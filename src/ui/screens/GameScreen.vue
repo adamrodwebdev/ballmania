@@ -218,11 +218,24 @@ onMounted(() => {
   };
   document.addEventListener('visibilitychange', onVisibility);
 
+  // The screen never moves while a level is played: no scroll, no bounce, no
+  // pinch-zoom (iOS Safari heeds a touch that is held back better than CSS).
+  // Only the dialogs may scroll, when their content is taller than the screen.
+  document.documentElement.classList.add('in-game');
+  const holdStill = (event: TouchEvent) => {
+    const inDialog = event.target instanceof Element && event.target.closest('dialog');
+    if (!inDialog || event.touches.length > 1) event.preventDefault();
+  };
+  const section = root.value;
+  section.addEventListener('touchmove', holdStill, { passive: false });
+
   cleanups = [
     () => pointer.destroy(),
     () => keyboard.destroy(),
     () => observer.disconnect(),
     () => document.removeEventListener('visibilitychange', onVisibility),
+    () => document.documentElement.classList.remove('in-game'),
+    () => section.removeEventListener('touchmove', holdStill),
     () => play.destroy(),
     () => motionQuery.removeEventListener('change', onMotionChange),
   ];
@@ -231,6 +244,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  stopCelebrating();
   clearTimeout(cheerTimer);
   clearTimeout(hintTimer);
   settleNow();
@@ -290,10 +304,49 @@ watch(
   (over) => {
     if (over) {
       announcement.value = say(mode.outcome(over === 'won'));
+      if (over === 'won') celebrate();
+      else shownScore.value = hud.value?.score ?? 0;
       endDialog.value?.showModal();
     } else if (endDialog.value?.open) endDialog.value.close();
   },
 );
+
+/** A won result: the futuristic panel, its score counting up, its stars chiming. */
+const won = computed(() => hud.value?.over === 'won');
+/** The score shown by the result: it counts up on a win (§ 3.5). */
+const shownScore = ref(0);
+/** Seconds the score takes to count up. */
+const COUNT_TIME = 0.9;
+/** When each star of a result lights up, in seconds (StarRow's animation delays). */
+const STAR_TIMES = [0.35, 0.6, 0.85];
+let counting = 0;
+let starTimers: ReturnType<typeof setTimeout>[] = [];
+const stopCelebrating = () => {
+  cancelAnimationFrame(counting);
+  starTimers.forEach(clearTimeout);
+  starTimers = [];
+};
+const celebrate = () => {
+  stopCelebrating();
+  const target = hud.value?.score ?? 0;
+  const stars = settlement.value?.stars ?? 0;
+  // Each lit star rings as it pops, a step higher than the one before.
+  starTimers = STAR_TIMES.slice(0, stars).map((at, index) =>
+    setTimeout(() => feedback.sound.star(index), (at + 0.15) * 1000),
+  );
+  if (reducedMotion.value || target <= 0) {
+    shownScore.value = target;
+    return;
+  }
+  shownScore.value = 0;
+  const start = performance.now();
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / (COUNT_TIME * 1000));
+    shownScore.value = Math.round(target * (1 - (1 - t) ** 3));
+    if (t < 1) counting = requestAnimationFrame(step);
+  };
+  counting = requestAnimationFrame(step);
+};
 
 /** The player continued once after a defeat (rewarded ad, § 3.7). */
 const continued = ref(false);
@@ -321,6 +374,8 @@ const settleNow = () => {
 watch(
   () => hud.value?.state,
   (state) => {
+    // The end of a game is the game's moment: the starting hint steps aside.
+    if (state !== undefined && state !== 'playing') hintVisible.value = false;
     const play = session.value;
     if (!play || state === undefined || state === 'playing') return;
     if (state === 'lost' && platform.hasAds && mode.continuable && !continued.value) {
@@ -787,7 +842,13 @@ const quit = () => emit('quit');
     </dialog>
     <SettingsDialog ref="settingsDialog" />
 
-    <dialog ref="endDialog" class="dialog" aria-labelledby="end-title" @cancel.prevent="quit">
+    <dialog
+      ref="endDialog"
+      class="dialog"
+      :class="{ victory: won }"
+      aria-labelledby="end-title"
+      @cancel.prevent="quit"
+    >
       <p v-if="daily" class="eyebrow">{{ t('daily.title') }} · {{ dayLabel }}</p>
       <h2 id="end-title">{{ say(mode.outcome(hud?.over === 'won')) }}</h2>
       <StarRow
@@ -807,7 +868,14 @@ const quit = () => emit('quit');
           )
         }}
       </p>
-      <p class="result">{{ t('game.finalScore', { score: number.format(hud?.score ?? 0) }) }}</p>
+      <p class="result">
+        <span aria-hidden="true">
+          {{ t('game.finalScore', { score: number.format(shownScore) }) }}
+        </span>
+        <span class="sr-only">
+          {{ t('game.finalScore', { score: number.format(hud?.score ?? 0) }) }}
+        </span>
+      </p>
       <p v-if="(hud?.bonus ?? 0) > 0" class="detail">
         {{ t('game.bonus', { points: number.format(hud?.bonus ?? 0) }) }}
       </p>
@@ -982,6 +1050,9 @@ const quit = () => emit('quit');
   height: 100dvh;
   overflow: hidden;
   background: var(--bg);
+  /* Nothing on the game screen scrolls or zooms: it is held still (see onMounted). */
+  touch-action: none;
+  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1586,6 +1657,10 @@ const quit = () => emit('quit');
 .dialog {
   width: min(100% - 2rem, 24rem);
   max-height: calc(100% - 2rem);
+  /* A dialog taller than a small phone scrolls inside itself, and only itself. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: var(--space-6);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1614,5 +1689,170 @@ const quit = () => emit('quit');
   display: grid;
   gap: var(--space-2);
   margin-top: var(--space-6);
+}
+
+/*
+ * A won result (§ 3.5): a pane of frosted glass with a ring of light running
+ * round its edge, which rises into place as the supernova fades; the title
+ * catches a sweep of light, the score glows and counts up, the stars chime.
+ */
+@property --spin {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.dialog.victory {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  box-shadow:
+    0 1.5rem 4rem rgb(0 0 0 / 0.5),
+    0 0 3.5rem color-mix(in srgb, var(--accent) 22%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.dialog.victory::before {
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--spin),
+    var(--accent),
+    var(--orb-cyan),
+    var(--orb-rose),
+    var(--orb-violet),
+    var(--accent)
+  );
+  content: '';
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.dialog.victory::backdrop {
+  background: radial-gradient(ellipse at 50% 45%, rgb(8 4 24 / 0.2), rgb(4 2 12 / 0.72));
+}
+
+/* The title of light on the dark theme; plain text stays more legible on the light one. */
+:root[data-theme='dark'] .dialog.victory h2 {
+  background: linear-gradient(
+    100deg,
+    var(--title-mid) 0%,
+    var(--title-top) 38%,
+    #ffffff 48%,
+    var(--title-top) 58%,
+    var(--title-low) 100%
+  );
+  background-size: 260% 100%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 0.45em color-mix(in srgb, var(--accent) 45%, transparent));
+}
+
+.dialog.victory .result {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 1.2rem color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialog.victory[open] {
+    animation: panel-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .dialog.victory::before {
+    animation: spin 5s linear infinite;
+  }
+
+  .dialog.victory[open]::backdrop {
+    animation: backdrop-in 0.6s ease both;
+  }
+
+  .dialog.victory h2 {
+    animation:
+      title-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both,
+      shimmer 1.5s ease-in-out 0.3s both;
+  }
+
+  .dialog.victory .actions {
+    animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog.victory[open] {
+    animation: fade-in 0.3s ease both;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.94);
+    filter: blur(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    --spin: 360deg;
+  }
+}
+
+@keyframes title-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.25em;
+    filter: blur(6px);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 </style>

@@ -3,6 +3,22 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Modifié
+
+- Victoire futuriste, à la place du plateau qui tournait en spirale dans le trou : une
+  lumière blanche court le long de chaque tracé jusqu'au trou et laisse la rainure
+  allumée ; le trou la rassemble puis éclate en supernova (cœur blanc, anneaux néon, onde
+  qui courbe l'image, poussière d'étoiles), sur un son montant puis un accord de verre. Le
+  résultat arrive plus vite (1,7 s au lieu de 2 s) sur un panneau de verre dépoli au
+  contour de lumière tournant : titre balayé de lumière, score qui monte, étoiles qui se
+  matérialisent avec un anneau et un carillon. Avec le mouvement réduit, une simple lueur.
+- Écran immobile sur téléphone : plus de rebond ni de « tirer pour rafraîchir », rien ne
+  défile vers la page du portail ; pendant une partie, la page ne défile ni ne zoome plus
+  du tout. Les fenêtres de dialogue gardent leur propre défilement.
+- Le conseil du début de niveau s'efface dès la fin de la partie.
+
 ## [1.5.0] — 2026-10-20
 
 ### Modifié

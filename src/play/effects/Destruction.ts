@@ -231,7 +231,8 @@ export class Destruction {
     tones: readonly Tone[],
   ): void {
     this.setAttractor(at, this.ballRadius, 6);
-    const count = Math.min(70, this.budget());
+    // A few streams, gone by the supernova (effects/Victory): light, not snow.
+    const count = Math.min(26, this.budget());
     for (let i = 0; i < count; i++) {
       const x = this.random() * board.width;
       const y = this.random() * board.height;
@@ -242,11 +243,26 @@ export class Destruction {
         y,
         vx: -towards.y * 320,
         vy: towards.x * 320,
-        life: 1.6,
-        maxLife: 1.6,
+        life: 0.95,
+        maxLife: 0.95,
         tone: tones[i % Math.max(1, tones.length)] ?? 0,
       });
     }
+  }
+
+  /**
+   * The supernova of a won level (effects/Victory): the debris drawn into the
+   * hole is let go, and sparks, a shock wave and a light jolt burst out of it.
+   */
+  supernova(at: Vec2, tones: readonly Tone[]): void {
+    this.attractor = null;
+    this.flashAmount = Math.max(this.flashAmount, 0.18);
+    this.flashColour = '#ffffff';
+    const count = Math.min(80, this.budget());
+    for (let i = 0; i < count; i++) {
+      this.addSpark(at.x, at.y, tones[i % Math.max(1, tones.length)] ?? 0, 1.5);
+    }
+    this.impact(at, 0.45);
   }
 
   /** A shot falls into the black hole: a ring closing in, and a last glimmer. */

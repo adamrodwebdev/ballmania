@@ -575,14 +575,14 @@ variantes.
 
 #### Destruction livrée au lot 3 (matière « verre et énergie », monde Nébuleuse)
 
-| Temps          | Effet                                                                                                                            |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 0 → 80 ms      | Le groupe **se fissure** : billes qui gonflent, fêlures blanches, **arcs électriques** entre les billes                          |
-| 80 ms          | Chaque bille **éclate** : éclats de verre triangulaires (vitesse, rotation, freinage), traînées de lumière, halo additif, anneau |
-| 80 → 630 ms    | **Onde de choc** qui courbe l'image avec aberration chromatique (WebGL2), **tremblement** de l'écran                             |
-| Profondeur ≥ 3 | **Ralenti** (×0,3 pendant 120 ms, retour en 250 ms) et **éclair** blanc                                                          |
-| Victoire       | Explosion de lumière depuis le lanceur, onde géante, ralenti, arpège                                                             |
-| Défaite        | Secousse et voile rouge, chaîne avalée par le trou, glissando grave                                                              |
+| Temps          | Effet                                                                                                                                                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0 → 80 ms      | Le groupe **se fissure** : billes qui gonflent, fêlures blanches, **arcs électriques** entre les billes                                                                                                                   |
+| 80 ms          | Chaque bille **éclate** : éclats de verre triangulaires (vitesse, rotation, freinage), traînées de lumière, halo additif, anneau                                                                                          |
+| 80 → 630 ms    | **Onde de choc** qui courbe l'image avec aberration chromatique (WebGL2), **tremblement** de l'écran                                                                                                                      |
+| Profondeur ≥ 3 | **Ralenti** (×0,3 pendant 120 ms, retour en 250 ms) et **éclair** blanc                                                                                                                                                   |
+| Victoire       | Une lumière court le long de chaque tracé jusqu'au trou, qui la rassemble et éclate en **supernova** (cœur blanc, anneaux néon, onde, poussière d'étoiles) ; résultat sur un panneau de verre (v1.6.0, `effects/Victory`) |
+| Défaite        | Secousse et voile rouge, chaîne avalée par le trou, glissando grave                                                                                                                                                       |
 
 Tout grandit avec la profondeur de la réaction : vitesse des éclats, onde, tremblement, note
 jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête de chaîne passe
@@ -1012,6 +1012,19 @@ Livré à l'étape 11.4 :
   ni une série, ni un badge, ni une barre de navigateur qui se replie (le plateau garde sa
   taille et sa place tant que le niveau tient à l'écran) ; seule une rotation ou un grand
   changement le réajuste.
+- **Écran immobile** (v1.6.0) : aucun rebond ni « tirer pour rafraîchir » sur tout le site
+  (`overscroll-behavior: none`), rien ne défile vers la page d'un portail ; pendant une
+  partie, la page ne défile ni ne zoome plus du tout (`in-game` sur `<html>`,
+  `touch-action: none`, gestes retenus pour Safari iOS) ; seules les fenêtres de dialogue
+  défilent en elles-mêmes si leur contenu dépasse l'écran.
+- **Victoire** (v1.6.0) : en 1,7 s, une lumière blanche court le long de chaque tracé, de
+  l'entrée au trou, et laisse la rainure allumée ; le trou rassemble la lumière puis éclate
+  en supernova (cœur blanc, anneaux néon qui sortent de l'écran, onde qui courbe l'image,
+  poussière d'étoiles qui monte) ; le plateau reste visible et s'éteint doucement. Le
+  résultat arrive sur un panneau de verre dépoli au contour de lumière tournant : titre
+  balayé de lumière, score qui monte, étoiles qui se matérialisent avec un anneau et un
+  carillon montant. Mouvement réduit : les tracés s'allument et s'éteignent, une lueur au
+  trou, résultat sans animation.
 - Typographie fluide (`clamp()`), espacements en `rem`, cibles tactiles ≥ 44 × 44 px.
 
 ### 4.3 Accessibilité

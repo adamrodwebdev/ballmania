@@ -347,13 +347,37 @@ export class SoundEngine {
     });
   }
 
+  /** A level is won: the light surging along the tracks, rising to the hole (effects/Victory). */
   win(): void {
     this.play((ctx, out, now) => {
-      [0, 4, 7, 12, 16].forEach((step, i) => {
-        this.bell(ctx, out, now + i * 0.09, semitones(523, step), 1.1, 0.2);
+      this.sweep(ctx, out, now, 'sawtooth', 110, 880, 0.9, 0.05, 2400);
+      this.sweep(ctx, out, now, 'sine', 220, 1760, 0.9, 0.08);
+      [0, 4, 7, 11].forEach((step, i) => {
+        this.bell(ctx, out, now + 0.2 + i * 0.16, semitones(523, step), 0.5, 0.06);
       });
-      this.noiseBurst(ctx, out, now, 0.6, 1800, 0.25);
-      this.thump(ctx, out, now, 0.6);
+    });
+  }
+
+  /** The supernova: a deep blow, a bright chord, a shower of glass and a breath of air. */
+  nova(): void {
+    this.play((ctx, out, now) => {
+      this.thump(ctx, out, now, 0.7);
+      [0, 4, 7, 11, 14].forEach((step, i) => {
+        this.bell(ctx, out, now + i * 0.03, semitones(523, step), 1.6, 0.16);
+      });
+      [24, 28, 31, 36].forEach((step, i) => {
+        this.bell(ctx, out, now + 0.12 + i * 0.07, semitones(523, step), 0.6, 0.05);
+      });
+      this.noiseBurst(ctx, out, now, 0.9, 3200, 0.16);
+    });
+  }
+
+  /** A star of the result lights up: each one a step higher. */
+  star(index: number): void {
+    this.play((ctx, out, now) => {
+      const base = semitones(1047, [0, 4, 7][index] ?? 7);
+      this.bell(ctx, out, now, base, 0.9, 0.16);
+      this.bell(ctx, out, now + 0.05, base * 2, 0.5, 0.05);
     });
   }
 
