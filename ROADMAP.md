@@ -3,7 +3,7 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
-## v1.7.0 — Nouvelle soumission à CrazyGames (en préparation)
+## v1.7.0 — Nouvelle soumission à CrazyGames (livrée le 21/10/2026)
 
 **But** : passer la revue qualité de CrazyGames, qui a refusé la v1.1 (« The overall quality
 of the game does not yet meet the expectations of our platform »), et viser ses repères
@@ -27,6 +27,11 @@ paysage et portrait ; notre site garde son écran titre et son intro.
 
 Maquettes validées le 21 octobre 2026 : jeu sur ordinateur et téléphone dans les deux thèmes, lanceurs, billes
 bonus, écran titre et cadeau du jour.
+
+Ajouts décidés pendant la livraison (21/10/2026) : carte de campagne sans défilement sur les
+écrans larges et bas, barre de défilement aux couleurs du jeu (maquette validée) ; niveau 1-1
+en vitrine (Nova, cascade à trois étages, Laser, supernova en une minute) ; aucun
+`gameplayStop` quand l'onglet est caché (règle CrazyGames).
 
 En parallèle : demander à CrazyGames (developer-relations@crazygames.com) les raisons
 précises du refus ; leur réponse peut réordonner les étapes.
