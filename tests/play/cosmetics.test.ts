@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { COSMETICS, DEFAULT_LOOK } from '@/player/catalog';
 import { resolveLook } from '@/play/cosmetics/Look';
 import { GlassShards, PetalShards, PixelShards, StarShards } from '@/play/cosmetics/ShardShapes';
-import { CrownSkin, OrbitSkin } from '@/play/cosmetics/ShooterSkins';
+import { CrownSkin, StarHeartSkin } from '@/play/cosmetics/ShooterSkins';
 import { CometTrail, NoTrail } from '@/play/cosmetics/Trails';
 import { NeonTheme } from '@/play/themes/NeonTheme';
 import { NebulaTheme } from '@/play/themes/NebulaTheme';
@@ -10,7 +10,7 @@ import { NebulaTheme } from '@/play/themes/NebulaTheme';
 describe('Look', () => {
   it('resolves the default look, the world board and equipped items', () => {
     const base = resolveLook(DEFAULT_LOOK, 'nebula');
-    expect(base.shooter).toBeInstanceOf(OrbitSkin);
+    expect(base.shooter).toBeInstanceOf(StarHeartSkin);
     expect(base.trail).toBeInstanceOf(NoTrail);
     expect(base.shards).toBeInstanceOf(GlassShards);
     expect(base.theme).toBeInstanceOf(NebulaTheme);
@@ -27,7 +27,7 @@ describe('Look', () => {
 
   it('falls back to the defaults for unknown ids', () => {
     const look = resolveLook({ shooter: 'x', trail: 'y', burst: 'z', board: 'w' }, 'nebula');
-    expect(look.shooter).toBeInstanceOf(OrbitSkin);
+    expect(look.shooter).toBeInstanceOf(StarHeartSkin);
     expect(look.theme).toBeInstanceOf(NebulaTheme);
   });
 

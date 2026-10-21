@@ -211,6 +211,7 @@
     "equippedNow": "{name} équipé."
   },
   "cosmetics": {
+    "shooter-star": "Cœur d'étoile",
     "shooter-orbit": "Orbite",
     "shooter-crown": "Couronne",
     "shooter-halo": "Halo",

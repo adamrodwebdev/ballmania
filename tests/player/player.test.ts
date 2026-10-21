@@ -238,7 +238,7 @@ describe('PlayerProfile', () => {
     expect(repaired.owns('trail-comet')).toBe(true);
     expect(repaired.owns('nope')).toBe(false);
     expect(repaired.equipped('trail')).toBe('trail-comet');
-    expect(repaired.equipped('shooter')).toBe('shooter-orbit');
+    expect(repaired.equipped('shooter')).toBe('shooter-star');
     expect(repaired.equipped('burst')).toBe('burst-glass');
     expect(repaired.view.stats.bestDepth).toBe(4);
     expect(repaired.daily('20261012')).toEqual({ score: 10, stars: 3, won: true });
@@ -247,6 +247,18 @@ describe('PlayerProfile', () => {
 
     storage.set(PLAYER_KEY, JSON.stringify({ version: 7, shards: 999 }));
     expect(new PlayerProfile(storage).shards).toBe(0);
+  });
+
+  it('gives the Star heart to players who wore the first launcher by default', () => {
+    const storage = new MemoryStorage();
+    const equipped = { shooter: 'shooter-orbit', trail: 'trail-none', burst: 'burst-glass' };
+    storage.set(PLAYER_KEY, JSON.stringify({ version: 1, shards: 40, equipped }));
+    const migrated = new PlayerProfile(storage);
+    expect(migrated.equipped('shooter')).toBe('shooter-star');
+    expect(migrated.shards).toBe(40);
+    // Chosen again after 1.7, the first launcher stays.
+    migrated.equip('shooter-orbit');
+    expect(new PlayerProfile(storage).equipped('shooter')).toBe('shooter-orbit');
   });
 });
 

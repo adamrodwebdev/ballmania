@@ -640,11 +640,17 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 | Objectif atteint              | 20 à 500 selon l'objectif    |
 | Arcade (lot 10)               | Voir les modes Arcade, § 3.2 |
 
-**Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu) :
+**Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu).
+Le **Cœur d'étoile** (v1.7) : anneau d'astrolabe aux graduations d'or qui tourne lentement,
+cinq pétales de cristal dont les pointes prennent la couleur chargée, cœur violet qui tient
+la bille suivante, berceau d'or derrière la bille prête à partir ; mêmes couleurs dans les
+deux thèmes. Il remplace l'Orbite comme lanceur par défaut, y compris dans les sauvegardes
+qui le portaient par défaut (format 2 du profil) ; sur un écran large, il tire aussi les
+billes de la scène de titre.
 
 | Emplacement        | Objets (prix en éclats)                                                                                                                                                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lanceurs           | Orbite (offert), Couronne 150, Halo 250, Œil 350                                                                                                                                                                                            |
+| Lanceurs           | **Cœur d'étoile** (offert, par défaut depuis la v1.7 ; mascotte des couvertures), Orbite (offert, le lanceur des premières versions), Couronne 150, Halo 250, Œil 350                                                                       |
 | Traînées de tir    | Aucune (offerte), Comète 80, Poussière d'étoiles 160, Prisme 260                                                                                                                                                                            |
 | Signatures de bris | Verre (offert), Étoiles 180, Pixels 240, Pétales 320                                                                                                                                                                                        |
 | Plateaux           | Celui du monde (par défaut), Nébuleuse, **Néon** (en finissant la Nébuleuse), **Abysses** (en finissant Néon), **Joaillerie** (en finissant les Abysses), **Volcan** (en finissant la Joaillerie), **Singularité** (en finissant le Volcan) |

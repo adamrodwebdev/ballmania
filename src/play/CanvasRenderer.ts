@@ -1180,7 +1180,14 @@ export class CanvasRenderer implements Renderer {
     ctx.drawImage(this.glowOf(palette.tone(shooter.current)), -aura, -aura, aura * 2, aura * 2);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
-    this.look.shooter.draw(ctx, palette, shooter.angle, radius, this.time);
+    this.look.shooter.draw(
+      ctx,
+      palette,
+      shooter.angle,
+      radius,
+      this.time,
+      palette.tone(shooter.current),
+    );
     if (scene.charge > 0) {
       // The charge fills a ring around the shooter; full, it throbs.
       const full = scene.charge >= 1;
