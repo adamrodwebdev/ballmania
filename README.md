@@ -36,7 +36,7 @@ indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
 | Échanger / couleur suivante | Clic droit, X, C                     | Toucher le lanceur ou le bouton |
 | Aimant (Abysses)            | M                                    | Bouton « Aimant »               |
 | Aiguillage (Volcan)         | Clic sur le levier, S                | Toucher le levier               |
-| Pause                       | Échap, P                             | Bouton pause                    |
+| Pause                       | P (Échap reste au navigateur)        | Bouton pause                    |
 
 ## Accessibilité
 

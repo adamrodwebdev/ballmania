@@ -799,7 +799,7 @@ const quit = () => emit('quit');
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
     <p class="sr-only" role="status">{{ adMessage }}</p>
 
-    <dialog ref="pauseDialog" class="dialog" aria-labelledby="pause-title" @cancel.prevent="resume">
+    <dialog ref="pauseDialog" class="dialog" aria-labelledby="pause-title" @cancel.prevent>
       <h2 id="pause-title">{{ t('game.paused') }}</h2>
       <div class="actions">
         <button class="btn btn-primary" type="button" autofocus @click="resume">
@@ -847,7 +847,7 @@ const quit = () => emit('quit');
       class="dialog"
       :class="{ victory: won }"
       aria-labelledby="end-title"
-      @cancel.prevent="quit"
+      @cancel.prevent
     >
       <p v-if="daily" class="eyebrow">{{ t('daily.title') }} · {{ dayLabel }}</p>
       <h2 id="end-title">{{ say(mode.outcome(hud?.over === 'won')) }}</h2>

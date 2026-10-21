@@ -130,7 +130,10 @@ describe('KeyboardControls', () => {
     expect(commands.fire).not.toHaveBeenCalled();
     press('keyup', 'Space');
     press('keydown', 'KeyX');
+    // Escape belongs to the browser (fullscreen): only P pauses.
     press('keydown', 'Escape');
+    expect(commands.togglePause).not.toHaveBeenCalled();
+    press('keydown', 'KeyP');
     press('keydown', 'KeyM');
     press('keydown', 'KeyS');
     expect(commands.flipNextSwitch).toHaveBeenCalledTimes(1);

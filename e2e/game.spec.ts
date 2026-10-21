@@ -38,6 +38,12 @@ test.describe('game', () => {
     await expect(dialog).toBeHidden();
 
     await page.getByTestId('board').focus();
+    // Escape is the browser's (it leaves fullscreen): it neither pauses nor closes a dialog.
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await page.keyboard.press('KeyP');
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Quit' }).click();
@@ -398,7 +404,7 @@ test('plays with the keyboard alone, from the home page to the pause menu', asyn
   await page.waitForTimeout(500);
   await page.keyboard.up('Space');
   await page.keyboard.press('KeyX');
-  await page.keyboard.press('Escape');
+  await page.keyboard.press('KeyP');
   const dialog = page.getByRole('dialog', { name: 'Game paused' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Resume' })).toBeFocused();

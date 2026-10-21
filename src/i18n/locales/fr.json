@@ -46,7 +46,7 @@
   },
   "game": {
     "board": "Plateau de jeu",
-    "help": "Visez avec la souris ou le doigt, tirez en cliquant ou en relâchant. Au clavier : flèches pour viser (Maj pour affiner), Espace pour tirer, X pour échanger, Échap pour la pause.",
+    "help": "Visez avec la souris ou le doigt, tirez en cliquant ou en relâchant. Au clavier : flèches pour viser (Maj pour affiner), Espace pour tirer, X pour échanger, P pour la pause.",
     "score": "Score",
     "streak": "Série ×{count}",
     "pause": "Pause",

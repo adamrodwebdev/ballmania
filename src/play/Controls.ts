@@ -159,7 +159,7 @@ export class KeyboardControls {
         if (event.repeat) return;
         this.commands.flipNextSwitch();
         break;
-      case 'Escape':
+      // Escape belongs to the browser (it leaves fullscreen on CrazyGames): P pauses.
       case 'KeyP':
         if (event.repeat) return;
         this.commands.togglePause();

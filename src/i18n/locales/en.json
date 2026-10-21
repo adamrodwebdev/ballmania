@@ -46,7 +46,7 @@
   },
   "game": {
     "board": "Game board",
-    "help": "Aim with the mouse or your finger, shoot by clicking or releasing. Keyboard: arrows to aim (Shift for precision), Space to shoot, X to swap, Escape to pause.",
+    "help": "Aim with the mouse or your finger, shoot by clicking or releasing. Keyboard: arrows to aim (Shift for precision), Space to shoot, X to swap, P to pause.",
     "score": "Score",
     "streak": "Streak ×{count}",
     "pause": "Pause",

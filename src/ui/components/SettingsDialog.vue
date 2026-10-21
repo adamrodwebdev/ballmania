@@ -48,7 +48,13 @@ const close = () => dialog.value?.close();
 </script>
 
 <template>
-  <dialog ref="dialog" class="dialog" aria-labelledby="settings-title" data-testid="settings">
+  <dialog
+    ref="dialog"
+    class="dialog"
+    aria-labelledby="settings-title"
+    data-testid="settings"
+    @cancel.prevent
+  >
     <h2 id="settings-title">{{ t('settings.title') }}</h2>
     <div class="fields">
       <label class="row">
