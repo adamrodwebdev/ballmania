@@ -32,7 +32,7 @@ import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
 import type { Look } from './cosmetics/Look';
-import { SHOOTER_RADIUS } from './cosmetics/ShooterSkins';
+import { NEXT_BALL_SCALE, SHOOTER_RADIUS } from './cosmetics/ShooterSkins';
 import type { Path } from '@/engine/path/Path';
 
 /** Radius of a switch lever, in board units (also the size of its tap target). */
@@ -1261,7 +1261,7 @@ export class CanvasRenderer implements Renderer {
     if (special === 'laser') {
       this.powers.laserBall(ctx, barrel, radius, null, this.glowOf(LASER_GLOW));
     } else if (special) this.drawSpecial(special, barrel, radius);
-    this.drawBall(shooter.next, shooter.position, radius * 0.6);
+    this.drawBall(shooter.next, shooter.position, radius * NEXT_BALL_SCALE);
     // Slow-down: the time left runs out around the launcher.
     const slow = this.game.slowRemaining;
     if (slow > 0) this.powers.countdown(ctx, shooter.position, COUNTDOWN_REACH, slow);

@@ -658,6 +658,25 @@ deux thèmes. Il remplace l'Orbite comme lanceur par défaut, y compris dans les
 qui le portaient par défaut (format 2 du profil) ; sur un écran large, il tire aussi les
 billes de la scène de titre.
 
+Les quatre autres lanceurs sont redessinés à la même finition (v1.7.1). Ils gardent le
+berceau de métal, l'alvéole centrale et les gemmes de la couleur chargée, avec une matière
+propre à chacun, d'autant plus précieuse que le lanceur coûte cher :
+
+- **Orbite** : planète d'acier aux bandes de glace. Un grand anneau presque à plat et un
+  second plus incliné passent devant et derrière elle ; la lune du grand anneau prend la
+  couleur chargée, celle du petit est d'argent. Berceau d'argent.
+- **Couronne** : sept pointes d'or à facettes tournent lentement autour d'un cœur de rubis
+  cerclé de filigrane ; une gemme de la couleur chargée orne chaque pointe.
+- **Halo** : un cœur de perle sur un disque de nuit, qui le garde lisible sur un plateau
+  clair, une bande de lumière qui respire et quatre lames de lumière aux pointes de la
+  couleur chargée. Berceau de lumière.
+- **Œil** : un œil d'obsidienne cerclé d'or, allongé dans l'axe du tir. Son iris tourbillonne
+  dans la couleur chargée ; il a des cils d'or et cligne à moitié toutes les 7 s.
+
+Les aperçus de l'Atelier montrent chaque lanceur comme en jeu : le halo de la couleur
+chargée, la bille prête à partir dans le berceau et la bille suivante dans l'alvéole, en
+couleurs choisies pour sa matière.
+
 | Emplacement        | Objets (prix en éclats)                                                                                                                                                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Lanceurs           | **Cœur d'étoile** (offert, par défaut depuis la v1.7 ; mascotte des couvertures), Orbite (offert, le lanceur des premières versions), Couronne 150, Halo 250, Œil 350                                                                       |

@@ -28,7 +28,9 @@ indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
   **objectifs**, **Atelier** de cosmétiques (éclats), **Observatoire** de dix
   améliorations (fragments d'étoiles).
 - **Le Cœur d'étoile**, lanceur par défaut et mascotte : pétales de cristal aux pointes
-  de la couleur chargée, berceau d'or.
+  de la couleur chargée, berceau d'or. Quatre autres lanceurs de la même finition
+  attendent à l'Atelier : l'Orbite (offerte), puis la Couronne, le Halo et l'Œil (en
+  éclats).
 - **Module de tir** : tir au relâchement, tir chargé, aide à la visée activable (bille
   fantôme et groupe prévu).
 

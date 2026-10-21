@@ -106,35 +106,43 @@ export class BallSprites {
     if (!ctx) return canvas;
     const r = size / 2;
     ctx.translate(r, r);
-
-    // Body: the tone, lit from the top left, darker at the rim.
-    ctx.beginPath();
-    ctx.arc(0, 0, r * 0.96, 0, Math.PI * 2);
-    ctx.fillStyle = colour;
-    ctx.fill();
-    const shade = ctx.createRadialGradient(-r * 0.35, -r * 0.4, r * 0.1, 0, 0, r);
-    shade.addColorStop(0, 'rgba(255,255,255,0.55)');
-    shade.addColorStop(0.45, 'rgba(255,255,255,0)');
-    shade.addColorStop(1, 'rgba(0,0,0,0.45)');
-    ctx.fillStyle = shade;
-    ctx.fill();
-
-    // Engraved symbol.
-    if (tone !== null) {
-      ctx.beginPath();
-      SYMBOLS[tone % SYMBOLS.length]!(ctx, r);
-      ctx.fillStyle = 'rgba(0,0,0,0.28)';
-      ctx.fill();
-      ctx.lineWidth = Math.max(1, r * 0.06);
-      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-      ctx.stroke();
-    }
-
-    // Specular highlight.
-    ctx.beginPath();
-    ctx.ellipse(-r * 0.36, -r * 0.42, r * 0.26, r * 0.16, -0.6, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
-    ctx.fill();
+    paintOrb(ctx, colour, tone, r);
     return canvas;
   }
+}
+
+/**
+ * Paints a glass orb of radius `r` on the origin, as the sprites hold it:
+ * for a picture drawn once (the Workshop's), where a sprite would not pay.
+ * `tone` picks its engraved symbol, none when null.
+ */
+export function paintOrb(ctx: Context, colour: string, tone: Tone | null, r: number): void {
+  // Body: the tone, lit from the top left, darker at the rim.
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.96, 0, Math.PI * 2);
+  ctx.fillStyle = colour;
+  ctx.fill();
+  const shade = ctx.createRadialGradient(-r * 0.35, -r * 0.4, r * 0.1, 0, 0, r);
+  shade.addColorStop(0, 'rgba(255,255,255,0.55)');
+  shade.addColorStop(0.45, 'rgba(255,255,255,0)');
+  shade.addColorStop(1, 'rgba(0,0,0,0.45)');
+  ctx.fillStyle = shade;
+  ctx.fill();
+
+  // Engraved symbol.
+  if (tone !== null) {
+    ctx.beginPath();
+    SYMBOLS[tone % SYMBOLS.length]!(ctx, r);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fill();
+    ctx.lineWidth = Math.max(1, r * 0.06);
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.stroke();
+  }
+
+  // Specular highlight.
+  ctx.beginPath();
+  ctx.ellipse(-r * 0.36, -r * 0.42, r * 0.26, r * 0.16, -0.6, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.fill();
 }
