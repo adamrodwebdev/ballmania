@@ -219,8 +219,9 @@ onMounted(() => {
   });
   observer.observe(surface.value);
 
+  // A hidden tab pauses the game, which the portal must not take for the player's pause.
   const onVisibility = () => {
-    if (document.hidden) play.pause();
+    if (document.hidden) play.pause('auto');
   };
   document.addEventListener('visibilitychange', onVisibility);
 
@@ -260,10 +261,12 @@ onBeforeUnmount(() => {
   for (const cleanup of cleanups) cleanup();
 });
 
-// The portal is told when the player really plays: not paused, not over, no ad.
+// The portal is told when the player really plays: not paused by the player, not
+// over, no ad. A pause of the game's own (hidden tab) is the portal's business.
 watchEffect(() => {
   const state = hud.value;
-  if (state && state.state === 'playing' && !state.paused && !adPlaying.value) gameplay.start();
+  const playing = state?.state === 'playing' && (!state.paused || state.pausedBy === 'auto');
+  if (playing && !adPlaying.value) gameplay.start();
   else gameplay.stop();
 });
 

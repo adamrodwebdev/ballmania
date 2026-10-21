@@ -42,6 +42,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ### Corrigé
 
+- Sur un portail, un onglet caché met toujours la partie en pause, mais n'est plus
+  signalé comme une pause du joueur : CrazyGames ne reçoit plus de `gameplayStop` à la
+  perte du focus (sa documentation l'interdit, son outil de QA le relève).
 - Carte de campagne sur un écran large et bas (cadres de portail 907 × 510 et 821 × 462,
   téléphone couché, 1280 × 720) : le menu passe en colonne à gauche, et les douze niveaux
   se voient sans faire défiler la page. Ailleurs, les menus défilent avec une barre fine aux
