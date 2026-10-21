@@ -30,6 +30,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   aux pointes de la couleur chargée, berceau d'or derrière la bille prête à partir. Il
   remplace l'Orbite (toujours offerte à l'Atelier), y compris pour les joueurs qui la
   portaient par défaut, et tire les billes de la scène de titre sur un écran large.
+- Builds des portails : page en anglais (langue, titre et description ; « Ball Mania »
+  sur Playgama), le jeu suivant ensuite la langue du joueur. Sur CrazyGames, le SDK est
+  chargé dans le `<head>` de la page, avant le jeu, comme le demande leur documentation.
+- Kits des portails : couvertures où le Cœur d'étoile vient de tirer la bille (CrazyGames
+  et Playgama) ; bandes-annonces refaites avec la nébuleuse et les billes bonus du niveau
+  1-10, jusqu'à une victoire et sa supernova ; descriptions avec les billes bonus et le
+  cadeau du jour.
 
 ### Corrigé
 

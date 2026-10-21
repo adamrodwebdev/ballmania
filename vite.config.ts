@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
-import { PLATFORM_IDS, type PlatformId } from './src/platform/platforms.ts';
+import { CRAZYGAMES_SDK, PLATFORM_IDS, type PlatformId } from './src/platform/platforms.ts';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
   version: string;
@@ -175,6 +175,36 @@ const playgama = (): Plugin => ({
 });
 
 /**
+ * A portal's page speaks English first, the language of the portals'
+ * moderators and of most of their players: its language, title and
+ * description. The game then follows each player's language (§ 3.7).
+ */
+const PORTAL_TITLE = 'Ballmania — marble shooting reinvented';
+const PORTAL_DESCRIPTION =
+  'Chain marble shooting reinvented: a six-world campaign, Arcade modes, spectacular explosions. Free, no sign-up, on mobile and desktop.';
+
+const portalPage = (platform: PlatformId): Plugin => ({
+  name: 'ballmania:portal-page',
+  apply: 'build',
+  transformIndexHtml: (html) =>
+    html
+      .replace('<html lang="fr">', '<html lang="en">')
+      .replace(
+        /<title>[^<]*<\/title>/,
+        // Playgama: the two-word title, as on its page.
+        `<title>${platform === 'playgama' ? PORTAL_TITLE.replace('Ballmania', 'Ball Mania') : PORTAL_TITLE}</title>`,
+      )
+      .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${PORTAL_DESCRIPTION}$2`),
+});
+
+/** CrazyGames: its SDK in the <head>, loaded before the game, as their documentation asks. */
+const crazygames = (): Plugin => ({
+  name: 'ballmania:crazygames',
+  apply: 'build',
+  transformIndexHtml: () => [{ tag: 'script', attrs: { src: CRAZYGAMES_SDK }, injectTo: 'head' }],
+});
+
+/**
  * The platform of a build (specification § 3.7): `vite build --mode poki`
  * builds for Poki into `dist-poki/`; any other mode builds our own site.
  */
@@ -208,7 +238,9 @@ export default defineConfig(({ mode }) => {
       // Search engines and the CSP concern our own site: on a portal, the
       // portal's page is the one indexed.
       ...(site ? [contentSecurityPolicy(), seo()] : demo ? [contentSecurityPolicy()] : []),
+      ...(platform === 'standalone' ? [] : [portalPage(platform)]),
       ...(platform === 'playgama' ? [playgama()] : []),
+      ...(platform === 'crazygames' ? [crazygames()] : []),
     ],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

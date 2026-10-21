@@ -1,5 +1,5 @@
 // Renders the CrazyGames kit (covers and trailers) into marketing/crazygames/out/.
-// Usage: npm run kit:crazygames [-- covers|videos]
+// Usage: npm run kit:crazygames [-- covers|videos [landscape|portrait]]
 // Needs Google Chrome (H.264 encoding) and the network (the title's typeface).
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test';
 import { createServer } from 'vite';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const only = process.argv[2];
+const [only, which] = process.argv.slice(2);
 // `playgama`: that portal's cover sizes and its two-word title, in marketing/playgama/out/.
 const playgama = only === 'playgama';
 const out = fileURLToPath(new URL(playgama ? '../playgama/out/' : './out/', import.meta.url));
@@ -68,7 +68,7 @@ try {
     }
   }
   if (only !== 'covers' && !playgama) {
-    for (const [name, width, height] of VIDEOS) {
+    for (const [name, width, height] of VIDEOS.filter(([file]) => !which || file.includes(which))) {
       const video = await page.evaluate(([w, h]) => window.kit.trailer(w, h), [width, height]);
       await save(`${name}.mp4`, video);
     }
