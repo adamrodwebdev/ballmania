@@ -196,6 +196,18 @@
     "new": "Nouveau",
     "doneShort": "{score} pts"
   },
+  "gift": {
+    "title": "Cadeau du jour",
+    "day": "Jour {day} sur {days}",
+    "collect": "Récupérer +{shards}",
+    "streak": "Série de sept jours",
+    "note": "Demain : +{shards} · Un jour manqué et la série recommence",
+    "taken": "Jour {day} récupéré · Demain +{shards}",
+    "dayDone": "Jour {day} : {shards} éclats, récupérés",
+    "dayToday": "Jour {day}, aujourd'hui : {shards} éclats",
+    "dayLater": "Jour {day} : {shards} éclats",
+    "received": "Cadeau récupéré : {shards} éclats."
+  },
   "shop": {
     "title": "Atelier",
     "pitch": "Lanceurs, traînées, éclats",
