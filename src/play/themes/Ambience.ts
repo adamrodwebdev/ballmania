@@ -1,7 +1,7 @@
 import type { Palette } from '../Palette';
 
 /** How a world's backdrop lives (specification § 3.9): one light, cheap motion per world. */
-export type AmbienceStyle = 'twinkle' | 'scan' | 'bubbles' | 'glints' | 'embers';
+export type AmbienceStyle = 'twinkle' | 'drift' | 'scan' | 'bubbles' | 'glints' | 'embers';
 
 /** Moving specks drawn per frame: few enough to cost nothing. */
 const COUNT = 36;
@@ -48,6 +48,9 @@ export class Ambience {
             scale,
           );
           break;
+        case 'drift':
+          this.drift(ctx, i, width, y, time, scale);
+          break;
         case 'glints':
           this.glint(ctx, x, y, palette, Math.max(0, Math.sin(time * speed + phase)) ** 6, scale);
           break;
@@ -76,6 +79,34 @@ export class Ambience {
     const r = 1.4 * scale * (0.5 + light);
     ctx.fillRect(x - r * 3, y - 0.5 * scale, r * 6, scale);
     ctx.fillRect(x - 0.5 * scale, y - r * 3, scale, r * 6);
+  }
+
+  /**
+   * Nebula: the nearest stars drift slowly across the sky, in front of the
+   * painted ones (a depth of their own), twinkling; the brightest glint.
+   */
+  private drift(
+    ctx: CanvasRenderingContext2D,
+    index: number,
+    width: number,
+    y: number,
+    time: number,
+    scale: number,
+  ): void {
+    const margin = 30 * scale;
+    const span = width + margin * 2;
+    const speed = (2 + 4 * hash(index, 4)) * scale;
+    const x = ((((hash(index, 1) * span - time * speed) % span) + span) % span) - margin;
+    const light = 0.55 + 0.45 * Math.sin(time * (0.8 + hash(index, 5)) + hash(index, 3) * 6.3);
+    const r = (0.7 + 0.9 * hash(index, 6)) * scale;
+    ctx.globalAlpha = light * 0.85;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x - r / 2, y - r / 2, r, r);
+    if (hash(index, 7) < 0.12) {
+      ctx.globalAlpha = light * 0.4;
+      ctx.fillRect(x - r * 2.5, y - 0.35 * scale, r * 5, 0.7 * scale);
+      ctx.fillRect(x - 0.35 * scale, y - r * 2.5, 0.7 * scale, r * 5);
+    }
   }
 
   private glint(

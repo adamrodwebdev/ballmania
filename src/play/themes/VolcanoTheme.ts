@@ -9,6 +9,7 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  */
 export class VolcanoTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'embers';
+  readonly night = false;
 
   paintBackground(
     ctx: CanvasRenderingContext2D,

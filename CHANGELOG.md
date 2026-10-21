@@ -10,6 +10,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 - Sur un portail, un joueur qui n'a jamais joué arrive directement dans le niveau 1-1,
   avec son geste d'apprentissage, sans passer par l'écran titre : la première image est
   le jeu. Un joueur qui revient retrouve l'écran titre.
+- Nouveau fond du monde 1 : une nébuleuse en couches (nuages et voiles de gaz, galaxie
+  lointaine, planète géante et lune à anneaux dans les coins, étoiles proches qui dérivent,
+  vignette), peinte une fois par taille d'écran. Le plateau reste un ciel de nuit en thème
+  clair aussi ; l'affichage autour garde ses pastilles claires.
 
 ### Corrigé
 

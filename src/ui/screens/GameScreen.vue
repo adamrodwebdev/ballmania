@@ -93,7 +93,14 @@ const dayLabel = computed(() =>
   daily ? new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(daily.date) : '',
 );
 
-const readPalette = () => Palette.fromStyle(getComputedStyle(document.documentElement));
+// A cosmetic being tried (rewarded ad, § 3.7) is worn for this game only.
+const look = resolveLook(player.takeLook(), mode.world);
+/** A night world's board keeps the cosmos colours in both themes (§ 3.5). */
+const night = look.theme.night;
+const readPalette = () =>
+  Palette.fromStyle(
+    getComputedStyle(night && canvas.value ? canvas.value : document.documentElement),
+  );
 
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reducedMotion = ref(motionQuery.matches);
@@ -180,8 +187,7 @@ onMounted(() => {
     palette: readPalette(),
     profile: profile(),
     feedback,
-    // A cosmetic being tried (rewarded ad, § 3.7) is worn for this game only.
-    look: resolveLook(player.takeLook(), mode.world),
+    look,
     ...(seed === null ? {} : { seed: () => seed }),
     ...(request.kind === 'rhythm' ? { root: request.song.root } : {}),
     aimAssist: settings.current.aimAssist,
@@ -626,12 +632,13 @@ const quit = () => emit('quit');
 </script>
 
 <template>
-  <section ref="root" class="game" :aria-label="t('game.board')">
+  <section ref="root" class="game" :class="{ night }" :aria-label="t('game.board')">
     <!-- The level fills the screen; the HUD and the buttons float over its edges. -->
     <div ref="surface" class="surface">
       <canvas
         ref="canvas"
         class="board"
+        :data-art="night ? 'night' : undefined"
         tabindex="0"
         :aria-label="t('game.board')"
         aria-describedby="game-help"
@@ -1054,6 +1061,22 @@ const quit = () => emit('quit');
   touch-action: none;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * A night board (§ 3.5) stays a night sky under the light theme: the scrims
+ * stay as dark as the sky, and what floats over the board without a pill of
+ * its own gets one.
+ */
+.game.night {
+  --scrim: color-mix(in srgb, var(--scene-edge) 84%, transparent);
+}
+
+:root:not([data-theme='dark']) .game.night :is(.score, .colossus, .alchemy, .duel) {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: var(--shadow);
 }
 
 .surface {

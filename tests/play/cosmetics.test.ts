@@ -5,7 +5,7 @@ import { GlassShards, PetalShards, PixelShards, StarShards } from '@/play/cosmet
 import { CrownSkin, OrbitSkin } from '@/play/cosmetics/ShooterSkins';
 import { CometTrail, NoTrail } from '@/play/cosmetics/Trails';
 import { NeonTheme } from '@/play/themes/NeonTheme';
-import { NebulaTheme } from '@/play/themes/WorldTheme';
+import { NebulaTheme } from '@/play/themes/NebulaTheme';
 
 describe('Look', () => {
   it('resolves the default look, the world board and equipped items', () => {
