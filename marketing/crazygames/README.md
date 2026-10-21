@@ -20,7 +20,8 @@ sont nécessaires), dans `out/` :
 
 Les vidéos ne sont pas versionnées (`.gitignore`) : on les régénère à l'identique, le jeu
 étant déterministe. `npm run kit:crazygames -- covers` ou `-- videos` (suivi au besoin de
-`landscape` ou `portrait`) ne refait qu'une partie.
+`landscape` ou `portrait`) ne refait qu'une partie ; `-- og` refait l'image de partage de
+notre site et du README (`public/og.jpg`, 1200 × 630) d'après la couverture paysage.
 
 Ce que respectent les couvertures : pas de bordure, aucun texte hormis le titre, pas
 d'icône ni de logo, une illustration plutôt qu'une capture d'écran, une police stylisée

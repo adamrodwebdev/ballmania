@@ -37,6 +37,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   et Playgama) ; bandes-annonces refaites avec la nébuleuse et les billes bonus du niveau
   1-10, jusqu'à une victoire et sa supernova ; descriptions avec les billes bonus et le
   cadeau du jour.
+- Image de partage du site et du README : la couverture du jeu (spirale, trou noir, Cœur
+  d'étoile) à la place de l'image provisoire de la v1.0.
 
 ### Corrigé
 
