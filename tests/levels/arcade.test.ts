@@ -48,7 +48,8 @@ describe('puzzles', () => {
       PUZZLES.slice(from, from + 10).reduce((sum, puzzle) => sum + puzzle.par, 0) / 10;
     expect(average(10)).toBeGreaterThan(average(0));
     expect(average(20)).toBeGreaterThan(average(10));
-  });
+    // The solver works through all thirty: slow on a CI runner (timed out at 5 s).
+  }, 60_000);
 
   // On every board shape: the spiral stretches with the screen, and no ring may hide a target.
   it.each(
