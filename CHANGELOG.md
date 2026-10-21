@@ -42,6 +42,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ### Corrigé
 
+- Carte de campagne sur un écran large et bas (cadres de portail 907 × 510 et 821 × 462,
+  téléphone couché, 1280 × 720) : le menu passe en colonne à gauche, et les douze niveaux
+  se voient sans faire défiler la page. Ailleurs, les menus défilent avec une barre fine aux
+  couleurs du jeu au lieu de la barre grise du navigateur.
 - Écran titre sur téléphone : il ne défile plus quand les étoiles et les éclats s'affichent
   (les boutons ronds restent sur une ligne, le trou noir prend la place qui reste).
 - La ruée du début de niveau ne repart plus quand la chaîne est ramenée en arrière (un

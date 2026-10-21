@@ -44,4 +44,30 @@ test.describe('layout', () => {
       await noOverflow(page, 'pause');
     });
   }
+
+  /** The portals' landscape frames (CrazyGames iframes, phones on their side, fullscreen). */
+  const FRAMES = [
+    [907, 510],
+    [821, 462],
+    [800, 450],
+    [915, 412],
+    [1280, 720],
+  ] as const;
+
+  for (const [width, height] of FRAMES) {
+    test(`shows the whole campaign map without scrolling at ${width}×${height}`, async ({
+      page,
+    }) => {
+      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      await page.setViewportSize({ width, height });
+      await page.goto('./');
+      await page.getByTestId('play').click();
+      const last = page.getByTestId('level-nebula-12');
+      await expect(last).toBeInViewport({ ratio: 1 });
+      // The screen's entrance (a short slide) is over once the last tile has settled.
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight))
+        .toBeLessThanOrEqual(0);
+    });
+  }
 });

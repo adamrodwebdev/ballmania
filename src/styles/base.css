@@ -7,6 +7,27 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Menus scroll like a page: a thin bar in the game's colours, not the browser's grey one. */
+  scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) transparent;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+/* Safari, which knows neither property. */
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 50%, transparent);
 }
 
 html,

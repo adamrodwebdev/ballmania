@@ -1073,6 +1073,13 @@ fait éclater son nom au-dessus du plateau.
 - Mobile d'abord (≈ 360 px), puis points de rupture 640 / 768 / 1024 / 1280 px.
 - Aucun défilement horizontal de 320 à 1920 px ; aire de jeu mise à l'échelle en conservant
   ses proportions, portrait et paysage.
+- **Carte de campagne sur un écran large et bas** (v1.7, jusqu'à 800 px de haut : cadres de
+  portail 907 × 510 et 821 × 462, téléphone couché, 1280 × 720) : le menu en colonne à
+  gauche (retour, titre, étoiles, difficulté, Observatoire en bas), le paquet des mondes à
+  droite, douze niveaux en deux rangées de six ; la page ne défile pas (testé de 915 × 412
+  à 1280 × 720). Sous 480 px de haut, la devise du monde et la description de la difficulté
+  s'effacent. Les autres menus défilent comme une page, avec une barre fine aux couleurs du
+  thème au lieu de la barre grise du navigateur.
 - **Écran de jeu en plein écran** (v1.5.0) : le niveau occupe tout l'écran, le HUD et les
   boutons flottent sur ses bords dans des bandes de taille fixe (en haut et en bas sur un
   écran droit, en rails à gauche et à droite sur un écran large, dès 3:2). Le niveau est
