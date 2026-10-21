@@ -457,6 +457,155 @@ h2 {
   }
 }
 
+/*
+ * Landscape frames up to 800 px tall (portal iframes, laptops, phones on their
+ * side): the menu in a column on the left and the world deck on the right, so
+ * the twelve levels show without scrolling the page.
+ */
+@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 800px) {
+  .campaign {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    grid-template-rows: repeat(4, auto) 1fr auto;
+    gap: var(--space-2) var(--space-6);
+    align-items: start;
+    width: 100%;
+    max-width: 72rem;
+    min-height: 100dvh;
+    padding: var(--space-4);
+  }
+
+  .top {
+    display: contents;
+  }
+
+  .back {
+    grid-area: 1 / 1;
+    justify-self: start;
+  }
+
+  h1 {
+    grid-area: 2 / 1;
+    font-size: clamp(1.75rem, 1.2rem + 2vh, 2.3rem);
+  }
+
+  .total {
+    grid-area: 3 / 1;
+    justify-self: start;
+  }
+
+  .difficulty {
+    grid-area: 4 / 1;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The demo's note, in the room left above the Observatory. */
+  .demo {
+    grid-area: 5 / 1;
+    justify-self: start;
+  }
+
+  .option span {
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+  }
+
+  /* Only the chosen difficulty says what it means. */
+  .option small {
+    display: none;
+  }
+
+  .option input:checked + span small {
+    display: block;
+  }
+
+  .observatory {
+    grid-area: 6 / 1;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+
+  .deck {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: center;
+    gap: var(--space-2);
+  }
+
+  .deck :deep(.swiper) {
+    padding: var(--space-2) 0 var(--space-3);
+  }
+
+  .swiper-slide {
+    padding-top: 1.5rem;
+  }
+
+  .world {
+    gap: var(--space-2);
+    padding: calc(var(--space-3) + 1.25rem) var(--space-4) var(--space-3);
+  }
+
+  /* The world's stars beside its name, its tagline below. */
+  .world-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-3);
+  }
+
+  .world-head > * {
+    grid-column: 1;
+  }
+
+  .world-stars {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: end;
+    margin: 0;
+  }
+
+  .tagline {
+    grid-column: 1 / -1;
+  }
+
+  .banner {
+    top: -1.3rem;
+  }
+
+  .orb {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  .world-stars {
+    margin-top: var(--space-1);
+  }
+
+  /* Two rows of six, whatever the width left to the deck. */
+  .levels {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .tile {
+    min-height: 3.4rem;
+    padding: var(--space-1);
+  }
+}
+
+/* The shortest frames (phones on their side): the levels before the words. */
+@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 480px) {
+  .campaign {
+    padding-block: var(--space-3);
+  }
+
+  .tagline,
+  .option input:checked + span small {
+    display: none;
+  }
+}
+
 .option input:checked + span {
   border-color: var(--accent);
   background: var(--surface-2);
