@@ -9,6 +9,7 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  */
 export class AbyssTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'bubbles';
+  readonly night = false;
 
   paintBackground(
     ctx: CanvasRenderingContext2D,

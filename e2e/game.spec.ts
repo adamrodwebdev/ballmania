@@ -50,6 +50,19 @@ test.describe('game', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
   });
 
+  test('keeps the Nebula a night sky under the light theme', async ({ page }) => {
+    await page.getByTestId('pause').click();
+    await page.getByRole('dialog').getByTestId('open-settings').click();
+    await page.getByTestId('theme').selectOption('light');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    const board = page.getByTestId('board');
+    await expect(board).toHaveAttribute('data-art', 'night');
+    const sky = await board.evaluate((canvas) =>
+      getComputedStyle(canvas).getPropertyValue('--board-bg').trim(),
+    );
+    expect(sky).toBe('#0a0520');
+  });
+
   test('keeps touch targets large enough', async ({ page }) => {
     for (const id of ['pause', 'swap']) {
       const box = (await page.getByTestId(id).boundingBox())!;

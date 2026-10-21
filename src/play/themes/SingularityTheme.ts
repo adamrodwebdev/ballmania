@@ -10,6 +10,7 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  */
 export class SingularityTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'twinkle';
+  readonly night = false;
 
   paintBackground(
     ctx: CanvasRenderingContext2D,

@@ -154,6 +154,14 @@ Deux portes d'entrée depuis l'accueil :
   le montre le plus grand sur cet écran ; entre des plateaux presque à égalité (2 % sur
   téléphone, 12 % quand les billes dépassent 14 px de rayon), celui qui remplit le plus
   l'écran.
+- **Décor (v1.7)** : une nébuleuse en couches, peinte une fois par taille d'écran — ciel
+  violet profond, nuages de couleur, voiles de gaz (bruit fractal sur une petite grille,
+  étiré en douceur), galaxie lointaine, planète géante et lune à anneaux dans les coins,
+  trois profondeurs d'étoiles (lointaines et moyennes peintes, proches qui dérivent dans
+  l'ambiance) et vignette. Le plateau reste un ciel de nuit dans les deux thèmes : son
+  canevas lit les couleurs du cosmos (`[data-art='night']`), l'affichage autour suit le
+  thème et prend des pastilles claires en thème clair. Sillon sombre bordé de violet sous
+  la chaîne.
 - Chaque niveau est vérifié automatiquement sur les cinq plateaux : tracé dans le plateau,
   aucun chevauchement entre deux portions de tracé, place autour du lanceur, longueur
   suffisante, partie qui démarre ; chaque énigme est résolue par le vrai moteur sur chacun.
@@ -954,7 +962,8 @@ Livré à l'étape 11.4 :
   d'un tour et demi en rétrécissant vers le trou, sur fond de vide ; le bilan suit.
   Mouvement réduit : fondu.
 - Ambiances animées par monde, dessinées sur le fond peint (36 éléments au plus, sans
-  état) : étoiles qui scintillent (Nébuleuse, Singularité), ligne de balayage (Néon), bulles
+  état) : étoiles proches qui dérivent (Nébuleuse, v1.7), étoiles qui scintillent
+  (Singularité), ligne de balayage (Néon), bulles
   (Abysses), éclats de facettes (Joaillerie), braises (Volcan). Menus : deux halos qui
   dérivent lentement derrière tout.
 - Écrans qui glissent à l'apparition (sauf le premier affichage, pour ne pas retarder

@@ -9,6 +9,7 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  */
 export class JewelTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'glints';
+  readonly night = false;
 
   paintBackground(
     ctx: CanvasRenderingContext2D,

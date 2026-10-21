@@ -8,6 +8,7 @@ import { withAlpha, type WorldTheme } from './WorldTheme';
  */
 export class NeonTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'scan';
+  readonly night = false;
 
   paintBackground(
     ctx: CanvasRenderingContext2D,
