@@ -159,7 +159,11 @@
     "meteors": "Balls fall from the sky: a shadow shows where they will land.",
     "wind": "Headwinds: during a gust, the aim line shows how your shots drift. A charged shot (hold) flies straight.",
     "cold": "Biting cold: shots slow down and balls freeze. Set off a chain reaction to shatter every frozen ball.",
-    "solar": "Solar storm: the balls cannot be destroyed. Build groups: they will all explode when it ends."
+    "solar": "Solar storm: the balls cannot be destroyed. Build groups: they will all explode when it ends.",
+    "power": "Balls with a ring hold a power: pop them to use it!",
+    "powerSlow": "The hourglass slows the chain down for 8 seconds.",
+    "powerRainbow": "The rainbow ball turns your next shot into a ball of every colour.",
+    "powerLaser": "The lightning ball turns your next shot into a laser that pierces 4 balls."
   },
   "colossus": {
     "nebula": "Stellar Colossus",
@@ -551,6 +555,27 @@
       "r1": "Once per level, a chain reaching the hole is pushed back 15% of the track.",
       "r2": "25%.",
       "r3": "35%."
+    }
+  },
+  "power": {
+    "rewind": {
+      "cheer": "Rewind!",
+      "announce": "Rewind: the chain rolls back."
+    },
+    "slow": {
+      "cheer": "Slow-down!",
+      "announce": "Slow-down: the chain moves at half speed for 8 seconds.",
+      "chip": "Slow-down · {seconds} s"
+    },
+    "rainbow": {
+      "cheer": "Rainbow!",
+      "announce": "Rainbow shot: your next ball matches every colour.",
+      "ready": "Rainbow shot ready"
+    },
+    "laser": {
+      "cheer": "Laser!",
+      "announce": "Laser: your next shot pierces the first 4 balls it touches.",
+      "ready": "Laser ready"
     }
   },
   "deck": {

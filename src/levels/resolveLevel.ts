@@ -98,6 +98,7 @@ export function resolveLevel(
     parTime: Math.round((longest / level.speed) * 0.55),
     ...(colossus ? { colossus } : {}),
     ...(level.gift ? { gift: level.gift } : {}),
+    ...(level.powers ? { powers: level.powers } : {}),
     ...(level.mirrors
       ? { reflectors: level.mirrors.map((mirror) => placeMirror(mirror, frame)) }
       : {}),

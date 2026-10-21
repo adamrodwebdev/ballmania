@@ -159,7 +159,11 @@
     "meteors": "Des billes tombent du ciel : une ombre annonce où elles vont s'insérer.",
     "wind": "Vents contraires : pendant une rafale, la ligne de visée montre la dérive de vos tirs. Un tir chargé (maintenir) ne dévie pas.",
     "cold": "Froid mordant : les tirs ralentissent et des billes gèlent. Déclenchez une réaction en chaîne pour faire éclater toutes les billes gelées.",
-    "solar": "Tempête solaire : les billes deviennent indestructibles. Préparez des groupes : ils exploseront tous quand elle cessera."
+    "solar": "Tempête solaire : les billes deviennent indestructibles. Préparez des groupes : ils exploseront tous quand elle cessera.",
+    "power": "Les billes à anneau cachent un pouvoir : faites-les éclater pour l'utiliser !",
+    "powerSlow": "Le sablier ralentit la chaîne pendant 8 secondes.",
+    "powerRainbow": "La bille arc-en-ciel change votre prochain tir en bille de toutes les couleurs.",
+    "powerLaser": "La bille éclair change votre prochain tir en laser qui traverse 4 billes."
   },
   "colossus": {
     "nebula": "Colosse stellaire",
@@ -551,6 +555,27 @@
       "r1": "Une fois par niveau, la chaîne qui atteint le trou est repoussée de 15 % du tracé.",
       "r2": "De 25 %.",
       "r3": "De 35 %."
+    }
+  },
+  "power": {
+    "rewind": {
+      "cheer": "Recul !",
+      "announce": "Recul : la chaîne repart en arrière."
+    },
+    "slow": {
+      "cheer": "Ralenti !",
+      "announce": "Ralenti : la chaîne avance à mi-vitesse pendant 8 secondes.",
+      "chip": "Ralenti · {seconds} s"
+    },
+    "rainbow": {
+      "cheer": "Arc-en-ciel !",
+      "announce": "Tir arc-en-ciel : votre prochaine bille va avec toutes les couleurs.",
+      "ready": "Tir arc-en-ciel prêt"
+    },
+    "laser": {
+      "cheer": "Laser !",
+      "announce": "Laser : votre prochain tir traverse les 4 premières billes touchées.",
+      "ready": "Laser prêt"
     }
   },
   "deck": {

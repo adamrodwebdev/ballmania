@@ -5,6 +5,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [Non publié]
 
+### Ajouté
+
+- Billes bonus dans la chaîne : détruites dans un groupe, elles déclenchent un pouvoir et
+  rapportent 100 points. **Recul** (la chaîne recule de 8 billes), **Ralenti** (mi-vitesse
+  pendant 8 s), **Tir arc-en-ciel** (la bille suivante va avec toutes les couleurs),
+  **Laser** (le tir suivant traverse les 4 premières billes touchées). Une nouveauté par
+  niveau dans le monde 1 (1-3, 1-6, 1-8, 1-10), puis mêlées aux mondes suivants et à
+  l'Infini.
+
 ### Modifié
 
 - Sur un portail, un joueur qui n'a jamais joué arrive directement dans le niveau 1-1,
@@ -21,6 +30,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ### Corrigé
 
+- La ruée du début de niveau ne repart plus quand la chaîne est ramenée en arrière (un
+  recul, une relance après une défaite) : elle annulait le répit.
 - La touche Échap n'est plus utilisée par le jeu : sur CrazyGames, elle sert à quitter le
   plein écran. Elle mettait le jeu en pause et, sur l'écran de fin, ramenait au menu ; la
   pause se fait désormais avec P ou le bouton, et aucune fenêtre ne se ferme sur Échap.

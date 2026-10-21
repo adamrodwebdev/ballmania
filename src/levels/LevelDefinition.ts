@@ -5,6 +5,7 @@ import type { LevelSetup, MagnetSetup } from '@/engine/Game';
 import type { DuelSetup } from '@/engine/objectives/DuelObjective';
 import type { HazardSetup } from '@/engine/hazards/Hazards';
 import type { EndlessSetup } from '@/engine/objectives/EndlessObjective';
+import type { PowerSetup } from '@/engine/powers/Powers';
 import type { UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import type { RhythmSetup } from '@/engine/rhythm/Tempo';
 import { ForkedRoute, type RoutePart } from '@/engine/path/ForkedRoute';
@@ -114,6 +115,8 @@ export interface LevelDefinition {
   readonly fragments?: { readonly every: number };
   /** The first shot is a gift bomb (level 1-1). */
   readonly gift?: 'bomb';
+  /** Balls of the chain that hold a power (v1.7). */
+  readonly powers?: PowerSetup;
   /** The ring the shooter glides along (Singularity world); `shooter` is then its start. */
   readonly orbit?: {
     readonly centre: Point;
@@ -191,6 +194,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     ...(level.upgrades ? { upgrades: level.upgrades } : {}),
     ...(level.fragments ? { fragments: level.fragments } : {}),
     ...(level.gift ? { gift: level.gift } : {}),
+    ...(level.powers ? { powers: level.powers } : {}),
     ...(level.scoreFactor === undefined ? {} : { scoreFactor: level.scoreFactor }),
     ...(level.puzzle ? { puzzle: level.puzzle } : {}),
     ...(level.rhythm ? { rhythm: level.rhythm } : {}),

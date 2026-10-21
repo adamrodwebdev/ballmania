@@ -342,6 +342,27 @@ export class Destruction {
     for (let i = 0; i < count; i++) this.addSpark(at.x, at.y, 3, 1);
   }
 
+  /**
+   * A power set off (v1.7): a ring of light in the colour of its ball, sparks,
+   * and the bonus it earned in gold letters.
+   */
+  power(at: Vec2, tone: Tone, points: number): void {
+    this.glows.push({ x: at.x, y: at.y, life: 0.6, maxLife: 0.6, tone, size: 3 });
+    this.rings.push({ x: at.x, y: at.y, life: 0.7, maxLife: 0.7, tone, size: 4.5 });
+    const count = Math.min(18, this.budget());
+    for (let i = 0; i < count; i++) this.addSpark(at.x, at.y, tone, 1.2);
+    this.labels.push({
+      x: at.x,
+      y: at.y - 120,
+      life: LABEL_LIFE,
+      maxLife: LABEL_LIFE,
+      tone,
+      size: 40,
+      text: `+${points}`,
+      gold: true,
+    });
+  }
+
   /** A Nova bomb: a blinding ring as wide as its blast, a shock wave and a shake. */
   blast(at: Vec2, radius: number): void {
     this.flashAmount = Math.max(this.flashAmount, 0.3);

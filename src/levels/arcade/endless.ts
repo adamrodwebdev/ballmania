@@ -1,4 +1,5 @@
 import type { EndlessStage } from '@/engine/objectives/EndlessObjective';
+import { POWER_KINDS } from '@/engine/powers/Powers';
 import type { LevelDefinition } from '../LevelDefinition';
 import { resolveLevel } from '../resolveLevel';
 import type { Frame } from '../tracks';
@@ -37,5 +38,10 @@ export function endlessLevel(frame: Frame): LevelDefinition {
     },
     frame,
   );
-  return { ...level, endless: { stages: ENDLESS_STAGES, feed: 8 } };
+  // The four powers come back in turn, one every 24 balls (v1.7).
+  return {
+    ...level,
+    endless: { stages: ENDLESS_STAGES, feed: 8 },
+    powers: { kinds: POWER_KINDS, every: 24 },
+  };
 }

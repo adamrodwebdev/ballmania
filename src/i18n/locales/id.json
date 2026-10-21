@@ -159,7 +159,11 @@
     "meteors": "Bola berjatuhan dari langit: bayangan menunjukkan tempat jatuhnya.",
     "wind": "Angin sakal: saat embusan, garis bidik menunjukkan arah melesetnya tembakan. Tembakan bermuatan (tahan) tetap lurus.",
     "cold": "Dingin menusuk: tembakan melambat dan bola membeku. Picu reaksi berantai untuk memecahkan semua bola beku.",
-    "solar": "Badai matahari: bola tak bisa dihancurkan. Bentuk kelompok: semuanya meledak saat badai usai."
+    "solar": "Badai matahari: bola tak bisa dihancurkan. Bentuk kelompok: semuanya meledak saat badai usai.",
+    "power": "Bola bercincin menyimpan kekuatan: pecahkan untuk memakainya!",
+    "powerSlow": "Jam pasir memperlambat rantai selama 8 detik.",
+    "powerRainbow": "Bola pelangi mengubah tembakan berikutnya menjadi bola semua warna.",
+    "powerLaser": "Bola petir mengubah tembakan berikutnya menjadi laser yang menembus 4 bola."
   },
   "colossus": {
     "nebula": "Kolosus Bintang",
@@ -551,6 +555,27 @@
       "r1": "Sekali per level, rantai yang mencapai lubang didorong mundur 15% lintasan.",
       "r2": "25%.",
       "r3": "35%."
+    }
+  },
+  "power": {
+    "rewind": {
+      "cheer": "Mundur!",
+      "announce": "Mundur: rantai bergulir ke belakang."
+    },
+    "slow": {
+      "cheer": "Perlambat!",
+      "announce": "Perlambat: rantai bergerak setengah kecepatan selama 8 detik.",
+      "chip": "Perlambat · {seconds} dtk"
+    },
+    "rainbow": {
+      "cheer": "Pelangi!",
+      "announce": "Tembakan pelangi: bola berikutnya cocok dengan semua warna.",
+      "ready": "Tembakan pelangi siap"
+    },
+    "laser": {
+      "cheer": "Laser!",
+      "announce": "Laser: tembakan berikutnya menembus 4 bola pertama yang disentuhnya.",
+      "ready": "Laser siap"
     }
   },
   "deck": {

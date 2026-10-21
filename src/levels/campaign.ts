@@ -1,5 +1,6 @@
 import { DEMO, DEMO_WORLDS } from './edition';
 import type { WeatherKind } from '@/engine/hazards/Hazards';
+import { POWER_KINDS, type PowerSetup } from '@/engine/powers/Powers';
 import type { TrackRecipe } from './tracks';
 
 export type WorldId = 'nebula' | 'neon' | 'abyss' | 'jewel' | 'volcano' | 'singularity';
@@ -9,6 +10,10 @@ export type HintId =
   | 'aim'
   | 'swap'
   | 'reaction'
+  | 'power'
+  | 'powerSlow'
+  | 'powerRainbow'
+  | 'powerLaser'
   | 'colours'
   | 'twin'
   | 'colossus'
@@ -91,6 +96,8 @@ export interface CampaignLevel {
     readonly arrhythmia?: number;
     readonly weather?: readonly WeatherKind[];
   };
+  /** Balls of the chain that hold a power (v1.7): Rewind, Slow-down, Rainbow shot, Laser. */
+  readonly powers?: PowerSetup;
   /** Abyss world: pull balls out of the chain. */
   readonly magnet?: {
     readonly charges: number;
@@ -128,20 +135,27 @@ const spiral = (
   ...(extra.portal ? { portal: true } : {}),
 });
 
+/**
+ * A world's level maker. `powers`: what the world's levels carry unless a
+ * level says otherwise (the Nebula introduces them one by one, level by level).
+ */
 const levelOf =
-  (world: WorldId) =>
+  (world: WorldId, powers?: PowerSetup) =>
   (number: number, data: Omit<CampaignLevel, 'id' | 'world' | 'number'>): CampaignLevel => ({
     id: `${world}-${String(number).padStart(2, '0')}`,
     world,
     number,
+    ...(powers ? { powers } : {}),
     ...data,
   });
+/** After the Nebula, the four powers come mixed with each world's own mechanics. */
+const ALL_POWERS: PowerSetup = { kinds: POWER_KINDS, every: 20 };
 const level = levelOf('nebula');
-const neon = levelOf('neon');
-const abyss = levelOf('abyss');
-const jewel = levelOf('jewel');
-const volcano = levelOf('volcano');
-const singularity = levelOf('singularity');
+const neon = levelOf('neon', ALL_POWERS);
+const abyss = levelOf('abyss', ALL_POWERS);
+const jewel = levelOf('jewel', ALL_POWERS);
+const volcano = levelOf('volcano', ALL_POWERS);
+const singularity = levelOf('singularity', ALL_POWERS);
 
 /**
  * A spiral around the black hole, inside the shooter's ring: balls come out
@@ -208,6 +222,8 @@ const lowerPrisms = (spin: number): MirrorRecipe[] => [
 /**
  * World 1, Nebula: the basic rules, then their combinations, in a saw-tooth
  * curve (three levels up, one to breathe), ending with the stellar Colossus.
+ * The powers arrive one at a time (v1.7): Rewind at 1-3, alone and early,
+ * Slow-down at 1-6, Rainbow shot at 1-8, Laser at 1-10; one lesson a level.
  */
 const NEBULA: readonly CampaignLevel[] = [
   level(1, {
@@ -233,7 +249,8 @@ const NEBULA: readonly CampaignLevel[] = [
     tones: 3,
     repeatChance: 0.45,
     speed: 38,
-    hint: 'reaction',
+    hint: 'power',
+    powers: { kinds: ['rewind'], every: 99, first: 'rewind' },
   }),
   level(4, {
     track: spiral(1.5, 0.5, true),
@@ -242,6 +259,7 @@ const NEBULA: readonly CampaignLevel[] = [
     repeatChance: 0.45,
     speed: 44,
     hint: 'colours',
+    powers: { kinds: ['rewind'], every: 20 },
   }),
   level(5, {
     track: spiral(1.45, 0.75, true, { squareness: 3 }),
@@ -249,6 +267,8 @@ const NEBULA: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.4,
     speed: 50,
+    hint: 'reaction',
+    powers: { kinds: ['rewind'], every: 22 },
   }),
   level(6, {
     track: { kind: 'serpentine', rows: 3 },
@@ -256,6 +276,8 @@ const NEBULA: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.45,
     speed: 42,
+    hint: 'powerSlow',
+    powers: { kinds: ['rewind', 'slow'], every: 19, first: 'slow' },
   }),
   level(7, {
     track: spiral(1.1, 0.75, true, { arms: 2, inner: 0.4 }),
@@ -264,6 +286,7 @@ const NEBULA: readonly CampaignLevel[] = [
     repeatChance: 0.45,
     speed: 44,
     hint: 'twin',
+    powers: { kinds: ['rewind', 'slow'], every: 22 },
   }),
   level(8, {
     track: spiral(1.7, 0, false, { inner: 0.36 }),
@@ -271,6 +294,8 @@ const NEBULA: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.38,
     speed: 58,
+    hint: 'powerRainbow',
+    powers: { kinds: ['rewind', 'slow', 'rainbow'], every: 17, first: 'rainbow' },
   }),
   level(9, {
     track: { kind: 'serpentine', rows: 4 },
@@ -278,6 +303,7 @@ const NEBULA: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.36,
     speed: 48,
+    powers: { kinds: ['rewind', 'slow', 'rainbow'], every: 17 },
   }),
   level(10, {
     track: spiral(1.5, 0.25, true, { squareness: 2 }),
@@ -285,6 +311,8 @@ const NEBULA: readonly CampaignLevel[] = [
     tones: 4,
     repeatChance: 0.42,
     speed: 50,
+    hint: 'powerLaser',
+    powers: { kinds: POWER_KINDS, every: 15, first: 'laser' },
   }),
   level(11, {
     track: spiral(1.65, 0.75, false, { squareness: 3, inner: 0.38 }),
@@ -292,6 +320,7 @@ const NEBULA: readonly CampaignLevel[] = [
     tones: 5,
     repeatChance: 0.36,
     speed: 68,
+    powers: { kinds: POWER_KINDS, every: 18 },
   }),
   level(12, {
     track: spiral(1.6, 0.75, true, { inner: 0.4 }),
@@ -301,6 +330,8 @@ const NEBULA: readonly CampaignLevel[] = [
     speed: 26,
     hint: 'colossus',
     colossus: { hp: 60, spit: 6 },
+    // The boss keeps its pressure: only the powers that attack, now and then.
+    powers: { kinds: ['rainbow', 'laser'], every: 26 },
   }),
 ];
 

@@ -46,6 +46,8 @@ function star(ctx: Context, outer: number, inner: number): void {
  */
 export class BallSprites {
   private sprites: HTMLCanvasElement[] = [];
+  /** The same orbs without their symbol: power balls wear an emblem instead (v1.7). */
+  private plainSprites: HTMLCanvasElement[] = [];
   private glows: HTMLCanvasElement[] = [];
 
   constructor(private readonly createCanvas: () => HTMLCanvasElement) {}
@@ -55,6 +57,9 @@ export class BallSprites {
     const size = Math.max(4, Math.ceil(pixels * 2));
     this.sprites = Array.from({ length: MAX_TONES }, (_, tone) =>
       this.draw(palette.tone(tone), tone, size),
+    );
+    this.plainSprites = Array.from({ length: MAX_TONES }, (_, tone) =>
+      this.draw(palette.tone(tone), null, size),
     );
     this.glows = Array.from({ length: MAX_TONES }, (_, tone) =>
       this.drawGlow(palette.tone(tone), Math.min(256, size * 2)),
@@ -68,6 +73,11 @@ export class BallSprites {
 
   get(tone: Tone): HTMLCanvasElement | undefined {
     return this.sprites[tone % MAX_TONES];
+  }
+
+  /** The orb of a tone without its engraved symbol. */
+  plain(tone: Tone): HTMLCanvasElement | undefined {
+    return this.plainSprites[tone % MAX_TONES];
   }
 
   private drawGlow(colour: string, size: number): HTMLCanvasElement {
@@ -87,7 +97,8 @@ export class BallSprites {
     return canvas;
   }
 
-  private draw(colour: string, tone: Tone, size: number): HTMLCanvasElement {
+  /** An orb; `tone` picks its engraved symbol, none when null. */
+  private draw(colour: string, tone: Tone | null, size: number): HTMLCanvasElement {
     const canvas = this.createCanvas();
     canvas.width = size;
     canvas.height = size;
@@ -109,13 +120,15 @@ export class BallSprites {
     ctx.fill();
 
     // Engraved symbol.
-    ctx.beginPath();
-    SYMBOLS[tone % SYMBOLS.length]!(ctx, r);
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.fill();
-    ctx.lineWidth = Math.max(1, r * 0.06);
-    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-    ctx.stroke();
+    if (tone !== null) {
+      ctx.beginPath();
+      SYMBOLS[tone % SYMBOLS.length]!(ctx, r);
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      ctx.fill();
+      ctx.lineWidth = Math.max(1, r * 0.06);
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.stroke();
+    }
 
     // Specular highlight.
     ctx.beginPath();
