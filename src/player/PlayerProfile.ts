@@ -23,7 +23,7 @@ import {
 
 export const PLAYER_KEY = 'ballmania:player';
 /** Format version of the saved profile; bump it with a migration when it changes. */
-export const PLAYER_VERSION = 1;
+export const PLAYER_VERSION = 2;
 
 /** Result of one day's challenge: the first attempt counts for the day. */
 export interface DailyRecord {
@@ -293,7 +293,7 @@ export class PlayerProfile {
     };
     if (typeof value !== 'object' || value === null) return fresh;
     const saved = value as Partial<Record<keyof State | 'version', unknown>>;
-    if (saved.version !== PLAYER_VERSION) return fresh;
+    if (saved.version !== PLAYER_VERSION && saved.version !== 1) return fresh;
 
     const count = (raw: unknown) =>
       typeof raw === 'number' && Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : 0;
@@ -309,6 +309,10 @@ export class PlayerProfile {
       const id = equipped[slot];
       const item = typeof id === 'string' ? findCosmetic(id) : undefined;
       if (item?.slot === slot && fresh.owned.includes(item.id)) fresh.equipped[slot] = item.id;
+    }
+    // Version 1 wore the first launcher by default: from 1.7, everyone gets the Star heart.
+    if (saved.version === 1 && fresh.equipped.shooter === 'shooter-orbit') {
+      fresh.equipped.shooter = DEFAULT_LOOK.shooter;
     }
     const stats = record(saved.stats);
     fresh.stats = Object.fromEntries(

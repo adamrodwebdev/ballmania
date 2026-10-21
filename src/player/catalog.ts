@@ -18,6 +18,7 @@ export interface Cosmetic {
 }
 
 export const COSMETICS: readonly Cosmetic[] = [
+  { id: 'shooter-star', slot: 'shooter', price: 0 },
   { id: 'shooter-orbit', slot: 'shooter', price: 0 },
   { id: 'shooter-crown', slot: 'shooter', price: 150 },
   { id: 'shooter-halo', slot: 'shooter', price: 250 },
@@ -42,7 +43,7 @@ export const COSMETICS: readonly Cosmetic[] = [
 
 /** What every new player owns and wears. */
 export const DEFAULT_LOOK: Readonly<Record<CosmeticSlot, string>> = {
-  shooter: 'shooter-orbit',
+  shooter: 'shooter-star',
   trail: 'trail-none',
   burst: 'burst-glass',
   board: 'board-world',

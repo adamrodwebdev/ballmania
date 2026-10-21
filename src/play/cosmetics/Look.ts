@@ -8,7 +8,14 @@ import { NeonTheme } from '../themes/NeonTheme';
 import { NebulaTheme } from '../themes/NebulaTheme';
 import type { WorldTheme } from '../themes/WorldTheme';
 import { GlassShards, PetalShards, PixelShards, StarShards, type ShardShape } from './ShardShapes';
-import { CrownSkin, EyeSkin, HaloSkin, OrbitSkin, type ShooterSkin } from './ShooterSkins';
+import {
+  CrownSkin,
+  EyeSkin,
+  HaloSkin,
+  OrbitSkin,
+  StarHeartSkin,
+  type ShooterSkin,
+} from './ShooterSkins';
 import { CometTrail, NoTrail, PrismTrail, StardustTrail, type TrailStyle } from './Trails';
 
 /** Everything cosmetic about a game, resolved from what the player wears. */
@@ -20,6 +27,7 @@ export interface Look {
 }
 
 const SHOOTERS: Record<string, () => ShooterSkin> = {
+  'shooter-star': () => new StarHeartSkin(),
   'shooter-orbit': () => new OrbitSkin(),
   'shooter-crown': () => new CrownSkin(),
   'shooter-halo': () => new HaloSkin(),
@@ -66,7 +74,7 @@ export function resolveLook(
 ): Look {
   const board = equipped.board === 'board-world' ? WORLD_BOARDS[world] : equipped.board;
   return {
-    shooter: (SHOOTERS[equipped.shooter] ?? SHOOTERS['shooter-orbit']!)(),
+    shooter: (SHOOTERS[equipped.shooter] ?? SHOOTERS['shooter-star']!)(),
     trail: (TRAILS[equipped.trail] ?? TRAILS['trail-none']!)(),
     shards: (SHARDS[equipped.burst] ?? SHARDS['burst-glass']!)(),
     theme: (BOARDS[board] ?? BOARDS['board-nebula']!)(),

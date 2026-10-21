@@ -14,6 +14,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   lointaine, planète géante et lune à anneaux dans les coins, étoiles proches qui dérivent,
   vignette), peinte une fois par taille d'écran. Le plateau reste un ciel de nuit en thème
   clair aussi ; l'affichage autour garde ses pastilles claires.
+- Nouveau lanceur par défaut, le Cœur d'étoile : anneau d'astrolabe, pétales de cristal
+  aux pointes de la couleur chargée, berceau d'or derrière la bille prête à partir. Il
+  remplace l'Orbite (toujours offerte à l'Atelier), y compris pour les joueurs qui la
+  portaient par défaut, et tire les billes de la scène de titre sur un écran large.
 
 ### Corrigé
 

@@ -1,5 +1,6 @@
 import { MAX_TONES } from '@/engine/chain/Ball';
 import { BallSprites } from '@/play/BallSprites';
+import { SHOOTER_RADIUS, StarHeartSkin } from '@/play/cosmetics/ShooterSkins';
 import type { Palette } from '@/play/Palette';
 
 /** A marble of the spiral: how far it has wound in (radians) and its colour. */
@@ -71,6 +72,9 @@ export class TitleScene {
   private frame = 0;
   private last = 0;
   private seed = 7;
+  /** Wide screens: the Star heart, the game's mascot, fires the shots (`k`: its scale). */
+  private launcher: { x: number; y: number; k: number } | null = null;
+  private readonly skin = new StarHeartSkin();
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -102,6 +106,7 @@ export class TitleScene {
     this.inner = this.outer * 0.12;
     this.k = Math.log(this.outer / this.inner) / (TURNS * Math.PI * 2);
     this.biggest = Math.max(14, this.outer * 0.11);
+    this.launcher = wide ? this.placeLauncher() : null;
     this.sprites.build(this.palette, this.biggest * ratio);
     this.stars = Array.from({ length: Math.round((this.width * this.height) / 9000) }, () => ({
       x: this.random() * this.width,
@@ -217,7 +222,10 @@ export class TitleScene {
     const tone = group[1]!.tone;
     for (const marble of group) marble.tone = tone;
     this.shot = {
-      from: { x: this.width * 1.05, y: this.height * 1.05 },
+      // From the launcher's cradle on a wide screen, from beyond the corner otherwise.
+      from: this.launcher
+        ? this.cradle(this.positionAt(group[1]!.theta))
+        : { x: this.width * 1.05, y: this.height * 1.05 },
       elapsed: 0,
       tone,
     };
@@ -269,6 +277,7 @@ export class TitleScene {
 
     // Inner marbles first, so the nearer ones overlap them.
     for (let i = this.marbles.length - 1; i >= 0; i--) this.drawMarble(this.marbles[i]!);
+    this.drawLauncher();
 
     if (this.shot) {
       const t = Math.min(1, this.shot.elapsed / SHOT_TIME);
@@ -371,6 +380,60 @@ export class TitleScene {
     ctx.beginPath();
     ctx.arc(centre.x, centre.y, inner * 1.3, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  /** Below and to the right of the hole, clear of the screen's edges. */
+  private placeLauncher(): { x: number; y: number; k: number } {
+    const k = this.outer * 0.0031;
+    const reach = 72 * k;
+    return {
+      x: Math.min(this.centre.x + this.outer * 0.883, this.width - reach - 8),
+      y: Math.min(this.centre.y + this.outer * 0.613, this.height - reach - 8),
+      k,
+    };
+  }
+
+  /** The middle of the group the next shot will take, as `aim` will choose it. */
+  private upcoming(): Marble | null {
+    const start = this.marbles.findIndex(
+      (marble, i) =>
+        marble.theta > 1.4 &&
+        marble.theta < 3.4 &&
+        this.marbles[i + 1] !== undefined &&
+        this.marbles[i + 2] !== undefined,
+    );
+    return start < 0 ? null : this.marbles[start + 1]!;
+  }
+
+  /** Where the loaded ball sits when the launcher aims at `target`. */
+  private cradle(target: { x: number; y: number }): { x: number; y: number } {
+    const launcher = this.launcher!;
+    const angle = Math.atan2(target.y - launcher.y, target.x - launcher.x);
+    const reach = SHOOTER_RADIUS * launcher.k;
+    return { x: launcher.x + Math.cos(angle) * reach, y: launcher.y + Math.sin(angle) * reach };
+  }
+
+  /** The Star heart aims at the next group; its cradle is empty while the shot flies. */
+  private drawLauncher(): void {
+    const launcher = this.launcher;
+    if (!launcher) return;
+    const doomed = this.marbles.find((marble) => marble.doomed);
+    const next = this.upcoming();
+    const target = doomed ?? next;
+    const at = target ? this.positionAt(target.theta) : this.centre;
+    const angle = Math.atan2(at.y - launcher.y, at.x - launcher.x);
+    const loaded = this.shot ? this.shot.tone : (next?.tone ?? 0);
+    const { ctx } = this;
+    ctx.save();
+    ctx.translate(launcher.x, launcher.y);
+    ctx.scale(launcher.k, launcher.k);
+    this.skin.draw(ctx, this.palette, angle, 26, this.time, this.palette.tone(loaded));
+    ctx.restore();
+    if (!this.shot) {
+      const cradle = this.cradle(at);
+      this.drawSprite(loaded, cradle.x, cradle.y, 26 * launcher.k);
+    }
+    this.drawSprite((loaded + 3) % MAX_TONES, launcher.x, launcher.y, 26 * 0.6 * launcher.k);
   }
 
   private drawMarble(marble: Marble): void {
