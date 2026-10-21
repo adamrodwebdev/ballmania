@@ -14,15 +14,21 @@ indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
 ## Contenu
 
 - **Campagne** de 6 mondes × 12 niveaux, chacun avec sa mécanique et son Colosse :
-  Nébuleuse (règles de base), Néon (miroirs et ricochets), Abysses (aimant), Joaillerie
-  (alchimie des couleurs), Volcan (aiguillages), Singularité (gravité d'un trou noir,
-  lanceur en orbite). Trois difficultés : Explorateur, Pilote, Légende.
+  Nébuleuse (règles de base, sous un ciel de nébuleuse peint en couches), Néon (miroirs et
+  ricochets), Abysses (aimant), Joaillerie (alchimie des couleurs), Volcan (aiguillages),
+  Singularité (gravité d'un trou noir, lanceur en orbite). Trois difficultés : Explorateur,
+  Pilote, Légende.
+- **Billes bonus** cachées dans la chaîne : **Recul**, **Ralenti**, **Tir arc-en-ciel**
+  et **Laser**, une nouveauté par niveau dans le monde 1, puis mêlées aux mondes suivants.
 - **Aléas** : billes qui tombent du ciel, arythmie, tempête solaire, froid mordant, vents
   contraires, tracés à deux entrées.
 - **Arcade**, ouverte monde après monde : Infini, Énigmes (30 énigmes calculées par un
   solveur, plus une énigme du jour), Rythme (musique synthétisée), Duel contre un rival.
-- **Défi du jour** partageable, **objectifs**, **Atelier** de cosmétiques (éclats),
-  **Observatoire** de dix améliorations (fragments d'étoiles).
+- **Défi du jour** partageable, **cadeau du jour** (une série de 7 jours en éclats),
+  **objectifs**, **Atelier** de cosmétiques (éclats), **Observatoire** de dix
+  améliorations (fragments d'étoiles).
+- **Le Cœur d'étoile**, lanceur par défaut et mascotte : pétales de cristal aux pointes
+  de la couleur chargée, berceau d'or.
 - **Module de tir** : tir au relâchement, tir chargé, aide à la visée activable (bille
   fantôme et groupe prévu).
 
@@ -83,7 +89,9 @@ publicité ni SDK.
 | `npm run build:portals`          | Les quatre                                                               |
 | `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités)              |
 
-On envoie ensuite au portail une archive zip du dossier. Pour CrazyGames, le
+Sur un portail, un nouveau joueur arrive directement dans le niveau 1-1, sans intro ni
+écran titre ; la page est en anglais, le jeu suit ensuite la langue du joueur. On envoie
+ensuite au portail une archive zip du dossier. Pour CrazyGames, le
 [kit de soumission](marketing/crazygames/README.md) réunit description, commandes,
 couvertures et vidéos (`npm run kit:crazygames`). Les publicités récompensées sont
 toujours au choix : continuer après une défaite, éclats doublés, indice d'énigme, essai
@@ -112,8 +120,9 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 
 ## Qualité
 
-- Plus de 750 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se gagne
-  et un test qui fait résoudre chaque énigme par le vrai moteur.
+- Plus de 1 200 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
+  gagne (billes bonus comprises) et un test qui fait résoudre chaque énigme par le vrai
+  moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
   d'accessibilité, absence de défilement horizontal de 320 à 1 920 px.
 - Lighthouse 100 dans les quatre catégories, sur mobile et ordinateur.

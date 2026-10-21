@@ -1,5 +1,5 @@
 // Renders the CrazyGames kit (covers and trailers) into marketing/crazygames/out/.
-// Usage: npm run kit:crazygames [-- covers|videos [landscape|portrait]]
+// Usage: npm run kit:crazygames [-- covers|videos [landscape|portrait]|playgama|og]
 // Needs Google Chrome (H.264 encoding) and the network (the title's typeface).
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +12,8 @@ const [only, which] = process.argv.slice(2);
 const playgama = only === 'playgama';
 const out = fileURLToPath(new URL(playgama ? '../playgama/out/' : './out/', import.meta.url));
 const TITLE = playgama ? 'Ball Mania' : 'Ballmania';
+// `og`: our site's share image (and the README's), the landscape cover at 1200×630.
+const og = only === 'og';
 
 const COVERS = playgama
   ? [
@@ -29,8 +31,8 @@ const VIDEOS = [
   ['trailer-portrait-1080x1620', 1080, 1620],
 ];
 
-const save = async (name, dataUrl) => {
-  const file = `${out}${name}`;
+const save = async (name, dataUrl, dir = out) => {
+  const file = `${dir}${name}`;
   await writeFile(file, Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
   console.log(`✓ ${file}`);
 };
@@ -49,7 +51,13 @@ try {
   page.on('pageerror', (error) => console.error(error));
   await page.goto('http://localhost:5199/marketing/crazygames/kit.html');
   await page.waitForSelector('body[data-ready="true"]', { state: 'attached', timeout: 60_000 });
-  if (only !== 'videos') {
+  if (og) {
+    await save(
+      'og.jpg',
+      await page.evaluate(() => window.kit.cover(1200, 630, 'image/jpeg', 'Ballmania')),
+      fileURLToPath(new URL('../../public/', import.meta.url)),
+    );
+  } else if (only !== 'videos') {
     for (const [name, width, height] of COVERS) {
       await save(
         `${name}.png`,
@@ -67,7 +75,7 @@ try {
       );
     }
   }
-  if (only !== 'covers' && !playgama) {
+  if (only !== 'covers' && !playgama && !og) {
     for (const [name, width, height] of VIDEOS.filter(([file]) => !which || file.includes(which))) {
       const video = await page.evaluate(([w, h]) => window.kit.trailer(w, h), [width, height]);
       await save(`${name}.mp4`, video);
