@@ -1,5 +1,6 @@
 import { MusicPlayer } from './MusicPlayer';
 import type { MusicThemeId } from './score';
+import type { PowerKind } from '@/engine/powers/Powers';
 
 /** Pentatonic steps (semitones) climbed by the chain reaction: it always sounds right. */
 const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
@@ -228,6 +229,37 @@ export class SoundEngine {
       );
     });
   }
+
+  /** A power set off (v1.7): each one sounds like what it does. */
+  power(kind: PowerKind): void {
+    this.play((ctx, out, now) => this.powerSounds[kind](ctx, out, now));
+  }
+
+  private readonly powerSounds: Readonly<
+    Record<PowerKind, (ctx: AudioContext, out: AudioNode, now: number) => void>
+  > = {
+    // Rewind: a tape pulled back, falling fast.
+    rewind: (ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sawtooth', 900, 120, 0.45, 0.12, 1800);
+      this.noiseBurst(ctx, out, now, 0.4, 2500, 0.1);
+    },
+    // Slow-down: a chord sinking slowly, as time stretches.
+    slow: (ctx, out, now) => {
+      this.sweep(ctx, out, now, 'triangle', 660, 330, 0.9, 0.14);
+      this.bell(ctx, out, now, 392, 1.2, 0.06);
+    },
+    // Rainbow shot: an arpeggio climbing through the six colours.
+    rainbow: (ctx, out, now) => {
+      [0, 4, 7, 11, 14, 19].forEach((step, i) =>
+        this.bell(ctx, out, now + i * 0.045, semitones(784, step), 0.45, 0.07),
+      );
+    },
+    // Laser: a charge that snaps.
+    laser: (ctx, out, now) => {
+      this.sweep(ctx, out, now, 'square', 220, 1760, 0.25, 0.08, 3000);
+      this.bell(ctx, out, now + 0.2, 1760, 0.4, 0.06);
+    },
+  };
 
   /** The Nova bomb is ready: a deep hum rising. */
   novaReady(): void {

@@ -30,6 +30,17 @@ import { Gravity, type GravitySetup } from './orbit/Gravity';
 import { StarFragments, type Fragment } from './upgrades/StarFragments';
 import { Upgrades, type UpgradeRanks } from './upgrades/Upgrades';
 import { Orbit, type OrbitSetup } from './orbit/Orbit';
+import { PowerEffects } from './powers/PowerEffects';
+import {
+  LASER_PIERCE,
+  POWER_BONUS,
+  placeInBatch,
+  placePowers,
+  powerOf,
+  type PowerKind,
+  type PowerSetup,
+  type PowerShot,
+} from './powers/Powers';
 import type { Branch, ForkSpan, ForkedRoute } from './path/ForkedRoute';
 import type { Path } from './path/Path';
 import { Reflectors, type ReflectorSetup } from './reflectors/Reflectors';
@@ -107,6 +118,8 @@ export interface LevelSetup {
    * seconds, and a glimpse of what the game holds.
    */
   readonly gift?: 'bomb';
+  /** Balls of the chain that hold a power, set off when they explode (v1.7). */
+  readonly powers?: PowerSetup;
 }
 
 export interface MagnetSetup {
@@ -172,6 +185,14 @@ export interface GameEvents {
   bomb: { readonly position: Vec2; readonly radius: number };
   /** The Nova bomb is ready: the next shot is a bomb. */
   novaReady: Record<string, never>;
+  /** A power ball exploded and its power is at work (v1.7); the shot earned `points`. */
+  power: {
+    readonly kind: PowerKind;
+    readonly position: Vec2;
+    /** Colour of the ball that held it. */
+    readonly tone: Tone;
+    readonly points: number;
+  };
   /** Second chance (upgrade): the chain reached the hole and was pushed back, once. */
   secondChance: { readonly chain: number };
   /** After a defeat, the player chose to continue (a rewarded ad): the chains were pushed back. */
@@ -279,6 +300,11 @@ export class Game {
   private bombing = false;
   /** The first shot is a gift bomb, until it is fired. */
   private gift: boolean;
+  /** The powers at work: rewind, slow-down, a loaded rainbow or laser shot. */
+  private readonly powers: PowerEffects;
+  /** Balls fed since the last power ball (Endless, a Colossus), and the next power's turn. */
+  private fedSincePower = 0;
+  private powerTurn = 0;
   private readonly arrhythmia: Arrhythmia | null;
   private readonly meteors: MeteorShower | null;
   private readonly weatherSystem: Weather | null;
@@ -324,11 +350,14 @@ export class Game {
     const generator = new ChainGenerator(random, setup.chain.minMatch);
     this.generator = generator;
     this.chains = setup.chains.map(({ path, recipe, tones, tail }) => {
-      const balls = (tones ?? generator.tones(recipe)).map((tone) => this.balls.create(tone));
+      const colours = tones ?? generator.tones(recipe);
+      const powers = setup.powers ? placePowers(colours, setup.powers) : [];
+      const balls = colours.map((tone, i) => this.balls.create(tone, 0, powers[i] ?? null));
       return tail === undefined
         ? Chain.queued(path, balls, setup.chain)
         : Chain.placed(path, balls, setup.chain, tail);
     });
+    this.powers = new PowerEffects(this.chains, setup.chain.ballRadius * 2);
     this.lastShooter = this.chains.map(() => 'player');
     for (const chain of this.chains) chain.setPace(this.upgrades.chronos);
     this.tempo = setup.rhythm ? new Tempo(setup.rhythm) : null;
@@ -418,11 +447,58 @@ export class Game {
     return needed === null ? null : Math.min(1, this.novaCharge / needed);
   }
 
-  /** What the loaded ball is: a bomb (Nova), a rainbow ball (prism), or a plain ball. */
+  /**
+   * What the loaded ball is: a bomb (Nova), the shot a power loaded (rainbow
+   * or laser), a rainbow ball (prism), or a plain ball.
+   */
   get loadedSpecial(): ProjectileSpecial {
     if (this.gift || this.nova === 1) return 'bomb';
+    if (this.powers.loaded) return this.powers.loaded;
     const every = this.upgrades.prismEvery;
     return every !== null && (this.shotsFired + 1) % every === 0 ? 'wild' : null;
+  }
+
+  /** Seconds of slow-down left (a power); 0 when the chains run at their speed. */
+  get slowRemaining(): number {
+    return this.powers.slowRemaining;
+  }
+
+  /** The shot a power has loaded and that is not fired yet: rainbow or laser. */
+  get powerShot(): PowerShot | null {
+    return this.powers.loaded;
+  }
+
+  /** True while a Rewind pulls the chains back. */
+  get rewinding(): boolean {
+    return this.powers.rewinding;
+  }
+
+  /**
+   * A laser is loaded: the balls it would pierce if fired now, and where its
+   * beam ends. Null when no laser is loaded.
+   */
+  laserPath(): { readonly targets: readonly Vec2[]; readonly end: Vec2 } | null {
+    if (this.loadedSpecial !== 'laser') return null;
+    const radius = this.setup.chain.ballRadius;
+    const { width, height } = this.setup.board;
+    const direction = Vec2.fromAngle(this.shooter.angle, 1);
+    const targets: Vec2[] = [];
+    const seen = new Set<number>();
+    let end = this.shooter.position;
+    for (let travelled = 0; travelled < width + height; travelled += radius) {
+      end = this.shooter.position.add(direction.scale(travelled));
+      const outside =
+        end.x < -radius || end.y < -radius || end.x > width + radius || end.y > height + radius;
+      if (outside || targets.length >= LASER_PIERCE) break;
+      for (const chain of this.chains) {
+        const hit = chain.hitTest(end);
+        const ball = hit ? chain.balls[hit.index] : undefined;
+        if (!ball || seen.has(ball.id)) continue;
+        seen.add(ball.id);
+        targets.push(chain.positionOf(ball));
+      }
+    }
+    return { targets, end };
   }
 
   /** Shots left in Puzzle mode, or null without a limit. */
@@ -751,16 +827,17 @@ export class Game {
   fire(power = false): boolean {
     if (this.stateValue !== 'playing' || this.shotsLeft === 0) return false;
     const special = this.loadedSpecial;
+    // A laser flies like a charged shot: fast, and straight whatever the gravity or the wind.
     const projectile = this.shooter.fire(
       this.shooterTones(),
-      (power ? POWER_SPEED : 1) * this.shotSpeedFactor,
+      (power || special === 'laser' ? POWER_SPEED : 1) * this.shotSpeedFactor,
       special,
     );
     if (!projectile) return false;
     if (special === 'bomb') {
       this.novaCharge = 0;
       this.gift = false;
-    }
+    } else if (special !== null && special === this.powers.loaded) this.powers.spend();
     this.shotsFired++;
     this.flying.push(projectile);
     this.events.emit('fired', { projectile });
@@ -916,6 +993,7 @@ export class Game {
     this.shooter.tick(dt);
     this.followTempo();
     this.applyHazards(dt);
+    this.powers.update(dt);
     this.playRival(dt);
     this.reflectors.update(dt);
     this.moveProjectiles(dt);
@@ -978,6 +1056,7 @@ export class Game {
         this.explodeBomb(projectile.position);
         return true;
       }
+      if (projectile.special === 'laser') return this.pierce(index, chain, projectile);
       const wild = projectile.special === 'wild';
       if (!wild && this.fuse(index, chain, hit.index, projectile)) return true;
       this.lastShooter[index] = projectile.by;
@@ -992,6 +1071,49 @@ export class Game {
       return true;
     }
     return false;
+  }
+
+  /**
+   * A laser goes through the balls it touches, which explode on their own,
+   * nearest to where it comes from first, and flies on; true once it has
+   * pierced its last ball.
+   */
+  private pierce(index: number, chain: Chain, projectile: Projectile): boolean {
+    this.lastShooter[index] = projectile.by;
+    const reach = this.setup.chain.ballRadius * 2;
+    const behind = projectile.position.sub(projectile.velocity);
+    const touched = chain.balls
+      .filter((ball) => ball.s >= 0)
+      .map((ball) => ({ ball, at: chain.positionOf(ball) }))
+      .filter(({ at }) => at.distanceTo(projectile.position) <= reach)
+      .sort((a, b) => a.at.distanceTo(behind) - b.at.distanceTo(behind));
+    for (const { ball } of touched) {
+      const pierced = chain.extract(chain.balls.indexOf(ball));
+      this.report(index, chain, { balls: [pierced], cause: 'shot', depth: 1 });
+      if (projectile.pierce() >= LASER_PIERCE) return true;
+    }
+    return false;
+  }
+
+  /** A power ball exploded: its power goes to work, and the shot earns a bonus. */
+  private setOff(kind: PowerKind, position: Vec2, tone: Tone): void {
+    powerOf(kind).apply(this.powers);
+    this.scoring.bonus(POWER_BONUS);
+    this.events.emit('power', { kind, position, tone, points: POWER_BONUS });
+  }
+
+  /**
+   * The powers of a batch of balls fed into a running chain: one every
+   * `every` balls fed, taking the level's powers in turn.
+   */
+  private fedPowers(tones: readonly Tone[]): (PowerKind | null)[] {
+    const setup = this.setup.powers;
+    if (!setup || setup.kinds.length === 0) return [];
+    this.fedSincePower += tones.length;
+    if (this.fedSincePower < setup.every) return [];
+    this.fedSincePower = 0;
+    const kind = setup.kinds[this.powerTurn++ % setup.kinds.length]!;
+    return placeInBatch(tones, kind);
   }
 
   /** Nova: every ball within the bomb's radius goes up, whatever its colour. */
@@ -1050,12 +1172,13 @@ export class Game {
     return true;
   }
 
-  /** True once the projectile has left the board (plus a margin): a miss. */
+  /** True once the projectile has left the board (plus a margin): a miss, unless a laser hit. */
   private leave(projectile: Projectile): boolean {
     const margin = this.setup.chain.ballRadius * 2;
     const { x, y } = projectile.position;
     const { width, height } = this.setup.board;
     if (x > -margin && y > -margin && x < width + margin && y < height + margin) return false;
+    if (projectile.pierced > 0) return true;
     this.scoringOf(projectile.by).miss();
     this.events.emit('missed', { projectile });
     return true;
@@ -1094,6 +1217,9 @@ export class Game {
       this.chargeNova(explosion.balls.length);
       if (this.upgrades.shockwave > 0 && this.stateValue === 'playing') {
         chain.shift(-this.upgrades.shockwave);
+      }
+      for (const ball of explosion.balls) {
+        if (ball.power) this.setOff(ball.power, chain.positionOf(ball), ball.tone);
       }
     }
     // Biting cold: a chain reaction shatters every frozen ball as well.
@@ -1194,16 +1320,17 @@ export class Game {
       get inFlight() {
         return game.flying.length;
       },
-      createBalls: (count, colours = tones) =>
-        this.generator
-          .tones({
-            length: count,
-            tones: colours,
-            repeatChance: 0.35,
-            ...(palette ? { palette } : {}),
-            ...(this.setup.alchemy ? { paired: SECONDARIES } : {}),
-          })
-          .map((tone) => this.balls.create(tone)),
+      createBalls: (count, colours = tones) => {
+        const drawn = this.generator.tones({
+          length: count,
+          tones: colours,
+          repeatChance: 0.35,
+          ...(palette ? { palette } : {}),
+          ...(this.setup.alchemy ? { paired: SECONDARIES } : {}),
+        });
+        const powers = this.fedPowers(drawn);
+        return drawn.map((tone, i) => this.balls.create(tone, 0, powers[i] ?? null));
+      },
       colossusHit: (event) => this.events.emit('colossusHit', event),
       colossusPhase: (event) => this.events.emit('colossusPhase', event),
       stageReached: (event) => this.events.emit('stage', event),

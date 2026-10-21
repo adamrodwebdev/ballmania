@@ -62,6 +62,14 @@ export class Chain {
   private speedFactor = 1;
   /** Speed factor of the hazards (arrhythmia, wind), on top of `speedFactor`. */
   private paceValue = 1;
+  /** Speed factor of the powers (Slow-down), on top of the others. */
+  private powerFactor = 1;
+  /**
+   * The level's opening rush is over: once the head has travelled
+   * `rushDistance`, pushing the chain back (a Rewind, a continue) never
+   * starts it again.
+   */
+  private rushed = false;
   /** Smallest group that still explodes during a solar storm; 0 without a storm. */
   private immunity = 0;
 
@@ -152,6 +160,11 @@ export class Chain {
   /** Multiplies the pushing speed again, for the hazards (arrhythmia, gusts of wind). */
   setPace(factor: number): void {
     this.paceValue = factor;
+  }
+
+  /** Multiplies the pushing speed once more, for a power (Slow-down: 0.5; 1 when it ends). */
+  setPowerFactor(factor: number): void {
+    this.powerFactor = factor;
   }
 
   /**
@@ -323,10 +336,12 @@ export class Chain {
   advance(dt: number): Explosion[] {
     const head = this.items[this.items.length - 1];
     const front = head?.s ?? this.pusher?.s ?? 0;
+    if (front >= this.params.rushDistance) this.rushed = true;
     const speed =
-      (front < this.params.rushDistance ? this.params.rushSpeed : this.params.speed) *
+      (this.rushed ? this.params.speed : this.params.rushSpeed) *
       this.speedFactor *
-      this.paceValue;
+      this.paceValue *
+      this.powerFactor;
     if (this.pusher) this.pusher.s += speed * dt;
     if (this.isEmpty) return [];
     const wasTouching = this.items.slice(0, -1).map((_, i) => this.touching(i));

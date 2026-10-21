@@ -4,6 +4,7 @@ import { mix } from '@/engine/chain/Alchemy';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import { BlackHole } from './BlackHole';
+import { COUNTDOWN_REACH, LASER_GLOW, PowerPainter } from './PowerPainter';
 import {
   contentBounds,
   NO_INSETS,
@@ -141,6 +142,8 @@ export class CanvasRenderer implements Renderer {
   private trackLayer: HTMLCanvasElement | null = null;
   /** Glows by colour (holes, the shooter's aura), painted once. */
   private readonly glows = new Map<string, HTMLCanvasElement>();
+  /** The powers' balls and effects (v1.7). */
+  private readonly powers = new PowerPainter();
   private trackPaths: readonly unknown[] = [];
   /** After a win: the tracks full of light, painted once for the afterglow. */
   private litLayer: HTMLCanvasElement | null = null;
@@ -304,8 +307,17 @@ export class CanvasRenderer implements Renderer {
     );
     this.drawSwitches(radius, scene.time);
     this.drawReflectors(scene.time);
-    if (scene.aim) this.drawAim(scene, scene.aim, radius);
+    const laser = game.laserPath();
+    if (laser) {
+      const from = game.shooter.position.add(
+        Vec2.fromAngle(game.shooter.angle, SHOOTER_RADIUS + radius),
+      );
+      this.powers.laserAim(ctx, from, laser, radius, scene.time);
+    } else if (scene.aim) this.drawAim(scene, scene.aim, radius);
     for (const chain of game.chains) this.drawChain(chain, scene.motion, radius);
+    if (game.slowRemaining > 0) this.powers.frost(ctx, game.chains, scene.motion, radius);
+    for (const chain of game.chains) this.drawPowerRings(chain, scene.motion, radius);
+    if (game.rewinding) this.powers.rewind(ctx, game.chains, radius, scene.time);
     this.weather.drawOver(
       ctx,
       palette,
@@ -319,7 +331,17 @@ export class CanvasRenderer implements Renderer {
     this.drawTrails(radius);
     for (const projectile of game.projectiles) {
       this.drawBall(projectile.tone, projectile.position, radius);
-      if (projectile.special) this.drawSpecial(projectile.special, projectile.position, radius);
+      if (projectile.special === 'laser') {
+        this.powers.laserBall(
+          ctx,
+          projectile.position,
+          radius,
+          projectile.velocity,
+          this.glowOf(LASER_GLOW),
+        );
+      } else if (projectile.special) {
+        this.drawSpecial(projectile.special, projectile.position, radius);
+      }
     }
     this.drawFragments(radius, scene.time);
     // Entrances and holes cover the balls coming out of and going into them.
@@ -663,7 +685,38 @@ export class CanvasRenderer implements Renderer {
     for (const ball of chain.balls) {
       const s = motion.arcOf(ball);
       if (s < -radius || s > chain.path.length) continue;
-      this.drawBall(ball.tone, motion.positionOf(chain, ball), radius);
+      const at = motion.positionOf(chain, ball);
+      if (!ball.power) {
+        this.drawBall(ball.tone, at, radius);
+        continue;
+      }
+      // A power ball: the orb without its symbol, the power's emblem instead.
+      const sprite = this.sprites.plain(ball.tone);
+      if (sprite) this.ctx.drawImage(sprite, at.x - radius, at.y - radius, radius * 2, radius * 2);
+      this.powers.emblem(this.ctx, ball.power, at, radius);
+    }
+  }
+
+  /** Power balls glow in their colour and wear a turning ring, over their neighbours. */
+  private drawPowerRings(chain: Chain, motion: BallMotion, radius: number): void {
+    const { ctx, palette } = this;
+    for (const ball of chain.balls) {
+      const s = motion.arcOf(ball);
+      if (!ball.power || s < -radius || s > chain.path.length) continue;
+      const at = motion.positionOf(chain, ball);
+      const reach = radius * (2.1 + 0.15 * Math.sin(this.time * 4 + ball.id));
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.45;
+      ctx.drawImage(
+        this.glowOf(palette.tone(ball.tone)),
+        at.x - reach,
+        at.y - reach,
+        reach * 2,
+        reach * 2,
+      );
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      this.powers.ring(ctx, ball.power, at, radius, palette.tones, this.time);
     }
   }
 
@@ -1205,8 +1258,13 @@ export class CanvasRenderer implements Renderer {
     const barrel = shooter.position.add(Vec2.fromAngle(shooter.angle, SHOOTER_RADIUS));
     this.drawBall(shooter.current, barrel, radius);
     const special = this.game.loadedSpecial;
-    if (special) this.drawSpecial(special, barrel, radius);
+    if (special === 'laser') {
+      this.powers.laserBall(ctx, barrel, radius, null, this.glowOf(LASER_GLOW));
+    } else if (special) this.drawSpecial(special, barrel, radius);
     this.drawBall(shooter.next, shooter.position, radius * 0.6);
+    // Slow-down: the time left runs out around the launcher.
+    const slow = this.game.slowRemaining;
+    if (slow > 0) this.powers.countdown(ctx, shooter.position, COUNTDOWN_REACH, slow);
   }
 }
 

@@ -195,6 +195,33 @@ export function playDefinition(
     return best as { chain: number; s: number; id: number } | null;
   };
 
+  /** A laser flies straight through four balls: the player aims it where it takes the most. */
+  const aimLaser = (): boolean => {
+    let best: { angle: number; balls: number } | null = null;
+    for (let k = 0; k < 180; k++) {
+      const angle = (k / 180) * Math.PI * 2;
+      game.shooter.aim(angle);
+      const balls = game.laserPath()?.targets.length ?? 0;
+      if (balls > 0 && (!best || balls > best.balls)) best = { angle, balls };
+    }
+    if (best) game.shooter.aim(best.angle);
+    return best !== null;
+  };
+
+  /** A rainbow ball takes the colour it touches: the player looks for the best pair of any colour. */
+  const aimWild = (): boolean => {
+    const tones = new Set(game.chains.flatMap((chain) => chain.balls.map((ball) => ball.tone)));
+    const best = [...tones]
+      .map((tone) => target(tone))
+      .filter((candidate): candidate is Candidate => candidate !== null)
+      .sort((a, b) => b.score - a.score)[0];
+    if (!best) return false;
+    const angle = reach.get(best.id);
+    if (angle === undefined) game.aimAt(game.chains[best.chain]!.path.pointAt(best.s + 6));
+    else game.shooter.aim(angle);
+    return true;
+  };
+
   for (let frameIndex = 0; frameIndex < 60 * 300 && game.state === 'playing'; frameIndex++) {
     // Volcano world: a cautious player sends the lava into every free detour.
     if (frameIndex % 30 === 0) {
@@ -214,6 +241,15 @@ export function playDefinition(
           game.update(1 / 60);
           continue;
         }
+      }
+    }
+    // A power loaded a rainbow ball or a laser: the player uses it at once.
+    const special = game.powerShot;
+    if (frameIndex % cadence === 0 && game.shooter.ready && special) {
+      if (special === 'laser' ? aimLaser() : aimWild()) {
+        if (game.fire()) shots++;
+        game.update(1 / 60);
+        continue;
       }
     }
     if (frameIndex % cadence === 0 && game.shooter.ready) {

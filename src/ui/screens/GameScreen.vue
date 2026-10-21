@@ -426,6 +426,18 @@ watch(
   },
 );
 
+/** A power set off (v1.7): its name pops over the board, and the screen reader says what it does. */
+watch(
+  () => hud.value?.power,
+  (power) => {
+    if (!power) return;
+    announcement.value = t(`power.${power.kind}.announce`);
+    cheer.value = { word: t(`power.${power.kind}.cheer`), serial: 100_000 + power.serial };
+    clearTimeout(cheerTimer);
+    cheerTimer = setTimeout(() => (cheer.value = null), 1400);
+  },
+);
+
 watch(
   () => hud.value?.danger,
   (danger) => {
@@ -704,6 +716,19 @@ const quit = () => emit('quit');
       </p>
       <p v-if="hud?.weather" class="chip weather" :class="hud.weather" data-testid="weather">
         {{ t(`weather.${hud.weather}.name`) }}
+      </p>
+      <p v-if="hud?.slow" class="chip power slow" data-testid="slow">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M7 4h10v2.2l-3.6 5.8 3.6 5.8V20H7v-2.2l3.6-5.8L7 6.2z" fill="currentColor" />
+        </svg>
+        {{ t('power.slow.chip', { seconds: hud.slow }) }}
+      </p>
+      <p v-if="hud?.powerShot" class="chip power" :class="hud.powerShot" data-testid="power-shot">
+        <span v-if="hud.powerShot === 'wild'" class="prism" aria-hidden="true"></span>
+        <svg v-else viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M13 2 5 13h5.2L8 22l9-11.5h-5.2z" fill="currentColor" />
+        </svg>
+        {{ t(`power.${hud.powerShot === 'wild' ? 'rainbow' : 'laser'}.ready`) }}
       </p>
     </div>
 
@@ -1246,6 +1271,54 @@ const quit = () => emit('quit');
 .groove,
 .fragments {
   box-shadow: inset 0 0 0 2px var(--orb-cyan);
+}
+
+/* The powers at work (v1.7): their colour on the ring of the chip, their icon in front. */
+.chip.power {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chip.slow {
+  box-shadow:
+    inset 0 0 0 2px var(--orb-cyan),
+    var(--shadow);
+}
+
+.chip.slow svg {
+  color: var(--orb-cyan);
+}
+
+.chip.laser {
+  box-shadow:
+    inset 0 0 0 2px var(--orb-violet),
+    var(--shadow);
+}
+
+.chip.laser svg {
+  color: var(--orb-violet);
+}
+
+.chip.wild {
+  box-shadow:
+    inset 0 0 0 2px var(--text-muted),
+    var(--shadow);
+}
+
+.prism {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--orb-ruby),
+    var(--orb-amber),
+    var(--orb-lime),
+    var(--orb-cyan),
+    var(--orb-violet),
+    var(--orb-rose),
+    var(--orb-ruby)
+  );
 }
 
 /* …what comes and goes floats just below it, on the right… */

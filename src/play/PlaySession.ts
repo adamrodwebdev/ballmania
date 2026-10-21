@@ -3,6 +3,7 @@ import type { SoundEngine } from '@/audio/SoundEngine';
 import type { Tone } from '@/engine/chain/Ball';
 import { SeededRandom } from '@/engine/core/Random';
 import { Game, type GameReport, type GameState } from '@/engine/Game';
+import type { PowerKind, PowerShot } from '@/engine/powers/Powers';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
@@ -62,6 +63,12 @@ export interface HudState {
   bombs: number;
   /** A chain is close to its hole (the heart beats): said once each time it gets there. */
   danger: boolean;
+  /** The latest power set off (v1.7), for the cheer over the board and the announcement. */
+  power: { readonly kind: PowerKind; readonly serial: number } | null;
+  /** Whole seconds of Slow-down left, or null while the chains run at their speed. */
+  slow: number | null;
+  /** The shot a power has loaded, until it is fired: rainbow or laser. */
+  powerShot: PowerShot | null;
   /**
    * Duel mode: where the chain stands between the two holes, from 0 (in the
    * rival's hole: won) to 1 (in the player's: lost); null elsewhere.
@@ -128,6 +135,8 @@ export class PlaySession {
   private heartIn = 0;
   private turning = 0;
   private reactions = 0;
+  /** Powers set off this game, to number their announcements. */
+  private powersSetOff = 0;
   private switchSerial = 0;
   private tugIn = 0;
   /** After a win: the hole the light runs to, the seconds since, and whether it burst yet. */
@@ -363,12 +372,14 @@ export class PlaySession {
     }
     const { shooter } = this.game;
     const fired = { at: shooter.position, angle: shooter.angle, tone: shooter.current };
+    // A laser leaves like a charged shot: the same roar, the same kick.
+    const strong = power || this.game.loadedSpecial === 'laser';
     if (this.game.fire(power)) {
-      if (power) this.feedback.sound.powerShot();
+      if (strong) this.feedback.sound.powerShot();
       else this.feedback.sound.shoot();
-      this.feedback.haptics.shot(power);
+      this.feedback.haptics.shot(strong);
       this.recoil = 1;
-      this.destruction.muzzle(fired.at, fired.angle, fired.tone, power);
+      this.destruction.muzzle(fired.at, fired.angle, fired.tone, strong);
       this.hud.shotsLeft = this.game.shotsLeft;
     }
   }
@@ -469,6 +480,13 @@ export class PlaySession {
       haptics.explosion(1);
     });
     game.events.on('novaReady', () => sound.novaReady());
+    game.events.on('power', ({ kind, position, tone, points }) => {
+      this.destruction.power(position, tone, points);
+      this.hud.score = game.score;
+      this.hud.power = { kind, serial: ++this.powersSetOff };
+      sound.power(kind);
+      haptics.explosion(3);
+    });
     game.events.on('bomb', ({ position, radius }) => {
       this.hud.bombs++;
       this.destruction.blast(position, radius);
@@ -584,6 +602,9 @@ export class PlaySession {
       secondChance: null,
       bombs: 0,
       danger: false,
+      power: null,
+      slow: null,
+      powerShot: null,
     };
   }
 
@@ -622,6 +643,9 @@ export class PlaySession {
     this.beatHeart(realDt);
     const nova = this.game.nova;
     if (nova !== this.hud.nova) this.hud.nova = nova;
+    const slow = Math.ceil(this.game.slowRemaining);
+    this.hud.slow = slow > 0 ? slow : null;
+    this.hud.powerShot = this.game.powerShot;
     if (this.game.rival) {
       this.tugIn -= realDt;
       if (this.tugIn <= 0) {

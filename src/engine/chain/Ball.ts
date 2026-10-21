@@ -1,3 +1,5 @@
+import type { PowerKind } from '../powers/Powers';
+
 /** Colour index of a ball, from 0 to `MAX_TONES - 1`; the theme decides the actual colour. */
 export type Tone = number;
 
@@ -11,6 +13,8 @@ export interface BallView {
   readonly s: number;
   /** Covered in frost (biting cold): a chain reaction shatters it too. */
   readonly frozen: boolean;
+  /** The power it holds (v1.7): set off when it explodes; null for a plain ball. */
+  readonly power: PowerKind | null;
 }
 
 /** A ball of a chain. Only `Chain` moves it (and, in the Jewel world, recolours it). */
@@ -21,6 +25,7 @@ export class Ball implements BallView {
     readonly id: number,
     private toneValue: Tone,
     public s: number,
+    readonly power: PowerKind | null = null,
   ) {}
 
   get tone(): Tone {
@@ -37,7 +42,7 @@ export class Ball implements BallView {
 export class BallFactory {
   private nextId = 1;
 
-  create(tone: Tone, s = 0): Ball {
-    return new Ball(this.nextId++, tone, s);
+  create(tone: Tone, s = 0, power: PowerKind | null = null): Ball {
+    return new Ball(this.nextId++, tone, s, power);
   }
 }

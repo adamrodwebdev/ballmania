@@ -7,17 +7,24 @@ export interface ProjectileView {
   readonly id: number;
   readonly tone: Tone;
   readonly position: Vec2;
+  /** Units per second, in the direction it flies. */
+  readonly velocity: Vec2;
   /** Mirrors it has bounced off so far. */
   readonly bounces: number;
   /** Who fired it: the player, or the rival of a duel. */
   readonly by: Side;
   /** A charged shot: faster, and straight whatever the gravity or the wind. */
   readonly powered: boolean;
-  /** A rainbow ball (takes the colour it touches) or a bomb (upgrades, § 3.9). */
+  /**
+   * A rainbow ball (takes the colour it touches), a bomb (upgrades, § 3.9) or
+   * a laser (a power, v1.7: it pierces the first balls it touches).
+   */
   readonly special: ProjectileSpecial;
+  /** Laser: balls it has pierced so far. */
+  readonly pierced: number;
 }
 
-export type ProjectileSpecial = 'wild' | 'bomb' | null;
+export type ProjectileSpecial = 'wild' | 'bomb' | 'laser' | null;
 
 /** A ball in flight, from the shooter to the chain or out of the board. */
 export class Projectile implements ProjectileView {
@@ -25,6 +32,7 @@ export class Projectile implements ProjectileView {
   private velocityValue: Vec2;
   private bouncesValue = 0;
   private ageValue = 0;
+  private piercedValue = 0;
   /** Direction it was fired in, to measure how far gravity bent it. */
   readonly launch: Vec2;
 
@@ -52,6 +60,15 @@ export class Projectile implements ProjectileView {
 
   get bounces(): number {
     return this.bouncesValue;
+  }
+
+  get pierced(): number {
+    return this.piercedValue;
+  }
+
+  /** Laser: goes through one more ball; returns how many it has pierced. */
+  pierce(): number {
+    return ++this.piercedValue;
   }
 
   /** Seconds in flight. */
