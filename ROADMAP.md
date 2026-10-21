@@ -3,6 +3,14 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
+## v1.7.1 — Lanceurs de l'Atelier (livrée le 21/10/2026)
+
+**But** : mettre les quatre autres lanceurs de l'Atelier (Orbite, Couronne, Halo, Œil) au
+niveau du Cœur d'étoile, à côté duquel ils paraissaient fades, avant la soumission à
+CrazyGames : c'est la 1.7.1 qui part, la 1.7.0 n'ayant pas encore été soumise. Planche des
+cinq lanceurs validée le 21/10/2026 (en grand, en jeu sur plateau sombre et clair, en
+vignette d'Atelier). Les aperçus de l'Atelier montrent désormais les billes du lanceur.
+
 ## v1.7.0 — Nouvelle soumission à CrazyGames (livrée le 21/10/2026)
 
 **But** : passer la revue qualité de CrazyGames, qui a refusé la v1.1 (« The overall quality
