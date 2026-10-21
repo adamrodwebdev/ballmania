@@ -42,6 +42,12 @@ const SHOT_TIME = 0.42;
 /** Colours in runs, as the game deals them. */
 const RUNS = [0, 0, 1, 1, 1, 3, 3, 4, 4, 2, 2, 2, 5, 5, 0, 0, 0, 3, 3, 1, 1, 4, 4, 4, 2, 2, 5, 5];
 
+/** The band an upright screen's menu leaves the hole, in CSS pixels from the top. */
+export interface Room {
+  readonly top: number;
+  readonly bottom: number;
+}
+
 /**
  * The title screen's living backdrop, the covers brought to life: a chain of
  * glass marbles winds into a glowing black hole; every few seconds a shot
@@ -86,8 +92,11 @@ export class TitleScene {
     this.ctx = ctx;
   }
 
-  /** Fits the scene to the canvas's CSS size: the hole moves aside on wide screens. */
-  resize(width: number, height: number, ratio: number): void {
+  /**
+   * Fits the scene to the canvas's CSS size: the hole moves aside on wide
+   * screens; on upright ones it sits in the `room` the menu leaves it.
+   */
+  resize(width: number, height: number, ratio: number, room?: Room): void {
     // Not laid out yet: the chain would be built for a dot.
     if (width < 40 || height < 40) return;
     this.width = width;
@@ -96,13 +105,18 @@ export class TitleScene {
     this.canvas.width = Math.round(this.width * ratio);
     this.canvas.height = Math.round(this.height * ratio);
     const wide = this.width / this.height > 1.15;
-    // Wide: the hole on the right, clear of the menu on the left. Tall: in the middle.
+    // Wide: the hole on the right, clear of the menu on the left. Tall: in the
+    // middle of its room, small enough to keep clear of the text and buttons.
+    const band = room ?? { top: 0, bottom: this.height };
     this.outer = wide
       ? Math.min(this.width * 0.26, this.height * 0.62)
-      : Math.min(this.width * 0.46, this.height * 0.3);
+      : Math.max(
+          48,
+          Math.min(this.width * 0.46, this.height * 0.3, (band.bottom - band.top) * 0.8),
+        );
     this.centre = wide
       ? { x: Math.min(this.width * 0.7, this.width - this.outer * 1.08), y: this.height * 0.55 }
-      : { x: this.width * 0.5, y: this.height * 0.5 };
+      : { x: this.width * 0.5, y: (band.top + band.bottom) / 2 };
     this.inner = this.outer * 0.12;
     this.k = Math.log(this.outer / this.inner) / (TURNS * Math.PI * 2);
     this.biggest = Math.max(14, this.outer * 0.11);

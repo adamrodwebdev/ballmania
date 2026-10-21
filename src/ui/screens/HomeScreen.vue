@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { CAMPAIGN } from '@/levels/campaign';
 import { DailyChallenge } from '@/player/DailyChallenge';
+import { GIFT_SHARDS } from '@/player/DailyGift';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
 
@@ -36,6 +37,34 @@ const nextLabel = computed(() => {
   if (!level) return '';
   return t('home.next', { world: t(`worlds.${level.world}.name`), number: level.number });
 });
+/**
+ * The daily gift (v1.7): today's day of a seven-day streak. Taken, the card
+ * folds into a pill that says what tomorrow brings.
+ */
+const GIFT_DAYS = GIFT_SHARDS.length;
+const gift = computed(() => player.giftOffer(today()));
+const giftMessage = ref('');
+const takeGift = () => {
+  const shards = player.takeGift(today());
+  if (shards > 0) giftMessage.value = t('gift.received', { shards: number.value.format(shards) });
+};
+const dayState = (day: number) => ({
+  done: day < gift.value.day,
+  today: day === gift.value.day,
+  last: day === GIFT_DAYS,
+});
+const dayLabel = (day: number, shards: number) =>
+  t(
+    day < gift.value.day
+      ? 'gift.dayDone'
+      : day === gift.value.day
+        ? 'gift.dayToday'
+        : 'gift.dayLater',
+    {
+      day,
+      shards: number.value.format(shards),
+    },
+  );
 const version = __APP_VERSION__;
 /** Playgama wants a two-to-four-word title, the same in the game and on its page. */
 const gameName = __PLATFORM__ === 'playgama' ? 'Ball Mania' : t('app.name');
@@ -44,6 +73,8 @@ const settingsDialog = ref<{ open: () => void } | null>(null);
 
 /** The living backdrop is drawn after the first paint, from its own small module. */
 const sceneCanvas = ref<HTMLCanvasElement | null>(null);
+/** The room the menu leaves the black hole on an upright screen. */
+const spacer = ref<HTMLElement | null>(null);
 let stopScene = () => {};
 onMounted(async () => {
   const canvas = sceneCanvas.value;
@@ -59,12 +90,19 @@ onMounted(async () => {
     Palette.fromStyle(getComputedStyle(document.documentElement)),
     still,
   );
-  const observer = new ResizeObserver(([entry]) => {
-    if (!entry) return;
-    const { width, height } = entry.contentRect;
-    scene.resize(width, height, Math.min(window.devicePixelRatio || 1, 2));
+  // The hole's room changes with the screen, and as the gift card folds away.
+  const observer = new ResizeObserver(() => {
+    const box = canvas.getBoundingClientRect();
+    const room = spacer.value?.getBoundingClientRect();
+    scene.resize(
+      box.width,
+      box.height,
+      Math.min(window.devicePixelRatio || 1, 2),
+      room && { top: room.top - box.top, bottom: room.bottom - box.top },
+    );
   });
   observer.observe(canvas);
+  if (spacer.value) observer.observe(spacer.value);
   scene.start();
   stopScene = () => {
     scene.stop();
@@ -141,7 +179,61 @@ onBeforeUnmount(() => stopScene());
         <h1 id="home-title" class="game-title title">{{ gameName }}</h1>
         <p class="tagline">{{ t('home.tagline') }}</p>
       </div>
-      <div class="spacer" aria-hidden="true"></div>
+      <div ref="spacer" class="spacer" aria-hidden="true"></div>
+      <section v-if="!gift.taken" class="gift" aria-labelledby="gift-title" data-testid="gift">
+        <div class="gift-head">
+          <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" class="gift-icon">
+            <path d="M5 14h22v13H5zM3 9.5h26V14H3zM16 9.5V27" />
+            <path
+              d="M16 9.5C14 4.5 8.5 4 8.5 7S12 9.5 16 9.5ZM16 9.5C18 4.5 23.5 4 23.5 7S20 9.5 16 9.5Z"
+            />
+          </svg>
+          <div class="gift-title">
+            <h2 id="gift-title" class="gift-name">{{ t('gift.title') }}</h2>
+            <span class="gift-day">{{ t('gift.day', { day: gift.day, days: GIFT_DAYS }) }}</span>
+          </div>
+          <button class="collect" type="button" data-testid="gift-collect" @click="takeGift">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
+            </svg>
+            {{ t('gift.collect', { shards: number.format(gift.shards) }) }}
+          </button>
+        </div>
+        <ol class="streak" :aria-label="t('gift.streak')">
+          <li
+            v-for="(shards, index) in GIFT_SHARDS"
+            :key="index"
+            :class="dayState(index + 1)"
+            :aria-label="dayLabel(index + 1, shards)"
+          >
+            <svg v-if="index + 1 < gift.day" viewBox="0 0 24 24" aria-hidden="true" class="done">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+            <svg
+              v-else-if="index + 1 === GIFT_DAYS"
+              viewBox="0 0 32 24"
+              aria-hidden="true"
+              class="big"
+            >
+              <path class="crystal" d="M16 1l5.5 6.5L16 22 10.5 7.5z" />
+              <path class="crystal cyan" d="M7 6l4 4.5L7 20l-4-9.5z" />
+              <path class="crystal gold" d="M25 6l4 4.5-4 9.5-4-9.5z" />
+            </svg>
+            <svg v-else viewBox="0 0 24 24" aria-hidden="true" class="shard">
+              <path d="M12 2l7 7-7 13L5 9z" />
+            </svg>
+            <span aria-hidden="true">{{ number.format(shards) }}</span>
+          </li>
+        </ol>
+        <p class="gift-note">{{ t('gift.note', { shards: number.format(gift.tomorrow) }) }}</p>
+      </section>
+      <p v-else class="gift-taken" data-testid="gift-taken">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+        {{ t('gift.taken', { day: gift.day, shards: number.format(gift.tomorrow) }) }}
+      </p>
+      <p class="sr-only" role="status">{{ giftMessage }}</p>
       <div class="actions">
         <button class="btn btn-primary play" type="button" data-testid="play" @click="emit('play')">
           <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden="true" class="play-icon">
@@ -207,6 +299,8 @@ onBeforeUnmount(() => stopScene());
 <style scoped>
 .title-screen {
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   overflow: hidden;
@@ -253,6 +347,12 @@ onBeforeUnmount(() => stopScene());
   gap: var(--space-2);
 }
 
+/* The chips may wrap on a narrow phone; the round buttons stay in one row. */
+.tools {
+  flex: none;
+  flex-wrap: nowrap;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -286,9 +386,9 @@ onBeforeUnmount(() => stopScene());
 
 .content {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   align-items: center;
-  min-height: calc(100dvh - 4rem);
   padding: 0 var(--space-4) var(--space-4);
   text-align: center;
 }
@@ -310,9 +410,9 @@ onBeforeUnmount(() => stopScene());
   text-shadow: 0 2px 12px rgb(0 0 0 / 0.6);
 }
 
-/* Room for the black hole between the title and the buttons. */
+/* Room for the black hole between the title and the gift above the buttons. */
 .spacer {
-  flex: 1 0 34vh;
+  flex: 1 0 8vh;
 }
 
 .actions {
@@ -447,6 +547,184 @@ onBeforeUnmount(() => stopScene());
   font-size: 0.8rem;
 }
 
+/*
+ * The daily gift (v1.7): a card above Play on an upright screen, the black
+ * hole in the room above it; in the top corner on a wide one.
+ */
+.gift {
+  display: grid;
+  gap: var(--space-3);
+  width: min(100%, 26rem);
+  margin-block: var(--space-4) var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--tile-edge);
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, var(--tile-top), var(--tile-bottom));
+  box-shadow:
+    0 0.3rem 0 var(--tile-shadow),
+    0 1.1rem 2.5rem rgb(0 0 0 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.16);
+  text-align: left;
+}
+
+.gift-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.gift-icon {
+  flex: none;
+  fill: none;
+  stroke: var(--primary-mid);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+
+.gift-title {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.gift-name {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.gift-day {
+  color: var(--scene-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.collect {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--orb-cyan) 55%, white) 0%,
+    var(--orb-cyan) 55%,
+    color-mix(in srgb, var(--orb-cyan) 70%, black) 100%
+  );
+  color: var(--scene-edge);
+  font-weight: 700;
+  box-shadow:
+    0 0.25rem 0 color-mix(in srgb, var(--orb-cyan) 45%, black),
+    0 0.5rem 1.25rem color-mix(in srgb, var(--orb-cyan) 35%, transparent),
+    inset 0 2px 0 rgb(255 255 255 / 0.55);
+  cursor: pointer;
+}
+
+.streak {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.streak li {
+  display: grid;
+  flex: 1;
+  place-content: center;
+  justify-items: center;
+  gap: 0.1rem;
+  min-height: 3.4rem;
+  border: 1px solid color-mix(in srgb, var(--tile-edge) 75%, transparent);
+  border-radius: 0.75rem;
+  background: rgb(8 3 26 / 0.45);
+  color: var(--scene-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.streak li.done {
+  background: rgb(255 255 255 / 0.05);
+}
+
+.streak li.today {
+  border: 2px solid var(--primary-mid);
+  background: linear-gradient(180deg, var(--tile-top), var(--tile-bottom));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--primary-mid) 22%, transparent),
+    0 0 1rem color-mix(in srgb, var(--primary-mid) 45%, transparent);
+  color: var(--scene-text);
+  font-size: 0.9rem;
+}
+
+.streak li.last {
+  flex: 1.6;
+  border-color: color-mix(in srgb, var(--primary-mid) 65%, transparent);
+  background: radial-gradient(
+    circle at 50% 35%,
+    color-mix(in srgb, var(--primary-mid) 30%, transparent),
+    rgb(8 3 26 / 0.5) 70%
+  );
+  color: var(--primary-mid);
+}
+
+.streak svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.streak .done path,
+.gift-taken path {
+  fill: none;
+  stroke: var(--orb-lime);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.streak .shard path {
+  fill: var(--orb-cyan);
+}
+
+.streak .big {
+  width: 1.7rem;
+  height: 1.25rem;
+}
+
+.crystal {
+  fill: color-mix(in srgb, var(--orb-cyan) 50%, white);
+}
+
+.crystal.cyan {
+  fill: var(--orb-cyan);
+}
+
+.crystal.gold {
+  fill: var(--primary-mid);
+}
+
+.gift-note {
+  margin: 0;
+  color: var(--scene-muted);
+  font-size: 0.8rem;
+}
+
+.gift-taken {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  margin: var(--space-4) 0 var(--space-6);
+  padding: 0 var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--orb-lime) 55%, transparent);
+  border-radius: 999px;
+  background: rgb(20 8 50 / 0.8);
+  font-weight: 700;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .tile:hover {
     transform: translateY(-2px);
@@ -511,6 +789,18 @@ onBeforeUnmount(() => stopScene());
     font-size: 0.95rem;
   }
 
+  .gift,
+  .gift-taken {
+    position: absolute;
+    top: var(--space-4);
+    right: max(clamp(var(--space-4), 3vw, var(--space-8)), env(safe-area-inset-right));
+    margin: 0;
+  }
+
+  .gift {
+    width: min(26rem, 40vw);
+  }
+
   .version {
     position: absolute;
     right: clamp(var(--space-4), 3vw, var(--space-8));
@@ -531,7 +821,6 @@ onBeforeUnmount(() => stopScene());
   }
 
   .content {
-    min-height: calc(100dvh - 3.5rem);
     padding-bottom: var(--space-2);
   }
 
@@ -570,20 +859,37 @@ onBeforeUnmount(() => stopScene());
     height: 1.6rem;
   }
 
+  /* The gift folds to its first row, clear of the black hole. */
+  .gift {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .gift-name {
+    font-size: 1.1rem;
+  }
+
+  .streak,
+  .gift-note {
+    display: none;
+  }
+
   .version {
     display: none;
   }
 }
 
-/* Short portrait screens (360×640 phones): a smaller gap for the black hole,
-   no version line, so nothing scrolls. */
+/* A folded gift in the corner: wide enough for its title on one line. */
+@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 620px) {
+  .gift {
+    width: min(30rem, 46vw);
+  }
+}
+
+/* Short portrait screens (360×640 phones): tighter buttons and no version
+   line, so nothing scrolls. */
 @media (max-aspect-ratio: 5/4) and (max-height: 720px) {
   .brand {
     margin-top: var(--space-2);
-  }
-
-  .spacer {
-    flex: 1 0 22vh;
   }
 
   .actions {
@@ -596,6 +902,20 @@ onBeforeUnmount(() => stopScene());
 
   .tile {
     min-height: 4.75rem;
+  }
+
+  /* The gift keeps its streak, without the note. */
+  .gift,
+  .gift-taken {
+    margin-bottom: var(--space-4);
+  }
+
+  .streak li {
+    min-height: 2.9rem;
+  }
+
+  .gift-note {
+    display: none;
   }
 
   .version {

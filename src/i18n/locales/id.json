@@ -196,6 +196,18 @@
     "new": "Baru",
     "doneShort": "{score} poin"
   },
+  "gift": {
+    "title": "Hadiah harian",
+    "day": "Hari {day} dari {days}",
+    "collect": "Ambil +{shards}",
+    "streak": "Rangkaian tujuh hari",
+    "note": "Besok: +{shards} · Lewatkan sehari dan rangkaian diulang",
+    "taken": "Hari {day} sudah diambil · Besok +{shards}",
+    "dayDone": "Hari {day}: {shards} kepingan, sudah diambil",
+    "dayToday": "Hari {day}, hari ini: {shards} kepingan",
+    "dayLater": "Hari {day}: {shards} kepingan",
+    "received": "Hadiah diambil: {shards} kepingan."
+  },
   "shop": {
     "title": "Bengkel",
     "pitch": "Penembak, jejak, pecahan",

@@ -196,6 +196,18 @@
     "new": "New",
     "doneShort": "{score} pts"
   },
+  "gift": {
+    "title": "Daily gift",
+    "day": "Day {day} of {days}",
+    "collect": "Collect +{shards}",
+    "streak": "Seven-day streak",
+    "note": "Tomorrow: +{shards} · Miss a day and it restarts",
+    "taken": "Day {day} collected · Tomorrow +{shards}",
+    "dayDone": "Day {day}: {shards} shards, collected",
+    "dayToday": "Day {day}, today: {shards} shards",
+    "dayLater": "Day {day}: {shards} shards",
+    "received": "Gift collected: {shards} shards."
+  },
   "shop": {
     "title": "Workshop",
     "pitch": "Shooters, trails, shards",

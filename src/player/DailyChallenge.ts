@@ -1,4 +1,5 @@
 import { WORLDS, type CampaignLevel } from '@/levels/campaign';
+import { dayKey } from './days';
 
 /** Levels the challenge draws from: the first world, without the tutorials nor the boss. */
 const POOL: readonly CampaignLevel[] = WORLDS[0]!.levels.slice(2, 11);
@@ -26,11 +27,7 @@ export class DailyChallenge {
   ) {}
 
   static of(date: Date): DailyChallenge {
-    const day = [
-      date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, '0'),
-      String(date.getDate()).padStart(2, '0'),
-    ].join('');
+    const day = dayKey(date);
     return new DailyChallenge(day, POOL[hash(`ballmania:${day}`) % POOL.length]!);
   }
 

@@ -12,6 +12,7 @@ import {
   type Cosmetic,
   type CosmeticSlot,
 } from './catalog';
+import { DailyGift, GIFT_SHARDS, type GiftOffer, type GiftRecord } from './DailyGift';
 import { REWARDS } from './rewards';
 import {
   MAX_RANK,
@@ -74,6 +75,8 @@ interface State {
   fragments: number;
   /** Rank of each upgrade bought. */
   upgrades: Partial<Record<UpgradeId, number>>;
+  /** The daily gift's streak (v1.7). */
+  gift: GiftRecord;
 }
 
 /**
@@ -114,6 +117,21 @@ export class PlayerProfile {
   }
 
   /** The upgrades owned, for the games of the campaign. */
+  /** Today's daily gift (v1.7): the day of the streak, taken or not. */
+  giftOffer(today: Date): GiftOffer {
+    return new DailyGift(this.state.gift).offer(today);
+  }
+
+  /** Takes today's daily gift: its shards go to the wallet. Returns them, 0 if already taken. */
+  takeGift(today: Date): number {
+    const { record, shards } = new DailyGift(this.state.gift).take(today);
+    if (shards === 0) return 0;
+    this.state.gift = record;
+    this.state.shards += shards;
+    this.save();
+    return shards;
+  }
+
   get upgrades(): UpgradeRanks {
     return { ...this.state.upgrades };
   }
@@ -290,6 +308,7 @@ export class PlayerProfile {
       failures: {},
       fragments: 0,
       upgrades: {},
+      gift: { last: null, streak: 0 },
     };
     if (typeof value !== 'object' || value === null) return fresh;
     const saved = value as Partial<Record<keyof State | 'version', unknown>>;
@@ -333,6 +352,11 @@ export class PlayerProfile {
       if (count(raw) > 0) fresh.failures[level] = count(raw);
     }
     fresh.fragments = count(saved.fragments);
+    const gift = record(saved.gift);
+    if (typeof gift.last === 'string' && /^\d{8}$/.test(gift.last)) {
+      const streak = Math.min(GIFT_SHARDS.length, Math.max(1, count(gift.streak)));
+      fresh.gift = { last: gift.last, streak };
+    }
     const upgrades = record(saved.upgrades);
     for (const id of UPGRADE_IDS) {
       const rank = Math.min(MAX_RANK, count(upgrades[id]));

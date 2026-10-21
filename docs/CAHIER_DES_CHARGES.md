@@ -1034,6 +1034,23 @@ fait éclater son nom au-dessus du plateau.
 - **Ouverture** : la ruée du début de niveau ne se fait qu'une fois ; un recul (ou une
   relance) ramène la tête en arrière sans la relancer.
 
+### 3.12 Cadeau du jour (v1.7)
+
+- **Série de 7 jours** : 15, 20, 25, 30, 40, 50 puis 120 éclats (300 par semaine, à peu
+  près un cosmétique moyen ; chaque jour rapporte moins qu'un niveau gagné à 3 étoiles).
+  Un cadeau par jour calendaire local ; un jour manqué ramène au jour 1 ; après le 7ᵉ
+  jour, la série recommence. Règles pures (`DailyGift`), série gardée dans le profil
+  (`gift: { last, streak }`).
+- **Carte de l'écran titre**, jamais bloquante : titre, « Jour 3 sur 7 », bouton
+  « Récupérer +25 » (cyan, distinct du bouton Jouer doré), les sept jours (pris : coche ;
+  aujourd'hui : cadre doré ; le 7ᵉ : grand cristal), note « Demain : +30 · Un jour manqué
+  et la série recommence ». Au-dessus de Jouer sur un écran haut : le trou noir se place
+  au milieu de la place que lui laissent le titre et la carte, à sa taille. Dans le coin
+  haut sur un écran large ; sur un cadre bas (portail, téléphone couché), la carte se
+  replie sur sa première ligne pour laisser le trou noir visible. Sur un petit téléphone,
+  la note disparaît. Une fois le cadeau pris : une pastille « Jour 3 récupéré · Demain
+  +30 ». Annonce au lecteur d'écran. L'écran titre ne défile jamais, carte ou pastille.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse

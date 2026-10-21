@@ -13,6 +13,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   **Laser** (le tir suivant traverse les 4 premières billes touchées). Une nouveauté par
   niveau dans le monde 1 (1-3, 1-6, 1-8, 1-10), puis mêlées aux mondes suivants et à
   l'Infini.
+- Cadeau du jour sur l'écran titre : une série de 7 jours en éclats (15, 20, 25, 30, 40,
+  50 puis 120, soit 300 par semaine), un cadeau par jour ; un jour manqué et la série
+  recommence au jour 1. La carte se replie en pastille une fois le cadeau pris.
 
 ### Modifié
 
@@ -30,6 +33,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ### Corrigé
 
+- Écran titre sur téléphone : il ne défile plus quand les étoiles et les éclats s'affichent
+  (les boutons ronds restent sur une ligne, le trou noir prend la place qui reste).
 - La ruée du début de niveau ne repart plus quand la chaîne est ramenée en arrière (un
   recul, une relance après une défaite) : elle annulait le répit.
 - La touche Échap n'est plus utilisée par le jeu : sur CrazyGames, elle sert à quitter le
