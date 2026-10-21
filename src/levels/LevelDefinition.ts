@@ -115,6 +115,8 @@ export interface LevelDefinition {
   readonly fragments?: { readonly every: number };
   /** The first shot is a gift bomb (level 1-1). */
   readonly gift?: 'bomb';
+  /** The first colours the launcher deals (level 1-1's showcase). */
+  readonly opening?: readonly number[];
   /** Balls of the chain that hold a power (v1.7). */
   readonly powers?: PowerSetup;
   /** The ring the shooter glides along (Singularity world); `shooter` is then its start. */
@@ -194,6 +196,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     ...(level.upgrades ? { upgrades: level.upgrades } : {}),
     ...(level.fragments ? { fragments: level.fragments } : {}),
     ...(level.gift ? { gift: level.gift } : {}),
+    ...(level.opening ? { opening: level.opening } : {}),
     ...(level.powers ? { powers: level.powers } : {}),
     ...(level.scoreFactor === undefined ? {} : { scoreFactor: level.scoreFactor }),
     ...(level.puzzle ? { puzzle: level.puzzle } : {}),

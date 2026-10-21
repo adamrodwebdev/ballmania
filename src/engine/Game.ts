@@ -120,6 +120,8 @@ export interface LevelSetup {
   readonly gift?: 'bomb';
   /** Balls of the chain that hold a power, set off when they explode (v1.7). */
   readonly powers?: PowerSetup;
+  /** The first colours the launcher deals (level 1-1: the colour its showcase needs). */
+  readonly opening?: readonly Tone[];
 }
 
 export interface MagnetSetup {
@@ -379,7 +381,10 @@ export class Game {
       setup.projectileSpeed,
       setup.fireCooldown,
       this.shooterTones(),
-      { choosing: setup.puzzle !== undefined },
+      {
+        choosing: setup.puzzle !== undefined,
+        ...(setup.opening ? { opening: setup.opening } : {}),
+      },
     );
     const rival = setup.duel?.rival;
     this.rival = rival

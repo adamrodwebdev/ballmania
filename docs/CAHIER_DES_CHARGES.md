@@ -558,6 +558,16 @@ Décisions :
   les 30 premières secondes montrent ce que le jeu a de neuf ; l'aide écrite cède la
   place à un geste dessiné sur le plateau (une main glisse du lanceur à la chaîne et
   relâche), affiché jusqu'au premier tir.
+- **Le 1-1, vitrine (v1.7)** : tout nouveau joueur d'un portail y arrive, et sa première
+  minute doit montrer le meilleur du jeu, pas les bases du genre. La chaîne (36 billes,
+  trois couleurs) est disposée à la main (`CampaignLevel.sequence`), tête d'abord : six
+  billes pour la Nova ; puis des paires emboîtées autour d'une paire de la couleur que le
+  lanceur sert après la Nova (`opening`, deux fois), si bien qu'un tir déclenche une
+  cascade à trois étages ; une bille Laser dans la paire suivante (`PowerSetup.lead` : 16
+  billes devant elle) ; une seconde cascade ; une queue. Sur une partie jouée : Nova vers
+  4 s, cascade vers 8 s, Laser vers 12 s puis tir qui transperce la chaîne, supernova
+  vers 40 à 55 s. La leçon reste « trois de la même couleur » ; le Laser n'y est qu'un
+  avant-goût, enseigné au 1-10.
 - **Récompenses visibles** : points et multiplicateurs qui jaillissent dans la police du
   jeu, multiplicateur doré, mot d'encouragement dès une réaction de profondeur 3.
 
@@ -1031,7 +1041,7 @@ fait éclater son nom au-dessus du plateau.
   ajoutées, les pouvoirs à tour de rôle.
 - **Apprentissage, une nouveauté par niveau** : Recul au 1-3 (seul, tôt, conseil « Les
   billes à anneau cachent un pouvoir… »), Ralenti au 1-6, Arc-en-ciel au 1-8, Laser au
-  1-10 ; le conseil sur les réactions en chaîne passe du 1-3 au 1-5. Le Colosse du monde 1
+  1-10, après un avant-goût du Laser dans la vitrine du 1-1 ; le conseil sur les réactions en chaîne passe du 1-3 au 1-5. Le Colosse du monde 1
   ne porte que les pouvoirs d'attaque (arc-en-ciel, laser), rarement, pour garder sa
   pression. Mondes 2 à 6 : les quatre, une toutes les 20 billes. Infini : une toutes les
   24 billes. Pas dans les Énigmes, le Rythme ni le Duel.

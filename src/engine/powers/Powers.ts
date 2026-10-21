@@ -28,6 +28,8 @@ export interface PowerSetup {
   readonly every: number;
   /** The power this level teaches: it comes first, towards the head, so it arrives early. */
   readonly first?: PowerKind;
+  /** Balls ahead of the first power, from the head (default: a fifth of the chain). */
+  readonly lead?: number;
 }
 
 /** A shot a power loads into the launcher. */
@@ -105,9 +107,10 @@ export function placePowers(tones: readonly Tone[], setup: PowerSetup): (PowerKi
     ? [setup.first, ...setup.kinds.filter((kind) => kind !== setup.first)]
     : [...setup.kinds];
   const taken: number[] = [];
+  // From near the head (the last index, which enters first) towards the tail.
+  const head = setup.lead === undefined ? 0.8 : 1 - setup.lead / Math.max(1, tones.length - 1);
   for (let k = 0; k < count; k++) {
-    // From near the head (the last index, which enters first) towards the tail.
-    const share = count === 1 ? 0.8 : 0.8 - (0.6 * k) / (count - 1);
+    const share = count === 1 ? head : head - ((head - 0.2) * k) / (count - 1);
     const wanted = share * (tones.length - 1);
     let best: number | null = null;
     for (const i of candidates) {
