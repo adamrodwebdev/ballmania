@@ -19,6 +19,14 @@ const english = async (page: Page, player: object = {}) => {
   }, player);
 };
 
+/** A player who finished the first level before: the visit opens on the title screen. */
+const returning = async (page: Page) => {
+  await page.addInitScript(() => {
+    const levels = { 'nebula-01': { stars: 2, best: 1200 } };
+    localStorage.setItem('ballmania:progress', JSON.stringify({ version: 1, levels }));
+  });
+};
+
 test.describe('portal build', () => {
   test('tells the portal when the game is loaded and when the player plays', async ({ page }) => {
     await english(page, { worlds: ['nebula', 'neon'] });
@@ -54,15 +62,25 @@ test.describe('portal build', () => {
     await expect(page.getByTestId('shard-hint')).toHaveCount(0);
   });
 
-  test('lands a new player in the first level in one click, without the intro', async ({
+  test('lands a new player straight in the first level, without the intro or the title', async ({
     page,
   }) => {
     await english(page);
     await page.addInitScript(() => sessionStorage.removeItem('ballmania:intro'));
     await page.goto('./');
-    await expect(page.getByTestId('studio-intro')).toHaveCount(0);
-    await page.getByTestId('play').click();
     await expect(page.getByTestId('level')).toHaveText('1-1');
+    await expect(page.getByTestId('studio-intro')).toHaveCount(0);
+    await expect(page.getByTestId('play')).toHaveCount(0);
+    await expect.poll(() => log(page)).toContain('gameplayStart');
+    expect((await log(page)).slice(0, 2)).toEqual(['init', 'loaded']);
+  });
+
+  test('brings a returning player back to the title screen', async ({ page }) => {
+    await english(page);
+    await returning(page);
+    await page.goto('./');
+    await expect(page.getByTestId('play')).toBeVisible();
+    await expect(page.getByTestId('board')).toHaveCount(0);
   });
 
   test('continues once after a defeat, then shows an ad before replaying', async ({ page }) => {
@@ -70,8 +88,8 @@ test.describe('portal build', () => {
     test.setTimeout(300_000);
     await english(page);
     await page.clock.install();
+    // A new player: the visit opens in the first level.
     await page.goto('./');
-    await page.getByTestId('play').click();
     await expect(page.getByTestId('board')).toBeVisible();
     await page.clock.runFor(100_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
@@ -105,6 +123,7 @@ test.describe('portal build', () => {
   test('doubles the shards of a game, and lends a cosmetic to try', async ({ page }) => {
     test.setTimeout(120_000);
     await english(page);
+    await returning(page);
     await page.clock.install();
     await page.goto('./');
     await page.getByTestId('shop').click();

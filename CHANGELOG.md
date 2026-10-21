@@ -5,6 +5,12 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [Non publié]
 
+### Modifié
+
+- Sur un portail, un joueur qui n'a jamais joué arrive directement dans le niveau 1-1,
+  avec son geste d'apprentissage, sans passer par l'écran titre : la première image est
+  le jeu. Un joueur qui revient retrouve l'écran titre.
+
 ### Corrigé
 
 - La touche Échap n'est plus utilisée par le jeu : sur CrazyGames, elle sert à quitter le

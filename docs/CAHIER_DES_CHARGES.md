@@ -760,8 +760,9 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
   `?ads=blocked` (bloqueur) et `?ads=refused` (publicité fermée trop tôt). Les tests de
   bout en bout du build portail s'en servent.
 - **Exigences CrazyGames appliquées** (v1.2, d'après leur documentation) : un clic au
-  plus pour jouer (sur les portails, pas d'intro du studio ; « Jouer » mène un nouveau
-  joueur au niveau 1-1) ; interstitielle seulement en enchaînant une partie (suivant,
+  plus pour jouer (sur les portails, pas d'intro du studio ; depuis la v1.7, un joueur qui
+  n'a jamais joué arrive directement dans le niveau 1-1, sans écran titre, et « Jouer »
+  l'y ramène tant qu'il ne l'a pas fini) ; interstitielle seulement en enchaînant une partie (suivant,
   rejouer, aide), jamais en revenant à un menu, et jamais au « Rejouer » d'un écran qui
   proposait « Continuer » (une seule offre de publicité par pause) ; aucun bouton de
   publicité récompensée sur l'écran de jeu actif (l'indice est dans le menu pause) ; icône
