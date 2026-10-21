@@ -19,25 +19,37 @@ sont nécessaires), dans `out/` :
 | `trailer-portrait-1080x1620.mp4`  | Vidéo portrait 1080p (2:3) | Idem                                            |
 
 Les vidéos ne sont pas versionnées (`.gitignore`) : on les régénère à l'identique, le jeu
-étant déterministe. `npm run kit:crazygames -- covers` ou `-- videos` ne refait qu'une
-partie.
+étant déterministe. `npm run kit:crazygames -- covers` ou `-- videos` (suivi au besoin de
+`landscape` ou `portrait`) ne refait qu'une partie.
 
 Ce que respectent les couvertures : pas de bordure, aucun texte hormis le titre, pas
 d'icône ni de logo, une illustration plutôt qu'une capture d'écran, une police stylisée
-(Lilita One, licence SIL OFL), la même composition aux trois formats.
+(Lilita One, licence SIL OFL), la même composition aux trois formats : la spirale de billes
+qui plonge dans le trou noir, un groupe qui éclate, et le Cœur d'étoile, lanceur et mascotte
+du jeu (v1.7), qui vient de tirer la bille, placé à la main sur chaque format.
 
 Ce que respectent les vidéos : elles s'ouvrent sur la couverture fixe (1 s), puis montrent
 le vrai jeu en plein écran (rendu image par image par le moteur du jeu, sans accélération),
-quatre mondes dont une victoire avec le trou qui avale le plateau. Pas de son, pas de
-curseur, pas de bandes noires, pas de texte promotionnel ni de logo. Les moments filmés
-sont choisis automatiquement : un robot joue avec toutes les améliorations et les
-cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes explosent.
+quatre mondes : la nébuleuse du niveau 1-10 et ses quatre billes bonus, puis jusqu'à une
+victoire et sa supernova. Pas de son, pas de curseur, pas de bandes noires, pas de texte
+promotionnel ni de logo. Les moments filmés sont choisis automatiquement : un robot joue
+avec le Cœur d'étoile, les cosmétiques les plus voyants et toutes les améliorations sauf
+l'Onde de choc et Chronos (elles retiennent la chaîne : le plateau restait presque vide et
+le niveau ne finissait pas) ; il préfère les groupes qui portent une bille bonus. On garde
+les secondes où le plus de billes explosent sur un plateau bien rempli, un pouvoir
+déclenché comptant comme une grosse explosion. Dans les plans d'action, la chaîne entre plus
+loin au début (la moitié du tracé au lieu de 30 %) et le robot la laisse entrer avant de
+tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la supernova.
 
 ## Description (à coller, en anglais)
 
 > **Ballmania** reinvents the classic marble shooter. A chain of glass marbles rolls toward
 > the hole: shoot marbles to make groups of three or more of the same colour and watch them
 > shatter in spectacular chain reactions.
+>
+> Burst the power-up marbles hidden in the chain: **Rewind** pushes the chain back,
+> **Slow-mo** halves its speed, the **Rainbow shot** matches any colour and the **Laser**
+> pierces through four marbles.
 >
 > Travel through six worlds, each with its own twist: bank shots off neon mirrors, pull
 > marbles out with a deep-sea magnet, mix colours in the Jewel world, flip lava switches in
@@ -47,13 +59,15 @@ cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes 
 > Catch star fragments to unlock ten upgrades at the Observatory, earn shards to customise
 > your shooter, trails and explosions, and brave meteor showers, solar storms, biting cold
 > and headwinds. Along the way, unlock four Arcade modes: Endless, Puzzles (with a puzzle of
-> the day), Rhythm and Duel against a rival, plus a new daily challenge every day.
+> the day), Rhythm and Duel against a rival, plus a new daily challenge every day, and come
+> back every day for a gift of shards that grows over a seven-day streak.
 >
 > **Features**
 >
 > - 6 worlds, 72 levels and 6 bosses
+> - 4 power-up marbles: Rewind, Slow-mo, Rainbow shot and Laser
 > - 3 difficulty levels
-> - 4 Arcade modes and a daily challenge
+> - 4 Arcade modes, a daily challenge and a daily gift
 > - Charged shots and an optional aim assist
 > - Colour-blind friendly: every colour carries a symbol
 > - Plays in English, French and Indonesian
@@ -96,10 +110,12 @@ cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes 
 
 ## Conformité vérifiée dans le jeu
 
-- SDK v3 : `loadingStart`, `loadingStop`, `gameplayStart` et `gameplayStop` (jamais
-  pendant une pause, un menu, une fin de partie ou une publicité), `happytime` rare.
-- En un clic dans le jeu : sur le portail, pas d'intro de studio, et « Jouer » mène un
-  nouveau joueur directement au niveau 1-1.
+- SDK v3 dans le `<head>` de la page (avant le jeu) : `loadingStart`, `loadingStop`,
+  `gameplayStart` et `gameplayStop` (jamais pendant une pause, un menu, une fin de partie
+  ou une publicité), `happytime` rare. Page en anglais (langue, titre, description).
+- Droit au jeu : sur le portail, pas d'intro de studio, et un nouveau joueur arrive
+  directement dans le niveau 1-1, avec son geste d'apprentissage ; un joueur qui revient
+  retrouve l'écran titre.
 - Publicités : aucune avant 3 minutes de jeu, jamais pendant le jeu ni sur un bouton de
   navigation (carte, menus) ; une publicité entre deux parties au plus toutes les 3
   minutes ; jamais de publicité au « Rejouer » d'un écran qui proposait déjà « Continuer
@@ -121,8 +137,8 @@ cosmétiques les plus voyants, et l'on garde les secondes où le plus de billes 
 - Mobile : `user-select: none`, pas de loupe ni de menu sur appui long, zones de sécurité
   respectées.
 - Touches : les lettres suivent la disposition du clavier (M est M en AZERTY) ; pas de
-  bouton plein écran maison ; P met en pause (Échap aussi, mais il quitte le plein écran
-  du portail : la fiche n'indique que P).
+  bouton plein écran maison ; P met en pause ; Échap n'est pas utilisé par le jeu (il
+  quitte le plein écran du portail).
 - Physique identique à toutes les fréquences d'écran (pas fixe de 1/120 s).
 
 ## Écarts assumés

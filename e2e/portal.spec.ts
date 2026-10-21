@@ -28,6 +28,13 @@ const returning = async (page: Page) => {
 };
 
 test.describe('portal build', () => {
+  test('serves its page in English, the language of the portals', async ({ request }) => {
+    const html = await (await request.get('./')).text();
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('<title>Ballmania — marble shooting reinvented</title>');
+    expect(html).toMatch(/<meta\s+name="description"\s+content="Chain marble shooting/);
+  });
+
   test('tells the portal when the game is loaded and when the player plays', async ({ page }) => {
     await english(page, { worlds: ['nebula', 'neon'] });
     await page.goto('./');

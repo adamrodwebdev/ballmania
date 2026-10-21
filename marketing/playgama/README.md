@@ -31,8 +31,9 @@ titre qui diffère entre le jeu et la fiche.
 > a black hole: shoot marbles to make groups of three or more of the same colour and set off
 > spectacular chain reactions. Travel through six worlds, each with its own mechanic: bank
 > shots off neon mirrors, a deep-sea magnet, colour alchemy, lava switches and shots that
-> curve around a black hole. Every world ends with a Colossus boss. Earn upgrades, unlock
-> cosmetics, and play four Arcade modes plus a daily challenge.
+> curve around a black hole. Every world ends with a Colossus boss. Burst the power-up
+> marbles for a Rewind, a Slow-mo, a Rainbow shot or a Laser. Earn upgrades, unlock
+> cosmetics, collect a daily gift, and play four Arcade modes plus a daily challenge.
 
 **How to play** (anglais) :
 

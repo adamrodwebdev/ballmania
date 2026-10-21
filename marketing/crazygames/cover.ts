@@ -1,5 +1,6 @@
 import { SeededRandom } from '@/engine/core/Random';
 import { BallSprites } from '@/play/BallSprites';
+import { SHOOTER_RADIUS, StarHeartSkin } from '@/play/cosmetics/ShooterSkins';
 import type { Palette } from '@/play/Palette';
 
 /** The typeface of the title (Google Fonts, SIL Open Font License). */
@@ -13,8 +14,12 @@ interface Layout {
   readonly title: readonly [number, number];
   /** Title height, as a share of the cover's width. */
   readonly titleSize: number;
-  /** Where the shot comes from, turned from the line out of the spiral (radians). */
-  readonly shotTurn: number;
+  /**
+   * The Star heart that has just fired the shot (v1.7): its centre, and its size
+   * as a share of the biggest marble's. Placed by hand on each format, clear of
+   * the title, the spiral and the burst.
+   */
+  readonly launcher: { readonly at: readonly [number, number]; readonly size: number };
 }
 
 const LAYOUTS: Record<'landscape' | 'portrait' | 'tall' | 'square', Layout> = {
@@ -23,14 +28,14 @@ const LAYOUTS: Record<'landscape' | 'portrait' | 'tall' | 'square', Layout> = {
     spiral: 0.62,
     title: [0.5, 0.2],
     titleSize: 0.12,
-    shotTurn: 0.5,
+    launcher: { at: [0.905, 0.76], size: 0.85 },
   },
   portrait: {
     vortex: [0.5, 0.57],
     spiral: 0.62,
     title: [0.5, 0.15],
     titleSize: 0.2,
-    shotTurn: 1.05,
+    launcher: { at: [0.7, 0.905], size: 0.7 },
   },
   // 9:16 (Playgama): a bigger spiral fills the height under the title.
   tall: {
@@ -38,9 +43,15 @@ const LAYOUTS: Record<'landscape' | 'portrait' | 'tall' | 'square', Layout> = {
     spiral: 0.9,
     title: [0.5, 0.17],
     titleSize: 0.2,
-    shotTurn: 1.05,
+    launcher: { at: [0.87, 0.292], size: 0.6 },
   },
-  square: { vortex: [0.5, 0.6], spiral: 0.58, title: [0.5, 0.18], titleSize: 0.18, shotTurn: 0.5 },
+  square: {
+    vortex: [0.5, 0.6],
+    spiral: 0.58,
+    title: [0.5, 0.18],
+    titleSize: 0.18,
+    launcher: { at: [0.89, 0.41], size: 0.62 },
+  },
 };
 
 const layoutOf = (width: number, height: number): Layout => {
@@ -239,15 +250,21 @@ export function drawCover(canvas: HTMLCanvasElement, palette: Palette, title = '
     ctx.restore();
   }
 
-  // The shot of the same colour flying in from the right, in open space, with its comet trail.
+  // The Star heart, the game's launcher and mascot (v1.7), has just fired a
+  // marble of the same colour at the burst: its cradle faces it, the next
+  // marble waits in its heart, and the shot flies on its comet trail.
   const shotTone = centre.tone;
-  // From outside the spiral, straight at the burst.
-  const outward = Math.atan2(centre.y - cy, centre.x - cx) + layout.shotTurn;
-  const away = { x: Math.cos(outward), y: Math.sin(outward) };
-  const shot = { x: centre.x + away.x * blast * 0.9, y: centre.y + away.y * blast * 0.9 };
-  const reach = blast * 1.6;
-  const side = { x: -away.y * biggest * 0.95, y: away.x * biggest * 0.95 };
-  const end = { x: shot.x + away.x * reach, y: shot.y + away.y * reach };
+  const scale = (biggest * layout.launcher.size) / 26;
+  const launcher = { x: layout.launcher.at[0] * W, y: layout.launcher.at[1] * H };
+  const aim = Math.atan2(centre.y - launcher.y, centre.x - launcher.x);
+  const towards = { x: Math.cos(aim), y: Math.sin(aim) };
+  const cradle = SHOOTER_RADIUS * scale;
+  const end = { x: launcher.x + towards.x * cradle, y: launcher.y + towards.y * cradle };
+  // Close to the burst, but always with some trail behind it.
+  const gap = Math.hypot(centre.x - end.x, centre.y - end.y);
+  const near = Math.min(blast * 0.6, gap * 0.45);
+  const shot = { x: centre.x - towards.x * near, y: centre.y - towards.y * near };
+  const side = { x: -towards.y * biggest * 0.95, y: towards.x * biggest * 0.95 };
   const trail = ctx.createLinearGradient(end.x, end.y, shot.x, shot.y);
   trail.addColorStop(0, `${palette.tone(shotTone)}00`);
   trail.addColorStop(1, `${palette.tone(shotTone)}dd`);
@@ -260,6 +277,16 @@ export function drawCover(canvas: HTMLCanvasElement, palette: Palette, title = '
   ctx.closePath();
   ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
+  ctx.save();
+  ctx.translate(launcher.x, launcher.y);
+  ctx.scale(scale, scale);
+  new StarHeartSkin().draw(ctx, palette, aim, 26, 0, palette.tone(shotTone));
+  ctx.restore();
+  const next = sprites.get((shotTone + 3) % 6);
+  if (next) {
+    const r = 26 * 0.6 * scale;
+    ctx.drawImage(next, launcher.x - r, launcher.y - r, r * 2, r * 2);
+  }
   const shotSprite = sprites.get(shotTone);
   if (shotSprite) {
     ctx.drawImage(shotSprite, shot.x - biggest, shot.y - biggest, biggest * 2, biggest * 2);

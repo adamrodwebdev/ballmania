@@ -1,7 +1,8 @@
 import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage';
 import type { AdStart, PlatformAdapter, ScriptLoader } from './PlatformAdapter';
+import { CRAZYGAMES_SDK } from './platforms';
 
-export const CRAZYGAMES_SDK = 'https://sdk.crazygames.com/crazygames-sdk-v3.js';
+export { CRAZYGAMES_SDK };
 
 interface AdCallbacks {
   adStarted?: () => void;

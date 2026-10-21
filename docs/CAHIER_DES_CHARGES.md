@@ -791,6 +791,12 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
   paysage bas (821×462, 800×450) ; zones de sécurité ; reprise du son iOS à chaque geste.
   Les éclats, monnaie du jeu, peuvent donc acheter ces deux aides sur les portails : une
   entorse assumée au § 3.6, exigée par le portail.
+- **Nouvelle soumission (v1.7)** : SDK CrazyGames v3 chargé par une balise dans le
+  `<head>` du build, avant le jeu (l'adaptateur ne le recharge pas s'il est déjà là) ;
+  page des builds de portail en anglais (langue, titre et description ; « Ball Mania »
+  sur Playgama), le jeu suivant ensuite la langue du joueur ; Échap laissé au portail (il
+  quitte le plein écran) ; couvertures avec le Cœur d'étoile, bandes-annonces refaites
+  (nébuleuse du monde 1, billes bonus, victoire et sa supernova).
 - **Playgama (v1.4.0)** : `PlaygamaPlatform` (Bridge SDK v2, chargé par une balise dans
   le `<head>` du build, configuration `playgama-bridge-config.json` à la racine) ;
   sauvegardes **et réglages** par `bridge.storage` (le portail interdit tout autre

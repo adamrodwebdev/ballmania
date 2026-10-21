@@ -7,9 +7,12 @@ import { Recorder, Trailer, type Shot } from './trailer';
  * covers as PNG, trailers as MP4. Nothing here ships with the game.
  */
 
-/** The cuts of the trailer: four worlds, ending on a win and its board swallowed by the hole. */
+/**
+ * The cuts of the trailer: four worlds, opening on the Nebula and its four
+ * power-up marbles (v1.7), ending on a win and its supernova.
+ */
 const SHOTS: readonly Shot[] = [
-  { level: 'nebula-09', seed: 'trailer-1', seconds: 4.6, moment: 'action' },
+  { level: 'nebula-10', seed: 'trailer-1', seconds: 4.6, moment: 'action' },
   { level: 'volcano-05', seed: 'trailer-3', seconds: 4.6, moment: 'action' },
   { level: 'singularity-02', seed: 'trailer-4', seconds: 4.6, moment: 'action' },
   { level: 'neon-07', seed: 'trailer-2', seconds: 4.6, moment: 'win' },
