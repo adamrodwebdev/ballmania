@@ -26,6 +26,11 @@ export interface HudState {
   streak: number;
   state: GameState;
   paused: boolean;
+  /**
+   * Who paused: the player, or the game itself when its tab was hidden. A portal
+   * hears only the player's pauses (CrazyGames: no gameplayStop on focus loss).
+   */
+  pausedBy: 'player' | 'auto' | null;
   /** Set a moment after the end, once the last animation has played. */
   over: 'won' | 'lost' | null;
   current: Tone;
@@ -200,15 +205,18 @@ export class PlaySession {
     this.distortion?.hide();
   }
 
-  pause(): void {
-    if (this.hud.state !== 'playing') return;
+  /** Stops the game behind the pause menu; `auto` when the game pauses itself. */
+  pause(by: 'player' | 'auto' = 'player'): void {
+    if (this.hud.state !== 'playing' || (by === 'auto' && this.hud.paused)) return;
     this.hud.paused = true;
+    this.hud.pausedBy = by;
     this.turning = 0;
     this.feedback.sound.suspend();
   }
 
   resume(): void {
     this.hud.paused = false;
+    this.hud.pausedBy = null;
     this.monitor.reset();
     this.feedback.sound.resume();
   }
@@ -247,7 +255,13 @@ export class PlaySession {
     this.motion.undrain();
     this.overIn = null;
     this.feedback.sound.resume();
-    Object.assign(this.hud, { state: 'playing', over: null, paused: false, danger: false });
+    Object.assign(this.hud, {
+      state: 'playing',
+      over: null,
+      paused: false,
+      pausedBy: null,
+      danger: false,
+    });
     return true;
   }
 
@@ -578,6 +592,7 @@ export class PlaySession {
       streak: 0,
       state: 'playing',
       paused: false,
+      pausedBy: null,
       over: null,
       current: this.game.shooter.current,
       next: this.game.shooter.next,

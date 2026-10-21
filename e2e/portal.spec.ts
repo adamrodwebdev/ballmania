@@ -49,6 +49,27 @@ test.describe('portal build', () => {
     await expect.poll(async () => (await log(page)).at(-1)).toBe('gameplayStop');
   });
 
+  test('pauses on a hidden tab without telling the portal the player stopped', async ({ page }) => {
+    await english(page, { worlds: ['nebula', 'neon'] });
+    await page.goto('./');
+    await page.getByTestId('arcade').click();
+    await page.getByRole('button', { name: 'Puzzles', exact: true }).click();
+    await page.getByTestId('puzzle-1').click();
+    await expect.poll(() => log(page)).toContain('gameplayStart');
+    // CrazyGames: no gameplayStop on focus loss, the portal handles it.
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await expect(page.getByRole('dialog', { name: 'Game paused' })).toBeVisible();
+    expect((await log(page)).at(-1)).toBe('gameplayStart');
+    await page.getByRole('button', { name: 'Resume' }).click();
+    expect((await log(page)).at(-1)).toBe('gameplayStart');
+    // The player's own pause is told.
+    await page.getByTestId('pause').click();
+    await expect.poll(async () => (await log(page)).at(-1)).toBe('gameplayStop');
+  });
+
   test('gives a puzzle hint for a rewarded ad', async ({ page }) => {
     await english(page, { worlds: ['nebula', 'neon'] });
     await page.goto('./');

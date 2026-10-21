@@ -795,7 +795,8 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
   `<head>` du build, avant le jeu (l'adaptateur ne le recharge pas s'il est déjà là) ;
   page des builds de portail en anglais (langue, titre et description ; « Ball Mania »
   sur Playgama), le jeu suivant ensuite la langue du joueur ; Échap laissé au portail (il
-  quitte le plein écran) ; couvertures avec le Cœur d'étoile, bandes-annonces refaites
+  quitte le plein écran) ; un onglet caché met la partie en pause sans `gameplayStop`
+  (seule la pause du joueur est signalée, `HudState.pausedBy`) ; couvertures avec le Cœur d'étoile, bandes-annonces refaites
   (nébuleuse du monde 1, billes bonus, victoire et sa supernova).
 - **Playgama (v1.4.0)** : `PlaygamaPlatform` (Bridge SDK v2, chargé par une balise dans
   le `<head>` du build, configuration `playgama-bridge-config.json` à la racine) ;

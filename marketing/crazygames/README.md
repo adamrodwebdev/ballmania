@@ -93,12 +93,14 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 
 ## Formulaire : réponses à préparer
 
-- **Build** : `npm run build:crazygames`, puis `python scripts/zip-build.py dist-crazygames ballmania-crazygames.zip` (le
-  `Compress-Archive` de Windows PowerShell 5.1 écrit des chemins à barres obliques
-  inverses qui cassent le jeu sur un serveur Linux) ; contenu de `dist-crazygames/`
-  (l'`index.html` à la racine de l'archive). Chemins relatifs, 42 fichiers, 665 Ko en
-  tout (limites : 1 500 fichiers, 50 Mo au premier chargement, 20 Mo pour la page
-  d'accueil mobile).
+- **Build** : `npm run build:crazygames`, puis envoyer **le dossier** `dist-crazygames/`
+  lui-même : le champ d'envoi du Developer Portal choisit un dossier (`webkitdirectory`),
+  une archive zip ne finit jamais de s'envoyer. Chemins relatifs (limites : 1 500
+  fichiers, 50 Mo au premier chargement, 20 Mo pour la page d'accueil mobile). Un jeu
+  refusé ne reçoit pas de nouvelle version : on le soumet de nouveau par « Submit a game »
+  (nouveau brouillon), avec le titre affiché dans le jeu (35 caractères au plus). Après
+  trois jeux refusés, les soumissions sont suspendues environ deux semaines : ne soumettre
+  qu'un jeu abouti.
 - **Orientation** : paysage (le jeu s'adapte aussi au portrait sur mobile).
 - **Mobile** : oui, tactile complet.
 - **Progress Save / Data module** : à cocher. Le jeu sauvegarde par le module de données
@@ -113,7 +115,10 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 
 - SDK v3 dans le `<head>` de la page (avant le jeu) : `loadingStart`, `loadingStop`,
   `gameplayStart` et `gameplayStop` (jamais pendant une pause, un menu, une fin de partie
-  ou une publicité), `happytime` rare. Page en anglais (langue, titre, description).
+  ou une publicité), `happytime` rare. Un onglet caché met le jeu en pause sans
+  `gameplayStop` : seule la pause demandée par le joueur est signalée, comme le demande la
+  documentation (l'outil de QA montre sinon un arrêt à la perte du focus). Page en anglais
+  (langue, titre, description).
 - Droit au jeu : sur le portail, pas d'intro de studio, et un nouveau joueur arrive
   directement dans le niveau 1-1, avec son geste d'apprentissage ; un joueur qui revient
   retrouve l'écran titre.
