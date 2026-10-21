@@ -3,6 +3,19 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Modifié
+
+- Les quatre autres lanceurs de l'Atelier sont redessinés à la finition du Cœur d'étoile.
+  L'**Orbite** devient une planète d'acier à anneaux et à lunes ; la **Couronne** porte sept
+  pointes d'or à facettes autour d'un cœur de rubis ; le **Halo** pose un cœur de perle sur
+  un disque de nuit cerclé de lumière, lisible aussi sur un plateau clair ; dans l'**Œil**
+  d'obsidienne cerclé d'or, l'iris tourbillonne dans la couleur chargée. Les berceaux, les
+  alvéoles et la place des billes ne changent pas : le jeu reste le même.
+- L'Atelier montre chaque lanceur comme en jeu : son halo, la bille prête à partir dans le
+  berceau et la bille suivante dans l'alvéole.
+
 ## [1.7.0] — 2026-10-21
 
 ### Ajouté
