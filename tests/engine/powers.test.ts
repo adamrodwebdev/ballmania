@@ -69,6 +69,15 @@ describe('placePowers', () => {
     expect(placePowers(tones, { kinds: ['rewind'], every: 99 }).filter(Boolean)).toHaveLength(1);
   });
 
+  it('puts the first power behind as many balls as the level asks, from the head', () => {
+    const tones = [0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1];
+    // Head first, the ball after the first eight: index 15 - 8 = 7, in a pair.
+    const placed = placePowers(tones, { kinds: ['laser'], every: 99, lead: 8 });
+    expect(placed.indexOf('laser')).toBe(7);
+    // Without a lead, a fifth of the chain from the head, as before.
+    expect(placePowers(tones, { kinds: ['laser'], every: 99 }).indexOf('laser')).toBe(12);
+  });
+
   it('places one power in a batch fed to a running chain', () => {
     // The pairs are at 1-2 and 4-5: ball 4 is the closest to the middle.
     expect(placeInBatch([0, 1, 1, 2, 0, 0, 2, 1], 'slow')).toEqual([

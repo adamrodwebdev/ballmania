@@ -90,6 +90,7 @@ export function resolveLevel(
       tones: level.palette?.length ?? level.tones,
       repeatChance: level.repeatChance,
       ...(level.palette ? { palette: level.palette } : {}),
+      ...(level.sequence ? { sequence: level.sequence } : {}),
     })),
     speed: level.speed * rule.speed,
     rushSpeed: 420,
@@ -98,6 +99,7 @@ export function resolveLevel(
     parTime: Math.round((longest / level.speed) * 0.55),
     ...(colossus ? { colossus } : {}),
     ...(level.gift ? { gift: level.gift } : {}),
+    ...(level.opening ? { opening: level.opening } : {}),
     ...(level.powers ? { powers: level.powers } : {}),
     ...(level.mirrors
       ? { reflectors: level.mirrors.map((mirror) => placeMirror(mirror, frame)) }

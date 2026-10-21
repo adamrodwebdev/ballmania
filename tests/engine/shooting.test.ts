@@ -33,6 +33,18 @@ describe('the shooting module', () => {
     expect(projectile.position.x).toBeCloseTo(500);
   });
 
+  it("deals the level's opening colours first, while they are on the track", () => {
+    const game = new Game(level([0, 1, 2, 0, 1, 2], { opening: [2, 1, 2] }), new FixedRandom(0));
+    expect([game.shooter.current, game.shooter.next]).toEqual([2, 1]);
+    // Straight up, past the chain: a miss, and the next colour of the opening.
+    game.aimAt(new Vec2(500, 0));
+    expect(game.fire()).toBe(true);
+    expect([game.shooter.current, game.shooter.next]).toEqual([1, 2]);
+    // A colour no longer on the track is skipped, and chance takes over.
+    const skipped = new Game(level([0, 1], { opening: [2, 1] }), new FixedRandom(0));
+    expect([skipped.shooter.current, skipped.shooter.next]).toEqual([0, 1]);
+  });
+
   it('previews the slot of the shot and the group it would burst', () => {
     // Tail first: a a b c, ball radius 10 so balls are 20 apart from x = 300.
     const game = new Game(level([0, 0, 1, 2]), new FixedRandom(0));

@@ -12,6 +12,8 @@ export interface ShooterOptions {
   readonly choosing?: boolean;
   /** Whose shooter it is; its projectiles carry it. */
   readonly side?: Side;
+  /** The first colours dealt, in order, while they are on the track (level 1-1's showcase). */
+  readonly opening?: readonly Tone[];
 }
 
 /**
@@ -29,6 +31,8 @@ export class Shooter {
   private positionValue: Vec2;
   /** The point aimed at with `aimAt`, kept so a moving shooter keeps aiming at it. */
   private target: Vec2 | null = null;
+  /** Colours still to deal before chance takes over. */
+  private readonly opening: Tone[];
 
   constructor(
     position: Vec2,
@@ -39,6 +43,7 @@ export class Shooter {
     private readonly options: ShooterOptions = {},
   ) {
     if (available.length === 0) throw new RangeError('The shooter needs at least one colour');
+    this.opening = [...(options.opening ?? [])];
     this.positionValue = position;
     if (options.choosing) {
       this.currentTone = available[0]!;
@@ -171,6 +176,8 @@ export class Shooter {
 
   private draw(available: readonly Tone[]): Tone {
     if (available.length === 0) return this.currentTone;
+    const dealt = this.opening.shift();
+    if (dealt !== undefined && available.includes(dealt)) return dealt;
     return available[this.random.nextInt(available.length)]!;
   }
 }

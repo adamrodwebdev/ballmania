@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { Ball } from '@/engine/chain/Ball';
 import { Game } from '@/engine/Game';
+import { placePowers } from '@/engine/powers/Powers';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Prism } from '@/engine/reflectors/Reflectors';
 import { SeededRandom } from '@/engine/core/Random';
@@ -14,6 +16,7 @@ import {
 import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup } from '@/levels/LevelDefinition';
 import { FRAMES } from '@/levels/tracks';
+import { chainOf } from '../engine/helpers';
 
 const SHOOTER_RADIUS = 58;
 
@@ -70,6 +73,24 @@ describe('campaign', () => {
     expect(nextLevel(findLevel('volcano-12')!)?.id).toBe('singularity-01');
     expect(nextLevel(findLevel('singularity-12')!)).toBeUndefined();
     expect(findLevel('nope')).toBeUndefined();
+  });
+
+  it('lays out level 1-1 as a showcase: a cascade behind the Nova, a Laser behind it', () => {
+    const first = findLevel('nebula-01')!;
+    const tailFirst = first.sequence!;
+    const chain = chainOf(tailFirst.map((tone) => String.fromCharCode(97 + tone)).join(''));
+    // Head first, six balls for the Nova, then a cascade whose middle pair, at
+    // 10 and 11, has the colour the launcher deals after the Nova.
+    const colour = first.opening![1]!;
+    const middle = tailFirst.length - 1 - 11;
+    expect(tailFirst[middle]).toBe(colour);
+    const depths = [chain.insert(new Ball(999, colour, 0), { index: middle, after: true })!.depth];
+    for (let t = 0; t < 3; t += 1 / 120) {
+      depths.push(...chain.advance(1 / 120).map((explosion) => explosion.depth));
+    }
+    expect(depths).toEqual([1, 2, 3]);
+    // The Laser rides in the pair right behind the cascade, 16 balls from the head.
+    expect(placePowers(tailFirst, first.powers!).indexOf('laser')).toBe(tailFirst.length - 1 - 16);
   });
 
   it('gets harder in a saw-tooth curve', () => {

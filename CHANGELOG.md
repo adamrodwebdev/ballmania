@@ -19,6 +19,11 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ### Modifié
 
+- Niveau 1-1, la vitrine : sa chaîne est disposée à la main pour que la première minute
+  montre le meilleur du jeu. La Nova au premier tir, puis une cascade à trois étages (le
+  lanceur sert la couleur qu'il faut), une bille Laser juste derrière dont le tir
+  transperce la chaîne, une seconde cascade, et la supernova vers une minute de jeu. Les
+  pouvoirs restent enseignés à 1-3, 1-6, 1-8 et 1-10.
 - Sur un portail, un joueur qui n'a jamais joué arrive directement dans le niveau 1-1,
   avec son geste d'apprentissage, sans passer par l'écran titre : la première image est
   le jeu. Un joueur qui revient retrouve l'écran titre.

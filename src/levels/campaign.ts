@@ -73,6 +73,10 @@ export interface CampaignLevel {
   readonly hint?: HintId;
   /** The first shot is a Nova bomb (level 1-1: the first seconds show what the game holds). */
   readonly gift?: 'bomb';
+  /** The chain's exact colours, tail first, laid out by hand (level 1-1's showcase). */
+  readonly sequence?: readonly number[];
+  /** The first colours the launcher deals (level 1-1: the colour its showcase needs). */
+  readonly opening?: readonly number[];
   readonly colossus?: { readonly hp: number; readonly spit: number };
   readonly mirrors?: readonly MirrorRecipe[];
   /**
@@ -220,20 +224,43 @@ const lowerPrisms = (spin: number): MirrorRecipe[] => [
 ];
 
 /**
+ * Level 1-1, the showcase (v1.7): every new player on a portal starts here, so
+ * its first minute shows what the game holds. The chain is laid out by hand,
+ * head first: the gift Nova clears the head; behind it, pairs nested around a
+ * pair of the launcher's next colour, so one shot sets off a three-step
+ * cascade; a Laser rides in the pair behind; then a second cascade, and a tail
+ * to finish on the supernova a minute in.
+ */
+const SHOWCASE = [
+  ...[2, 2, 1, 1, 0, 0], // the head, for the Nova
+  ...[1, 1, 0, 0, 2, 2, 0, 0, 1, 1], // a 2 bursts the 2s, the 0s meet and burst, then the 1s
+  ...[2, 2], // the Laser's pair
+  ...[0, 0, 1, 1, 2, 2, 1, 1, 0, 0], // the second cascade
+  ...[2, 1, 1, 0, 0, 2, 2, 1], // the tail
+];
+/** Marbles ahead of the Laser, from the head: the Nova zone and the first cascade. */
+const SHOWCASE_LEAD = 16;
+
+/**
  * World 1, Nebula: the basic rules, then their combinations, in a saw-tooth
  * curve (three levels up, one to breathe), ending with the stellar Colossus.
  * The powers arrive one at a time (v1.7): Rewind at 1-3, alone and early,
  * Slow-down at 1-6, Rainbow shot at 1-8, Laser at 1-10; one lesson a level.
+ * Level 1-1 shows a Laser first, as a glimpse.
  */
 const NEBULA: readonly CampaignLevel[] = [
   level(1, {
     track: spiral(1.25, 0.75, true),
-    length: 28,
+    length: SHOWCASE.length,
     tones: 3,
     repeatChance: 0.55,
     speed: 30,
     hint: 'aim',
     gift: 'bomb',
+    sequence: [...SHOWCASE].reverse(),
+    // The Nova's own colour, then two of the cascade's middle colour.
+    opening: [1, 2, 2],
+    powers: { kinds: ['laser'], every: 99, first: 'laser', lead: SHOWCASE_LEAD },
   }),
   level(2, {
     track: spiral(1.35, 0.25, false),
