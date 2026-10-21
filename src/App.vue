@@ -28,12 +28,17 @@ type Screen =
   | { readonly kind: 'achievements' }
   | { readonly kind: 'game'; readonly request: PlayRequest; readonly id: number };
 
+/** `opening`: the game to start in at once (a new player on a portal), instead of the title. */
+const props = defineProps<{ opening?: PlayRequest | null }>();
+
 const i18n = useI18n();
 const { t, locale } = i18n;
 const { settings, platform, progress } = useServices();
 
-const screen = shallowRef<Screen>({ kind: 'home' });
 let games = 0;
+const screen = shallowRef<Screen>(
+  props.opening ? { kind: 'game', request: props.opening, id: ++games } : { kind: 'home' },
+);
 
 /** Session key of the studio intro: it plays once per visit. */
 const INTRO_KEY = 'ballmania:intro';
