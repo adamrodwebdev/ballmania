@@ -3,6 +3,45 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouté
+
+- **Russe**, quatrième langue : tout le jeu, au vouvoiement, avec la lettre ё, les
+  guillemets « » et les quatre formes du pluriel russe (« 1 шар, 2 шара, 5 шаров »). Il
+  s'ouvre d'office pour un navigateur ou un compte de portail (CrazyGames, Playgama) en
+  russe, en biélorusse, en kazakh ou en kirghize ; l'ukrainien reste à l'anglais.
+- **Police cyrillique** : le russe s'affiche en Nunito, arrondie comme Fredoka, dans un
+  fichier de 23,6 Ko qui ne garde que ce que le russe affiche. Elle arrive avec les textes,
+  sans saut au premier affichage, et les autres langues ne la téléchargent jamais.
+- `npm run lighthouse -- --lang=ru` : un audit dans une langue donnée.
+- Tests de bout en bout des langues : en russe, en indonésien et en français, chaque menu
+  et une partie (jeu, pause, défaite) à 360 × 640, 390 × 844 et 1280 × 720, sans texte
+  coupé ni sorti de son cadre ; les audits d'accessibilité passent aussi en russe.
+
+### Modifié
+
+- **Textes revus** en anglais, en français et en indonésien, avec un glossaire commun aux
+  quatre langues : en anglais, « marble » et « launcher » au lieu de « ball » et
+  « shooter », et des tournures qui ne calquent plus le français ; en français, espaces
+  insécables avant « : ; ! ? % » et dans les guillemets, apostrophes typographiques,
+  ordinaux en toutes lettres ; en indonésien, dix corrections. Les kits CrazyGames et
+  Playgama reprennent les noms du jeu.
+- Le titre et la description des pages (site et portails), des cartes de partage, des
+  données structurées et du manifeste viennent des fichiers de langue.
+- Accueil : les compteurs d'étoiles et d'éclats montrent leur nombre à côté de l'icône (les
+  lecteurs d'écran entendent toujours la phrase entière), le badge de l'Observatoire dit
+  « Améliorer », et les mots longs des tuiles se coupent à leur place.
+
+### Corrigé
+
+- Chaque nombre accorde son nom : plus de « 1 shards », « 1 éclats » ni « étoile(s) ».
+- Sur un clavier russe, les raccourcis X, C, M, S et P fonctionnent : ils se lisent à la
+  position de la touche.
+- À 360 px, la tuile Observatoire débordait et son badge sortait de l'écran ; les compteurs
+  et le titre du cadeau du jour passaient sur deux lignes.
+- Le « ᵉ » des ordinaux s'affichait dans une police de secours.
+
 ## [1.7.4] — 2026-10-22
 
 Lighthouse mobile, build de production : performance 98, 98 et 97 aux trois mesures, un point

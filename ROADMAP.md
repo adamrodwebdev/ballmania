@@ -36,6 +36,25 @@ nouveaux textes seront relus et traduits en russe avant la livraison.
 | 5. Débordements      | Chaque écran en russe à 360 × 640, 390 × 844 et 1280 × 720, clair et sombre ; mots longs, badge et titre du cadeau corrigés pour toutes les langues ; test de bout en bout des langues longues (russe, indonésien, français) : aucun texte coupé ni sorti de son bouton, aucune barre de défilement ; axe en russe dans les deux thèmes.                                                  | Tests de bout en bout verts sur mobile et ordinateur.                                                                                           |
 | 6. Livraison         | Nouveaux textes de la 1.7.4 relus et traduits en russe ; README, CHANGELOG, cahier des charges (quatre langues), feuille de route ; builds de portail et fiches (langues) seulement avec l'accord de l'auteur.                                                                                                                                                                            | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                     |
 
+Ajouts et écarts décidés pendant la livraison (22/10/2026) : sur un clavier russe, les
+raccourcis (X, C, M, S, P) ne répondaient pas, car la touche tape une lettre cyrillique ; ils
+se lisent maintenant à la position de la touche, et l'AZERTY garde la lettre imprimée. La
+police cyrillique tient en un seul fichier variable de 23,6 Ko au lieu de sous-ensembles de
+25,6 Ko, et Nunito porte tout le texte russe, chiffres et ponctuation compris : avec Fredoka
+en plus, le russe plafonnait à 97 en performance (une police de plus avant le premier
+affichage), et un mot ne mêle plus deux polices. Les blancs de la page passent en police
+système, pour qu'aucune police ne parte avant que le jeu connaisse sa langue. L'accueil
+débordait aussi en anglais à 360 px : compteurs en chiffres à côté de leur icône (la phrase
+entière reste lue aux lecteurs d'écran), en-tête du cadeau resserré, césure conditionnelle
+dans les mots longs des tuiles, badge « Améliorer » au lieu d'« Amélioration disponible ». Les
+audits axe passent en russe dans les deux thèmes ; le test des langues joue une seule partie
+par langue, mesurée aux trois tailles, pour garder l'intégration continue rapide. Laissé pour
+plus tard : la fenêtre des réglages défile dans toutes les langues, anglais compris (254 px à
+360 × 640, 93 px à 1280 × 720). Reste avant la fusion : relire et traduire en russe les
+textes de la 1.7.4 (jeune Colosse, bulle de l'Observatoire) une fois celle-ci fusionnée.
+Lighthouse : 98 en performance sur mobile aux trois mesures, en anglais comme en russe, 100
+dans les trois autres catégories ; 100 × 4 sur ordinateur dans les deux langues.
+
 **Plus tard : les portails russophones** (feuille de route à part) : Yandex Games et les jeux
 VK. Avant toute intégration, lecture complète de leur documentation et fiche de référence dans
 la compétence de revue des portails (règles, SDK, langue imposée par le portail, paiement des

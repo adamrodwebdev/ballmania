@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                         |
-| ------- | ---------- | ---------------------------------------------- |
-| 1.4     | 14/10/2026 | Premier niveau : bombe offerte, geste (v1.3.0) |
+| Version | Date       | Statut                               |
+| ------- | ---------- | ------------------------------------ |
+| 1.5     | 22/10/2026 | Traductions revues et russe (v1.7.5) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -29,23 +29,30 @@ Objectifs :
 6. **Qualité web exemplaire** : Lighthouse à 100 dans les quatre catégories, sur mobile (la
    plus faible de trois mesures) comme sur ordinateur (règle du 22/10/2026, qui remplace 98 en
    Performance et 95 ailleurs).
-7. **International dès le lancement** : français, anglais et indonésien.
+7. **International** : français, anglais et indonésien dès le lancement, russe depuis la
+   v1.7.5.
 8. **Monétisable** : prêt pour les portails de jeux web, avec publicités respectueuses.
 
 ## 2. Positionnement marketing
 
 ### 2.1 Cibles
 
-| Segment                     | Attentes                                        | Réponse produit                               |
-| --------------------------- | ----------------------------------------------- | --------------------------------------------- |
-| Joueurs occasionnels (25+)  | Partie courte, gratuite, sans inscription       | Un clic pour jouer, parties de 2 à 6 min      |
-| Nostalgiques du genre       | Retrouver les sensations, avec de la nouveauté  | Visée et règles familières, modes inédits     |
-| Joueurs mobiles (Indonésie) | Jouer sur un téléphone modeste, réseau variable | Mobile d'abord, visée au doigt, bundle léger  |
-| Joueurs « spectacle »       | Du feedback, de la puissance ressentie          | Destruction physique, ralentis, ondes de choc |
+| Segment                     | Attentes                                        | Réponse produit                                      |
+| --------------------------- | ----------------------------------------------- | ---------------------------------------------------- |
+| Joueurs occasionnels (25+)  | Partie courte, gratuite, sans inscription       | Un clic pour jouer, parties de 2 à 6 min             |
+| Nostalgiques du genre       | Retrouver les sensations, avec de la nouveauté  | Visée et règles familières, modes inédits            |
+| Joueurs mobiles (Indonésie) | Jouer sur un téléphone modeste, réseau variable | Mobile d'abord, visée au doigt, bundle léger         |
+| Joueurs « spectacle »       | Du feedback, de la puissance ressentie          | Destruction physique, ralentis, ondes de choc        |
+| Joueurs russophones         | Un jeu dans leur langue, sur leurs portails     | Russe complet (v1.7.5), portails russophones ensuite |
 
 **Pourquoi l'indonésien** : l'Indonésie est l'un des plus grands marchés du jeu mobile, joué
 majoritairement sur Android d'entrée de gamme. Cela impose **légèreté**, **jouabilité
 tactile** et **dégradation gracieuse des effets**, ce qui profite à tous les marchés.
+
+**Pourquoi le russe** (v1.7.5) : le russe est lu bien au-delà de la Russie (Biélorussie,
+Kazakhstan, Kirghizistan…), et il prépare une publication sur les portails russophones,
+Yandex Games et les jeux VK, prévue plus tard avec sa propre feuille de route. Dès la
+v1.7.5, ces joueurs ont le jeu dans leur langue sur notre site, CrazyGames et Playgama.
 
 ### 2.2 Proposition de valeur
 
@@ -69,7 +76,7 @@ Différenciation :
   v. Xio Interactive_, 2012) : pas de grenouille-idole, pas de temple de pierre ni d'univers
   précolombien, pas de cartouches de niveaux imités. Univers, palette, lanceur, chemins et noms
   de modes sont **propres à Ballmania**.
-- Nom de travail : **Ballmania**, compréhensible dans les trois langues. Vérification de
+- Nom de travail : **Ballmania**, lisible dans les quatre langues. Vérification de
   disponibilité (marque, domaine, magasins d'applis, réseaux) à faire avant lancement.
 
 ## 3. Périmètre fonctionnel
@@ -830,7 +837,8 @@ builds, et la version de notre site garde Lighthouse à 100 sans traceur.
 | GameDistribution | `showAd()` / `showAd('rewarded')` + `SDK_REWARDED_WATCH_COMPLETE` | Navigateur                                      | —                        | aucun lien (texte seul) |
 
 La langue du portail sert de langue par défaut ; le choix du joueur dans les réglages
-l'emporte. CrazyGames peut demander le silence (`muteAudio`) : il prime sur le volume du
+l'emporte. Une langue que le jeu ne parle pas mène à l'anglais, sauf le biélorusse, le kazakh
+et le kirghize, qui mènent au russe. CrazyGames peut demander le silence (`muteAudio`) : il prime sur le volume du
 jeu. Les réglages (thème, langue, volume) restent dans le navigateur, car le script du
 thème les lit avant le premier affichage ; progression, profil et records vont au
 stockage de la plateforme. GameDistribution demande l'identifiant du jeu au build
@@ -900,7 +908,7 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
 ultérieures : don volontaire, version premium sans pub sur magasins d'applis (PWA/TWA).
 
 **Arguments de vente auprès des portails** : temps de jeu par session (campagne + objectifs),
-rétention J1/J7 (défi du jour, mondes à débloquer), trois langues dont l'indonésien, poids
+rétention J1/J7 (défi du jour, mondes à débloquer), quatre langues dont l'indonésien et le russe, poids
 léger, effets visuels qui se remarquent dans les vignettes et vidéos de présentation.
 
 ### 3.8 Distribution
@@ -1238,6 +1246,17 @@ Livré au lot 12 :
 - **Mise en page** : aucun défilement horizontal de 320 à 1 920 px, vérifié écran par
   écran (en indonésien, la langue aux textes les plus longs).
 
+Depuis la v1.7.5 :
+
+- **Langues longues** : un test de bout en bout vérifie chaque menu et une partie (jeu,
+  pause, défaite avec aide) en russe, en indonésien et en français, à 360 × 640,
+  390 × 844 et 1 280 × 720 : aucun texte hors de son bouton, de sa tuile ou de l'écran,
+  aucune pastille sur deux lignes, aucun défilement horizontal, un panneau de fin sans
+  défilement. Les mots longs des tuiles portent une césure conditionnelle (U+00AD), que
+  les lecteurs d'écran ignorent ; les compteurs de l'accueil montrent le nombre à côté de
+  leur icône et donnent la phrase entière aux lecteurs d'écran.
+- Les audits axe-core passent aussi en russe, dans les deux thèmes.
+
 ### 4.3 bis Référencement (livré au lot 12)
 
 - Titre et description traduits suivant la langue ; cartes Open Graph et Twitter (image
@@ -1249,11 +1268,38 @@ Livré au lot 12 :
 
 ### 4.4 Internationalisation
 
-- `vue-i18n`, textes dans `fr.json`, `en.json`, `id.json` (mêmes clés, vérifié par test).
-  Depuis le lot 5, **chaque langue est un fichier séparé** : le visiteur ne télécharge que
-  la sienne (≈ 3 Ko compressés), les autres au premier changement de langue.
-- Langue détectée depuis le navigateur, modifiable ; nombres et dates via `Intl`.
-- `<html lang>` et métadonnées SEO mis à jour selon la langue.
+- `vue-i18n`, textes dans `en.json`, `fr.json`, `id.json` et, depuis la v1.7.5, `ru.json`
+  (mêmes clés et mêmes variables, vérifié par test). Depuis le lot 5, **chaque langue est
+  un fichier séparé** : le visiteur ne télécharge que la sienne (≈ 3 Ko compressés), les
+  autres au premier changement de langue.
+- Langue détectée depuis le navigateur ou le portail, modifiable dans les réglages. Une
+  langue que le jeu ne parle pas mène à l'anglais ; le biélorusse, le kazakh et le
+  kirghize mènent au russe, l'ukrainien reste à l'anglais.
+- Nombres et dates via `Intl`. **Pluriels** (v1.7.5) : chaque nombre suivi d'un nom passe
+  par vue-i18n avec le nombre lui-même, et chaque message a ses formes « zéro | un |
+  plusieurs » ; le russe en a quatre (« zéro | un | quelques | beaucoup »), choisies par
+  `Intl.PluralRules` (« 1 шар, 2 шара, 5 шаров »). Un test vérifie les formes rendues.
+- **Rédaction** (revue de la v1.7.5) : un glossaire commun aux quatre langues (bille :
+  marble, bola, шар ; lanceur : launcher, penembak, пушка ; éclats : shards, kepingan,
+  осколки ; Atelier : Workshop, Bengkel, Мастерская…) et des tournures naturelles plutôt
+  que calquées. En français : espace insécable U+00A0 avant « : ; ! ? % » et dans « »
+  (Fredoka n'a pas l'espace fine), apostrophes typographiques, ordinaux en toutes lettres.
+  En russe : vouvoiement, lettre ё, guillemets « », espace insécable devant le tiret et
+  les unités, et les variables après un deux-points, là où elles n'ont pas à se décliner.
+  Des tests vérifient la typographie française et russe. Les noms des jeux du genre ne
+  sont jamais cités (§ 2.3).
+- **Polices** (v1.7.5) : Fredoka et Lilita One n'ont pas de lettres cyrilliques. Le russe
+  s'écrit en Nunito (SIL OFL 1.1), arrondie comme Fredoka, dans un fichier variable de
+  23,6 Ko taillé pour ce qu'il affiche (texte en 600, gras en 800, titres en 900) et
+  déclaré avec `unicode-range` : les autres langues ne le téléchargent jamais. En russe,
+  Nunito porte tout le texte de l'interface (un mot ne mêle pas deux polices, Fredoka
+  n'est pas téléchargée) et elle est attendue avec les messages, 1,5 s au plus, pour
+  éviter un saut de texte. Les blancs de la page sont en police système, pour qu'aucune
+  police ne parte avant que le jeu connaisse sa langue.
+- **Clavier** : un raccourci se lit à la position de la touche quand elle tape une lettre
+  d'un autre alphabet (clavier russe) ; l'AZERTY garde la lettre imprimée.
+- `<html lang>`, titre et description de la page (site et portails), cartes de partage,
+  données structurées (`inLanguage`) et manifeste suivent les fichiers de langue.
 
 ### 4.5 Thèmes
 
@@ -1543,7 +1589,8 @@ le moteur de tracés.
 - Build « site » sans aucun SDK ni publicité ; builds portails conformes aux exigences de
   chaque portail.
 - Lighthouse ≥ 95 × 4 sur mobile ; aucun défilement horizontal de 320 à 1920 px.
-- Trois langues complètes ; thèmes clair et sombre conformes.
+- Trois langues complètes (quatre depuis la v1.7.5, avec le russe) ; thèmes clair et
+  sombre conformes.
 - Effets de destruction aux trois niveaux d'intensité, respect de `prefers-reduced-motion`.
 
 ## 9. Lots et planning (provisoire)
@@ -1598,3 +1645,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                     |
 | 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                   |
 | 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                         |
+| 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                             |
