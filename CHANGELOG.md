@@ -3,7 +3,7 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié]
+## [1.7.5] — 2026-10-22
 
 Lighthouse mobile, build de production : performance 98 aux trois mesures, en anglais comme
 en russe, deux points sous le seuil de 100 fixé le 22/10/2026 ; accessibilité, bonnes pratiques

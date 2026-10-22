@@ -3,73 +3,6 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
-## v1.7.5 — Traductions revues et russe (en préparation)
-
-**But** : des textes justes et naturels dans les trois langues du jeu, puis le russe en
-quatrième langue, première pierre d'une publication sur les portails russophones. Revue du
-22/10/2026 avec la compétence de traduction : en anglais, « ball » pour la bille (33 textes),
-« shooter » pour le lanceur (6), 11 pluriels faux (« 1 shards », « 0 star out of 3 ») et deux
-objectifs du même nom ; en français, 105 textes sans espace insécable avant « : ; ! ? % », 42
-apostrophes droites, 14 pluriels faux (« étoile(s) », « 1 éclats ») et un « 3ᵉ » affiché dans
-une police de secours ; en indonésien, 10 corrections ; 15 clés qu'aucun écran n'affiche plus ;
-Fredoka et Lilita One sans aucune lettre cyrillique ; à 360 px, dans les trois langues, la
-tuile Observatoire qui déborde et le badge d'amélioration qui sort de l'écran.
-
-**Public et plateformes** : les joueurs actuels (anglais, français, indonésien) et les joueurs
-russophones (Russie, Biélorussie, Kazakhstan, Kirghizistan…), sur notre site, CrazyGames et
-Playgama dès cette version, ordinateur et téléphone.
-
-**Décisions** (validées le 22/10/2026) : un glossaire commun aux quatre langues (bille :
-marble, bola, шар ; lanceur : launcher, penembak, пушка ; éclats : shards, kepingan,
-осколки…) ; « marble » et « launcher » partout en anglais ; le vouvoiement en russe (« вы »)
-et la lettre ё ; la police cyrillique Nunito, en sous-ensembles de 25,6 Ko chargés seulement
-quand du russe s'affiche ; le biélorusse, le kazakh et le kirghize mènent au russe,
-l'ukrainien reste à l'anglais. Numérotée 1.7.5 et menée en parallèle de la 1.7.4 : ses
-nouveaux textes seront relus et traduits en russe avant la livraison.
-
-| Étape                | Contenu                                                                                                                                                                                                                                                                                                                                                                                   | Fini quand                                                                                                                                      |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Revue des textes  | Corrections anglaises, françaises et indonésiennes de la revue (glossaire, sens, tournures, espaces insécables U+00A0 car Fredoka n'a pas l'espace fine, apostrophes typographiques, ordinaux en toutes lettres) ; clés inutilisées supprimées ; textes des kits CrazyGames et Playgama, métadonnées (index.html, manifeste, SEO) ; § 2.3 du cahier des charges sans nom de jeu existant. | Tests de parité verts ; test de typographie française (aucune espace ordinaire avant « : ; ! ? % » ni dans « ») ; relecture des trois fichiers. |
-| 2. Pluriels          | Chaque nombre suivi d'un nom passe par le pluriel de vue-i18n : les appels passent le nombre en plus du texte formaté par `Intl` ; plus aucun « (s) ».                                                                                                                                                                                                                                    | Test : chaque message au pluriel a trois formes (quatre en russe) ; formes vérifiées pour 0, 1, 2, 5 et 21.                                     |
-| 3. Russe             | `ru.json` aux mêmes clés, règle de pluriel russe (`Intl.PluralRules`), « Русский » dans le choix de langue, détection (navigateur, `systemInfo.locale` de CrazyGames, `platform.language` de Playgama, langues voisines), `theme-boot.js`, SEO (`inLanguage`, `og:locale:alternate`).                                                                                                     | Parité des clés et des variables testée pour le russe ; détection testée ; relecture du fichier entier.                                         |
-| 4. Police cyrillique | Nunito en sous-ensembles cyrilliques servis avec le jeu (`unicode-range`), graisses accordées à Fredoka (texte, gras) et à Lilita One (titres) ; en russe, demandée dès le démarrage pour éviter un saut de texte.                                                                                                                                                                        | Lighthouse mobile, trois mesures, en anglais et en russe : performance ≥ 98, les trois autres ≥ 95 ; aucune lettre dans une police de secours.  |
-| 5. Débordements      | Chaque écran en russe à 360 × 640, 390 × 844 et 1280 × 720, clair et sombre ; mots longs, badge et titre du cadeau corrigés pour toutes les langues ; test de bout en bout des langues longues (russe, indonésien, français) : aucun texte coupé ni sorti de son bouton, aucune barre de défilement ; axe en russe dans les deux thèmes.                                                  | Tests de bout en bout verts sur mobile et ordinateur.                                                                                           |
-| 6. Livraison         | Nouveaux textes de la 1.7.4 relus et traduits en russe ; README, CHANGELOG, cahier des charges (quatre langues), feuille de route ; builds de portail et fiches (langues) seulement avec l'accord de l'auteur.                                                                                                                                                                            | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                     |
-
-Ajouts et écarts décidés pendant la livraison (22/10/2026) : sur un clavier russe, les
-raccourcis (X, C, M, S, P) ne répondaient pas, car la touche tape une lettre cyrillique ; ils
-se lisent maintenant à la position de la touche, et l'AZERTY garde la lettre imprimée. La
-police cyrillique tient en un seul fichier variable de 23,6 Ko au lieu de sous-ensembles de
-25,6 Ko, et Nunito porte tout le texte russe, chiffres et ponctuation compris : avec Fredoka
-en plus, le russe plafonnait à 97 en performance (une police de plus avant le premier
-affichage), et un mot ne mêle plus deux polices. Les blancs de la page passent en police
-système, pour qu'aucune police ne parte avant que le jeu connaisse sa langue. L'accueil
-débordait aussi en anglais à 360 px : compteurs en chiffres à côté de leur icône (la phrase
-entière reste lue aux lecteurs d'écran), en-tête du cadeau resserré, césure conditionnelle
-dans les mots longs des tuiles, badge « Améliorer » au lieu d'« Amélioration disponible ». La
-revue responsive de la 1.7.4 a fait descendre le test des langues à 320 × 568 : titre du
-cadeau à taille fluide, choix de difficulté qui ne débordent plus sur leur voisin (ils le
-faisaient dès 360 px) et se coupent à 320 px, libellés de la barre de jeu sur deux lignes
-sous 360 px, numéro du niveau insécable sur le bouton Jouer ; les points de rupture ajoutés
-sont en rem (directive du 22/10/2026). Les audits axe passent en russe dans les deux thèmes ;
-le test des langues joue une seule partie par langue, mesurée aux quatre tailles, pour garder
-l'intégration continue rapide. Laissé pour plus tard : la fenêtre des réglages défile dans
-toutes les langues, anglais compris (254 px à 360 × 640, 93 px à 1280 × 720). La 1.7.5
-repose sur la 1.7.4 : ses nouveaux textes sont relus et traduits en russe (« Юный звёздный
-Колосс », la bulle « Улучшайте здесь свою игру за звёздные фрагменты. », l'objectif
-« Победите любого Колосса. »), et la bulle de l'Observatoire est vérifiée en russe, en
-indonésien et en français aux quatre tailles. Lighthouse sur le build de la version : 98 en
-performance aux trois mesures mobiles, en anglais comme en russe, comme la 1.7.4 (premier
-affichage simulé 1,8 s, plus grand élément 2,2 s) ; 100 dans les trois autres catégories ;
-100 × 4 sur ordinateur dans les deux langues. Sous la règle du 22/10/2026 (100 partout), la
-marge revient à la première étape de la 1.7.6.
-
-**Plus tard : les portails russophones** (feuille de route à part) : Yandex Games et les jeux
-VK. Avant toute intégration, lecture complète de leur documentation et fiche de référence dans
-la compétence de revue des portails (règles, SDK, langue imposée par le portail, paiement des
-développeurs étrangers), puis un adaptateur de plateforme et un build par portail. La 1.8.0
-traduira aussi ses nouveaux textes en russe : le test de parité l'exige.
-
 ## v1.7.6 — Socle solide (en préparation)
 
 **But** : tenir la directive responsive mise à jour le 22/10/2026 et les règles des portails
@@ -153,6 +86,73 @@ paramètres bornés et validés à la lecture, jamais lus dans l'adresse ; le Co
 (4-12), raccourci par la remise en jeu derrière les Colosses de la 1.7.4 (64 s au lieu de
 110 s pour le robot occasionnel, danger 0,34 au lieu de 0,49), à revoir avec le réglage des
 mondes suivants (décidé le 22/10/2026).
+
+## v1.7.5 — Traductions revues et russe (livrée le 22/10/2026)
+
+**But** : des textes justes et naturels dans les trois langues du jeu, puis le russe en
+quatrième langue, première pierre d'une publication sur les portails russophones. Revue du
+22/10/2026 avec la compétence de traduction : en anglais, « ball » pour la bille (33 textes),
+« shooter » pour le lanceur (6), 11 pluriels faux (« 1 shards », « 0 star out of 3 ») et deux
+objectifs du même nom ; en français, 105 textes sans espace insécable avant « : ; ! ? % », 42
+apostrophes droites, 14 pluriels faux (« étoile(s) », « 1 éclats ») et un « 3ᵉ » affiché dans
+une police de secours ; en indonésien, 10 corrections ; 15 clés qu'aucun écran n'affiche plus ;
+Fredoka et Lilita One sans aucune lettre cyrillique ; à 360 px, dans les trois langues, la
+tuile Observatoire qui déborde et le badge d'amélioration qui sort de l'écran.
+
+**Public et plateformes** : les joueurs actuels (anglais, français, indonésien) et les joueurs
+russophones (Russie, Biélorussie, Kazakhstan, Kirghizistan…), sur notre site, CrazyGames et
+Playgama dès cette version, ordinateur et téléphone.
+
+**Décisions** (validées le 22/10/2026) : un glossaire commun aux quatre langues (bille :
+marble, bola, шар ; lanceur : launcher, penembak, пушка ; éclats : shards, kepingan,
+осколки…) ; « marble » et « launcher » partout en anglais ; le vouvoiement en russe (« вы »)
+et la lettre ё ; la police cyrillique Nunito, en sous-ensembles de 25,6 Ko chargés seulement
+quand du russe s'affiche ; le biélorusse, le kazakh et le kirghize mènent au russe,
+l'ukrainien reste à l'anglais. Numérotée 1.7.5 et menée en parallèle de la 1.7.4 : ses
+nouveaux textes seront relus et traduits en russe avant la livraison.
+
+| Étape                | Contenu                                                                                                                                                                                                                                                                                                                                                                                   | Fini quand                                                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Revue des textes  | Corrections anglaises, françaises et indonésiennes de la revue (glossaire, sens, tournures, espaces insécables U+00A0 car Fredoka n'a pas l'espace fine, apostrophes typographiques, ordinaux en toutes lettres) ; clés inutilisées supprimées ; textes des kits CrazyGames et Playgama, métadonnées (index.html, manifeste, SEO) ; § 2.3 du cahier des charges sans nom de jeu existant. | Tests de parité verts ; test de typographie française (aucune espace ordinaire avant « : ; ! ? % » ni dans « ») ; relecture des trois fichiers. |
+| 2. Pluriels          | Chaque nombre suivi d'un nom passe par le pluriel de vue-i18n : les appels passent le nombre en plus du texte formaté par `Intl` ; plus aucun « (s) ».                                                                                                                                                                                                                                    | Test : chaque message au pluriel a trois formes (quatre en russe) ; formes vérifiées pour 0, 1, 2, 5 et 21.                                     |
+| 3. Russe             | `ru.json` aux mêmes clés, règle de pluriel russe (`Intl.PluralRules`), « Русский » dans le choix de langue, détection (navigateur, `systemInfo.locale` de CrazyGames, `platform.language` de Playgama, langues voisines), `theme-boot.js`, SEO (`inLanguage`, `og:locale:alternate`).                                                                                                     | Parité des clés et des variables testée pour le russe ; détection testée ; relecture du fichier entier.                                         |
+| 4. Police cyrillique | Nunito en sous-ensembles cyrilliques servis avec le jeu (`unicode-range`), graisses accordées à Fredoka (texte, gras) et à Lilita One (titres) ; en russe, demandée dès le démarrage pour éviter un saut de texte.                                                                                                                                                                        | Lighthouse mobile, trois mesures, en anglais et en russe : performance ≥ 98, les trois autres ≥ 95 ; aucune lettre dans une police de secours.  |
+| 5. Débordements      | Chaque écran en russe à 360 × 640, 390 × 844 et 1280 × 720, clair et sombre ; mots longs, badge et titre du cadeau corrigés pour toutes les langues ; test de bout en bout des langues longues (russe, indonésien, français) : aucun texte coupé ni sorti de son bouton, aucune barre de défilement ; axe en russe dans les deux thèmes.                                                  | Tests de bout en bout verts sur mobile et ordinateur.                                                                                           |
+| 6. Livraison         | Nouveaux textes de la 1.7.4 relus et traduits en russe ; README, CHANGELOG, cahier des charges (quatre langues), feuille de route ; builds de portail et fiches (langues) seulement avec l'accord de l'auteur.                                                                                                                                                                            | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                     |
+
+Ajouts et écarts décidés pendant la livraison (22/10/2026) : sur un clavier russe, les
+raccourcis (X, C, M, S, P) ne répondaient pas, car la touche tape une lettre cyrillique ; ils
+se lisent maintenant à la position de la touche, et l'AZERTY garde la lettre imprimée. La
+police cyrillique tient en un seul fichier variable de 23,6 Ko au lieu de sous-ensembles de
+25,6 Ko, et Nunito porte tout le texte russe, chiffres et ponctuation compris : avec Fredoka
+en plus, le russe plafonnait à 97 en performance (une police de plus avant le premier
+affichage), et un mot ne mêle plus deux polices. Les blancs de la page passent en police
+système, pour qu'aucune police ne parte avant que le jeu connaisse sa langue. L'accueil
+débordait aussi en anglais à 360 px : compteurs en chiffres à côté de leur icône (la phrase
+entière reste lue aux lecteurs d'écran), en-tête du cadeau resserré, césure conditionnelle
+dans les mots longs des tuiles, badge « Améliorer » au lieu d'« Amélioration disponible ». La
+revue responsive de la 1.7.4 a fait descendre le test des langues à 320 × 568 : titre du
+cadeau à taille fluide, choix de difficulté qui ne débordent plus sur leur voisin (ils le
+faisaient dès 360 px) et se coupent à 320 px, libellés de la barre de jeu sur deux lignes
+sous 360 px, numéro du niveau insécable sur le bouton Jouer ; les points de rupture ajoutés
+sont en rem (directive du 22/10/2026). Les audits axe passent en russe dans les deux thèmes ;
+le test des langues joue une seule partie par langue, mesurée aux quatre tailles, pour garder
+l'intégration continue rapide. Laissé pour plus tard : la fenêtre des réglages défile dans
+toutes les langues, anglais compris (254 px à 360 × 640, 93 px à 1280 × 720). La 1.7.5
+repose sur la 1.7.4 : ses nouveaux textes sont relus et traduits en russe (« Юный звёздный
+Колосс », la bulle « Улучшайте здесь свою игру за звёздные фрагменты. », l'objectif
+« Победите любого Колосса. »), et la bulle de l'Observatoire est vérifiée en russe, en
+indonésien et en français aux quatre tailles. Lighthouse sur le build de la version : 98 en
+performance aux trois mesures mobiles, en anglais comme en russe, comme la 1.7.4 (premier
+affichage simulé 1,8 s, plus grand élément 2,2 s) ; 100 dans les trois autres catégories ;
+100 × 4 sur ordinateur dans les deux langues. Sous la règle du 22/10/2026 (100 partout), la
+marge revient à la première étape de la 1.7.6.
+
+**Plus tard : les portails russophones** (feuille de route à part) : Yandex Games et les jeux
+VK. Avant toute intégration, lecture complète de leur documentation et fiche de référence dans
+la compétence de revue des portails (règles, SDK, langue imposée par le portail, paiement des
+développeurs étrangers), puis un adaptateur de plateforme et un build par portail. La 1.8.0
+traduira aussi ses nouveaux textes en russe : le test de parité l'exige.
 
 ## v1.7.4 — Le premier boss (livrée le 22/10/2026)
 
