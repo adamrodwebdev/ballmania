@@ -42,4 +42,10 @@ createApp(App, { opening: await opening() })
   .provide(APP_SERVICES, services)
   .use(i18n)
   .mount('#app');
+// Our site painted its static title first (v1.7.6): it gives way to the game's own.
+const card = document.getElementById('first-paint');
+if (card) {
+  card.classList.add('gone');
+  window.setTimeout(() => card.remove(), 600);
+}
 platform.loaded();

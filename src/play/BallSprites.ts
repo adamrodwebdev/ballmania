@@ -54,16 +54,20 @@ export class BallSprites {
 
   /** Rebuilds the sprites for a ball radius of `pixels` device pixels. */
   build(palette: Palette, pixels: number): void {
+    for (let tone = 0; tone < MAX_TONES; tone++) this.buildTone(palette, pixels, tone);
+  }
+
+  /**
+   * Rebuilds one tone's sprites only (its orb, its plain orb and its halo): a
+   * caller can spread the work over several frames, so that no single task
+   * holds the page (the title screen, v1.7.6).
+   */
+  buildTone(palette: Palette, pixels: number, tone: Tone): void {
     const size = Math.max(4, Math.ceil(pixels * 2));
-    this.sprites = Array.from({ length: MAX_TONES }, (_, tone) =>
-      this.draw(palette.tone(tone), tone, size),
-    );
-    this.plainSprites = Array.from({ length: MAX_TONES }, (_, tone) =>
-      this.draw(palette.tone(tone), null, size),
-    );
-    this.glows = Array.from({ length: MAX_TONES }, (_, tone) =>
-      this.drawGlow(palette.tone(tone), Math.min(256, size * 2)),
-    );
+    const colour = palette.tone(tone);
+    this.sprites[tone] = this.draw(colour, tone, size);
+    this.plainSprites[tone] = this.draw(colour, null, size);
+    this.glows[tone] = this.drawGlow(colour, Math.min(256, size * 2));
   }
 
   /** Soft halo of a tone, drawn stretched over several ball radii. */

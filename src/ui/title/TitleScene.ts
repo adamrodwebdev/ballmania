@@ -81,6 +81,8 @@ export class TitleScene {
   /** Wide screens: the Star heart, the game's mascot, fires the shots (`k`: its scale). */
   private launcher: { x: number; y: number; k: number } | null = null;
   private readonly skin = new StarHeartSkin();
+  /** Bumped by each resize and by `stop`: a sprite build still running gives up. */
+  private building = 0;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -121,7 +123,7 @@ export class TitleScene {
     this.k = Math.log(this.outer / this.inner) / (TURNS * Math.PI * 2);
     this.biggest = Math.max(14, this.outer * 0.11);
     this.launcher = wide ? this.placeLauncher() : null;
-    this.sprites.build(this.palette, this.biggest * ratio);
+    this.buildSprites(this.biggest * ratio);
     this.stars = Array.from({ length: Math.round((this.width * this.height) / 9000) }, () => ({
       x: this.random() * this.width,
       y: this.random() * this.height,
@@ -151,6 +153,25 @@ export class TitleScene {
   stop(): void {
     cancelAnimationFrame(this.frame);
     this.last = 0;
+    this.building++;
+  }
+
+  /**
+   * Builds the marbles' sprites one tone a frame (v1.7.6): in a cold browser,
+   * a whole build at once could hold the page for a long task. Frames draw the
+   * tones ready so far meanwhile; a still scene draws again once all are.
+   */
+  private buildSprites(pixels: number): void {
+    const run = ++this.building;
+    let tone = 0;
+    const step = () => {
+      if (run !== this.building) return;
+      this.sprites.buildTone(this.palette, pixels, tone);
+      tone += 1;
+      if (tone < MAX_TONES) requestAnimationFrame(step);
+      else if (this.still) this.draw();
+    };
+    requestAnimationFrame(step);
   }
 
   private random(): number {

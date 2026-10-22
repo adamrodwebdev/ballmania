@@ -33,6 +33,8 @@ test.describe('portal build', () => {
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('<title>Ballmania — marble shooting reinvented</title>');
     expect(html).toMatch(/<meta\s+name="description"\s+content="Chain marble shooting/);
+    // No title card before play on a portal: only our site paints one (v1.7.6).
+    expect(html).not.toContain('first-paint');
   });
 
   test('tells the portal when the game is loaded and when the player plays', async ({ page }) => {

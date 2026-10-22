@@ -1314,7 +1314,9 @@ Depuis la v1.7.5 :
 
 - Sur notre site : aucun cookie, aucun traceur, aucun appel réseau tiers. Sur les portails,
   seul le SDK du portail (régie et consentement gérés par lui) est chargé.
-- Politique de sécurité du contenu (CSP) stricte, pas de script en ligne.
+- Politique de sécurité du contenu (CSP) stricte, sans `'unsafe-inline'` : les seuls blocs en
+  ligne de la page (styles et scripts du premier affichage, v1.7.6) sont autorisés un par un
+  par leur empreinte.
 
 ### 4.7 Compatibilité
 
@@ -1337,8 +1339,17 @@ Depuis la v1.7.5 :
   `SettingsService` (langue, thème, intensité des effets, validés à la lecture),
   `ThemeController` (préférence système / clair / sombre), script `theme-boot.js` qui
   applique thème et langue avant le premier affichage, sans script en ligne.
-- **CSP** stricte ajoutée à la page construite (`default-src 'self'`, ni script ni style en
-  ligne) ; les gabarits n'utilisent donc jamais d'attribut `style`.
+- **CSP** stricte ajoutée à la page construite (`default-src 'self'`, aucun
+  `'unsafe-inline'`) ; les gabarits n'utilisent donc jamais d'attribut `style`.
+- **Premier affichage** (v1.7.6, notre site seulement) : le module `firstPaint` du build
+  (`vite.config.ts`) met dans la page les jetons de couleur et la carte de titre
+  (`src/styles/first-paint.css`, le nom du jeu sur le ciel de nuit, en police système), le
+  script de thème et un chargeur. La page se peint sans aucune autre requête ; le chargeur
+  demande ensuite les feuilles de style puis le code, et l'application, une fois montée,
+  fond la carte (`src/main.ts`). Ces blocs en ligne sont autorisés par leur empreinte dans
+  la CSP. Le décor animé de l'accueil attend que la page soit chargée et le navigateur au
+  repos (`src/ui/idle.ts`). Les builds de portail gardent leur démarrage : un nouveau joueur
+  arrive directement en jeu, sans carte de titre.
 
 ### 5.2 Principes orientés objet
 
