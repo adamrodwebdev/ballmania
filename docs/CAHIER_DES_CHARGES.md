@@ -837,12 +837,12 @@ builds, et la version de notre site garde Lighthouse à 100 sans traceur.
 | GameDistribution | `showAd()` / `showAd('rewarded')` + `SDK_REWARDED_WATCH_COMPLETE` | Navigateur                                      | —                        | aucun lien (texte seul) |
 
 La langue du portail sert de langue par défaut ; le choix du joueur dans les réglages
-l'emporte. Une langue que le jeu ne parle pas mène à l'anglais, sauf le biélorusse, le kazakh
-et le kirghize, qui mènent au russe. CrazyGames peut demander le silence (`muteAudio`) : il prime sur le volume du
-jeu. Les réglages (thème, langue, volume) restent dans le navigateur, car le script du
-thème les lit avant le premier affichage ; progression, profil et records vont au
-stockage de la plateforme. GameDistribution demande l'identifiant du jeu au build
-(`VITE_GD_GAME_ID`).
+l'emporte. Une langue que le jeu ne parle pas mène à l'anglais, sauf le biélorusse, le
+kazakh et le kirghize, qui mènent au russe. CrazyGames peut demander le silence
+(`muteAudio`) : il prime sur le volume du jeu. Les réglages (thème, langue, volume)
+restent dans le navigateur, car le script du thème les lit avant le premier affichage ;
+progression, profil et records vont au stockage de la plateforme. GameDistribution
+demande l'identifiant du jeu au build (`VITE_GD_GAME_ID`).
 
 - **Portail simulé** (`npm run dev:portal`, `vite build --mode simulated`) : fausses
   publicités en boîte modale, journal des appels dans `window.platformLog`,
@@ -908,8 +908,9 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
 ultérieures : don volontaire, version premium sans pub sur magasins d'applis (PWA/TWA).
 
 **Arguments de vente auprès des portails** : temps de jeu par session (campagne + objectifs),
-rétention J1/J7 (défi du jour, mondes à débloquer), quatre langues dont l'indonésien et le russe, poids
-léger, effets visuels qui se remarquent dans les vignettes et vidéos de présentation.
+rétention J1/J7 (défi du jour, mondes à débloquer), quatre langues dont l'indonésien et le
+russe, poids léger, effets visuels qui se remarquent dans les vignettes et vidéos de
+présentation.
 
 ### 3.8 Distribution
 

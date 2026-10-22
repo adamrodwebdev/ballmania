@@ -56,8 +56,8 @@ Claude Opus 5.5) sous la direction de l'auteur ; les visuels sont dessinés par 
   build).
 - Sauvegardes et réglages par `bridge.storage`, chargés en un seul appel au démarrage.
 - Langue du portail (`platform.language`), repli sur l'anglais (le biélorusse, le kazakh et
-  le kirghize mènent au russe) ; langue changeable par
-  l'icône engrenage, langues écrites dans leur propre langue.
+  le kirghize mènent au russe) ; langue changeable par l'icône engrenage, langues écrites
+  dans leur propre langue.
 - `game_ready` quand l'écran titre est jouable ; `level_started`, `level_paused`,
   `level_resumed`, `level_completed`, `level_failed`.
 - Son et pause du portail suivis (`AUDIO_STATE_CHANGED`, `PAUSE_STATE_CHANGED`, valeur de
