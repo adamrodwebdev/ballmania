@@ -3,6 +3,22 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
+## v1.7.4 — Le premier boss (en préparation)
+
+**But** : accrocher le joueur dès le 3ᵉ niveau avec un mini-boss, et lui apprendre, sans
+l'interrompre, que l'Observatoire améliore son jeu (décidé le 22/10/2026, après l'essai de la
+1.7.3 par l'auteur). L'Atelier ne vend que de l'apparence : ce sont les améliorations de
+l'Observatoire, payées en fragments d'étoile, qui changent le jeu.
+
+**Public et plateformes** : tous les joueurs, notre site comme les portails ; le même boss
+resservira au niveau d'entraînement E3 de la 1.8.0.
+
+| Étape                      | Contenu                                                                                                                                                                                                                                                                                                                                     | Fini quand                                                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Jeune Colosse au 1-3    | Le Colosse stellaire en plus petit, avec son dessin : environ 20 points de vie (60 au 1-12), une seule phase, il crache 4 billes. Vaincu au 1-3, il revient adulte au 1-12. Le panneau du 1-2 l'annonce (« Boss : Jeune Colosse stellaire ») ; il compte pour l'objectif « Vaincre un Colosse » (+100 éclats). La bille Recul passe au 1-4. | Maquette validée ; robot pressé : le 1-3 gagné au moins 5 fois sur 6, pression sous celle du 1-12 ; barre de vie visible au 1-3 (test de bout en bout) ; recalibrage des étoiles. |
+| 2. Bulle de l'Observatoire | La première fois qu'une amélioration devient abordable, une petite bulle près du bouton Observatoire de la carte explique qu'on y améliore son jeu avec ses fragments d'étoile ; elle disparaît au toucher et ne revient jamais. Accessible au clavier et aux lecteurs d'écran, mouvement réduit respecté.                                  | Maquette validée (téléphone et ordinateur, deux thèmes) ; test de bout en bout : la bulle s'affiche une fois, jamais deux.                                                        |
+| 3. Livraison               | Textes relus avec la compétence de traduction (anglais, français, indonésien), CHANGELOG, cahier des charges, bac à sable Playgama.                                                                                                                                                                                                         | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                                                       |
+
 ## v1.8.0 — Les cinq premières minutes (en préparation)
 
 **But** : sur les portails, accrocher le joueur dès le premier geste avec un entraînement qui
