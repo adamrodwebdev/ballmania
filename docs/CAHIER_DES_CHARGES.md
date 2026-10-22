@@ -26,8 +26,9 @@ Objectifs :
 4. **Effet « waouh » mémorable** : chaque explosion est une récompense visuelle et sonore ;
    les grosses réactions en chaîne deviennent des moments que l'on a envie de partager.
 5. **Viralité** : le résultat du défi du jour se partage en un geste (texte court + lien).
-6. **Qualité web exemplaire** : Lighthouse sur mobile ≥ 98 en Performance (la plus faible
-   de trois mesures, depuis le 22/10/2026) et ≥ 95 dans les trois autres catégories.
+6. **Qualité web exemplaire** : Lighthouse à 100 dans les quatre catégories, sur mobile (la
+   plus faible de trois mesures) comme sur ordinateur (règle du 22/10/2026, qui remplace 98 en
+   Performance et 95 ailleurs).
 7. **International dès le lancement** : français, anglais et indonésien.
 8. **Monétisable** : prêt pour les portails de jeux web, avec publicités respectueuses.
 
@@ -777,7 +778,7 @@ partie, langue imposée, invitation au partage) avec une implémentation par cib
 `StandalonePlatform` (notre site, **aucune publicité**, aucun SDK), `CrazyGamesPlatform`,
 `PokiPlatform`, `GameDistributionPlatform`… L'implémentation est choisie **au build**
 (`vite build --mode crazygames`) : le SDK d'un portail n'est jamais embarqué dans les autres
-builds, et la version de notre site garde Lighthouse ≥ 95 sans traceur.
+builds, et la version de notre site garde Lighthouse à 100 sans traceur.
 
 **Livré au lot 13 (v1.1)** :
 
@@ -1075,7 +1076,7 @@ Livré à l'étape 11.4 :
 
 #### Contraintes
 
-- Lighthouse ≥ 98 en Performance et ≥ 95 ailleurs (visé : 100), mobile et ordinateur : les
+- Lighthouse à 100 dans les quatre catégories, mobile et ordinateur : les
   animations de menu sont en CSS (`transform`, `opacity`), sans bibliothèque ; aucun
   nouveau code n'est chargé par l'accueil sauf le strict nécessaire.
 
@@ -1151,9 +1152,11 @@ fait éclater son nom au-dessus du plateau.
 
 ### 4.1 Performance et Lighthouse
 
-- Lighthouse sur mobile (profil simulé Lighthouse) **≥ 98** en Performance, sur la plus
-  faible de trois mesures (depuis le 22/10/2026), et **≥ 95** en Accessibilité, Bonnes
-  pratiques et SEO.
+- Lighthouse **à 100** en Performance, Accessibilité, Bonnes pratiques et SEO, sur mobile
+  (profil simulé Lighthouse, la plus faible de trois mesures) et sur ordinateur (règle du
+  22/10/2026 ; avant : 98 en Performance, 95 ailleurs). La 1.7.4 mesure 98, 98 et 97 en
+  Performance sur mobile : la 1.7.6 rattrape l'écart en affichant le titre dès le HTML
+  statique et en demandant le code après ce premier affichage.
 - Écran d'accueil rendu sans attendre le moteur : moteur, rendu et modes chargés à la
   demande (`import()`) au lancement d'une partie.
 - Budget : JS initial ≤ 60 Ko compressés ; aucune police ni image bloquante ; CLS ≈ 0.
