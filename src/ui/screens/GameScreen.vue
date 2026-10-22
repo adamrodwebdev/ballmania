@@ -1222,6 +1222,8 @@ const quit = () => emit('quit');
   /* Room left on each side of a 2:1 playing frame (desktop windows wider than that, below). */
   --side: 0px;
   --scrim: color-mix(in srgb, var(--bg) 84%, transparent);
+  /* Its HUD, rails and dialogs follow its own size, not the window's (v1.7.6). */
+  container: game / size;
   position: relative;
   width: 100%;
   height: 100vh;
@@ -1637,7 +1639,7 @@ const quit = () => emit('quit');
 }
 
 /* From 22.5rem (360 px), the button decides: one line in the bottom bar, two in the side rail. */
-@media (min-width: 22.5rem) {
+@container game (width >= 22.5rem) {
   .control-label {
     white-space: inherit;
   }
@@ -1736,7 +1738,7 @@ const quit = () => emit('quit');
  * the level lacks, so the HUD becomes a rail on the left and the buttons a
  * rail on the right.
  */
-@media (min-aspect-ratio: 3/2) {
+@container game (aspect-ratio >= 3/2) {
   .hud {
     inset: 0 auto 0 var(--side);
     flex-direction: column;
@@ -1843,35 +1845,40 @@ const quit = () => emit('quit');
  * frame, board and rails, stays 2:1 in the middle; the board's art goes on
  * to the window's edges. A phone on its side keeps its whole width.
  */
-@media (min-aspect-ratio: 2/1) and (pointer: fine) {
-  .game {
-    --side: max(0px, (100vw - 200dvh) / 2);
-  }
+@media (pointer: fine) {
+  @container game (aspect-ratio >= 2/1) {
+    .hud,
+    .chips,
+    .hud-extra,
+    .controls {
+      --side: max(0px, (100cqw - 200cqh) / 2);
+    }
 
-  /* The rails' shade starts at the window's edge: the frame shows no seam. */
-  .hud,
-  .controls {
-    isolation: isolate;
-    background: none;
-  }
+    /* The rails' shade starts at the window's edge: the frame shows no seam. */
+    .hud,
+    .controls {
+      isolation: isolate;
+      background: none;
+    }
 
-  .hud::before,
-  .controls::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-  }
+    .hud::before,
+    .controls::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
 
-  .hud::before {
-    left: calc(-1 * var(--side));
-    background: linear-gradient(to right, var(--scrim), transparent);
-  }
+    .hud::before {
+      left: calc(-1 * var(--side));
+      background: linear-gradient(to right, var(--scrim), transparent);
+    }
 
-  .controls::before {
-    right: calc(-1 * var(--side));
-    background: linear-gradient(to left, var(--scrim), transparent);
+    .controls::before {
+      right: calc(-1 * var(--side));
+      background: linear-gradient(to left, var(--scrim), transparent);
+    }
   }
 }
 
@@ -2124,7 +2131,7 @@ const quit = () => emit('quit');
 }
 
 /* Short windows (portal frames): the result keeps every choice in view without scrolling. */
-@media (max-height: 760px) {
+@container game (height <= 47.5rem) {
   .actions {
     margin-top: var(--space-4);
   }
@@ -2135,7 +2142,7 @@ const quit = () => emit('quit');
 }
 
 /* Phones of 640 px: the fullest result (two goals, an ad, a launcher, a novelty) still fits. */
-@media (max-height: 680px) {
+@container game (height <= 42.5rem) {
   .dialog {
     padding: var(--space-4);
   }

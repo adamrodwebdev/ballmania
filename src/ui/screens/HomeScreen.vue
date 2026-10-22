@@ -794,21 +794,21 @@ onBeforeUnmount(() => stopScene());
 }
 
 /* From 22.5rem (360 px): the card's sides widen. */
-@media (min-width: 22.5rem) {
+@media (width >= 22.5rem) {
   .gift {
     padding-inline: var(--space-4);
   }
 }
 
 /* From 23.4375rem (375 px): room for the gift's decorative box. */
-@media (min-width: 23.4375rem) {
+@media (width >= 23.4375rem) {
   .gift-icon {
     display: block;
   }
 }
 
 /* Above 25rem (400 px): the gift header at its full size. */
-@media (min-width: 25.0625rem) {
+@media (width >= 25.0625rem) {
   .gift-head {
     gap: var(--space-3);
   }
@@ -829,7 +829,7 @@ onBeforeUnmount(() => stopScene());
 }
 
 /* Wide screens: the menu on the left, the black hole on the right, as on the cover. */
-@media (min-width: 640px) and (min-aspect-ratio: 5/4) {
+@media (width >= 40rem) and (aspect-ratio >= 5/4) {
   .content {
     align-items: flex-start;
     justify-content: center;
@@ -887,7 +887,7 @@ onBeforeUnmount(() => stopScene());
 
 /* Short landscape frames (portal iframes down to 821×462, phones on their side):
    everything shrinks with the height so Play and the tiles stay in view. */
-@media (min-aspect-ratio: 5/4) and (max-height: 620px) {
+@media (aspect-ratio >= 5/4) and (height <= 38.75rem) {
   .top {
     padding-top: max(var(--space-2), env(safe-area-inset-top));
   }
@@ -956,7 +956,7 @@ onBeforeUnmount(() => stopScene());
 }
 
 /* A folded gift in the corner: wide enough for its title on one line. */
-@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 620px) {
+@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height <= 38.75rem) {
   .gift {
     width: min(30rem, 46vw);
   }
@@ -964,7 +964,7 @@ onBeforeUnmount(() => stopScene());
 
 /* Short portrait screens (360×640 phones): tighter buttons and no version
    line, so nothing scrolls. */
-@media (max-aspect-ratio: 5/4) and (max-height: 720px) {
+@media (aspect-ratio <= 5/4) and (height <= 45rem) {
   .brand {
     margin-top: var(--space-2);
   }
