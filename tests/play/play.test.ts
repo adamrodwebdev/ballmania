@@ -153,6 +153,17 @@ describe('KeyboardControls', () => {
     expect(commands.togglePause).toHaveBeenCalledTimes(1);
   });
 
+  it('reads the letters of another alphabet by position (Russian layout)', () => {
+    const { commands, press } = setup();
+    // ЙЦУКЕН: the X key prints Ч and the P key prints З, beside their Latin letters.
+    press('keydown', 'KeyX', { key: 'ч' });
+    press('keydown', 'KeyP', { key: 'з' });
+    press('keydown', 'KeyM', { key: 'ь' });
+    expect(commands.swap).toHaveBeenCalledTimes(1);
+    expect(commands.togglePause).toHaveBeenCalledTimes(1);
+    expect(commands.toggleMagnet).toHaveBeenCalledTimes(1);
+  });
+
   it('turns while an arrow is held, slower with Shift', () => {
     const { commands, press } = setup();
     press('keydown', 'ArrowRight');

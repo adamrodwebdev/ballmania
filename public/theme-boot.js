@@ -16,7 +16,7 @@
     theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   root.dataset.theme = theme;
-  if (saved.locale === 'fr' || saved.locale === 'en' || saved.locale === 'id') {
+  if (['fr', 'en', 'id', 'ru'].indexOf(saved.locale) !== -1) {
     root.lang = saved.locale;
   }
 })();
