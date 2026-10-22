@@ -76,7 +76,10 @@ récompensée avant 3 à 5 minutes ; difficulté personnalisée, après la 1.8.0
 22/10/2026) : un « Bac à sable » dans l'Arcade, ouvert après le monde 1 (tracé débloqué,
 vitesse, couleurs, longueur, billes bonus ; ni étoiles, ni éclats, ni objectifs, ni défi du
 jour, ni partage), et un curseur « Vitesse du jeu » borné (70 à 100 %) pour l'accessibilité ;
-paramètres bornés et validés à la lecture, jamais lus dans l'adresse.
+paramètres bornés et validés à la lecture, jamais lus dans l'adresse ; le Colosse de cristal
+(4-12), raccourci par la remise en jeu derrière les Colosses de la 1.7.4 (64 s au lieu de
+110 s pour le robot occasionnel, danger 0,34 au lieu de 0,49), à revoir avec le réglage des
+mondes suivants (décidé le 22/10/2026).
 
 ## v1.7.3 — Étoiles à portée (livrée le 22/10/2026)
 
