@@ -73,4 +73,34 @@ test.describe('the bubble pointing at the Observatory', () => {
     await expect(page.getByTestId('level-nebula-01')).toBeVisible();
     await expect(tip).toHaveCount(0);
   });
+
+  // The portals' short frames (CrazyGames, Playgama): the map stays on one screen.
+  for (const [width, height] of [
+    [821, 462],
+    [915, 412],
+  ] as const) {
+    test(`floats above the button at ${width}×${height}, without scrolling the page`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.setViewportSize({ width, height });
+      const tip = page.getByTestId('observatory-tip');
+      await expect(tip).toBeVisible();
+      // The world deck takes a moment to follow a new window size.
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
+          ),
+        )
+        .toBeLessThanOrEqual(0);
+      const button = (await page.getByTestId('observatory').boundingBox())!;
+      const bubble = (await tip.boundingBox())!;
+      expect(button.y + button.height).toBeLessThanOrEqual(height);
+      expect(bubble.y + bubble.height).toBeLessThanOrEqual(button.y);
+      // It covers the last difficulties until touched; reaching them from the keyboard hides it.
+      await page.getByTestId('difficulty-explorer').focus();
+      await expect(tip).toHaveCount(0);
+    });
+  }
 });

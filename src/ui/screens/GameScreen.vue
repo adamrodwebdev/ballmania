@@ -1827,7 +1827,12 @@ const quit = () => emit('quit');
   }
 }
 
+/*
+ * Reduced motion: no animation at all. The opening hint, whose animation ends
+ * faded out, would otherwise vanish at once; it now stays for its six seconds.
+ */
 @media (prefers-reduced-motion: reduce) {
+  .hint,
   .cheer,
   .weather {
     animation: none;

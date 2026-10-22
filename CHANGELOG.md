@@ -14,7 +14,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 - **Bulle de l'Observatoire** : la première fois qu'une amélioration devient abordable, une
   bulle sous le bouton Observatoire de la carte dit « Améliorez votre jeu ici avec vos
   fragments d'étoiles. ». Elle ne cache rien, s'affiche lors d'une seule visite, disparaît
-  au toucher et ne revient jamais ; qui possède déjà une amélioration ne la voit pas.
+  au toucher et ne revient jamais ; qui possède déjà une amélioration ne la voit pas. Sur un
+  écran couché trop bas pour elle (fenêtres des portails), elle flotte au-dessus du bouton, sur
+  les dernières difficultés, jusqu'au toucher : la carte tient toujours sur un écran.
 
 ### Modifié
 
@@ -30,6 +32,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   au lieu de se couper en deux lignes.
 - Tests de bout en bout : `E2E_PORT` et `E2E_PORTAL_PORT` déplacent les deux builds quand un
   autre projet occupe déjà les ports 4174 et 4175.
+
+### Corrigé
+
+- Avec le mouvement réduit, le conseil qui ouvre un niveau disparaissait aussitôt : il reste
+  désormais affiché, immobile, ses six secondes.
+- Sur un écran couché très bas (915 × 412, une taille de test de Playgama), la carte
+  dépassait l'écran dès qu'une amélioration était abordable : sa colonne se resserre.
 
 ## [1.7.3] — 2026-10-22
 

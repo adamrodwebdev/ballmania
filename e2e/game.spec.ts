@@ -85,6 +85,12 @@ test.describe('game', () => {
       expect(Math.round(box.height)).toBeGreaterThanOrEqual(44);
     }
   });
+
+  test('keeps the opening tip on screen when motion is reduced', async ({ page }) => {
+    // Without motion the tip shows still, instead of jumping to the end of its fade.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(page.getByTestId('hint')).toHaveCSS('opacity', '1');
+  });
 });
 
 test.describe('settings', () => {
