@@ -53,6 +53,22 @@ export function findCosmetic(id: string): Cosmetic | undefined {
   return COSMETICS.find((cosmetic) => cosmetic.id === id);
 }
 
+/**
+ * The launcher to save shards for: the cheapest one on sale that the player
+ * does not own yet, shown after a win (specification § 3.6). Null once all
+ * are owned.
+ */
+export function nextLauncher(owns: (id: string) => boolean): Cosmetic | null {
+  const forSale = COSMETICS.filter(
+    (cosmetic) =>
+      cosmetic.slot === 'shooter' &&
+      cosmetic.price > 0 &&
+      !cosmetic.unlockedBy &&
+      !owns(cosmetic.id),
+  );
+  return [...forSale].sort((a, b) => a.price - b.price)[0] ?? null;
+}
+
 /** Owned from the start: free items that no world has to unlock. */
 export const STARTER_ITEMS: readonly string[] = COSMETICS.filter(
   (cosmetic) => cosmetic.price === 0 && !cosmetic.unlockedBy,

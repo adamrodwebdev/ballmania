@@ -1,13 +1,14 @@
 import type { GameReport } from '@/engine/Game';
 import { CAMPAIGN, nextLevel, starsFor, WORLDS, type CampaignLevel } from '@/levels/campaign';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
+import { noveltyOf, type Novelty } from '@/levels/novelty';
 import { resolveLevel } from '@/levels/resolveLevel';
 import type { Frame } from '@/levels/tracks';
 import type { DailyChallenge } from '@/player/DailyChallenge';
 import { ASSIST_SPEED } from '@/player/rewards';
 import type { AppServices } from '../AppServices';
 import type { PlayRequest } from '../PlayRequest';
-import type { Message, PlayMode, PlayOptions, Settlement } from './PlayMode';
+import type { Message, NextGame, PlayMode, PlayOptions, Settlement } from './PlayMode';
 
 /** Seconds between two star fragments, on average, without the Attrape-étoiles upgrade. */
 export const FRAGMENT_EVERY = 9;
@@ -15,6 +16,31 @@ export const FRAGMENT_EVERY = 9;
 const ORDER = CAMPAIGN.map((level) => level.id);
 const worldNumber = (level: CampaignLevel) =>
   WORLDS.findIndex((world) => world.id === level.world) + 1;
+
+/** "1-3": the short name of a level. */
+const shortName = (level: CampaignLevel): Message => ({
+  key: 'campaign.levelShort',
+  params: { world: worldNumber(level), number: level.number },
+});
+
+/** How each kind of novelty is said under the "next level" button. */
+const NOVELTY_MESSAGES: {
+  readonly [K in Novelty['kind']]: (novelty: Extract<Novelty, { kind: K }>) => Message;
+} = {
+  world: ({ world }) => ({ key: 'next.world', params: { name: { key: `worlds.${world}.name` } } }),
+  colossus: ({ world }) => ({
+    key: 'next.colossus',
+    params: { name: { key: `colossus.${world}` } },
+  }),
+  power: ({ power }) => ({ key: 'next.power', params: { name: { key: `power.${power}.name` } } }),
+  mechanic: ({ hint }) => ({
+    key: 'next.mechanic',
+    params: { name: { key: `next.mechanics.${hint}` } },
+  }),
+};
+
+const noveltyMessage = (novelty: Novelty): Message =>
+  (NOVELTY_MESSAGES[novelty.kind] as (novelty: Novelty) => Message)(novelty);
 
 /** The world a win finishes, if the level is the last of its world. */
 const worldFinished = (level: CampaignLevel) => {
@@ -46,10 +72,7 @@ export class CampaignMode implements PlayMode {
   }
 
   get label(): Message {
-    return {
-      key: 'campaign.levelShort',
-      params: { world: worldNumber(this.level), number: this.level.number },
-    };
+    return shortName(this.level);
   }
 
   outcome(won: boolean): Message {
@@ -87,12 +110,14 @@ export class CampaignMode implements PlayMode {
     };
   }
 
-  next({ progress }: AppServices) {
+  next({ progress }: AppServices): NextGame | null {
     const following = nextLevel(this.level);
     if (!following || !progress.isUnlocked(ORDER, following.id)) return null;
+    const novelty = noveltyOf(following);
     return {
-      request: { kind: 'campaign', level: following } as const,
-      label: { key: 'game.nextLevel' },
+      request: { kind: 'campaign', level: following },
+      label: { key: 'game.nextLevelNamed', params: { level: shortName(following) } },
+      ...(novelty ? { detail: noveltyMessage(novelty) } : {}),
     };
   }
 }

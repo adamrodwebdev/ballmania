@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GameReport } from '@/engine/Game';
 import { ACHIEVEMENTS, EMPTY_STATS, newlyReached, progressOf } from '@/player/achievements';
-import { COSMETICS, DEFAULT_LOOK, STARTER_ITEMS } from '@/player/catalog';
+import { COSMETICS, DEFAULT_LOOK, nextLauncher, STARTER_ITEMS } from '@/player/catalog';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { PLAYER_KEY, PlayerProfile, type GameContext } from '@/player/PlayerProfile';
 import { REWARDS } from '@/player/rewards';
@@ -45,6 +45,16 @@ describe('catalog', () => {
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of Object.values(DEFAULT_LOOK)) expect(STARTER_ITEMS).toContain(id);
     expect(STARTER_ITEMS).not.toContain('board-neon');
+  });
+
+  it('points at the cheapest launcher not owned yet, then none', () => {
+    const owned = new Set<string>(STARTER_ITEMS);
+    const owns = (id: string) => owned.has(id);
+    expect(nextLauncher(owns)?.id).toBe('shooter-crown');
+    owned.add('shooter-crown');
+    expect(nextLauncher(owns)?.id).toBe('shooter-halo');
+    owned.add('shooter-halo').add('shooter-eye');
+    expect(nextLauncher(owns)).toBeNull();
   });
 });
 

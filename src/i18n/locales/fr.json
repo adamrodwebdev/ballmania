@@ -80,6 +80,12 @@
       "5": "Incroyable !",
       "6": "Cosmique !",
       "nova": "Nova !"
+    },
+    "nextLevelNamed": "Suivant : niveau {level}",
+    "reward": {
+      "launcher": "{name} · lanceur",
+      "progress": "{have} / {price} éclats",
+      "ready": "Disponible à l'Atelier !"
     }
   },
   "effects": {
@@ -572,22 +578,26 @@
   "power": {
     "rewind": {
       "cheer": "Recul !",
-      "announce": "Recul : la chaîne repart en arrière."
+      "announce": "Recul : la chaîne repart en arrière.",
+      "name": "Recul"
     },
     "slow": {
       "cheer": "Ralenti !",
       "announce": "Ralenti : la chaîne avance à mi-vitesse pendant 8 secondes.",
-      "chip": "Ralenti · {seconds} s"
+      "chip": "Ralenti · {seconds} s",
+      "name": "Ralenti"
     },
     "rainbow": {
       "cheer": "Arc-en-ciel !",
       "announce": "Tir arc-en-ciel : votre prochaine bille va avec toutes les couleurs.",
-      "ready": "Tir arc-en-ciel prêt"
+      "ready": "Tir arc-en-ciel prêt",
+      "name": "Tir arc-en-ciel"
     },
     "laser": {
       "cheer": "Laser !",
       "announce": "Laser : votre prochain tir traverse les 4 premières billes touchées.",
-      "ready": "Laser prêt"
+      "ready": "Laser prêt",
+      "name": "Laser"
     }
   },
   "deck": {
@@ -623,5 +633,30 @@
     "fullGame": "Dans le jeu complet",
     "note": "Démo : 2 mondes sur 6",
     "done": "Fin de la démo ! Quatre autres mondes vous attendent dans le jeu complet."
+  },
+  "next": {
+    "world": "Nouveau monde : {name}",
+    "colossus": "Boss : {name}",
+    "power": "Nouvelle bille : {name}",
+    "mechanic": "Nouveauté : {name}",
+    "mechanics": {
+      "twin": "deux chaînes à la fois",
+      "ricochet": "les tirs en bande",
+      "prism": "les prismes",
+      "spin": "les prismes tournants",
+      "magnet": "l'aimant",
+      "magnetCombo": "les combos d'aimant",
+      "alchemy": "le mélange des couleurs",
+      "alchemySecondary": "les couleurs mélangées",
+      "switch": "les aiguillages de lave",
+      "hot": "le raccourci en fusion",
+      "gravity": "la gravité du trou noir",
+      "orbit": "le lanceur en orbite",
+      "arrhythmia": "l'arythmie",
+      "meteors": "les pluies de météores",
+      "wind": "les vents contraires",
+      "cold": "le froid mordant",
+      "solar": "les tempêtes solaires"
+    }
   }
 }

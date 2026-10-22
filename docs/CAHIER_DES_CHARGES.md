@@ -1146,6 +1146,16 @@ fait éclater son nom au-dessus du plateau.
   balayé de lumière, score qui monte, étoiles qui se matérialisent avec un anneau et un
   carillon montant. Mouvement réduit : les tracés s'allument et s'éteignent, une lueur au
   trou, résultat sans animation.
+- **La suite** (v1.7.2) : le bouton principal du panneau de victoire annonce le niveau
+  suivant et ce qu'il apporte pour la première fois (« Suivant : niveau 1-3 », puis
+  « Nouvelle bille : Recul », un Colosse, un nouveau monde ou une mécanique, d'après le
+  conseil du niveau, `noveltyOf`) ; le bloc des gains donne les objectifs atteints, puis
+  les éclats gagnés et la barre vers le prochain lanceur de l'Atelier (le moins cher
+  qu'on ne possède pas, avec son aperçu : « Couronne · 115 / 150 éclats ») ; bonus de fin
+  et record tiennent sur une ligne ; « Rejouer » et « Carte » se partagent une ligne sous
+  le bouton principal. Tout le panneau tient sans défilement à 1280 × 720 et au téléphone,
+  même avec l'offre de publicité. Mesuré : le panneau s'ouvre 1,8 s après la dernière
+  bille, et le niveau suivant accepte un tir 0,05 s après le clic.
 - Typographie fluide (`clamp()`), espacements en `rem`, cibles tactiles ≥ 44 × 44 px.
 
 ### 4.3 Accessibilité

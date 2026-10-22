@@ -11,7 +11,16 @@ import type { PlayRequest } from '../PlayRequest';
 /** A text of the interface, as an i18n key and its parameters: modes never translate. */
 export interface Message {
   readonly key: string;
-  readonly params?: Readonly<Record<string, string | number>>;
+  /** Values in the text; a message among them is translated first ("Boss: {name}"). */
+  readonly params?: Readonly<Record<string, string | number | Message>>;
+}
+
+/** What to offer after a win: the game, its button label, what it brings that is new. */
+export interface NextGame {
+  readonly request: PlayRequest;
+  readonly label: Message;
+  /** A new world, a Colossus, a power marble or a mechanic, said under the label. */
+  readonly detail?: Message;
 }
 
 /** What the player brings to a game: the assistance, the difficulty, the upgrades. */
@@ -71,6 +80,6 @@ export interface PlayMode {
   definition(frame: Frame, options: PlayOptions): LevelDefinition;
   /** Saves the finished game and pays its rewards. */
   settle(report: GameReport, services: AppServices): Settlement;
-  /** What to offer after a win, with its button label, if anything is open. */
-  next(services: AppServices): { readonly request: PlayRequest; readonly label: Message } | null;
+  /** What to offer after a win, if anything is open. */
+  next(services: AppServices): NextGame | null;
 }
