@@ -13,7 +13,7 @@
   "home": {
     "tagline": "Marble shooting, reinvented",
     "play": "Play",
-    "next": "{world} · Level {number}"
+    "next": "{world}\u00a0· Level\u00a0{number}"
   },
   "settings": {
     "language": "Language",

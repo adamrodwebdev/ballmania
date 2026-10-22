@@ -5,8 +5,9 @@ import { expect, test, type Page } from './fixtures';
  * every screen keeps its text inside its controls and on the screen.
  */
 const LONG = ['ru', 'id', 'fr'] as const;
-/** The smallest common phone, a tall one, and a portal's frame. */
+/** The narrowest phone, the smallest common one, a tall one, and a portal's frame. */
 const SIZES = [
+  [320, 568],
   [360, 640],
   [390, 844],
   [1280, 720],
@@ -44,9 +45,9 @@ const seed = (page: Page, locale: string, player: object = RETURNING) =>
   );
 
 /**
- * What is wrong with the text on screen: a word out of its button, tile or pill, text out
- * of the screen, a pill or a title on two lines, the page scrolling sideways, a result panel
- * that must scroll to show its choices.
+ * What is wrong with the text on screen: a word out of its button, tile, pill or choice,
+ * text out of the screen, a pill or a title on two lines, a choice pushed out of its column,
+ * the page scrolling sideways, a result panel that must scroll to show its choices.
  */
 const problems = (page: Page) =>
   page.evaluate(() => {
@@ -68,13 +69,23 @@ const problems = (page: Page) =>
       const box = el.getBoundingClientRect();
       if (box.left < -0.5 || box.right > width + 0.5) found.push(`off screen ${name(el)}`);
       if (getComputedStyle(el).position === 'absolute') continue;
-      const control = el.parentElement?.closest('button, .tile, .chip, .badge, .control, li, .tip');
+      const control = el.parentElement?.closest(
+        'button, .tile, .chip, .badge, .control, li, .tip, .option',
+      );
       if (!control) continue;
       const room = control.getBoundingClientRect();
       if (box.left < room.left - 1 || box.right > room.right + 1)
         found.push(`out of its box ${name(el)}`);
     }
-    for (const pill of document.querySelectorAll('.chip, .badge, .collect')) {
+    // A choice's box stays in its column: a long name must not push it into its neighbour.
+    for (const choice of document.querySelectorAll('.option > span')) {
+      if (!shown(choice) || !choice.parentElement) continue;
+      const box = choice.getBoundingClientRect();
+      const room = choice.parentElement.getBoundingClientRect();
+      if (box.left < room.left - 1 || box.right > room.right + 1)
+        found.push(`choice out of its column ${name(choice)}`);
+    }
+    for (const pill of document.querySelectorAll('.chip, .badge, .collect, .gift-name')) {
       if (!shown(pill)) continue;
       // The lines of its visible text only: an icon beside it sits at another height.
       const lines = new Set<number>();
@@ -93,8 +104,14 @@ const problems = (page: Page) =>
     return found;
   });
 
-/** Measures a screen once its entrances are over (screens slide in, lists rise). */
+/**
+ * Measures a screen in its final state: its fonts loaded (a fallback font is wider) and its
+ * entrances over (screens slide in, lists rise).
+ */
 const check = async (page: Page, what: string) => {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
   await page.waitForFunction(() =>
     document
       .getAnimations()
@@ -124,6 +141,8 @@ test.describe('languages', () => {
       }) => {
         // The viewport is set per test: one project is enough.
         test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+        // Six screens, each measured at rest.
+        test.setTimeout(60_000);
         await page.setViewportSize({ width, height });
         await seed(page, locale);
         const at = `${locale} ${width}×${height}`;

@@ -13,7 +13,7 @@
   "home": {
     "tagline": "Tembak bola berantai, dengan cara baru",
     "play": "Main",
-    "next": "{world} · Level {number}"
+    "next": "{world}\u00a0· Level\u00a0{number}"
   },
   "settings": {
     "language": "Bahasa",

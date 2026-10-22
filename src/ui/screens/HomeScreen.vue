@@ -569,14 +569,15 @@ onBeforeUnmount(() => stopScene());
 
 /*
  * The daily gift (v1.7): a card above Play on an upright screen, the black
- * hole in the room above it; in the top corner on a wide one.
+ * hole in the room above it; in the top corner on a wide one. Its sides widen
+ * from 360 px: at 320 px, its header needs their room.
  */
 .gift {
   display: grid;
   gap: var(--space-3);
   width: min(100%, 26rem);
   margin-block: var(--space-4) var(--space-6);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3);
   border: 1px solid var(--tile-edge);
   border-radius: 1.25rem;
   background: linear-gradient(180deg, var(--tile-top), var(--tile-bottom));
@@ -613,9 +614,10 @@ onBeforeUnmount(() => stopScene());
   line-height: 1.15;
 }
 
+/* From 1rem at 320 px to 1.15rem from 384 px: the title stays on one line. */
 .gift-name {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: clamp(1rem, 0.25rem + 3.75vw, 1.15rem);
 }
 
 .gift-day {
@@ -775,6 +777,12 @@ onBeforeUnmount(() => stopScene());
 @keyframes breathe {
   50% {
     opacity: 1;
+  }
+}
+
+@media (min-width: 360px) {
+  .gift {
+    padding-inline: var(--space-4);
   }
 }
 

@@ -13,7 +13,7 @@
   "home": {
     "tagline": "Le tir de billes réinventé",
     "play": "Jouer",
-    "next": "{world} · niveau {number}"
+    "next": "{world}\u00a0· niveau\u00a0{number}"
   },
   "settings": {
     "language": "Langue",
@@ -461,7 +461,7 @@
   "difficulty": {
     "title": "Difficulté",
     "explorer": {
-      "name": "Explorateur",
+      "name": "Explo\u00adrateur",
       "hint": "Chaîne plus lente, aléas adoucis, points ×0,8"
     },
     "pilot": {

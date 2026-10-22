@@ -1581,6 +1581,19 @@ const quit = () => emit('quit');
   transform: translateY(2px);
 }
 
+/* On the narrowest phones, a long label takes two balanced lines rather than leave its button. */
+.control-label {
+  white-space: normal;
+  text-wrap: balance;
+}
+
+/* From 360 px, the button decides: one line in the bottom bar, two in the side rail. */
+@media (min-width: 360px) {
+  .control-label {
+    white-space: inherit;
+  }
+}
+
 .balls {
   display: inline-flex;
   align-items: center;
