@@ -5,7 +5,7 @@ import { expect, test, type Page } from './fixtures';
  * (`vite build --mode simulated`): its ads are a dark box that closes by
  * itself, and every call to the platform lands in `window.platformLog`.
  */
-test.use({ baseURL: 'http://localhost:4175/' });
+test.use({ baseURL: `http://localhost:${process.env.E2E_PORTAL_PORT ?? 4175}/` });
 
 const log = (page: Page) =>
   page.evaluate(() => (window as unknown as { platformLog: string[] }).platformLog);

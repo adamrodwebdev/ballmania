@@ -1,8 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4174;
+/**
+ * Ports of the two builds. Another project may already serve on them, and a
+ * server found there is reused: `E2E_PORT` and `E2E_PORTAL_PORT` move them.
+ */
+const PORT = Number(process.env.E2E_PORT ?? 4174);
 /** The portal build, against the simulated portal (e2e/portal.spec.ts). */
-const PORTAL_PORT = 4175;
+const PORTAL_PORT = Number(process.env.E2E_PORTAL_PORT ?? 4175);
 
 /** Journeys run on the production build, in the two viewports of the specification. */
 export default defineConfig({
