@@ -19,7 +19,9 @@ export async function createPlatform(): Promise<PlatformAdapter> {
   let platform: PlatformAdapter;
   if (__PLATFORM__ === 'crazygames') {
     const { CrazyGamesPlatform } = await import('./CrazyGamesPlatform');
-    platform = new CrazyGamesPlatform(window as Window & CrazyGamesHost, loadScript(document));
+    platform = new CrazyGamesPlatform(window as Window & CrazyGamesHost, loadScript(document), {
+      ads: __CRAZYGAMES_ADS__,
+    });
   } else if (__PLATFORM__ === 'poki') {
     const { PokiPlatform } = await import('./PokiPlatform');
     platform = new PokiPlatform(window as Window & PokiHost, loadScript(document));
@@ -38,7 +40,7 @@ export async function createPlatform(): Promise<PlatformAdapter> {
     const ads = new URLSearchParams(window.location.search).get('ads');
     const simulated = new SimulatedPlatform(
       document,
-      ads === 'blocked' || ads === 'refused' ? ads : 'normal',
+      ads === 'blocked' || ads === 'refused' || ads === 'off' ? ads : 'normal',
     );
     Object.assign(window, { platformLog: simulated.log });
     platform = simulated;

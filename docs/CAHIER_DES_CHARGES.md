@@ -827,6 +827,16 @@ stockage de la plateforme. GameDistribution demande l'identifiant du jeu au buil
   quitte le plein écran) ; un onglet caché met la partie en pause sans `gameplayStop`
   (seule la pause du joueur est signalée, `HudState.pausedBy`) ; couvertures avec le Cœur d'étoile, bandes-annonces refaites
   (nébuleuse du monde 1, billes bonus, victoire et sa supernova).
+- **Build Basic Launch (v1.7.2)** : CrazyGames coupe les publicités pendant le Basic
+  Launch ; le build qu'on soumet n'en montre donc aucune et n'en demande aucune, pas même
+  la détection du bloqueur (`CrazyGamesPlatform` avec `ads: false`, constante de build
+  `__CRAZYGAMES_ADS__`). La version Full Launch se construit avec `CRAZYGAMES_LAUNCH=full`,
+  sur invitation. Les choix en éclats (continuer, indice) dépendent désormais de
+  `PlatformAdapter.isPortal` et non plus des publicités : ils restent proposés ; un prix
+  qu'on ne peut pas encore payer s'affiche grisé avec le solde. Le portail simulé reproduit
+  ce build avec `?ads=off`. La sauvegarde reste dans le module de données du SDK, sans
+  copie locale (règle CrazyGames) ; si l'option « Progress Save » manque à la soumission,
+  la console le dit une fois.
 - **Playgama (v1.4.0)** : `PlaygamaPlatform` (Bridge SDK v2, chargé par une balise dans
   le `<head>` du build, configuration `playgama-bridge-config.json` à la racine) ;
   sauvegardes **et réglages** par `bridge.storage` (le portail interdit tout autre

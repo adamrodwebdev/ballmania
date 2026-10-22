@@ -44,22 +44,37 @@ export interface CrazyGamesHost {
   CrazyGames?: { SDK?: CrazyGamesSdk };
 }
 
+/** How a CrazyGames build is launched. */
+export interface CrazyGamesOptions {
+  /**
+   * False for the Basic Launch build: CrazyGames turns ads off there, so the
+   * game shows no ad button and requests no ad at all (only the Full Launch
+   * version has them).
+   */
+  readonly ads?: boolean;
+}
+
 /**
- * CrazyGames (SDK v3): midgame and rewarded ads, saves in the SDK's data
- * module (kept with the player's account when signed in), the player's
- * locale, invite links, and the portal's mute setting.
+ * CrazyGames (SDK v3): midgame and rewarded ads (Full Launch build only),
+ * saves in the SDK's data module (kept with the player's account when signed
+ * in), the player's locale, invite links, and the portal's mute setting.
  */
 export class CrazyGamesPlatform implements PlatformAdapter {
   readonly id = 'crazygames';
-  readonly hasAds = true;
+  readonly hasAds: boolean;
+  readonly isPortal = true;
   private sdk: CrazyGamesSdk | null = null;
   private adblock = false;
   private storage: KeyValueStorage | null = null;
+  private dataWarned = false;
 
   constructor(
     private readonly host: CrazyGamesHost,
     private readonly load: ScriptLoader,
-  ) {}
+    options: CrazyGamesOptions = {},
+  ) {
+    this.hasAds = options.ads ?? true;
+  }
 
   async init(): Promise<void> {
     if (!this.host.CrazyGames?.SDK && !(await this.load(CRAZYGAMES_SDK))) return;
@@ -70,7 +85,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
       if (sdk.environment === 'disabled') return;
       this.sdk = sdk;
       sdk.game.loadingStart();
-      this.adblock = await sdk.ad.hasAdblock().catch(() => true);
+      if (this.hasAds) this.adblock = await sdk.ad.hasAdblock().catch(() => true);
     } catch {
       this.sdk = null;
     }
@@ -83,15 +98,17 @@ export class CrazyGamesPlatform implements PlatformAdapter {
           get: (key) => {
             try {
               return sdk.data.getItem(key);
-            } catch {
+            } catch (error) {
+              this.dataFailed(error);
               return null;
             }
           },
           set: (key, value) => {
             try {
               sdk.data.setItem(key, value);
-            } catch {
+            } catch (error) {
               // The data module is off: nothing is kept, the game goes on.
+              this.dataFailed(error);
             }
           },
         }
@@ -131,7 +148,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   }
 
   rewardedAvailable(): boolean {
-    return this.sdk !== null && !this.adblock;
+    return this.hasAds && this.sdk !== null && !this.adblock;
   }
 
   rewarded(onStart: AdStart): Promise<boolean> {
@@ -167,7 +184,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   /** An ad; resolves true once it was shown to the end, false if it failed or was refused. */
   private request(type: 'midgame' | 'rewarded', onStart: AdStart): Promise<boolean> {
     const sdk = this.sdk;
-    if (!sdk) return Promise.resolve(false);
+    if (!sdk || !this.hasAds) return Promise.resolve(false);
     return new Promise((resolve) => {
       try {
         sdk.ad.requestAd(type, {
@@ -184,6 +201,20 @@ export class CrazyGamesPlatform implements PlatformAdapter {
         resolve(false);
       }
     });
+  }
+
+  /**
+   * The data module throws when "Progress Save: Data module" was not chosen
+   * in the submission form: progress would then be lost on every reload. Said
+   * once in the console, where the portal's QA tool shows it.
+   */
+  private dataFailed(error: unknown): void {
+    if (this.dataWarned) return;
+    this.dataWarned = true;
+    const code = (error as { code?: unknown } | null)?.code;
+    console.warn(
+      `CrazyGames data module unavailable (${String(code ?? error)}): choose "Progress Save: Data module" when submitting the game.`,
+    );
   }
 
   private call(action: (sdk: CrazyGamesSdk) => void): void {

@@ -121,6 +121,13 @@ button:disabled {
     transform 0.15s;
 }
 
+/* A choice that can't be taken yet (a price the player can't pay) reads as such. */
+.btn:disabled {
+  box-shadow: none;
+  filter: saturate(0.25);
+  opacity: 0.45;
+}
+
 /* The game's main buttons: gold, glossy, with a thick bottom edge you press into. */
 .btn-primary {
   border: 0;

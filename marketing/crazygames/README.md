@@ -93,7 +93,10 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 
 ## Formulaire : réponses à préparer
 
-- **Build** : `npm run build:crazygames`, puis envoyer **le dossier** `dist-crazygames/`
+- **Build** : `npm run build:crazygames` (version Basic Launch, **sans aucune publicité** :
+  CrazyGames les coupe pendant le Basic Launch ; la version avec publicités se construit
+  avec `CRAZYGAMES_LAUNCH=full npm run build:crazygames`, seulement sur invitation au Full
+  Launch), puis envoyer **le dossier** `dist-crazygames/`
   lui-même : le champ d'envoi du Developer Portal choisit un dossier (`webkitdirectory`),
   une archive zip ne finit jamais de s'envoyer. Chemins relatifs (limites : 1 500
   fichiers, 50 Mo au premier chargement, 20 Mo pour la page d'accueil mobile). Un jeu
@@ -103,9 +106,11 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
   qu'un jeu abouti.
 - **Orientation** : paysage (le jeu s'adapte aussi au portrait sur mobile).
 - **Mobile** : oui, tactile complet.
-- **Progress Save / Data module** : à cocher. Le jeu sauvegarde par le module de données
-  du SDK ; sans cette option, le module renvoie `dataModuleDisabled` et la progression
-  n'est pas gardée.
+- **Progress Save / Data module** : **à cocher absolument**. Le jeu sauvegarde par le
+  module de données du SDK, sans sauvegarde locale à côté (règle CrazyGames) ; sans cette
+  option, le module renvoie `dataModuleDisabled`, la progression est perdue à chaque
+  rechargement et la console de l'outil de QA l'affiche. Vérifier un rechargement dans
+  l'outil de QA avant de soumettre.
 - **Langue** : anglais complet ; le jeu suit la langue du joueur (`systemInfo.locale`),
   anglais par défaut.
 - **Public** : tout public (CrazyGames exige la conformité PEGI 12) : aucune violence,
@@ -122,6 +127,10 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 - Droit au jeu : sur le portail, pas d'intro de studio, et un nouveau joueur arrive
   directement dans le niveau 1-1, avec son geste d'apprentissage ; un joueur qui revient
   retrouve l'écran titre.
+- Build Basic Launch (celui qu'on soumet) : aucun bouton vidéo, aucune requête
+  publicitaire, pas même la détection du bloqueur ; « Continuer » (60 éclats) et
+  l'indice (20 éclats) restent proposés, et un prix qu'on ne peut pas encore payer
+  s'affiche grisé avec le solde. Les règles ci-dessous valent pour la version Full Launch.
 - Publicités : aucune avant 3 minutes de jeu, jamais pendant le jeu ni sur un bouton de
   navigation (carte, menus) ; une publicité entre deux parties au plus toutes les 3
   minutes ; jamais de publicité au « Rejouer » d'un écran qui proposait déjà « Continuer

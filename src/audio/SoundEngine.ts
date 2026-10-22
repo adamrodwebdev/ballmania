@@ -471,7 +471,10 @@ export class SoundEngine {
     decay: number,
     peak: number,
   ): void {
+    // Partials above half the sample rate can't be played (the browser warns): skip them.
+    const nyquist = ctx.sampleRate / 2;
     GLASS_PARTIALS.forEach((ratio, i) => {
+      if (frequency * ratio >= nyquist) return;
       const osc = ctx.createOscillator();
       osc.type = 'sine';
       osc.frequency.value = frequency * ratio;

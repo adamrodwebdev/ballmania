@@ -616,7 +616,8 @@
     "hintShown": "Hint: shoot at the circled ball.",
     "unavailable": "No ad available right now: nothing is lost, try again later.",
     "blocked": "Video bonuses are unavailable right now. The whole game stays playable.",
-    "forShards": "For {price} shards"
+    "forShards": "For {price} shards",
+    "forShardsShort": "{price} shards · you have {balance}"
   },
   "demo": {
     "fullGame": "In the full game",

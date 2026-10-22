@@ -14,6 +14,7 @@ import type { PlatformAdapter } from '@/platform/PlatformAdapter';
 import { PLATFORM_IDS } from '@/platform/platforms';
 import { PlaygamaPlatform, type PlaygamaBridge } from '@/platform/PlaygamaPlatform';
 import { POKI_SDK, PokiPlatform, type PokiSdk } from '@/platform/PokiPlatform';
+import { SimulatedPlatform } from '@/platform/SimulatedPlatform';
 import { StandalonePlatform } from '@/platform/StandalonePlatform';
 import { MemoryStorage } from '@/services/KeyValueStorage';
 
@@ -160,8 +161,24 @@ describe('StandalonePlatform', () => {
       new MemoryStorage(),
     );
     expect(site.hasAds).toBe(false);
+    expect(site.isPortal).toBe(false);
     expect(await site.shareLink({ day: '20261013' })).toBe('https://ballmania.example/jeu/');
     expect(PLATFORM_IDS).toContain(site.id);
+  });
+});
+
+describe('SimulatedPlatform', () => {
+  it('stands for a portal build without ads with ?ads=off', () => {
+    // The page is only used to draw the pretend ads.
+    const page = {} as Document;
+    const storage = new MemoryStorage();
+    const off = new SimulatedPlatform(page, 'off', 0, storage);
+    expect(off.isPortal).toBe(true);
+    expect(off.hasAds).toBe(false);
+    expect(off.rewardedAvailable()).toBe(false);
+    const normal = new SimulatedPlatform(page, 'normal', 0, storage);
+    expect(normal.hasAds).toBe(true);
+    expect(normal.rewardedAvailable()).toBe(true);
   });
 });
 
@@ -250,6 +267,42 @@ describe('CrazyGamesPlatform', () => {
     expect(portal.rewardedAvailable()).toBe(true);
     expect(await portal.rewarded(() => {})).toBe(false);
     expect(portal.rewardedAvailable()).toBe(false);
+  });
+
+  it('shows and requests no ad at all in the Basic Launch build', async () => {
+    const { sdk, calls } = crazySdk();
+    const hasAdblock = vi.spyOn(sdk.ad, 'hasAdblock');
+    const portal = new CrazyGamesPlatform(
+      { CrazyGames: { SDK: sdk } },
+      () => Promise.resolve(true),
+      { ads: false },
+    );
+    await portal.init();
+    expect(portal.hasAds).toBe(false);
+    expect(portal.isPortal).toBe(true);
+    expect(portal.rewardedAvailable()).toBe(false);
+    await portal.interstitial(() => {});
+    expect(await portal.rewarded(() => {})).toBe(false);
+    expect(hasAdblock).not.toHaveBeenCalled();
+    expect(calls).not.toContain('midgame');
+    expect(calls).not.toContain('rewarded');
+  });
+
+  it('says once in the console when the data module is off', async () => {
+    const off = () => {
+      throw Object.assign(new Error('off'), { code: 'dataModuleDisabled' });
+    };
+    const { sdk } = crazySdk({ data: { getItem: off, setItem: off } });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const portal = new CrazyGamesPlatform({ CrazyGames: { SDK: sdk } }, () =>
+      Promise.resolve(true),
+    );
+    await portal.init();
+    portal.saves().set('ballmania:player', '{}');
+    expect(portal.saves().get('ballmania:player')).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]?.[0])).toContain('dataModuleDisabled');
+    warn.mockRestore();
   });
 
   it('runs without ads when the SDK cannot load or an ad fails', async () => {

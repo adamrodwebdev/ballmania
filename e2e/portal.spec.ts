@@ -125,7 +125,7 @@ test.describe('portal build', () => {
     await expect(dialog.getByTestId('ad-continue')).toContainText('Watch an ad');
     // The ad offer looks like any other choice, and shards are the way without an ad.
     await expect(dialog.getByTestId('ad-continue')).not.toHaveClass(/btn-primary/);
-    await expect(dialog.getByTestId('shard-continue')).toContainText('For 60 shards');
+    await expect(dialog.getByTestId('shard-continue')).toContainText('60 shards · you have 0');
     await expect(dialog.getByTestId('shard-continue')).toBeDisabled();
     await dialog.getByTestId('ad-continue').click();
     await page.clock.runFor(1000);
@@ -173,6 +173,40 @@ test.describe('portal build', () => {
     await dialog.getByTestId('map').click();
     await page.clock.runFor(1000);
     await expect(page.getByTestId('wallet')).toHaveText(/20 shards/);
+  });
+
+  test('shows no ad at all in a build without ads (CrazyGames Basic Launch)', async ({ page }) => {
+    test.setTimeout(240_000);
+    await english(page);
+    await page.clock.install();
+    await page.goto('./?ads=off');
+    await expect(page.getByTestId('board')).toBeVisible();
+    await page.clock.runFor(100_000);
+    const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    await expect(dialog).toBeVisible();
+    // Continuing is still offered, for shards only, and says why it can't be taken yet.
+    await expect(dialog.getByTestId('ad-continue')).toHaveCount(0);
+    await expect(dialog.getByTestId('shard-continue')).toContainText('60 shards · you have 0');
+    await expect(dialog.getByTestId('shard-continue')).toBeDisabled();
+    await expect(dialog.getByTestId('ads-blocked')).toHaveCount(0);
+    // Even three minutes on, replaying brings no ad.
+    await page.clock.runFor(100_000);
+    await dialog.getByTestId('replay').click();
+    await expect(page.getByTestId('simulated-ad')).toHaveCount(0);
+    await expect(dialog).toBeHidden();
+    const events = await log(page);
+    expect(events).not.toContain('rewarded');
+    expect(events).not.toContain('interstitial');
+  });
+
+  test('lends no cosmetic for an ad in a build without ads', async ({ page }) => {
+    await english(page);
+    await returning(page);
+    await page.goto('./?ads=off');
+    await page.getByTestId('shop').click();
+    await expect(page.getByTestId('item-shooter-eye')).toBeVisible();
+    await expect(page.getByTestId('try-shooter-eye')).toHaveCount(0);
+    await expect(page.getByTestId('ads-blocked')).toHaveCount(0);
   });
 
   test('offers no reward behind an ad blocker', async ({ page }) => {

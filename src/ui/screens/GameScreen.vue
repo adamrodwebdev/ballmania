@@ -387,7 +387,7 @@ watch(
     if (state !== undefined && state !== 'playing') hintVisible.value = false;
     const play = session.value;
     if (!play || state === undefined || state === 'playing') return;
-    if (state === 'lost' && platform.hasAds && mode.continuable && !continued.value) {
+    if (state === 'lost' && platform.isPortal && mode.continuable && !continued.value) {
       pendingLoss.value = play.revivable;
       if (pendingLoss.value) return;
     }
@@ -563,7 +563,7 @@ const rest = () => {
 const offerHint = computed(
   () =>
     request.kind === 'puzzle' &&
-    platform.hasAds &&
+    platform.isPortal &&
     hud.value?.state === 'playing' &&
     !hintResting.value,
 );
@@ -591,6 +591,11 @@ const hintForShards = () => {
   pauseDialog.value?.close();
   giveHint(play);
 };
+/** The price of a choice paid in shards, with the balance when it can't be paid yet. */
+const shardPrice = (price: number) =>
+  player.view.shards < price
+    ? t('ads.forShardsShort', { price, balance: player.view.shards })
+    : t('ads.forShards', { price });
 
 /** A portal with ads, but none can be offered: an ad blocker. Said, never punished. */
 const adsBlocked = computed(() => platform.hasAds && !ads.rewardsOffered);
@@ -860,7 +865,7 @@ const quit = () => emit('quit');
             @click="hintForShards"
           >
             <span>{{ t('ads.hint') }}</span>
-            <small>{{ t('ads.forShards', { price: HINT_PRICE }) }}</small>
+            <small>{{ shardPrice(HINT_PRICE) }}</small>
           </button>
         </template>
         <button class="btn" type="button" @click="restart">{{ t('game.restart') }}</button>
@@ -1001,7 +1006,7 @@ const quit = () => emit('quit');
             @click="continueForShards"
           >
             <span>{{ t('ads.continue') }}</span>
-            <small>{{ t('ads.forShards', { price: CONTINUE_PRICE }) }}</small>
+            <small>{{ shardPrice(CONTINUE_PRICE) }}</small>
           </button>
         </template>
         <button
