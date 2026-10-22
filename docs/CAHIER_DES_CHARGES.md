@@ -1249,13 +1249,14 @@ Livré au lot 12 :
 
 Depuis la v1.7.5 :
 
-- **Langues longues** : un test de bout en bout vérifie chaque menu et une partie (jeu,
-  pause, défaite avec aide) en russe, en indonésien et en français, à 360 × 640,
-  390 × 844 et 1 280 × 720 : aucun texte hors de son bouton, de sa tuile ou de l'écran,
-  aucune pastille sur deux lignes, aucun défilement horizontal, un panneau de fin sans
-  défilement. Les mots longs des tuiles portent une césure conditionnelle (U+00AD), que
-  les lecteurs d'écran ignorent ; les compteurs de l'accueil montrent le nombre à côté de
-  leur icône et donnent la phrase entière aux lecteurs d'écran.
+- **Langues longues** : un test de bout en bout vérifie chaque menu, la bulle de
+  l'Observatoire et une partie (jeu, pause, défaite avec aide) en russe, en indonésien et
+  en français, à 360 × 640, 390 × 844 et 1 280 × 720 : aucun texte hors de son bouton, de
+  sa tuile, de sa bulle ou de l'écran, aucune pastille sur deux lignes, aucun défilement
+  horizontal, un panneau de fin sans défilement. Les mots longs des tuiles portent une
+  césure conditionnelle (U+00AD), que les lecteurs d'écran ignorent ; les compteurs de
+  l'accueil montrent le nombre à côté de leur icône et donnent la phrase entière aux
+  lecteurs d'écran.
 - Les audits axe-core passent aussi en russe, dans les deux thèmes.
 
 ### 4.3 bis Référencement (livré au lot 12)

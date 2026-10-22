@@ -155,9 +155,10 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
 - Lighthouse (v1.7.5), en anglais comme en russe : sur ordinateur, 100 dans les quatre
   catégories ; sur mobile, 100 en accessibilité, bonnes pratiques et SEO, 98 en performance
-  aux trois mesures. Règle du projet depuis le 22/10/2026 : 100 dans les quatre catégories,
-  sur la plus faible de trois mesures mobiles et sur ordinateur ; `npm run lighthouse`
-  échoue en dessous.
+  (en anglais, une mesure sur neuf à 97 : le LCP simulé, 2,2 s comme en 1.7.4, laisse peu
+  de marge).
+  Règle du projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur la plus faible de
+  trois mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en dessous.
 - Intégration continue GitHub Actions à chaque envoi.
 
 ## Conventions

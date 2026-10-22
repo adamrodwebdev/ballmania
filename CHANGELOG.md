@@ -15,9 +15,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   fichier de 23,6 Ko qui ne garde que ce que le russe affiche. Elle arrive avec les textes,
   sans saut au premier affichage, et les autres langues ne la téléchargent jamais.
 - `npm run lighthouse -- --lang=ru` : un audit dans une langue donnée.
-- Tests de bout en bout des langues : en russe, en indonésien et en français, chaque menu
-  et une partie (jeu, pause, défaite) à 360 × 640, 390 × 844 et 1280 × 720, sans texte
-  coupé ni sorti de son cadre ; les audits d'accessibilité passent aussi en russe.
+- Tests de bout en bout des langues : en russe, en indonésien et en français, chaque menu,
+  la bulle de l'Observatoire et une partie (jeu, pause, défaite) à 360 × 640, 390 × 844 et
+  1280 × 720, sans texte coupé ni sorti de son cadre ; les audits d'accessibilité passent
+  aussi en russe.
 
 ### Modifié
 

@@ -50,10 +50,15 @@ dans les mots longs des tuiles, badge « Améliorer » au lieu d'« Amélioratio
 audits axe passent en russe dans les deux thèmes ; le test des langues joue une seule partie
 par langue, mesurée aux trois tailles, pour garder l'intégration continue rapide. Laissé pour
 plus tard : la fenêtre des réglages défile dans toutes les langues, anglais compris (254 px à
-360 × 640, 93 px à 1280 × 720). Reste avant la fusion : relire et traduire en russe les
-textes de la 1.7.4 (jeune Colosse, bulle de l'Observatoire) une fois celle-ci fusionnée.
-Lighthouse : 98 en performance sur mobile aux trois mesures, en anglais comme en russe, 100
-dans les trois autres catégories ; 100 × 4 sur ordinateur dans les deux langues.
+360 × 640, 93 px à 1280 × 720). La 1.7.5 repose sur la 1.7.4 : ses nouveaux textes sont
+relus et traduits en russe (« Юный звёздный Колосс », la bulle « Улучшайте здесь свою игру
+за звёздные фрагменты. », l'objectif « Победите любого Колосса. »), et la bulle de
+l'Observatoire est vérifiée en russe, en indonésien et en français aux trois tailles.
+Lighthouse sur mobile, avec la 1.7.4 : en russe, 98 en performance aux trois mesures ; en
+anglais, 98, 97 et 98, puis 98 à cinq mesures de plus. La 1.7.4 seule donne les mêmes temps
+simulés (FCP 1,8 s, LCP 2,2 s, 98 à chaque mesure) : ce n'est pas un recul de la 1.7.5, mais
+la marge est mince (à 2,3 s de LCP, le score tombe à 97). 100 dans les trois autres
+catégories ; 100 × 4 sur ordinateur dans les deux langues.
 
 **Plus tard : les portails russophones** (feuille de route à part) : Yandex Games et les jeux
 VK. Avant toute intégration, lecture complète de leur documentation et fiche de référence dans
