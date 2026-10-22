@@ -46,7 +46,9 @@ const gift = computed(() => player.giftOffer(today()));
 const giftMessage = ref('');
 const takeGift = () => {
   const shards = player.takeGift(today());
-  if (shards > 0) giftMessage.value = t('gift.received', { shards: number.value.format(shards) });
+  if (shards > 0) {
+    giftMessage.value = t('gift.received', { shards: number.value.format(shards) }, shards);
+  }
 };
 const dayState = (day: number) => ({
   done: day < gift.value.day,
@@ -64,6 +66,7 @@ const dayLabel = (day: number, shards: number) =>
       day,
       shards: number.value.format(shards),
     },
+    shards,
   );
 const version = __APP_VERSION__;
 /** Playgama wants a two-to-four-word title, the same in the game and on its page. */
@@ -132,7 +135,9 @@ onBeforeUnmount(() => stopScene());
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="shard">
               <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
             </svg>
-            {{ t('player.balance', { count: number.format(player.view.shards) }) }}
+            {{
+              t('player.balance', { count: number.format(player.view.shards) }, player.view.shards)
+            }}
           </p>
         </template>
       </div>

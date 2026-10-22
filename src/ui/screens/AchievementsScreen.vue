@@ -39,7 +39,11 @@ const rows = computed(() =>
           <h2>{{ t(`achievements.list.${row.achievement.id}.name`) }}</h2>
           <p>
             {{
-              t(`achievements.list.${row.achievement.id}.text`, { target: row.achievement.target })
+              t(
+                `achievements.list.${row.achievement.id}.text`,
+                { target: number.format(row.achievement.target) },
+                row.achievement.target,
+              )
             }}
           </p>
           <progress
@@ -55,7 +59,15 @@ const rows = computed(() =>
         </div>
         <p class="reward">
           <span v-if="row.done">{{ t('achievements.done') }}</span>
-          <span v-else>{{ t('player.reward', { count: row.achievement.reward }) }}</span>
+          <span v-else>
+            {{
+              t(
+                'player.reward',
+                { count: number.format(row.achievement.reward) },
+                row.achievement.reward,
+              )
+            }}
+          </span>
         </p>
       </li>
     </ul>

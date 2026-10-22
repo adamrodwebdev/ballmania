@@ -55,7 +55,13 @@ const buy = (id: UpgradeId) => {
           d="M12 1l2.6 8.4H23l-6.8 5 2.6 8.4L12 17.6 5.2 22.8l2.6-8.4L1 9.4h8.4z"
         />
       </svg>
-      {{ t('observatory.balance', { count: number.format(player.view.fragments) }) }}
+      {{
+        t(
+          'observatory.balance',
+          { count: number.format(player.view.fragments) },
+          player.view.fragments,
+        )
+      }}
     </p>
 
     <ul class="grid stagger">
@@ -94,7 +100,7 @@ const buy = (id: UpgradeId) => {
           :data-testid="`buy-${upgrade.id}`"
           @click="buy(upgrade.id)"
         >
-          {{ t('observatory.buy', { cost: upgrade.cost }) }}
+          {{ t('observatory.buy', { cost: upgrade.cost }, upgrade.cost) }}
         </button>
         <p v-else class="done">{{ t('observatory.max') }}</p>
       </li>

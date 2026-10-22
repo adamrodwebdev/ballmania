@@ -58,7 +58,7 @@
     "playAgain": "Play again",
     "reaction": "Chain reaction ×{depth}",
     "settings": "Settings",
-    "starsLabel": "{count} star out of 3 | {count} star out of 3 | {count} stars out of 3",
+    "starsLabel": "{count} stars out of 3 | {count} star out of 3 | {count} stars out of 3",
     "bonus": "End bonus: +{points}",
     "timeBonus": "{seconds} s ahead: +{points}",
     "best": "Best: {score}",
@@ -82,7 +82,7 @@
       "progress": "{have} / {price} shards",
       "ready": "Ready in the Workshop!"
     },
-    "gaugeReached": "{count} stars within reach"
+    "gaugeReached": "{count} stars within reach | {count} star within reach | {count} stars within reach"
   },
   "effects": {
     "spectacular": {
@@ -104,7 +104,7 @@
     "world": "World {number}",
     "stars": "{count} / {total} stars",
     "levelShort": "{world}-{number}",
-    "levelLabel": "Level {number}, {stars} star(s) out of 3",
+    "levelLabel": "Level {number}, {stars} stars out of 3 | Level {number}, {stars} star out of 3 | Level {number}, {stars} stars out of 3",
     "lockedLabel": "Level {number}, locked",
     "comingSoon": "Coming soon: finish the previous world to open it.",
     "worldsLabel": "Worlds of the campaign"
@@ -176,9 +176,9 @@
     "young": "Young Stellar Colossus"
   },
   "player": {
-    "balance": "{count} shards",
-    "earned": "+{count} shards",
-    "reward": "+{count} shards"
+    "balance": "{count} shards | {count} shard | {count} shards",
+    "earned": "+{count} shards | +{count} shard | +{count} shards",
+    "reward": "+{count} shards | +{count} shard | +{count} shards"
   },
   "daily": {
     "title": "Daily challenge",
@@ -414,7 +414,7 @@
       "short": "Puzzle {number}",
       "daily": "Puzzle of the day",
       "dailyTodo": "Same puzzle for everyone today",
-      "dailyDone": "Solved in {shots} shots",
+      "dailyDone": "Solved in {shots} shots | Solved in {shots} shot | Solved in {shots} shots",
       "dailyTried": "Tried today",
       "solvedCount": "{count} / {total} puzzles solved",
       "solved": "Puzzle solved!",
@@ -422,8 +422,8 @@
       "next": "Next puzzle",
       "nextColour": "Next colour",
       "shotsLeft": "{count} shots | {count} shot | {count} shots",
-      "result": "{shots} shots (best possible: {par})",
-      "tileLabel": "Puzzle {number}, {stars} star(s) out of 3",
+      "result": "{shots} shots (best possible: {par}) | {shots} shot (best possible: {par}) | {shots} shots (best possible: {par})",
+      "tileLabel": "Puzzle {number}, {stars} stars out of 3 | Puzzle {number}, {stars} star out of 3 | Puzzle {number}, {stars} stars out of 3",
       "lockedLabel": "Puzzle {number}, locked"
     },
     "rhythm": {
@@ -490,7 +490,7 @@
     "title": "Observatory",
     "back": "Back",
     "intro": "Hit shooting stars with your shots to collect star fragments, then upgrade your instruments. Upgrades apply in the campaign only (not in the daily challenge or the Arcade).",
-    "balance": "{count} fragments",
+    "balance": "{count} fragments | {count} fragment | {count} fragments",
     "ready": "Upgrade available",
     "tip": "Upgrade your game here with your star fragments.",
     "tipClose": "Got it",
@@ -611,7 +611,7 @@
     "trying": "Yours to try in your next game",
     "trial": "{name}: yours to try in your next game.",
     "continued": "The chain moves back: your turn!",
-    "doubled": "{count} more shards!",
+    "doubled": "{count} more shards! | {count} more shard! | {count} more shards!",
     "hintShown": "Hint: shoot at the circled marble.",
     "unavailable": "No ad available right now: nothing is lost, try again later.",
     "blocked": "Video bonuses are unavailable right now. The whole game stays playable.",

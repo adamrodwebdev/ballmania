@@ -46,7 +46,7 @@ const equip = (item: Cosmetic) => {
   <section class="screen" aria-labelledby="shop-title">
     <ScreenHeader :title="t('shop.title')" title-id="shop-title" @back="emit('home')">
       <p class="wallet" data-testid="wallet">
-        {{ t('player.balance', { count: number.format(player.view.shards) }) }}
+        {{ t('player.balance', { count: number.format(player.view.shards) }, player.view.shards) }}
       </p>
     </ScreenHeader>
     <p class="intro">{{ t('shop.intro') }}</p>
