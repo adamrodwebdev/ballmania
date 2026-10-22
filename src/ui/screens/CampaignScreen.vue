@@ -50,8 +50,13 @@ const tip = ref(player.observatoryTipDue);
 const FRAGMENT = '✦';
 if (tip.value) player.markTipSeen('observatory');
 const observatoryButton = ref<HTMLButtonElement | null>(null);
-const closeTip = () => {
+/** Gone, the focus where it was (it reached the difficulties, which the bubble may cover). */
+const hideTip = () => {
   tip.value = false;
+};
+/** Touched: gone, and the focus on the button it pointed at. */
+const closeTip = () => {
+  hideTip();
   observatoryButton.value?.focus();
 };
 </script>
@@ -98,7 +103,7 @@ const closeTip = () => {
       </div>
     </div>
 
-    <fieldset class="difficulty">
+    <fieldset class="difficulty" @focusin="hideTip">
       <legend>{{ t('difficulty.title') }}</legend>
       <label v-for="level in DIFFICULTIES" :key="level" class="option">
         <input
@@ -736,10 +741,41 @@ h2 {
   }
 }
 
-/* The shortest frames (phones on their side): the levels before the words. */
+/*
+ * Short landscape frames (portal windows, phones on their side): the column
+ * has no room left for the bubble, which would make the page scroll. It floats
+ * above the button instead, over the last difficulties, until it is touched;
+ * reaching the difficulties from the keyboard hides it too.
+ */
+@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 600px) {
+  .observatory-group {
+    position: relative;
+  }
+
+  .tip {
+    position: absolute;
+    inset-inline: 0;
+    bottom: calc(100% + var(--space-3));
+    z-index: 2;
+    width: auto;
+    min-width: 0;
+  }
+}
+
+/*
+ * The shortest frames (phones on their side): the levels before the words, and
+ * a tighter column, so the map still fits with the Observatory's badge on its
+ * own line (Playgama's 915 × 412).
+ */
 @media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 480px) {
   .campaign {
     padding-block: var(--space-3);
+    row-gap: var(--space-1);
+  }
+
+  .observatory {
+    padding-block: var(--space-2);
+    row-gap: 0;
   }
 
   .tagline,
