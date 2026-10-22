@@ -1,4 +1,5 @@
 import { ingredients, mix } from '@/engine/chain/Alchemy';
+import type { BallView } from '@/engine/chain/Ball';
 import { SeededRandom } from '@/engine/core/Random';
 import { Game } from '@/engine/Game';
 import type { CampaignLevel } from '@/levels/campaign';
@@ -21,12 +22,32 @@ export interface BotResult {
   readonly thin: number;
   /** Longest run of shots in a row that each made a group explode. */
   readonly bestStreak: number;
+  /** End-of-level bonus included in the score (0 without a win). */
+  readonly bonus: number;
+  /** Seconds played, to the tenth. */
+  readonly elapsed: number;
 }
+
+/**
+ * Players for balancing (frames between two shots, aim error, one move ahead).
+ * Humans take longer than a greedy bot to decide, but once they do, they
+ * shoot true and set up chain reactions: they are the reference for the time
+ * bonus and the stars.
+ */
+export const PLAYERS = {
+  /** A greedy, hasty player: a shot every 1.2 s, often off target. */
+  casual: { cadence: 72, sloppiness: 24, insight: false },
+  /** A human: decides every 1.5 s, shoots true, looks for chain reactions. */
+  human: { cadence: 90, sloppiness: 8, insight: true },
+  /** An applied human: decides every 1.1 s, very precise. */
+  applied: { cadence: 66, sloppiness: 5, insight: true },
+} as const;
 
 /**
  * A simple greedy player, for balancing: it shoots at a visible ball of the
  * loaded colour, preferring pairs and the balls closest to the hole, and
- * swaps when the next ball has a better target. A human does better.
+ * swaps when the next ball has a better target. With `insight`, it also
+ * prefers the groups whose neighbours will meet and explode in turn.
  */
 export function playLevel(
   level: CampaignLevel,
@@ -36,9 +57,29 @@ export function playLevel(
   cadence = 54,
   /** Aim error, in board units along the track. */
   sloppiness = 18,
+  insight = false,
 ): BotResult {
-  return playDefinition(resolveLevel(level, frame), seed, cadence, sloppiness);
+  return playDefinition(resolveLevel(level, frame), seed, cadence, sloppiness, insight);
 }
+
+/**
+ * Looking one move ahead: once the group around `index` is gone, will the
+ * balls on either side, of one colour and three or more together, meet and
+ * explode in turn? A join of two only makes a pair.
+ */
+const reactionAfter = (balls: readonly BallView[], index: number, colour: number): number => {
+  let first = index;
+  while (first > 0 && balls[first - 1]!.tone === colour) first--;
+  let last = index;
+  while (last + 1 < balls.length && balls[last + 1]!.tone === colour) last++;
+  const left = balls[first - 1];
+  const right = balls[last + 1];
+  if (!left || !right || left.tone !== right.tone) return 0;
+  let run = 2;
+  for (let k = first - 2; k >= 0 && balls[k]!.tone === left.tone; k--) run++;
+  for (let k = last + 2; k < balls.length && balls[k]!.tone === left.tone; k++) run++;
+  return run >= 3 ? 3 : 0;
+};
 
 /** The same player, on any level given as data (Arcade modes). */
 export function playDefinition(
@@ -46,6 +87,7 @@ export function playDefinition(
   seed: string,
   cadence = 54,
   sloppiness = 18,
+  insight = false,
 ): BotResult {
   const hand = SeededRandom.fromString(`hand:${seed}`);
   const game = new Game(toLevelSetup(definition), SeededRandom.fromString(seed));
@@ -55,6 +97,8 @@ export function playDefinition(
   let danger = 0;
   let idleFrames = 0;
   let thinFrames = 0;
+  let bonus = 0;
+  game.events.on('ended', (event) => (bonus = event.bonus));
   interface Candidate {
     readonly score: number;
     readonly chain: number;
@@ -92,8 +136,9 @@ export function playDefinition(
           (balls[i - 1]?.tone === colour ? 1 : 0) + (balls[i + 1]?.tone === colour ? 1 : 0);
         // A fusion only helps next to its own colour; alone, it leaves a ball nobody can shoot.
         const fusion = becomes === null ? 0 : pair > 0 ? 0.3 : -1.5;
+        const ahead = insight && pair > 0 && becomes === null ? reactionAfter(balls, i, colour) : 0;
         found.push({
-          score: pair * 2 + fusion + ball.s / chain.path.length,
+          score: pair * 2 + fusion + ahead + ball.s / chain.path.length,
           chain: index,
           s: ball.s,
           id: ball.id,
@@ -304,5 +349,7 @@ export function playDefinition(
     idle: Math.round(idleFrames / 6) / 10,
     thin: Math.round(thinFrames / 6) / 10,
     bestStreak: game.summary().bestStreak,
+    bonus,
+    elapsed: Math.round(game.elapsed * 10) / 10,
   };
 }
