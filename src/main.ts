@@ -3,17 +3,23 @@ import App from './App.vue';
 import { APP_SERVICES, createBrowserServices, playerTrace } from './app/AppServices';
 import { landing } from './app/landing';
 import type { PlayRequest } from './app/PlayRequest';
+import { fontsFor } from './app/fonts';
 import { createAppI18n } from './i18n';
 import { createPlatform } from './platform';
 import '@fontsource/lilita-one/latin-400.css';
 import '@fontsource/fredoka/latin-500.css';
 import '@fontsource/fredoka/latin-700.css';
+import './styles/russian.css';
 import './styles/tokens.css';
 import './styles/base.css';
 
 const platform = await createPlatform();
 const services = createBrowserServices(platform);
-const i18n = await createAppI18n(services.settings.current.locale);
+// The language's own letters arrive with its messages: no text jumps at the first paint.
+const [i18n] = await Promise.all([
+  createAppI18n(services.settings.current.locale),
+  fontsFor(services.settings.current.locale),
+]);
 
 /**
  * A new player on a portal starts in the first level. Its code is fetched

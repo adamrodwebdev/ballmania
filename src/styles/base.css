@@ -53,10 +53,22 @@ body {
     radial-gradient(ellipse 120% 60% at 50% 0%, var(--bg-glow), transparent 70%), var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: var(--font-ui);
+  /*
+   * The page's own blank text is laid out before the game knows its language:
+   * a system face there, so no web font is fetched for a language not shown.
+   */
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
   line-height: 1.5;
   overflow-x: hidden;
+}
+
+#app {
+  font-family: var(--font-ui);
 }
 
 h1,

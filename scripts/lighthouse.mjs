@@ -1,5 +1,6 @@
 // Lighthouse audit of the production build, mobile profile (the default).
-// Usage: npm run build && npm run lighthouse  [-- --desktop]
+// Usage: npm run build && npm run lighthouse  [-- --desktop] [-- --lang=ru]
+// `--lang` sets the browser's language, so the game opens in it (Russian loads its own font).
 // Fails when a category scores below the specification's threshold: 100 in all four
 // (since 2026-10-22), on mobile and on desktop; judge the worst of three mobile runs.
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -11,12 +12,17 @@ import { preview } from 'vite';
 const THRESHOLDS = { performance: 100, accessibility: 100, 'best-practices': 100, seo: 100 };
 const PORT = 4176;
 const desktop = process.argv.includes('--desktop');
+const lang = process.argv.find((arg) => arg.startsWith('--lang='))?.slice('--lang='.length);
 
 const server = await preview({ preview: { port: PORT, strictPort: true }, logLevel: 'error' });
 const chrome = await chromeLauncher.launch({
   // Installed Chrome, found by chrome-launcher; CHROME_PATH overrides it.
   ...(process.env.CHROME_PATH ? { chromePath: process.env.CHROME_PATH } : {}),
-  chromeFlags: ['--headless=new', '--no-sandbox'],
+  chromeFlags: [
+    '--headless=new',
+    '--no-sandbox',
+    ...(lang ? [`--lang=${lang}`, `--accept-lang=${lang}`] : []),
+  ],
 });
 
 let failed = false;
@@ -29,7 +35,7 @@ try {
   if (!result) throw new Error('Lighthouse returned no result');
 
   mkdirSync('reports', { recursive: true });
-  const name = `reports/lighthouse-${desktop ? 'desktop' : 'mobile'}.html`;
+  const name = `reports/lighthouse-${desktop ? 'desktop' : 'mobile'}${lang ? `-${lang}` : ''}.html`;
   writeFileSync(name, result.report);
 
   for (const category of Object.values(result.lhr.categories)) {
