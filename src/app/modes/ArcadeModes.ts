@@ -22,6 +22,8 @@ abstract class ArcadeMode implements PlayMode {
   readonly continuable: boolean = false;
   /** No points toward stars in the Arcade: records, stages, wins, or shots for puzzles. */
   readonly stars = null;
+  /** No Colossus in the Arcade. */
+  readonly boss = null;
 
   protected constructor(
     readonly request: PlayRequest,

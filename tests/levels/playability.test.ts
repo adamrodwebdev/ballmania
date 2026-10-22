@@ -23,8 +23,21 @@ describe('playability (casual bot: one shot every 1.2 s, imprecise)', () => {
     };
     const first = danger('nebula-01');
     expect(first).toBeLessThan(0.5);
-    expect(danger('nebula-12')).toBeGreaterThan(first + 0.2);
+    const boss = danger('nebula-12');
+    expect(boss).toBeGreaterThan(first + 0.2);
+    // The young Colossus of 1-3 is a first boss, not the last one: less pressure.
+    expect(danger('nebula-03')).toBeLessThan(boss);
   });
+
+  it('lets a casual player beat the young Colossus of 1-3 nearly every time', () => {
+    const level = findLevel('nebula-03')!;
+    for (const frame of Object.values(FRAMES)) {
+      const runs = SEEDS.map((seed) => playLevel(level, frame, seed, 72, 24));
+      expect(runs.filter((run) => run.outcome === 'won').length, frame.kind).toBeGreaterThanOrEqual(
+        5,
+      );
+    }
+  }, 30_000);
 
   it('never keeps the player waiting for balls in world 1', () => {
     for (const level of CAMPAIGN.filter((candidate) => candidate.id.startsWith('nebula-'))) {

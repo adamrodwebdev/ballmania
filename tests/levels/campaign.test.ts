@@ -37,7 +37,11 @@ describe('campaign', () => {
       ]);
       expect(world.levels.every((level) => level.world === world.id)).toBe(true);
       expect(world.levels[11]!.colossus).toBeDefined();
-      expect(world.levels.slice(0, 11).every((level) => !level.colossus)).toBe(true);
+      expect(world.levels[11]!.colossus?.young).toBeUndefined();
+      // Before its own, only world 1 meets a Colossus: the young one, at 1-3 (v1.7.4).
+      const early = world.levels.slice(0, 11).filter((level) => level.colossus);
+      expect(early.map((level) => level.id)).toEqual(world.id === 'nebula' ? ['nebula-03'] : []);
+      expect(early.every((level) => level.colossus?.young)).toBe(true);
     }
     // Every Neon level has mirrors; Nebula has none.
     expect(WORLDS[1]!.levels.every((level) => (level.mirrors?.length ?? 0) > 0)).toBe(true);
@@ -99,6 +103,15 @@ describe('campaign', () => {
     expect(effort[10]!).toBeGreaterThan(effort[0]! * 2);
     // At least one "breathing" level easier than the one before it.
     expect(effort.slice(1, 11).some((value, i) => value < effort[i]!)).toBe(true);
+  });
+
+  it('makes the Colossus of 1-3 young: smaller, a single phase', () => {
+    const young = resolveLevel(findLevel('nebula-03')!, FRAMES.square).colossus!;
+    const adult = resolveLevel(findLevel('nebula-12')!, FRAMES.square).colossus!;
+    expect(young).toMatchObject({ hp: 20, spit: 4, phases: [1], young: true });
+    expect(young.radius).toBeLessThan(adult.radius);
+    expect(adult.phases).toHaveLength(3);
+    expect(adult.young).toBeUndefined();
   });
 
   it('awards stars from the score, one for finishing', () => {

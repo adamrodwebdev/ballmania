@@ -145,7 +145,6 @@
     "aim": "Votre première bille est une bombe Nova : visez la chaîne et relâchez !",
     "swap": "Échangez la bille chargée avec la suivante : touchez le lanceur ou appuyez sur X.",
     "reaction": "Quand deux morceaux de même couleur se rejoignent, ils explosent à leur tour : c'est la réaction en chaîne.",
-    "colours": "Une quatrième couleur entre en jeu.",
     "twin": "Deux chaînes à la fois : surveillez les deux trous.",
     "colossus": "Le Colosse pousse la chaîne : faites exploser des billes tout près de lui pour le blesser.",
     "ricochet": "Les murs renvoient vos tirs. Une bille touchée après un rebond vaut ×2, après deux rebonds ×3.",
@@ -179,7 +178,8 @@
     "abyss": "Colosse abyssal",
     "jewel": "Colosse de cristal",
     "volcano": "Colosse de lave",
-    "singularity": "Colosse ultime"
+    "singularity": "Colosse ultime",
+    "young": "Jeune Colosse stellaire"
   },
   "player": {
     "balance": "{count} éclats",
@@ -322,7 +322,7 @@
       },
       "colossus": {
         "name": "Tueur de géant",
-        "text": "Vaincre le Colosse stellaire."
+        "text": "Vaincre un Colosse."
       },
       "daily-3": {
         "name": "Habitué",

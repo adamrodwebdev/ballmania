@@ -273,7 +273,7 @@ describe('PlayerProfile', () => {
 });
 
 describe('DailyChallenge', () => {
-  it('is the same all day, changes from day to day, and avoids tutorials and the boss', () => {
+  it('is the same all day, changes from day to day, and avoids tutorials and bosses', () => {
     const morning = DailyChallenge.of(new Date(2026, 9, 12, 8));
     const evening = DailyChallenge.of(new Date(2026, 9, 12, 23));
     expect(morning.day).toBe('20261012');
@@ -281,15 +281,14 @@ describe('DailyChallenge', () => {
     expect(morning.seed).toBe('daily:20261012');
     expect(morning.date.getDate()).toBe(12);
     const levels = new Set(
-      Array.from(
-        { length: 30 },
-        (_, i) => DailyChallenge.of(new Date(2026, 9, i + 1)).level.number,
-      ),
+      Array.from({ length: 30 }, (_, i) => DailyChallenge.of(new Date(2026, 9, i + 1)).level),
     );
     expect(levels.size).toBeGreaterThan(3);
-    for (const number of levels) {
-      expect(number).toBeGreaterThanOrEqual(3);
-      expect(number).toBeLessThanOrEqual(11);
+    for (const level of levels) {
+      expect(level.number).toBeGreaterThanOrEqual(3);
+      expect(level.number).toBeLessThanOrEqual(11);
+      // Not the young Colossus of 1-3 either.
+      expect(level.colossus).toBeUndefined();
     }
   });
 });

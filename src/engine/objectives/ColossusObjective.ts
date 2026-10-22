@@ -13,6 +13,8 @@ export interface ColossusSetup {
   readonly phases: readonly number[];
   /** Balls it spits in front of itself when a phase starts or its chain runs out. */
   readonly spit: number;
+  /** The young Colossus of world 1 (v1.7.4): the rules are the same, only its look differs. */
+  readonly young?: boolean;
 }
 
 /**

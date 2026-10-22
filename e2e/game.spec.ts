@@ -187,6 +187,27 @@ test.describe('campaign', () => {
       health.y + health.height <= gauge.y;
     expect(apart).toBe(true);
   });
+
+  test('meets the young Colossus at 1-3, named over its health', async ({ page }) => {
+    await page.addInitScript(() => {
+      const levels = { 'nebula-01': { stars: 1, best: 1 }, 'nebula-02': { stars: 1, best: 1 } };
+      localStorage.setItem('ballmania:progress', JSON.stringify({ version: 1, levels }));
+    });
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    await page.getByTestId('level-nebula-03').click();
+    await expect(page.getByTestId('colossus')).toHaveAttribute('max', '20');
+    await expect(page.locator('.colossus')).toContainText('Young Stellar Colossus');
+    await expect(page.getByTestId('hint')).toBeVisible();
+    const gauge = (await page.getByTestId('star-gauge').boundingBox())!;
+    const health = (await page.getByTestId('colossus').boundingBox())!;
+    const apart =
+      gauge.x + gauge.width <= health.x ||
+      health.x + health.width <= gauge.x ||
+      gauge.y + gauge.height <= health.y ||
+      health.y + health.height <= gauge.y;
+    expect(apart).toBe(true);
+  });
 });
 
 test.describe('progression', () => {

@@ -7,7 +7,7 @@ import { WORLDS, type CampaignLevel, type HintId, type WorldId } from './campaig
  */
 export type Novelty =
   | { readonly kind: 'world'; readonly world: WorldId }
-  | { readonly kind: 'colossus'; readonly world: WorldId }
+  | { readonly kind: 'colossus'; readonly world: WorldId; readonly young: boolean }
   | { readonly kind: 'power'; readonly power: PowerKind }
   | { readonly kind: 'mechanic'; readonly hint: HintId };
 
@@ -45,7 +45,9 @@ export function noveltyOf(level: CampaignLevel): Novelty | null {
   const world = WORLDS.find((candidate) => candidate.id === level.world);
   const opensWorld = world !== undefined && world !== WORLDS[0] && world.levels[0]?.id === level.id;
   if (opensWorld) return { kind: 'world', world: level.world };
-  if (level.colossus) return { kind: 'colossus', world: level.world };
+  if (level.colossus) {
+    return { kind: 'colossus', world: level.world, young: level.colossus.young === true };
+  }
   const power = level.hint && POWER_HINTS[level.hint];
   if (power) return { kind: 'power', power };
   if (level.hint && MECHANIC_HINTS.has(level.hint)) return { kind: 'mechanic', hint: level.hint };

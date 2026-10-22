@@ -387,15 +387,14 @@ export class Chain {
    * Speed of the rear segment, before the factors: the opening rush, then the
    * level's speed, and the rush again, eased, when the board runs short of balls
    * while more wait in the tunnel (nothing to shoot at is waiting, not play).
-   * Never behind a Colossus, in a Duel, near the hole, or for a still chain.
+   * A Colossus behind the tail is then still in the tunnel too: it hurries only
+   * out of sight (v1.7.4). Never in a Duel, near the hole, or for a still chain.
    */
   private cruise(front: number): number {
     const { speed, rushSpeed } = this.params;
     if (!this.rushed) return rushSpeed;
     const queued = (this.items[0]?.s ?? 0) < 0;
-    if (!queued || speed <= 0 || rushSpeed <= speed || this.pusher || this.params.compact) {
-      return speed;
-    }
+    if (!queued || speed <= 0 || rushSpeed <= speed || this.params.compact) return speed;
     if (front > this.path.length * CATCH_UP_REACH) return speed;
     const onBoard = this.items.reduce((count, ball) => count + (ball.s >= 0 ? 1 : 0), 0);
     const shortage = Math.min(1, Math.max(0, (CATCH_UP_BALLS - onBoard) / (CATCH_UP_BALLS / 2)));

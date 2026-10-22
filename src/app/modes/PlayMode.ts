@@ -54,8 +54,10 @@ export interface Settlement {
  */
 export interface PlayMode {
   readonly request: PlayRequest;
-  /** The world whose backdrop and Colossus name the game uses. */
+  /** The world whose backdrop the game uses. */
   readonly world: WorldId;
+  /** The name of the Colossus the game opposes, over its health in the top bar; null without one. */
+  readonly boss: Message | null;
   readonly hint: HintId | null;
   /** The three mixes of the Jewel world stay on screen. */
   readonly alchemy: boolean;
