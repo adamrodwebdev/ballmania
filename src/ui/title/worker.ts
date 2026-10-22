@@ -1,3 +1,4 @@
+import { FrameCap } from '@/play/FrameCap';
 import { Palette } from '@/play/Palette';
 import type { ReadyMessage, TitleMessage } from './messages';
 import { TitleScene, type SceneHost } from './TitleScene';
@@ -9,6 +10,7 @@ import { TitleScene, type SceneHost } from './TitleScene';
  */
 let scene: TitleScene | null = null;
 let visible = true;
+let cap = FrameCap.none();
 
 /** Workers that cannot wait for a frame (older Safari) draw at 60 fps by the clock. */
 const frames: Pick<SceneHost, 'requestFrame' | 'cancelFrame'> =
@@ -25,6 +27,7 @@ const frames: Pick<SceneHost, 'requestFrame' | 'cancelFrame'> =
 const host: SceneHost = {
   createCanvas: () => new OffscreenCanvas(1, 1),
   visible: () => visible,
+  admits: (now) => cap.admits(now),
   ...frames,
 };
 
@@ -33,7 +36,8 @@ type Handlers = {
 };
 
 const handlers: Handlers = {
-  start: ({ canvas, palette, still }) => {
+  start: ({ canvas, palette, still, frameRate }) => {
+    cap = frameRate === null ? FrameCap.none() : new FrameCap(frameRate);
     scene = new TitleScene(canvas, Palette.of(palette), still, host);
     scene.start();
   },

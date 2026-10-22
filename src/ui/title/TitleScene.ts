@@ -57,6 +57,8 @@ export interface SceneHost {
   visible(): boolean;
   requestFrame(callback: (now: number) => void): number;
   cancelFrame(handle: number): void;
+  /** False for a frame the screen's cap skips (60 a second on a touch screen). */
+  admits(now: number): boolean;
 }
 
 /**
@@ -93,8 +95,10 @@ export class TitleScene {
   /** Wide screens: the Star heart, the game's mascot, fires the shots (`k`: its scale). */
   private launcher: { x: number; y: number; k: number } | null = null;
   private readonly skin = new StarHeartSkin();
-  /** Bumped by each resize and by `stop`: a sprite build still running gives up. */
+  /** Bumped by each sprite build and by `stop`: a build still running gives up. */
   private building = 0;
+  /** Device pixels of the biggest marble the sprites are built for. */
+  private spritePixels = 0;
 
   constructor(
     private readonly canvas: SpriteCanvas,
@@ -118,8 +122,11 @@ export class TitleScene {
     this.width = width;
     this.height = height;
     this.ratio = ratio;
-    this.canvas.width = Math.round(this.width * ratio);
-    this.canvas.height = Math.round(this.height * ratio);
+    // Resizing a canvas clears it and allocates it anew: only when its size changes (v1.7.6).
+    const pixelWidth = Math.round(this.width * ratio);
+    const pixelHeight = Math.round(this.height * ratio);
+    if (this.canvas.width !== pixelWidth) this.canvas.width = pixelWidth;
+    if (this.canvas.height !== pixelHeight) this.canvas.height = pixelHeight;
     const wide = this.width / this.height > 1.15;
     // Wide: the hole on the right, clear of the menu on the left. Tall: in the
     // middle of its room, small enough to keep clear of the text and buttons.
@@ -137,7 +144,8 @@ export class TitleScene {
     this.k = Math.log(this.outer / this.inner) / (TURNS * Math.PI * 2);
     this.biggest = Math.max(14, this.outer * 0.11);
     this.launcher = wide ? this.placeLauncher() : null;
-    this.buildSprites(this.biggest * ratio);
+    // The sprites too, built for the size of the biggest marble.
+    if (this.biggest * ratio !== this.spritePixels) this.buildSprites(this.biggest * ratio);
     this.stars = Array.from({ length: Math.round((this.width * this.height) / 9000) }, () => ({
       x: this.random() * this.width,
       y: this.random() * this.height,
@@ -153,13 +161,14 @@ export class TitleScene {
   start(): void {
     if (this.still) return;
     const tick = (now: number) => {
+      this.frame = this.host.requestFrame(tick);
+      if (!this.host.admits(now)) return;
       const dt = this.last ? Math.min(0.05, (now - this.last) / 1000) : 0;
       this.last = now;
       if (this.host.visible()) {
         this.update(dt);
         this.draw();
       }
-      this.frame = this.host.requestFrame(tick);
     };
     this.frame = this.host.requestFrame(tick);
   }
@@ -176,6 +185,7 @@ export class TitleScene {
    * tones ready so far meanwhile; a still scene draws again once all are.
    */
   private buildSprites(pixels: number): void {
+    this.spritePixels = pixels;
     const run = ++this.building;
     let tone = 0;
     const step = () => {

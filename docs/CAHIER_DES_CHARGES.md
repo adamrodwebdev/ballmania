@@ -1171,6 +1171,17 @@ fait éclater son nom au-dessus du plateau.
   demande (`import()`) au lancement d'une partie.
 - Budget : JS initial ≤ 60 Ko compressés ; aucune police ni image bloquante ; CLS ≈ 0.
 - 60 images/s visées sur Android d'entrée de gamme en mode _Équilibré_.
+- **60 images par seconde au plus sur un écran tactile** (v1.7.6, conseil de Playgama) : les
+  téléphones et tablettes rafraîchissent jusqu'à 120 fois par seconde, et tout dessiner les
+  chauffe et vide leur batterie. `FrameCap` laisse passer les images à cadence régulière
+  (une sur deux à 120 Hz, deux sur trois à 90 Hz) ; le temps d'une image sautée passe à la
+  suivante, la simulation ne change pas. Partie et décor de l'accueil ; mesuré sur un profil
+  tactile avec un écran simulé à 240 Hz. Un ordinateur garde toutes ses images.
+- **Canevas plein écran limité à environ 4 mégapixels** (v1.7.6, `pixelRatioFor`) : jusqu'à
+  2 pixels d'appareil par pixel CSS, moins sur un très grand écran (un écran 4K en
+  demanderait 8 à 16, autant pour chaque calque du plateau). Le tampon d'un canevas, son
+  fond et ses sprites ne sont refaits que quand sa taille change : un redémarrage ou un
+  simple changement de marges les garde.
 
 ### 4.2 Responsive
 
@@ -1182,8 +1193,18 @@ fait éclater son nom au-dessus du plateau.
   gauche (retour, titre, étoiles, difficulté, Observatoire en bas), le paquet des mondes à
   droite, douze niveaux en deux rangées de six ; la page ne défile pas (testé de 915 × 412
   à 1280 × 720). Sous 480 px de haut, la devise du monde et la description de la difficulté
-  s'effacent. Les autres menus défilent comme une page, avec une barre fine aux couleurs du
-  thème au lieu de la barre grise du navigateur.
+  s'effacent. Sur un téléphone couché, jusqu'à 430 px de haut (v1.7.6 : 844 × 390,
+  734 × 343, 640 × 400), les trois difficultés se rangent côte à côte dans une colonne de
+  14 rem, et le paquet perd sa rangée de noms : la carte nomme son monde, les flèches et le
+  glissement le font tourner ; les cases gardent 44 px de large. Testé de 640 × 400 à
+  1280 × 720, en anglais, en français et en russe.
+- **La page ne défile jamais** (v1.7.6, règle de Playgama) : chaque écran défile dans son
+  propre cadre (`<main>`), avec une barre fine aux couleurs du thème au lieu de la barre
+  grise du navigateur. Testé sans barre de page aux tailles de Playgama (360 × 640,
+  390 × 844, 915 × 412, 1280 × 720, 1920 × 1080, 2560 × 1440) et aux cadres de CrazyGames
+  (907 × 510, 1216 × 684, 1077 × 606, 821 × 462, 1366 × 768, 1536 × 864, 800 × 450,
+  1080 × 607), sur l'accueil, la carte, l'Observatoire, l'Arcade, l'Atelier et les
+  objectifs.
 - **Écran de jeu en plein écran** (v1.5.0) : le niveau occupe tout l'écran, le HUD et les
   boutons flottent sur ses bords dans des bandes de taille fixe (en haut et en bas sur un
   écran droit, en rails à gauche et à droite sur un écran large, dès 3:2). Le niveau est
@@ -1193,12 +1214,21 @@ fait éclater son nom au-dessus du plateau.
   11 % plus grosses qu'avant (jusqu'à 80 %). Sa taille ne change jamais pendant la partie :
   ni une série, ni un badge, ni une barre de navigateur qui se replie (le plateau garde sa
   taille et sa place tant que le niveau tient à l'écran) ; seule une rotation ou un grand
-  changement le réajuste.
+  changement le réajuste. Après une rotation, « Recommencer » choisit à nouveau la forme du
+  plateau (v1.7.6) : le niveau repart en paysage sur un téléphone couché.
 - **Écran immobile** (v1.6.0) : aucun rebond ni « tirer pour rafraîchir » sur tout le site
   (`overscroll-behavior: none`), rien ne défile vers la page d'un portail ; pendant une
-  partie, la page ne défile ni ne zoome plus du tout (`in-game` sur `<html>`,
-  `touch-action: none`, gestes retenus pour Safari iOS) ; seules les fenêtres de dialogue
-  défilent en elles-mêmes si leur contenu dépasse l'écran.
+  partie, l'écran ne défile ni ne zoome plus du tout (`touch-action: none`, gestes retenus
+  pour Safari iOS) ; seules les fenêtres de dialogue défilent en elles-mêmes si leur
+  contenu dépasse l'écran.
+- **Touches de défilement** (v1.7.6, Playgama et CrazyGames) : les flèches, Page haut et
+  bas, Début, Fin et Espace font défiler les listes du jeu, jamais la page d'un portail
+  autour de lui (`ScrollKeyGuard`) : là où le jeu n'a plus rien à faire défiler, un
+  navigateur passe la touche à cette page. Sans élément actif, elles font défiler l'écran ;
+  les champs, curseurs, groupes de boutons radio et boutons gardent leurs touches. La
+  molette s'arrête au bord du cadre de l'écran (`overscroll-behavior: contain`). Testé dans
+  un cadre de 800 × 450 sur une page de portail plus haute que la fenêtre : accueil,
+  Observatoire, partie.
 - **Victoire** (v1.6.0) : en 1,7 s, une lumière blanche court le long de chaque tracé, de
   l'entrée au trou, et laisse la rainure allumée ; le trou rassemble la lumière puis éclate
   en supernova (cœur blanc, anneaux néon qui sortent de l'écran, onde qui courbe l'image,

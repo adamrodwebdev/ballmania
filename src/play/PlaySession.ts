@@ -15,6 +15,7 @@ import type { EffectProfile } from './effects/EffectProfile';
 import { FrameMonitor } from './effects/FrameMonitor';
 import { NOVA, RESULT } from './effects/Victory';
 import { TimeWarp } from './effects/TimeWarp';
+import { FrameCap } from './FrameCap';
 import { GameLoop } from './GameLoop';
 import type { Haptics } from './Haptics';
 import type { Palette } from './Palette';
@@ -100,6 +101,8 @@ export interface SessionOptions {
   readonly aimAssist?: boolean;
   /** The first level: a hand shows how to aim and shoot, until the first shot. */
   readonly tutorial?: boolean;
+  /** Most frames drawn a second (60 on a touch screen, v1.7.6); every frame by default. */
+  readonly frameRate?: number;
 }
 
 /** Sound and vibrations, shared by every game of the visit. */
@@ -195,7 +198,11 @@ export class PlaySession {
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.destruction = this.createDestruction();
     this.hud = shallowReactive(this.initialHud());
-    this.loop = new GameLoop((dt) => this.frame(dt));
+    this.loop = new GameLoop(
+      (dt) => this.frame(dt),
+      window,
+      options.frameRate ? new FrameCap(options.frameRate) : FrameCap.none(),
+    );
   }
 
   start(): void {

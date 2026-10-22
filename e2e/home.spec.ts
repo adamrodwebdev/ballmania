@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, overflowOf, test } from './fixtures';
 
 test.describe('home', () => {
   test('shows the game without errors nor horizontal scroll', async ({ page }) => {
@@ -34,8 +34,7 @@ test.describe('home', () => {
     });
     await page.clock.setFixedTime(new Date(2026, 9, 21, 10));
     // The whole title screen fits, with the card as with its pill and the wallet.
-    const scroll = () =>
-      page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
+    const scroll = () => overflowOf(page);
     await page.goto('./');
     const gift = page.getByTestId('gift');
     await expect(gift).toContainText('Day 1 of 7');

@@ -157,6 +157,8 @@ export class CanvasRenderer implements Renderer {
   private trackPaths: readonly unknown[] = [];
   /** After a win: the tracks full of light, painted once for the afterglow. */
   private litLayer: HTMLCanvasElement | null = null;
+  /** Device pixels of a ball's radius the sprites are built for. */
+  private spriteRadius = 0;
   /** After a win: the stardust of the supernova. */
   private dust: Mote[] | null = null;
 
@@ -179,8 +181,13 @@ export class CanvasRenderer implements Renderer {
 
   resize(width: number, height: number, pixelRatio: number, insets: Insets = NO_INSETS): void {
     this.pixelRatio = pixelRatio;
-    this.canvas.width = Math.max(1, Math.round(width * pixelRatio));
-    this.canvas.height = Math.max(1, Math.round(height * pixelRatio));
+    // Resizing a canvas clears it and allocates it anew: only when its size changes (v1.7.6).
+    const resized = fit(
+      this.canvas,
+      Math.max(1, Math.round(width * pixelRatio)),
+      Math.max(1, Math.round(height * pixelRatio)),
+    );
+    const before = this.view;
     this.view = settleBoard(this.view, this.content, width, height, insets);
     this.scale = this.view.scale;
     this.offsetX = this.view.offsetX;
@@ -194,13 +201,17 @@ export class CanvasRenderer implements Renderer {
       boardHeight: String(this.game.setup.board.height),
     });
     this.rebuildSprites();
-    this.repaintBackground();
-    this.trackLayer = null;
-    this.litLayer = null;
+    if (resized || !this.background) this.repaintBackground();
+    // The tracks' layers follow the board: painted again when it moved.
+    if (resized || this.view !== before) {
+      this.trackLayer = null;
+      this.litLayer = null;
+    }
   }
 
   setPalette(palette: Palette): void {
     this.palette = palette;
+    this.spriteRadius = 0;
     this.rebuildSprites();
     this.repaintBackground();
     this.trackLayer = null;
@@ -539,11 +550,12 @@ export class CanvasRenderer implements Renderer {
     return Math.max(...corners.map(([x, y]) => this.toBoard(x, y).distanceTo(at)));
   }
 
+  /** The balls' sprites, built again when a ball's size on screen changes. */
   private rebuildSprites(): void {
-    this.sprites.build(
-      this.palette,
-      this.game.setup.chain.ballRadius * this.scale * this.pixelRatio,
-    );
+    const radius = this.game.setup.chain.ballRadius * this.scale * this.pixelRatio;
+    if (radius === this.spriteRadius) return;
+    this.spriteRadius = radius;
+    this.sprites.build(this.palette, radius);
   }
 
   private trackOf(chain: Chain): Path2D {
@@ -1331,4 +1343,15 @@ function seededRandom(seed: number): () => number {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/**
+ * Gives a canvas this size in device pixels, and says if it changed: setting
+ * a canvas's size, even to the same value, clears it and allocates it anew.
+ */
+function fit(canvas: HTMLCanvasElement, width: number, height: number): boolean {
+  if (canvas.width === width && canvas.height === height) return false;
+  canvas.width = width;
+  canvas.height = height;
+  return true;
 }
