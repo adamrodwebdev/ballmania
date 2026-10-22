@@ -6,7 +6,7 @@ test('spends star fragments on upgrades at the Observatory', async ({ page }) =>
     localStorage.setItem('ballmania:player', JSON.stringify({ version: 1, fragments: 20 }));
   });
   await page.goto('./');
-  await expect(page.getByTestId('upgrade-ready')).toHaveText('Upgrade available');
+  await expect(page.getByTestId('upgrade-ready')).toHaveText('Upgrade');
   await page.getByTestId('observatory').click();
   await expect(page.getByRole('heading', { name: 'Observatory', level: 1 })).toBeVisible();
   await expect(page.getByTestId('fragments')).toContainText('20 fragments');

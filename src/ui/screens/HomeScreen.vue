@@ -122,6 +122,8 @@ onBeforeUnmount(() => stopScene());
     <div class="top">
       <div class="chips">
         <template v-if="returning">
+          <!-- The icon says what is counted: the numbers alone stay on one line in every
+               language, and screen readers hear the whole sentence. -->
           <p class="chip" data-testid="stars-total">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="star">
               <path
@@ -129,15 +131,27 @@ onBeforeUnmount(() => stopScene());
                 d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"
               />
             </svg>
-            {{ t('campaign.stars', { count: stars, total: ORDER.length * 3 }) }}
+            <span aria-hidden="true">
+              {{ number.format(stars) }} / {{ number.format(ORDER.length * 3) }}
+            </span>
+            <span class="sr-only">
+              {{ t('campaign.stars', { count: stars, total: ORDER.length * 3 }) }}
+            </span>
           </p>
           <p class="chip" data-testid="wallet">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="shard">
               <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
             </svg>
-            {{
-              t('player.balance', { count: number.format(player.view.shards) }, player.view.shards)
-            }}
+            <span aria-hidden="true">{{ number.format(player.view.shards) }}</span>
+            <span class="sr-only">
+              {{
+                t(
+                  'player.balance',
+                  { count: number.format(player.view.shards) },
+                  player.view.shards,
+                )
+              }}
+            </span>
           </p>
         </template>
       </div>
@@ -368,6 +382,7 @@ onBeforeUnmount(() => stopScene());
   border-radius: 999px;
   background: rgb(20 8 50 / 0.72);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .star {
@@ -572,14 +587,19 @@ onBeforeUnmount(() => stopScene());
   text-align: left;
 }
 
+/* Narrow phones first: a tight header keeps the title on one line beside the button. */
 .gift-head {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
+/* At 360 px the title needs the room of the decorative box. */
 .gift-icon {
+  display: none;
   flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
   fill: none;
   stroke: var(--primary-mid);
   stroke-width: 2.4;
@@ -595,7 +615,7 @@ onBeforeUnmount(() => stopScene());
 
 .gift-name {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
 }
 
 .gift-day {
@@ -608,9 +628,9 @@ onBeforeUnmount(() => stopScene());
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   min-height: var(--touch);
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-3);
   border: 0;
   border-radius: 999px;
   background: linear-gradient(
@@ -755,6 +775,34 @@ onBeforeUnmount(() => stopScene());
 @keyframes breathe {
   50% {
     opacity: 1;
+  }
+}
+
+/* From 375 px: room for the gift's decorative box. */
+@media (min-width: 375px) {
+  .gift-icon {
+    display: block;
+  }
+}
+
+/* From 401 px: the gift header at its full size. */
+@media (min-width: 401px) {
+  .gift-head {
+    gap: var(--space-3);
+  }
+
+  .gift-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .gift-name {
+    font-size: 1.3rem;
+  }
+
+  .collect {
+    gap: var(--space-2);
+    padding: 0 var(--space-4);
   }
 }
 

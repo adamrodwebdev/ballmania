@@ -488,11 +488,11 @@
     }
   },
   "observatory": {
-    "title": "Observatory",
+    "title": "Obser\u00advatory",
     "back": "Back",
     "intro": "Hit shooting stars with your shots to collect star fragments, then upgrade your instruments. Upgrades apply in the campaign only (not in the daily challenge or the Arcade).",
     "balance": "{count} fragments | {count} fragment | {count} fragments",
-    "ready": "Upgrade available",
+    "ready": "Upgrade",
     "tip": "Upgrade your game here with your star fragments.",
     "tipClose": "Got it",
     "buy": "Upgrade · {cost} fragments",
