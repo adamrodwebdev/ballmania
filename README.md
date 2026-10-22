@@ -17,7 +17,8 @@ indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
   Nébuleuse (règles de base, sous un ciel de nébuleuse peint en couches), Néon (miroirs et
   ricochets), Abysses (aimant), Joaillerie (alchimie des couleurs), Volcan (aiguillages),
   Singularité (gravité d'un trou noir, lanceur en orbite). Trois difficultés : Explorateur,
-  Pilote, Légende.
+  Pilote, Légende. Une jauge sous le score montre la 2ᵉ et la 3ᵉ étoile ; à la victoire,
+  le panneau annonce la nouveauté du niveau suivant et le prochain lanceur à gagner.
 - **Billes bonus** cachées dans la chaîne : **Recul**, **Ralenti**, **Tir arc-en-ciel**
   et **Laser**, une nouveauté par niveau dans le monde 1, puis mêlées aux mondes suivants.
 - **Aléas** : billes qui tombent du ciel, arythmie, tempête solaire, froid mordant, vents
@@ -84,21 +85,25 @@ publicité ni SDK.
 
 | Commande                         | Build                                                                    |
 | -------------------------------- | ------------------------------------------------------------------------ |
-| `npm run build:crazygames`       | CrazyGames, dans `dist-crazygames/`                                      |
+| `npm run build:crazygames`       | CrazyGames, dans `dist-crazygames/` (Basic Launch, sans publicité)       |
 | `npm run build:poki`             | Poki, dans `dist-poki/`                                                  |
 | `npm run build:gamedistribution` | GameDistribution, dans `dist-gamedistribution/` (avec `VITE_GD_GAME_ID`) |
 | `npm run build:playgama`         | Playgama, dans `dist-playgama/` (titre « Ball Mania »)                   |
 | `npm run build:portals`          | Les quatre                                                               |
-| `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités)              |
+| `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités, `?ads=off`)  |
 
 Sur un portail, un nouveau joueur arrive directement dans le niveau 1-1, sans intro ni
 écran titre ; la page est en anglais, le jeu suit ensuite la langue du joueur. On envoie
 ensuite au portail une archive zip du dossier. Pour CrazyGames, le
 [kit de soumission](marketing/crazygames/README.md) réunit description, commandes,
-couvertures et vidéos (`npm run kit:crazygames`). Les publicités récompensées sont
-toujours au choix : continuer après une défaite, éclats doublés, indice d'énigme, essai
-d'un cosmétique. Une publicité entre deux parties passe au plus une fois toutes les
-3 minutes. Détails : § 3.7 du [cahier des charges](docs/CAHIER_DES_CHARGES.md).
+couvertures et vidéos (`npm run kit:crazygames`). Son build de dépôt est sans publicité,
+comme l'exige le Basic Launch ; `CRAZYGAMES_LAUNCH=full npm run build:crazygames` construit
+la version Full Launch. Les publicités récompensées sont toujours au choix : continuer
+après une défaite, éclats doublés, indice d'énigme, essai d'un cosmétique ; continuer et
+l'indice s'obtiennent aussi en éclats. Une publicité entre deux parties passe au plus une
+fois toutes les 3 minutes, et jamais pendant les 8 premières minutes d'un nouveau joueur
+ni juste après sa défaite. Détails : § 3.7 du
+[cahier des charges](docs/CAHIER_DES_CHARGES.md).
 
 ## Architecture
 

@@ -3,6 +3,47 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouté
+
+- **Jauge d'étoiles** sous le score, en campagne et au défi du jour : une barre se remplit
+  vers les points de la 2ᵉ et de la 3ᵉ étoile (la 1ʳᵉ est la victoire), et chaque étoile
+  s'allume avec son carillon quand le score l'atteint ; les lecteurs d'écran l'entendent
+  (« 2 étoiles à portée »). Sur un écran droit, la bande du haut lui garde une ligne : elle
+  ne couvre ni la piste, ni la barre du Colosse, ni les recettes, et la série se place à
+  côté d'elle.
+- **La suite** sur le panneau de victoire : le bouton principal dit le niveau suivant et ce
+  qu'il apporte pour la première fois (« Suivant : niveau 1-3 · Nouvelle bille : Recul »,
+  un Colosse, un nouveau monde ou une mécanique), et les gains montrent la barre vers le
+  prochain lanceur de l'Atelier, avec son aperçu (« Couronne · 115 / 150 éclats »).
+
+### Modifié
+
+- Build CrazyGames **Basic Launch** sans publicité : ni bouton, ni requête, ni détection
+  du bloqueur (`CRAZYGAMES_LAUNCH=full` construit la version complète). Continuer après
+  une défaite ou obtenir un indice reste possible en éclats ; un prix qu'on ne peut pas
+  encore payer s'affiche grisé, avec le solde (« 60 éclats · vous en avez 0 »).
+- **Première visite ménagée** : un nouveau joueur ne voit aucune publicité entre deux
+  parties avant 8 minutes de visite, ni juste après une défaite. Un joueur qui revient
+  garde la règle des 3 minutes.
+- Panneau de victoire réordonné : objectifs atteints, puis éclats gagnés et prochain
+  lanceur ; bonus de fin et record sur une ligne ; « Rejouer » et « Carte » côte à côte
+  sous « Suivant ». Le panneau le plus chargé tient sans défilement de 360 × 640 à
+  1280 × 720, dans les trois langues.
+- Un bouton désactivé se lit comme tel (désaturé, sans relief).
+
+### Corrigé
+
+- Au clavier, Entrée sur le panneau de fin choisissait « Rejouer » au lieu du premier
+  choix (« Suivant », « Réessayer avec de l'aide ») : le panneau s'ouvrait avant que ce
+  bouton existe.
+- Sur un écran large, la série sortait de l'écran sous le score ; sur un écran droit, elle
+  couvrait la barre du Colosse.
+- CrazyGames : si le module de sauvegarde n'est pas activé, la console le dit une fois,
+  sans sauvegarde parallèle. La Nova ne joue plus d'harmoniques au-delà de ce que le son
+  peut rendre (avertissements Web Audio dans la console).
+
 ## [1.7.1] — 2026-10-21
 
 ### Modifié
