@@ -780,21 +780,22 @@ onBeforeUnmount(() => stopScene());
   }
 }
 
-@media (min-width: 360px) {
+/* From 22.5rem (360 px): the card's sides widen. */
+@media (min-width: 22.5rem) {
   .gift {
     padding-inline: var(--space-4);
   }
 }
 
-/* From 375 px: room for the gift's decorative box. */
-@media (min-width: 375px) {
+/* From 23.4375rem (375 px): room for the gift's decorative box. */
+@media (min-width: 23.4375rem) {
   .gift-icon {
     display: block;
   }
 }
 
-/* From 401 px: the gift header at its full size. */
-@media (min-width: 401px) {
+/* Above 25rem (400 px): the gift header at its full size. */
+@media (min-width: 25.0625rem) {
   .gift-head {
     gap: var(--space-3);
   }

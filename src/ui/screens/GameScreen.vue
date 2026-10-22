@@ -1587,8 +1587,8 @@ const quit = () => emit('quit');
   text-wrap: balance;
 }
 
-/* From 360 px, the button decides: one line in the bottom bar, two in the side rail. */
-@media (min-width: 360px) {
+/* From 22.5rem (360 px), the button decides: one line in the bottom bar, two in the side rail. */
+@media (min-width: 22.5rem) {
   .control-label {
     white-space: inherit;
   }
