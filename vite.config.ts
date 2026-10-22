@@ -146,10 +146,17 @@ const cspHash = (content: string) =>
  * The inline script that fetches our site's styles and code once the first
  * screen is painted: the stylesheets first (the title card hides the page
  * until the app mounts, so nothing shows unstyled), the modules in parallel.
+ * It waits for the browser to report that paint (the frame is on screen),
+ * not just for the frame to be drawn: nothing it fetches can then count as
+ * needed for the first paint. A page opened in the background has no paint
+ * to wait for; a browser that does not report it waits one frame.
  */
 const firstPaintLoader = (entry: string, modules: readonly string[], sheets: readonly string[]) =>
   `(function () {
+  var started = false;
   var load = function () {
+    if (started) return;
+    started = true;
     var styles = ${JSON.stringify(sheets)}.map(function (href) {
       return new Promise(function (done) {
         var link = document.createElement('link');
@@ -170,10 +177,23 @@ const firstPaintLoader = (entry: string, modules: readonly string[], sheets: rea
       import(${JSON.stringify(entry)});
     });
   };
-  // After the next paint: requestAnimationFrame runs before it, the timeout after.
-  requestAnimationFrame(function () {
-    setTimeout(load, 0);
-  });
+  var types = window.PerformanceObserver && PerformanceObserver.supportedEntryTypes;
+  if (document.visibilityState !== 'visible') {
+    load();
+  } else if (types && types.indexOf('paint') >= 0) {
+    new PerformanceObserver(function (list, observer) {
+      if (!list.getEntriesByName('first-contentful-paint').length) return;
+      observer.disconnect();
+      load();
+    }).observe({ type: 'paint', buffered: true });
+    // Should that report never come (the page sent to the background meanwhile).
+    setTimeout(load, 1000);
+  } else {
+    // requestAnimationFrame runs before the next paint, the timeout after it.
+    requestAnimationFrame(function () {
+      setTimeout(load, 0);
+    });
+  }
 })();
 `;
 

@@ -12,9 +12,10 @@ test.describe('first paint', () => {
     expect(html).not.toMatch(/<script type="module"|<link rel="(?:stylesheet|modulepreload)"/);
     expect(html).not.toMatch(/<script src=/);
     // Its inline blocks are allowed one by one: the CSP has no 'unsafe-inline'.
-    expect(html).toMatch(/script-src 'self' 'sha256-[^']+' 'sha256-[^']+'/);
-    expect(html).toMatch(/style-src 'self' 'sha256-[^']+'/);
-    expect(html).not.toContain('unsafe-inline');
+    const policy = /<meta http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html)?.[1];
+    expect(policy).toMatch(/script-src 'self' 'sha256-[^']+' 'sha256-[^']+'/);
+    expect(policy).toMatch(/style-src 'self' 'sha256-[^']+'/);
+    expect(policy).not.toContain('unsafe-inline');
   });
 
   test('gives way to the game, with no error from the CSP', async ({ page }) => {
@@ -26,5 +27,11 @@ test.describe('first paint', () => {
     await expect(page.getByTestId('play')).toBeVisible();
     await expect(page.locator('#first-paint')).toHaveCount(0);
     expect(errors).toEqual([]);
+  });
+
+  test('draws the title scene in a worker, off the page main thread', async ({ page }) => {
+    const worker = page.waitForEvent('worker');
+    await page.goto('./');
+    expect((await worker).url()).toMatch(/\/assets\/worker-[\w-]+\.js$/);
   });
 });

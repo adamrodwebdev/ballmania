@@ -1,5 +1,6 @@
 import { MAX_TONES } from '@/engine/chain/Ball';
 import { BallSprites } from '@/play/BallSprites';
+import type { Context2D, SpriteCanvas } from '@/play/canvas';
 import { SHOOTER_RADIUS, StarHeartSkin } from '@/play/cosmetics/ShooterSkins';
 import type { Palette } from '@/play/Palette';
 
@@ -48,15 +49,26 @@ export interface Room {
   readonly bottom: number;
 }
 
+/** What the scene needs from where it runs: the page, or a worker (v1.7.6). */
+export interface SceneHost {
+  /** A blank canvas for a sprite. */
+  createCanvas(): SpriteCanvas;
+  /** False while the page is hidden: the scene skips its frames. */
+  visible(): boolean;
+  requestFrame(callback: (now: number) => void): number;
+  cancelFrame(handle: number): void;
+}
+
 /**
  * The title screen's living backdrop, the covers brought to life: a chain of
  * glass marbles winds into a glowing black hole; every few seconds a shot
  * flies in and a group of three bursts into shards. Drawn on a canvas behind
- * the menu; one still frame with reduced motion.
+ * the menu, by a worker where the browser can hand it the canvas (v1.7.6);
+ * one still frame with reduced motion.
  */
 export class TitleScene {
-  private readonly ctx: CanvasRenderingContext2D;
-  private readonly sprites = new BallSprites(() => document.createElement('canvas'));
+  private readonly ctx: Context2D;
+  private readonly sprites: BallSprites;
   private marbles: Marble[] = [];
   private shards: Shard[] = [];
   private stars: Star[] = [];
@@ -85,13 +97,15 @@ export class TitleScene {
   private building = 0;
 
   constructor(
-    private readonly canvas: HTMLCanvasElement,
+    private readonly canvas: SpriteCanvas,
     private readonly palette: Palette,
     private readonly still: boolean,
+    private readonly host: SceneHost,
   ) {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('No 2D canvas');
     this.ctx = ctx;
+    this.sprites = new BallSprites(() => host.createCanvas());
   }
 
   /**
@@ -141,17 +155,17 @@ export class TitleScene {
     const tick = (now: number) => {
       const dt = this.last ? Math.min(0.05, (now - this.last) / 1000) : 0;
       this.last = now;
-      if (!document.hidden) {
+      if (this.host.visible()) {
         this.update(dt);
         this.draw();
       }
-      this.frame = requestAnimationFrame(tick);
+      this.frame = this.host.requestFrame(tick);
     };
-    this.frame = requestAnimationFrame(tick);
+    this.frame = this.host.requestFrame(tick);
   }
 
   stop(): void {
-    cancelAnimationFrame(this.frame);
+    this.host.cancelFrame(this.frame);
     this.last = 0;
     this.building++;
   }
@@ -168,10 +182,10 @@ export class TitleScene {
       if (run !== this.building) return;
       this.sprites.buildTone(this.palette, pixels, tone);
       tone += 1;
-      if (tone < MAX_TONES) requestAnimationFrame(step);
+      if (tone < MAX_TONES) this.host.requestFrame(step);
       else if (this.still) this.draw();
     };
-    requestAnimationFrame(step);
+    this.host.requestFrame(step);
   }
 
   private random(): number {

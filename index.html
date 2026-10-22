@@ -13,8 +13,8 @@
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <!-- External, synchronous and tiny: applies the saved theme before the first paint
-         without an inline script, so the CSP needs no 'unsafe-inline'. -->
+    <!-- Synchronous and tiny: applies the saved theme before the first paint. Our site's
+         build puts it inline, allowed by its hash in the CSP (vite.config.ts, firstPaint). -->
     <script src="./theme-boot.js"></script>
   </head>
   <body>

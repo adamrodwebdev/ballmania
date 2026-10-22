@@ -1,7 +1,8 @@
 import { MAX_TONES, type Tone } from '@/engine/chain/Ball';
+import type { Context2D, SpriteCanvas } from './canvas';
 import type { Palette } from './Palette';
 
-type Context = CanvasRenderingContext2D;
+type Context = Context2D;
 
 /**
  * Engraved symbol of each tone, so that colours are never the only cue
@@ -45,12 +46,12 @@ function star(ctx: Context, outer: number, inner: number): void {
  * a frame then draws each ball with a single `drawImage`.
  */
 export class BallSprites {
-  private sprites: HTMLCanvasElement[] = [];
+  private sprites: SpriteCanvas[] = [];
   /** The same orbs without their symbol: power balls wear an emblem instead (v1.7). */
-  private plainSprites: HTMLCanvasElement[] = [];
-  private glows: HTMLCanvasElement[] = [];
+  private plainSprites: SpriteCanvas[] = [];
+  private glows: SpriteCanvas[] = [];
 
-  constructor(private readonly createCanvas: () => HTMLCanvasElement) {}
+  constructor(private readonly createCanvas: () => SpriteCanvas) {}
 
   /** Rebuilds the sprites for a ball radius of `pixels` device pixels. */
   build(palette: Palette, pixels: number): void {
@@ -71,20 +72,20 @@ export class BallSprites {
   }
 
   /** Soft halo of a tone, drawn stretched over several ball radii. */
-  glow(tone: Tone): HTMLCanvasElement | undefined {
+  glow(tone: Tone): SpriteCanvas | undefined {
     return this.glows[tone % MAX_TONES];
   }
 
-  get(tone: Tone): HTMLCanvasElement | undefined {
+  get(tone: Tone): SpriteCanvas | undefined {
     return this.sprites[tone % MAX_TONES];
   }
 
   /** The orb of a tone without its engraved symbol. */
-  plain(tone: Tone): HTMLCanvasElement | undefined {
+  plain(tone: Tone): SpriteCanvas | undefined {
     return this.plainSprites[tone % MAX_TONES];
   }
 
-  private drawGlow(colour: string, size: number): HTMLCanvasElement {
+  private drawGlow(colour: string, size: number): SpriteCanvas {
     const canvas = this.createCanvas();
     canvas.width = size;
     canvas.height = size;
@@ -102,7 +103,7 @@ export class BallSprites {
   }
 
   /** An orb; `tone` picks its engraved symbol, none when null. */
-  private draw(colour: string, tone: Tone | null, size: number): HTMLCanvasElement {
+  private draw(colour: string, tone: Tone | null, size: number): SpriteCanvas {
     const canvas = this.createCanvas();
     canvas.width = size;
     canvas.height = size;

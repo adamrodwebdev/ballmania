@@ -77,7 +77,8 @@ const settingsDialog = ref<{ open: () => void } | null>(null);
 
 /**
  * The living backdrop is drawn from its own small module, once the page has
- * loaded and the browser is idle: it never weighs on the first screen.
+ * loaded and the browser is idle, and by a worker where the browser allows
+ * (v1.7.6): it never weighs on the first screen.
  */
 const sceneCanvas = ref<HTMLCanvasElement | null>(null);
 /** The room the menu leaves the black hole on an upright screen. */
@@ -86,17 +87,22 @@ let stopScene = () => {};
 const startScene = async () => {
   const canvas = sceneCanvas.value;
   if (!canvas) return;
-  const [{ TitleScene }, { Palette }] = await Promise.all([
-    import('@/ui/title/TitleScene'),
+  const [{ openTitleBackdrop }, { Palette }] = await Promise.all([
+    import('@/ui/title/TitleBackdrop'),
     import('@/play/Palette'),
   ]);
   if (!sceneCanvas.value) return;
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const scene = new TitleScene(
+  const scene = await openTitleBackdrop(
     canvas,
     Palette.fromStyle(getComputedStyle(document.documentElement)),
     still,
   );
+  // Left the title screen while the scene was starting.
+  if (sceneCanvas.value !== canvas) {
+    scene.stop();
+    return;
+  }
   // The hole's room changes with the screen, and as the gift card folds away.
   const observer = new ResizeObserver(() => {
     const box = canvas.getBoundingClientRect();
@@ -110,7 +116,6 @@ const startScene = async () => {
   });
   observer.observe(canvas);
   if (spacer.value) observer.observe(spacer.value);
-  scene.start();
   stopScene = () => {
     scene.stop();
     observer.disconnect();
