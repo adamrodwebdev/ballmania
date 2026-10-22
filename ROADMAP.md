@@ -28,7 +28,13 @@ Joaillerie 12 raccourcit nettement (64 s au lieu de 110 s pour le robot occasion
 0,34 au lieu de 0,49). Le jeune Colosse tombe en 27 à 34 s face aux robots, plus lentement
 face à un humain ; le tableau de rythme de la 1.8.0 réglera sa durée. Les robots le battent
 90 fois sur 90, danger moyen de 0,21 à 0,39 du tracé contre 0,46 à 0,72 au 1-12. Le défi du
-jour écarte les boss, et l'objectif des Colosses se lit « Vaincre un Colosse ». Les ports des
+jour écarte les boss, et l'objectif des Colosses se lit « Vaincre un Colosse ». La revue
+responsive du 22/10/2026 a montré que la bulle faisait dépasser la carte de l'écran sur les
+fenêtres basses des portails (821 × 462, 907 × 510, 915 × 412), bouton Observatoire sous la
+ligne de flottaison : sur un écran couché de 600 px de haut au plus, elle flotte au-dessus du
+bouton, sur les dernières difficultés, jusqu'au toucher (décidé le 22/10/2026), et la colonne
+se resserre à 480 px pour garder le badge en entier à 915 × 412. Corrigé au passage : avec le
+mouvement réduit, le conseil d'ouverture des niveaux disparaissait aussitôt. Les ports des
 tests de bout en bout deviennent réglables (`E2E_PORT`, `E2E_PORTAL_PORT`) : un autre projet
 occupait le 4175. Lighthouse : 98 en performance sur mobile aux trois mesures, 100 dans les
 trois autres catégories, 100 × 4 sur ordinateur.

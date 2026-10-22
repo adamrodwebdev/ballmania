@@ -202,6 +202,9 @@ Deux portes d'entrée depuis l'accueil :
 | 11     | Spirale carrée 1,65 tour                 | 54            | 5        | 68      | —                        |
 | 12     | Spirale 1,6 tour + **Colosse stellaire** | 26 + renforts | 4        | 26      | Blesser le Colosse       |
 
+- **Conseil affiché** : une pastille au-dessus des boutons pendant les six premières secondes
+  du niveau, annoncée aux lecteurs d'écran ; avec le mouvement réduit, elle reste immobile
+  ses six secondes (v1.7.4 : elle disparaissait aussitôt).
 - **Colosse** : il pousse la chaîne par l'arrière (c'est lui qui avance, pas la queue de
   chaîne). Une explosion à moins de 3 diamètres de bille de son corps lui retire
   « billes × profondeur » points de vie (60 au total). À chaque tiers de sa vie, il accélère
@@ -1015,9 +1018,12 @@ Livré à l'étape 11.2 :
   abordable, une bulle sous le bouton Observatoire de la carte (au-dessus, au pied de la
   colonne, sur un écran couché) dit « Améliorez votre jeu ici avec vos fragments
   d'étoiles. », et un anneau souligne le bouton. Dans le flux de la page, elle ne cache
-  rien. Elle s'affiche lors d'une seule visite de la carte, disparaît au toucher et rend le
-  focus au bouton ; ouvrir l'Observatoire la retire aussi, et qui possède déjà une
-  amélioration ne la voit jamais. Pour un lecteur d'écran, le texte est une note et un
+  rien ; sur un écran couché de 600 px de haut au plus (fenêtres des portails, téléphone
+  couché), où la colonne n'a plus de place, elle flotte au-dessus du bouton, sur les
+  dernières difficultés, jusqu'au toucher, et atteindre les difficultés au clavier la retire :
+  la carte tient toujours sur un écran. Elle s'affiche lors d'une seule visite de la carte,
+  disparaît au toucher et rend le focus au bouton ; ouvrir l'Observatoire la retire aussi, et
+  qui possède déjà une amélioration ne la voit jamais. Pour un lecteur d'écran, le texte est une note et un
   bouton « Compris » la ferme ; son entrée disparaît avec le mouvement réduit. Le profil
   retient les conseils déjà montrés (`tips`).
 
