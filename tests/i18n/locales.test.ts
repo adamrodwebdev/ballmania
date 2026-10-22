@@ -56,6 +56,23 @@ describe('translations', () => {
   });
 });
 
+describe('typography', () => {
+  const texts = (locale: string) =>
+    keys(MESSAGES[locale]!).map((key) => [key, String(leaf(MESSAGES[locale]!, key))] as const);
+
+  it('keeps French punctuation and guillemets on their word, with no-break spaces', () => {
+    // A plain space would let "!" or ":" start a line on its own. Fredoka has no narrow
+    // no-break space (U+202F): U+00A0 everywhere.
+    for (const [key, text] of texts('fr')) {
+      expect(text, key).not.toMatch(/ [:;!?%»]|« /);
+    }
+  });
+
+  it.each([...LOCALES])('%s uses typographic apostrophes and quotation marks', (locale) => {
+    for (const [key, text] of texts(locale)) expect(text, key).not.toMatch(/['"]/);
+  });
+});
+
 describe('detectLocale', () => {
   it('takes the first supported language of the browser', () => {
     expect(detectLocale(['de-DE', 'fr-FR', 'en'])).toBe('fr');

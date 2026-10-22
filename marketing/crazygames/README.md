@@ -49,16 +49,16 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 > shatter in spectacular chain reactions.
 >
 > Burst the power-up marbles hidden in the chain: **Rewind** pushes the chain back,
-> **Slow-mo** halves its speed, the **Rainbow shot** matches any colour and the **Laser**
+> **Slow-down** halves its speed, the **Rainbow shot** matches any colour and the **Laser**
 > pierces through four marbles.
 >
 > Travel through six worlds, each with its own twist: bank shots off neon mirrors, pull
-> marbles out with a deep-sea magnet, mix colours in the Jewel world, flip lava switches in
+> marbles out with a deep-sea magnet, mix colours in the Jewels world, flip lava switches in
 > the Volcano and curve your shots around a black hole. Every world ends with a Colossus
 > boss.
 >
 > Catch star fragments to unlock ten upgrades at the Observatory, earn shards to customise
-> your shooter, trails and explosions, and brave meteor showers, solar storms, biting cold
+> your launcher, trails and explosions, and brave meteor showers, solar storms, biting cold
 > and headwinds. Along the way, unlock four Arcade modes: Endless, Puzzles (with a puzzle of
 > the day), Rhythm and Duel against a rival, plus a new daily challenge every day, and come
 > back every day for a gift of shards that grows over a seven-day streak.
@@ -66,7 +66,7 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 > **Features**
 >
 > - 6 worlds, 72 levels and 6 bosses
-> - 4 power-up marbles: Rewind, Slow-mo, Rainbow shot and Laser
+> - 4 power-up marbles: Rewind, Slow-down, Rainbow shot and Laser
 > - 3 difficulty levels
 > - 4 Arcade modes, a daily challenge and a daily gift
 > - Charged shots and an optional aim assist
@@ -89,7 +89,7 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 >
 > - Aim: drag your finger; shoot: lift it
 > - Charged shot: hold your finger still for a moment
-> - Swap marbles: tap the shooter
+> - Swap marbles: tap the launcher
 
 ## Formulaire : réponses à préparer
 

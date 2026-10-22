@@ -8,15 +8,11 @@
     "version": "Version {version}"
   },
   "nav": {
-    "skip": "Skip to content",
-    "home": "Ballmania home"
+    "skip": "Skip to content"
   },
   "home": {
     "tagline": "Marble shooting, reinvented",
-    "pitch": "Six worlds to conquer, chain explosions and modes you have never played.",
-    "campaign": "Campaign",
     "play": "Play",
-    "demo": "World 1: Nebula",
     "next": "{world} · Level {number}"
   },
   "settings": {
@@ -26,13 +22,13 @@
     "open": "Open the settings",
     "effects": "Destruction effects",
     "volume": "Sound effects",
-    "vibration": "Vibrations",
+    "vibration": "Vibration",
     "done": "Done",
     "aimAssist": "Aim assist",
-    "aimAssistHint": "Ghost ball where the shot lands and the group it will burst",
+    "aimAssistHint": "Ghost marble where your shot lands, and the group it will burst",
     "music": "Music",
-    "soundOn": "Mute the sound",
-    "soundOff": "Unmute the sound"
+    "soundOn": "Mute sound",
+    "soundOff": "Unmute sound"
   },
   "theme": {
     "system": "System",
@@ -46,11 +42,11 @@
   },
   "game": {
     "board": "Game board",
-    "help": "Aim with the mouse or your finger, shoot by clicking or releasing. Keyboard: arrows to aim (Shift for precision), Space to shoot, X to swap, P to pause.",
+    "help": "Aim with the mouse or your finger, then release to shoot. Keyboard: arrow keys to aim (hold Shift for precision), Space to shoot, X to swap, P to pause.",
     "score": "Score",
     "streak": "Streak ×{count}",
     "pause": "Pause",
-    "swap": "Swap the balls",
+    "swap": "Swap marbles",
     "paused": "Game paused",
     "resume": "Resume",
     "restart": "Restart",
@@ -61,14 +57,12 @@
     "bestDepth": "Best chain reaction: ×{depth}",
     "playAgain": "Play again",
     "reaction": "Chain reaction ×{depth}",
-    "loading": "Loading the game…",
     "settings": "Settings",
     "starsLabel": "{count} star out of 3 | {count} star out of 3 | {count} stars out of 3",
     "bonus": "End bonus: +{points}",
     "timeBonus": "{seconds} s ahead: +{points}",
     "best": "Best: {score}",
     "newBest": "New record!",
-    "nextLevel": "Next level",
     "map": "Campaign map",
     "homeButton": "Home",
     "campaignDone": "Campaign complete: all six worlds are yours!",
@@ -101,7 +95,7 @@
     },
     "subtle": {
       "name": "Subtle",
-      "hint": "The essentials, for modest phones"
+      "hint": "Just the essentials, for older phones"
     }
   },
   "campaign": {
@@ -126,7 +120,7 @@
     },
     "abyss": {
       "name": "Abyss",
-      "tagline": "Pull a ball out and send it elsewhere."
+      "tagline": "Pull a marble out and shoot it elsewhere."
     },
     "jewel": {
       "name": "Jewels",
@@ -142,35 +136,35 @@
     }
   },
   "hints": {
-    "aim": "Your first ball is a Nova bomb: aim at the chain and release!",
-    "swap": "Swap the loaded ball with the next one: tap the shooter or press X.",
-    "reaction": "When two pieces of the same colour meet, they explode in turn: that's a chain reaction.",
+    "aim": "Your first marble is a Nova bomb: aim at the chain and release!",
+    "swap": "Swap the loaded marble with the next one: tap the launcher or press X.",
+    "reaction": "When two groups of the same colour meet, they explode in turn: that’s a chain reaction.",
     "twin": "Two chains at once: watch both holes.",
-    "colossus": "The Colossus pushes the chain: blow up balls right next to it to hurt it.",
-    "ricochet": "Walls bounce your shots back. A ball hit after one rebound is worth ×2, after two ×3.",
+    "colossus": "The Colossus pushes the chain: blow up marbles right next to it to damage it.",
+    "ricochet": "Walls bounce your shots back. A marble hit after one rebound is worth ×2; after two, ×3.",
     "prism": "Prisms bounce shots too: follow the aim line, it shows every rebound.",
     "spin": "These prisms turn: wait for the right angle before you shoot.",
-    "magnet": "Tap “Magnet” (or M), then aim at a ball: it leaves the chain and joins your shooter.",
-    "magnetCombo": "Pull out the ball that separates two equal colours: they join and explode.",
+    "magnet": "Tap “Magnet” (or press M), then aim at a marble: it leaves the chain and loads into your launcher.",
+    "magnetCombo": "Pull out the marble that separates two groups of the same colour: they meet and explode.",
     "alchemy": "Light mixes: ruby + lime = amber, lime + violet = cyan, ruby + violet = rose. Shoot one colour onto another to fuse them.",
     "alchemySecondary": "Mixed colours cannot be shot: fuse three of them side by side to blow them up.",
-    "switch": "Tap a switch (or press S) to send the lava into the detour: longer, it buys you time. It can no longer change once the chain gets there.",
-    "hot": "On the shortcut the lava is molten: balls blown up there are worth double. Points or time: your call.",
+    "switch": "Tap a switch (or press S) to send the lava down the detour: it’s longer and buys you time. A switch locks once the chain reaches it.",
+    "hot": "On the shortcut, the lava is molten: marbles blown up there are worth double. Points or time: your call.",
     "gravity": "The black hole pulls your shots: the aim line shows the curve they will follow. A shot passing too close is swallowed.",
-    "orbit": "Your shooter glides around the black hole: wait until you are well placed before you fire.",
+    "orbit": "Your launcher glides around the black hole: wait for a good angle before you fire.",
     "endless": "The chain never stops: each stage speeds it up and may add a colour. Hold on as long as you can.",
-    "puzzle": "The chain stands still and your shots are counted. \"Next colour\" (or X) picks the colour: think chain reactions.",
-    "rhythm": "The chain moves to the music. Fire as the ring closes on the shooter: the groove multiplies your points up to ×4.",
-    "duel": "Every explosion pushes the chain towards the other hole. Make it fall into your rival's before it reaches yours.",
+    "puzzle": "The chain stands still and your shots are limited. “Next colour” (or X) picks your colour: think chain reactions.",
+    "rhythm": "The chain moves to the music. Fire as the ring closes on the launcher: the groove multiplies your points up to ×4.",
+    "duel": "Every explosion pushes the chain towards the other hole. Make it fall into your rival’s before it reaches yours.",
     "arrhythmia": "Arrhythmia: the chain speeds up and slows down without warning. The track turns red when it races.",
-    "meteors": "Balls fall from the sky: a shadow shows where they will land.",
+    "meteors": "Marbles fall from the sky: a shadow shows where they will land.",
     "wind": "Headwinds: during a gust, the aim line shows how your shots drift. A charged shot (hold) flies straight.",
-    "cold": "Biting cold: shots slow down and balls freeze. Set off a chain reaction to shatter every frozen ball.",
-    "solar": "Solar storm: the balls cannot be destroyed. Build groups: they will all explode when it ends.",
-    "power": "Balls with a ring hold a power: pop them to use it!",
+    "cold": "Biting cold: shots slow down and marbles freeze. Set off a chain reaction to shatter every frozen marble.",
+    "solar": "Solar storm: the marbles can’t be destroyed. Build groups: they’ll all explode when it ends.",
+    "power": "Marbles with a ring hold a power: pop them to use it!",
     "powerSlow": "The hourglass slows the chain down for 8 seconds.",
-    "powerRainbow": "The rainbow ball turns your next shot into a ball of every colour.",
-    "powerLaser": "The lightning ball turns your next shot into a laser that pierces 4 balls."
+    "powerRainbow": "The rainbow marble turns your next shot into a marble that matches every colour.",
+    "powerLaser": "The lightning marble turns your next shot into a laser that pierces 4 marbles."
   },
   "colossus": {
     "nebula": "Stellar Colossus",
@@ -189,8 +183,6 @@
   "daily": {
     "title": "Daily challenge",
     "short": "Daily",
-    "todo": "To play: level {level}",
-    "done": "Done: {score} points",
     "counted": "Only the first attempt of the day counts: {score} points.",
     "share": "Share my result",
     "shareText": "Ballmania · {date} challenge: {score} points {stars} · {url}",
@@ -218,12 +210,11 @@
   },
   "shop": {
     "title": "Workshop",
-    "pitch": "Shooters, trails, shards",
     "intro": "Everything is earned by playing. These are looks only: nothing makes the game easier.",
     "slots": {
-      "shooter": "Shooters",
+      "shooter": "Launchers",
       "trail": "Shot trails",
-      "burst": "Burst signatures",
+      "burst": "Burst styles",
       "board": "Boards"
     },
     "equipped": "Equipped",
@@ -248,7 +239,7 @@
     "burst-stars": "Stars",
     "burst-pixels": "Pixels",
     "burst-petals": "Petals",
-    "board-world": "The world's own",
+    "board-world": "The world’s own",
     "board-nebula": "Nebula",
     "board-neon": "Neon",
     "board-abyss": "Abyss",
@@ -258,8 +249,7 @@
   },
   "achievements": {
     "title": "Goals",
-    "count": "{done} / {total} reached",
-    "intro": "Every goal you reach earns shards to spend in the workshop.",
+    "intro": "Every goal you reach earns shards to spend in the Workshop.",
     "reached": "Goal reached: {name}",
     "done": "Reached",
     "progress": "{current} of {target}",
@@ -277,7 +267,7 @@
         "text": "Trigger a ×{target} chain reaction."
       },
       "streak-5": {
-        "name": "In the groove",
+        "name": "On a roll",
         "text": "Land {target} shots in a row."
       },
       "streak-10": {
@@ -286,11 +276,11 @@
       },
       "balls-500": {
         "name": "Breaker",
-        "text": "Destroy {target} balls in total."
+        "text": "Destroy {target} marbles in total."
       },
       "balls-2000": {
         "name": "Wrecker",
-        "text": "Destroy {target} balls in total."
+        "text": "Destroy {target} marbles in total."
       },
       "bank-shot": {
         "name": "Bank shot",
@@ -298,19 +288,19 @@
       },
       "magnet-10": {
         "name": "Deep-sea angler",
-        "text": "Pull {target} balls out with the magnet."
+        "text": "Pull {target} marbles out with the magnet."
       },
       "alchemist": {
         "name": "Alchemist",
         "text": "Fuse two colours {target} times."
       },
       "switchman": {
-        "name": "Signalman",
+        "name": "Switchman",
         "text": "Flip {target} switches."
       },
       "no-swap": {
         "name": "No safety net",
-        "text": "Win a level without swapping a ball."
+        "text": "Win a level without swapping marbles."
       },
       "close-call": {
         "name": "Close call",
@@ -346,7 +336,7 @@
       },
       "slingshot": {
         "name": "Gravity slingshot",
-        "text": "Explode balls with {target} shots bent by at least 45° by the black hole."
+        "text": "Blow up marbles with {target} shots bent 45° or more by the black hole."
       },
       "world-volcano": {
         "name": "Heart of magma",
@@ -385,10 +375,8 @@
   },
   "magnet": {
     "button": "Magnet",
-    "charges": "{count} of {max} charges",
-    "armed": "Aim at the ball to pull",
-    "label": "Magnet, {count} of {max} charges",
-    "pulled": "Ball pulled out"
+    "armed": "Aim at the marble to pull",
+    "label": "Magnet, {count} of {max} charges"
   },
   "tones": {
     "0": "ruby",
@@ -403,21 +391,18 @@
     "formula": "{a} + {b} = {result}"
   },
   "switch": {
-    "label": "Switch {number}: {branch}",
     "short": "shortcut",
     "long": "detour",
-    "locked": "locked",
     "flipped": "Switch set to the {branch}"
   },
   "arcade": {
     "title": "Arcade",
     "intro": "Four modes to play differently. Each one opens when you finish a world of the campaign.",
-    "open": "{count} / {total} modes open",
     "locked": "Finish the {world} world to open it.",
     "start": "Play",
     "endless": {
       "name": "Endless",
-      "tagline": "A chain without end, faster and more colourful all the time.",
+      "tagline": "An endless chain that keeps getting faster and more colourful.",
       "best": "Best: {score}",
       "over": "Game over",
       "stage": "Stage {stage}",
@@ -428,7 +413,7 @@
       "tagline": "A still chain, few shots: find the perfect chain reaction.",
       "short": "Puzzle {number}",
       "daily": "Puzzle of the day",
-      "dailyTodo": "The same for everyone, today",
+      "dailyTodo": "Same puzzle for everyone today",
       "dailyDone": "Solved in {shots} shots",
       "dailyTried": "Tried today",
       "solvedCount": "{count} / {total} puzzles solved",
@@ -437,7 +422,7 @@
       "next": "Next puzzle",
       "nextColour": "Next colour",
       "shotsLeft": "{count} shots | {count} shot | {count} shots",
-      "result": "{shots} shots, {par} at best",
+      "result": "{shots} shots (best possible: {par})",
       "tileLabel": "Puzzle {number}, {stars} star(s) out of 3",
       "lockedLabel": "Puzzle {number}, locked"
     },
@@ -466,7 +451,7 @@
       "you": "You",
       "rival": "Rival · {score}",
       "rope": "Your edge in the tug of war",
-      "final": "Rival's score: {score}",
+      "final": "Rival’s score: {score}",
       "wins": "No wins | {count} win | {count} wins",
       "harder": "Stronger rival"
     },
@@ -490,11 +475,11 @@
   "weather": {
     "solar": {
       "name": "Solar storm",
-      "announce": "Solar storm: the balls are burning and cannot be destroyed. Groups made now will explode when it ends."
+      "announce": "Solar storm: the marbles are burning and can’t be destroyed. Groups you build now will explode when it ends."
     },
     "cold": {
       "name": "Biting cold",
-      "announce": "Biting cold: your shots slow down. A chain reaction will shatter the frozen balls."
+      "announce": "Biting cold: your shots slow down. A chain reaction will shatter the frozen marbles."
     },
     "wind": {
       "name": "Headwinds",
@@ -504,13 +489,13 @@
   "observatory": {
     "title": "Observatory",
     "back": "Back",
-    "intro": "Hit shooting stars with your shots to collect star fragments, then upgrade your instruments. Upgrades work in the campaign (never in the daily challenge or the Arcade).",
+    "intro": "Hit shooting stars with your shots to collect star fragments, then upgrade your instruments. Upgrades apply in the campaign only (not in the daily challenge or the Arcade).",
     "balance": "{count} fragments",
     "ready": "Upgrade available",
     "tip": "Upgrade your game here with your star fragments.",
     "tipClose": "Got it",
     "buy": "Upgrade · {cost} fragments",
-    "max": "At its best",
+    "max": "Maxed out",
     "rank": "Rank {rank} of {max}",
     "bought": "{name}: rank {rank}",
     "caught": "No fragments | {count} star fragment | {count} star fragments"
@@ -535,8 +520,8 @@
       "r3": "60 units."
     },
     "prism": {
-      "name": "Prism ball",
-      "r1": "Every 20 shots, a rainbow ball takes the colour of the ball it hits.",
+      "name": "Prism marble",
+      "r1": "Every 20 shots, a rainbow marble takes the colour of the marble it hits.",
       "r2": "Every 15 shots.",
       "r3": "Every 10 shots."
     },
@@ -550,7 +535,7 @@
       "name": "Icebreaker",
       "r1": "The cold slows your shots a third less.",
       "r2": "Two thirds less.",
-      "r3": "Any explosion shatters the frozen balls."
+      "r3": "Any explosion shatters the frozen marbles."
     },
     "anchor": {
       "name": "Anchor",
@@ -567,9 +552,9 @@
     "nova": {
       "name": "Nova",
       "ready": "Nova ready!",
-      "r1": "30 balls destroyed charge a bomb: the next shot blows up everything around it.",
-      "r2": "24 balls, wider blast.",
-      "r3": "18 balls, huge blast."
+      "r1": "Destroying 30 marbles charges a bomb: your next shot blows up everything around it.",
+      "r2": "24 marbles, wider blast.",
+      "r3": "18 marbles, huge blast."
     },
     "secondChance": {
       "name": "Second chance",
@@ -593,13 +578,13 @@
     },
     "rainbow": {
       "cheer": "Rainbow!",
-      "announce": "Rainbow shot: your next ball matches every colour.",
+      "announce": "Rainbow shot: your next marble matches every colour.",
       "ready": "Rainbow shot ready",
       "name": "Rainbow shot"
     },
     "laser": {
       "cheer": "Laser!",
-      "announce": "Laser: your next shot pierces the first 4 balls it touches.",
+      "announce": "Laser: your next shot pierces the first 4 marbles it touches.",
       "ready": "Laser ready",
       "name": "Laser"
     }
@@ -617,7 +602,7 @@
   "ads": {
     "continue": "Continue",
     "continueDetail": "Watch an ad: the chain moves back",
-    "double": "Double the shards",
+    "double": "Double your shards",
     "doubleDetail": "Watch an ad",
     "hint": "Hint",
     "hintDetail": "Watch an ad",
@@ -627,7 +612,7 @@
     "trial": "{name}: yours to try in your next game.",
     "continued": "The chain moves back: your turn!",
     "doubled": "{count} more shards!",
-    "hintShown": "Hint: shoot at the circled ball.",
+    "hintShown": "Hint: shoot at the circled marble.",
     "unavailable": "No ad available right now: nothing is lost, try again later.",
     "blocked": "Video bonuses are unavailable right now. The whole game stays playable.",
     "forShards": "For {price} shards",
@@ -655,7 +640,7 @@
       "switch": "lava switches",
       "hot": "the molten shortcut",
       "gravity": "black-hole gravity",
-      "orbit": "an orbiting shooter",
+      "orbit": "an orbiting launcher",
       "arrhythmia": "arrhythmia",
       "meteors": "meteor showers",
       "wind": "headwinds",

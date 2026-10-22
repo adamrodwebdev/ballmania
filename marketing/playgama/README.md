@@ -32,7 +32,7 @@ titre qui diffère entre le jeu et la fiche.
 > spectacular chain reactions. Travel through six worlds, each with its own mechanic: bank
 > shots off neon mirrors, a deep-sea magnet, colour alchemy, lava switches and shots that
 > curve around a black hole. Every world ends with a Colossus boss. Burst the power-up
-> marbles for a Rewind, a Slow-mo, a Rainbow shot or a Laser. Earn upgrades, unlock
+> marbles for a Rewind, a Slow-down, a Rainbow shot or a Laser. Earn upgrades, unlock
 > cosmetics, collect a daily gift, and play four Arcade modes plus a daily challenge.
 
 **How to play** (anglais) :
@@ -42,7 +42,7 @@ titre qui diffère entre le jeu et la fiche.
 > chain before it reaches the hole to win the level. Mouse: move to aim, release the button
 > to shoot, hold it to charge a stronger shot, right click to swap marbles. Keyboard: arrow
 > keys to aim, Space to shoot, X to swap, P to pause. Touch: drag to aim, lift your finger
-> to shoot, tap the shooter to swap.
+> to shoot, tap the launcher to swap.
 
 **Question sur l'outil d'IA** : le code et le jeu ont été écrits avec Claude Code (modèle
 Claude Opus 5.5) sous la direction de l'auteur ; les visuels sont dessinés par le code
