@@ -1286,6 +1286,14 @@ Règles de simulation :
   Seul le **segment arrière** est poussé (vitesse d'entrée rapide puis de croisière). Un
   segment dont la première bille a la couleur de la dernière bille du segment derrière lui
   **recule** jusqu'à la jonction, qui peut exploser à son tour.
+- **Remise en jeu** (v1.7.3) : quand une chaîne a moins de 8 billes sur le plateau et qu'il
+  en reste dans le tunnel, elle reprend sa vitesse d'entrée, freinée à partir de 4 billes,
+  jusqu'à en montrer 8 ; jamais derrière un Colosse, en Duel, pour une chaîne immobile, ni
+  quand sa tête a passé 40 % du tracé. Mesuré au robot sur le monde 1 : l'attente (moins de
+  trois billes à l'écran pendant que d'autres attendent au tunnel) passe de 15,7 s au plus à
+  moins d'une seconde par niveau, et les parties d'un joueur rapide raccourcissent d'un tiers
+  (1-4 : 51 s → 32 s) ; victoires et danger inchangés. Au 1-1, chaque grosse explosion de la
+  vitrine laisse encore l'écran vide environ 0,3 s.
 - **Insertion** : la bille tirée se place avant ou après la bille touchée selon le côté de
   l'impact (projection sur la tangente) et pousse les billes devant elle.
 - **Profondeur** : remise à 1 quand plus aucun segment ne recule.

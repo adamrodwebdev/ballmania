@@ -15,6 +15,10 @@ export interface BotResult {
   readonly danger: number;
   /** Points of the computer rival (Duel mode). */
   readonly rivalScore: number;
+  /** Seconds spent with no ball on the board while more wait in the tunnel. */
+  readonly idle: number;
+  /** Seconds with fewer balls on the board than a group needs (3) while more wait in the tunnel. */
+  readonly thin: number;
 }
 
 /**
@@ -47,6 +51,8 @@ export function playDefinition(
   const gravity = game.gravity;
   let shots = 0;
   let danger = 0;
+  let idleFrames = 0;
+  let thinFrames = 0;
   interface Candidate {
     readonly score: number;
     readonly chain: number;
@@ -223,6 +229,15 @@ export function playDefinition(
   };
 
   for (let frameIndex = 0; frameIndex < 60 * 300 && game.state === 'playing'; frameIndex++) {
+    // Waiting: the board runs short while balls are still to come out of a tunnel.
+    if (game.chains.some((chain) => (chain.balls[0]?.s ?? 0) < 0)) {
+      const onBoard = game.chains.reduce(
+        (sum, chain) => sum + chain.balls.filter((ball) => ball.s >= 0).length,
+        0,
+      );
+      if (onBoard === 0) idleFrames++;
+      if (onBoard < 3) thinFrames++;
+    }
     // Volcano world: a cautious player sends the lava into every free detour.
     if (frameIndex % 30 === 0) {
       for (const view of game.switches()) {
@@ -284,5 +299,7 @@ export function playDefinition(
     shots,
     danger: Math.round(danger * 100) / 100,
     rivalScore: game.rivalScore,
+    idle: Math.round(idleFrames / 6) / 10,
+    thin: Math.round(thinFrames / 6) / 10,
   };
 }

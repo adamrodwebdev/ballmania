@@ -42,6 +42,45 @@ describe('Chain movement', () => {
     expect(chain.balls[0]!.s - cruising).toBeCloseTo(5);
   });
 
+  describe('hurries back in when the board runs out of balls', () => {
+    const HURRY = { ...PARAMS, speed: 50, rushSpeed: 500, rushDistance: 0 };
+    /** `count` touching balls, the first `onBoard` of them (from the head) on the board. */
+    const lined = (count: number, onBoard: number, params = HURRY) =>
+      new Chain(
+        straightPath(),
+        Array.from({ length: count }, (_, i) => new Ball(i + 1, i % 3, (i - count + onBoard) * D)),
+        params,
+      );
+    const step = (chain: Chain) => {
+      const tail = chain.balls[0]!.s;
+      chain.advance(0.01);
+      return chain.balls[0]!.s - tail;
+    };
+
+    it('at its opening speed while the board is nearly empty and balls wait in the tunnel', () => {
+      expect(step(lined(8, 2))).toBeCloseTo(5);
+    });
+
+    it('easing off as the board fills, and at its own pace from eight balls on', () => {
+      expect(step(lined(10, 6))).toBeCloseTo(2.75);
+      expect(step(lined(10, 8))).toBeCloseTo(0.5);
+      // Nothing left in the tunnel: nothing to hurry.
+      expect(step(lined(2, 2))).toBeCloseTo(0.5);
+    });
+
+    it('never near the hole, behind a Colossus, or for a chain that stands still', () => {
+      const rear = [1, 2, 3].map((i) => new Ball(i, i % 3, -i * D));
+      const ahead = [new Ball(4, 0, 500), new Ball(5, 1, 500 + D)];
+      expect(step(new Chain(straightPath(), [...rear, ...ahead], HURRY))).toBeCloseTo(0.5);
+      const pushed = lined(8, 2);
+      pushed.attachPusher(30);
+      const before = pushed.pusherArc!;
+      pushed.advance(0.01);
+      expect(pushed.pusherArc! - before).toBeCloseTo(0.5);
+      expect(step(lined(8, 2, { ...HURRY, speed: 0 }))).toBe(0);
+    });
+  });
+
   it('queues a new chain in the entrance tunnel, head first', () => {
     const factory = new BallFactory();
     const chain = Chain.queued(
