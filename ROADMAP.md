@@ -3,7 +3,7 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
-## v1.7.4 — Le premier boss (en préparation)
+## v1.7.4 — Le premier boss (livrée le 22/10/2026)
 
 **But** : accrocher le joueur dès le 3ᵉ niveau avec un mini-boss, et lui apprendre, sans
 l'interrompre, que l'Observatoire améliore son jeu (décidé le 22/10/2026, après l'essai de la
@@ -18,6 +18,20 @@ resservira au niveau d'entraînement E3 de la 1.8.0.
 | 1. Jeune Colosse au 1-3    | Le Colosse stellaire en plus petit, avec son dessin : environ 20 points de vie (60 au 1-12), une seule phase, il crache 4 billes. Vaincu au 1-3, il revient adulte au 1-12. Le panneau du 1-2 l'annonce (« Boss : Jeune Colosse stellaire ») ; il compte pour l'objectif « Vaincre un Colosse » (+100 éclats). La bille Recul passe au 1-4, qui reste à trois couleurs pour souffler après le boss ; la quatrième couleur arrive au 1-5 (décidé le 22/10/2026, une seule nouveauté par niveau).                                                                               | Maquette validée ; robot pressé : le 1-3 gagné au moins 5 fois sur 6, pression sous celle du 1-12 ; barre de vie visible au 1-3 (test de bout en bout) ; recalibrage des étoiles. |
 | 2. Bulle de l'Observatoire | La première fois qu'une amélioration devient abordable, une petite bulle près du bouton Observatoire de la carte explique qu'on y améliore son jeu avec ses fragments d'étoiles ; dans le flux de la page, elle ne cache rien (sous le bouton au téléphone, au-dessus dans la colonne de l'ordinateur). Elle s'affiche lors d'une seule visite de la carte, disparaît au toucher et ne revient jamais ; ouvrir l'Observatoire la retire aussi, et qui possède déjà une amélioration ne la voit pas. Accessible au clavier et aux lecteurs d'écran, mouvement réduit respecté. | Maquette validée (téléphone et ordinateur, deux thèmes) ; test de bout en bout : la bulle s'affiche une fois, jamais deux.                                                        |
 | 3. Livraison               | Textes relus avec la compétence de traduction (anglais, français, indonésien), CHANGELOG, cahier des charges, bac à sable Playgama.                                                                                                                                                                                                                                                                                                                                                                                                                                           | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                                                       |
+
+Ajouts et écarts décidés pendant la livraison (22/10/2026) : le test d'attente échouait au 1-3
+(5,9 % de la partie avec moins de trois billes à viser pour le robot rapide), car la remise en
+jeu de la 1.7.3 ne jouait jamais derrière un Colosse. Elle joue désormais tant que le Colosse
+est encore dans le tunnel : il ne se presse que hors de vue, et l'attente des combats tombe de
+14 % au plus (Joaillerie 12) à moins de 1,5 %. Contrepartie à surveiller : le combat de
+Joaillerie 12 raccourcit nettement (64 s au lieu de 110 s pour le robot occasionnel, danger
+0,34 au lieu de 0,49). Le jeune Colosse tombe en 27 à 34 s face aux robots, plus lentement
+face à un humain ; le tableau de rythme de la 1.8.0 réglera sa durée. Les robots le battent
+90 fois sur 90, danger moyen de 0,21 à 0,39 du tracé contre 0,46 à 0,72 au 1-12. Le défi du
+jour écarte les boss, et l'objectif des Colosses se lit « Vaincre un Colosse ». Les ports des
+tests de bout en bout deviennent réglables (`E2E_PORT`, `E2E_PORTAL_PORT`) : un autre projet
+occupait le 4175. Lighthouse : 98 en performance sur mobile aux trois mesures, 100 dans les
+trois autres catégories, 100 × 4 sur ordinateur.
 
 ## v1.8.0 — Les cinq premières minutes (en préparation)
 
@@ -62,7 +76,10 @@ récompensée avant 3 à 5 minutes ; difficulté personnalisée, après la 1.8.0
 22/10/2026) : un « Bac à sable » dans l'Arcade, ouvert après le monde 1 (tracé débloqué,
 vitesse, couleurs, longueur, billes bonus ; ni étoiles, ni éclats, ni objectifs, ni défi du
 jour, ni partage), et un curseur « Vitesse du jeu » borné (70 à 100 %) pour l'accessibilité ;
-paramètres bornés et validés à la lecture, jamais lus dans l'adresse.
+paramètres bornés et validés à la lecture, jamais lus dans l'adresse ; le Colosse de cristal
+(4-12), raccourci par la remise en jeu derrière les Colosses de la 1.7.4 (64 s au lieu de
+110 s pour le robot occasionnel, danger 0,34 au lieu de 0,49), à revoir avec le réglage des
+mondes suivants (décidé le 22/10/2026).
 
 ## v1.7.3 — Étoiles à portée (livrée le 22/10/2026)
 

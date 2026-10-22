@@ -3,6 +3,34 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.7.4] — 2026-10-22
+
+### Ajouté
+
+- **Un premier boss au 1-3** : le jeune Colosse stellaire, plus petit que l'adulte, avec 20
+  points de vie et une seule phase. Son nom s'affiche sur sa barre de vie, le panneau du 1-2
+  l'annonce (« Boss : Jeune Colosse stellaire ») et il compte pour l'objectif « Vaincre un
+  Colosse ». Il revient adulte au 1-12.
+- **Bulle de l'Observatoire** : la première fois qu'une amélioration devient abordable, une
+  bulle sous le bouton Observatoire de la carte dit « Améliorez votre jeu ici avec vos
+  fragments d'étoiles. ». Elle ne cache rien, s'affiche lors d'une seule visite, disparaît
+  au toucher et ne revient jamais ; qui possède déjà une amélioration ne la voit pas.
+
+### Modifié
+
+- **Monde 1** : la bille Recul s'apprend au 1-4, qui garde trois couleurs pour souffler
+  après le boss ; la quatrième couleur arrive au 1-5. Étoiles recalibrées au 1-3 et au 1-4.
+- **Plus d'attente derrière un Colosse** : la remise en jeu de la 1.7.3 joue aussi quand un
+  Colosse pousse la chaîne depuis le tunnel. Les combats où l'on attendait le plus (jusqu'à
+  14 % de la partie avec moins de trois billes à viser) passent sous 1,5 % ; le Colosse de
+  cristal (4-12) en devient nettement plus court. Étoiles des Colosses recalibrées.
+- Le défi du jour écarte les boss ; l'objectif « Tueur de géant » se lit « Vaincre un
+  Colosse ».
+- Sur un bouton étroit, le badge « Amélioration disponible » passe entier sous « Observatoire »
+  au lieu de se couper en deux lignes.
+- Tests de bout en bout : `E2E_PORT` et `E2E_PORTAL_PORT` déplacent les deux builds quand un
+  autre projet occupe déjà les ports 4174 et 4175.
+
 ## [1.7.3] — 2026-10-22
 
 ### Ajouté
