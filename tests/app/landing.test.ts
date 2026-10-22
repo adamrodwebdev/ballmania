@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { landing } from '@/app/landing';
+import { isFirstVisit, landing } from '@/app/landing';
 
 const newcomer = { gamesPlayed: 0, levelsFinished: 0, worldsFinished: 0 };
 
@@ -18,5 +18,13 @@ describe('landing', () => {
 
   it('always opens on the title screen on our own site', () => {
     expect(landing('standalone', newcomer)).toBe('title');
+  });
+});
+
+describe('isFirstVisit', () => {
+  it('recognises a player who has never played', () => {
+    expect(isFirstVisit(newcomer)).toBe(true);
+    expect(isFirstVisit({ ...newcomer, gamesPlayed: 1 })).toBe(false);
+    expect(isFirstVisit({ ...newcomer, levelsFinished: 1 })).toBe(false);
   });
 });

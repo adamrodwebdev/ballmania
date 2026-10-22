@@ -763,7 +763,10 @@ builds, et la version de notre site garde Lighthouse ≥ 95 sans traceur.
 - **Interstitielle** : en quittant l'écran de fin (niveau suivant, rejouer, carte, aide),
   jamais pendant une partie, jamais dans les 3 premières minutes de la visite, au plus une
   toutes les 3 minutes, publicités récompensées comprises (`AdPolicy`). Le portail peut
-  encore décider de ne rien montrer.
+  encore décider de ne rien montrer. Depuis la v1.7.2, la première visite d'un nouveau
+  joueur (aucune partie jouée) est ménagée : aucune interstitielle avant 8 minutes de
+  visite, même après une publicité récompensée qu'il a choisie, et aucune juste après une
+  défaite (`isFirstVisit`, la même règle qui l'envoie directement au niveau 1-1).
 - **Récompensées**, toujours au choix et annoncées sur le bouton (« Regarder une
   publicité ») :
   - **Continuer** après une défaite, une fois par partie, dans la campagne et l'Infini

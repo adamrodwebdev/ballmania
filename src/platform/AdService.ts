@@ -3,22 +3,31 @@ import type { PlatformAdapter } from './PlatformAdapter';
 /** Least time between two ads, and before the first one between games (§ 3.7). */
 export const AD_INTERVAL = 180_000;
 
+/** A new player's first visit: no ad between games before this much of it (§ 3.7). */
+export const FIRST_VISIT_DELAY = 480_000;
+
 /**
  * When an ad between games is allowed (specification § 3.7): never in the
  * first minutes of a visit, at most one every three minutes, rewarded ads
- * included. It only says *when*; the platform says *how*.
+ * included. A new player's first visit is spared longer: no ad between games
+ * before eight minutes of it, and none right after a defeat. It only says
+ * *when*; the platform says *how*.
  */
 export class AdPolicy {
   private lastAd: number;
 
   constructor(
-    startedAt: number,
+    private readonly startedAt: number,
     private readonly interval = AD_INTERVAL,
+    /** True on a new player's first visit. */
+    private readonly newcomer = false,
   ) {
     this.lastAd = startedAt;
   }
 
-  allowsInterstitial(now: number): boolean {
+  /** `afterDefeat`: the break follows a lost game. */
+  allowsInterstitial(now: number, afterDefeat = false): boolean {
+    if (this.newcomer && (afterDefeat || now - this.startedAt < FIRST_VISIT_DELAY)) return false;
     return now - this.lastAd >= this.interval;
   }
 
@@ -67,9 +76,12 @@ export class AdService {
     return watched;
   }
 
-  /** Between two games: maybe an ad. Resolves when the game may go on. */
-  async betweenGames(silence: Silence): Promise<void> {
-    if (!this.platform.hasAds || !this.policy.allowsInterstitial(this.now())) return;
+  /**
+   * Between two games: maybe an ad. Resolves when the game may go on.
+   * `afterDefeat`: the game before was lost.
+   */
+  async betweenGames(silence: Silence, afterDefeat = false): Promise<void> {
+    if (!this.platform.hasAds || !this.policy.allowsInterstitial(this.now(), afterDefeat)) return;
     this.policy.shown(this.now());
     await this.during(silence, (onStart) => this.platform.interstitial(onStart));
   }

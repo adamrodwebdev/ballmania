@@ -610,7 +610,8 @@ const adsBlocked = computed(() => platform.hasAds && !ads.rewardsOffered);
 const afterBreak = async (action: () => void, ad = !(offerContinue.value && ads.reviveOffered)) => {
   settleNow();
   endDialog.value?.close();
-  if (ad) await ads.betweenGames(silence());
+  // On a new player's first visit, the policy keeps defeats free of ads.
+  if (ad) await ads.betweenGames(silence(), hud.value?.over === 'lost');
   action();
 };
 const leaveToMenu = () => {

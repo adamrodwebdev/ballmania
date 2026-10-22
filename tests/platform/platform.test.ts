@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { AD_INTERVAL, AdPolicy, AdService, GameplaySignals } from '@/platform/AdService';
+import {
+  AD_INTERVAL,
+  AdPolicy,
+  AdService,
+  FIRST_VISIT_DELAY,
+  GameplaySignals,
+} from '@/platform/AdService';
 import {
   CRAZYGAMES_SDK,
   CrazyGamesPlatform,
@@ -64,6 +70,20 @@ describe('AdPolicy', () => {
     policy.shown(AD_INTERVAL);
     expect(policy.allowsInterstitial(AD_INTERVAL * 2 - 1)).toBe(false);
     expect(policy.allowsInterstitial(AD_INTERVAL * 2)).toBe(true);
+    // A returning player may see one after a defeat.
+    expect(policy.allowsInterstitial(AD_INTERVAL * 2, true)).toBe(true);
+  });
+
+  it("spares a new player's first visit: eight minutes, and never after a defeat", () => {
+    const policy = new AdPolicy(0, AD_INTERVAL, true);
+    expect(policy.allowsInterstitial(FIRST_VISIT_DELAY - 1)).toBe(false);
+    expect(policy.allowsInterstitial(FIRST_VISIT_DELAY)).toBe(true);
+    expect(policy.allowsInterstitial(FIRST_VISIT_DELAY * 2, true)).toBe(false);
+    // A rewarded ad the player chose does not shorten the wait.
+    const rewarded = new AdPolicy(0, AD_INTERVAL, true);
+    rewarded.shown(60_000);
+    expect(rewarded.allowsInterstitial(60_000 + AD_INTERVAL)).toBe(false);
+    expect(rewarded.allowsInterstitial(FIRST_VISIT_DELAY)).toBe(true);
   });
 });
 
