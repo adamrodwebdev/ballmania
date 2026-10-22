@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
@@ -40,6 +40,20 @@ const current = computed(() => {
 });
 /** Decorative orbs of each card's banner: a few tones per world, peeking over its edge. */
 const ORBS = [0, 1, 2, 3, 4] as const;
+
+/**
+ * The bubble that points at the Observatory once a first upgrade can be
+ * bought (v1.7.4): shown on a single visit of the map, gone at a touch.
+ */
+const tip = ref(player.observatoryTipDue);
+/** The sign of star fragments, as in the game's top bar. */
+const FRAGMENT = '✦';
+if (tip.value) player.markTipSeen('observatory');
+const observatoryButton = ref<HTMLButtonElement | null>(null);
+const closeTip = () => {
+  tip.value = false;
+  observatoryButton.value?.focus();
+};
 </script>
 
 <template>
@@ -56,15 +70,32 @@ const ORBS = [0, 1, 2, 3, 4] as const;
       <p class="total" data-testid="stars-total">
         {{ t('campaign.stars', { count: total, total: order.length * 3 }) }}
       </p>
-      <button
-        class="btn observatory"
-        type="button"
-        data-testid="observatory"
-        @click="emit('observatory')"
-      >
-        <span>{{ t('observatory.title') }}</span>
-        <span v-if="player.upgradeAffordable" class="badge">{{ t('observatory.ready') }}</span>
-      </button>
+      <div class="observatory-group" :class="{ tipped: tip }">
+        <button
+          ref="observatoryButton"
+          class="btn observatory"
+          type="button"
+          data-testid="observatory"
+          @click="emit('observatory')"
+        >
+          <span>{{ t('observatory.title') }}</span>
+          <span v-if="player.upgradeAffordable" class="badge">{{ t('observatory.ready') }}</span>
+        </button>
+        <div v-if="tip" class="tip" role="note" data-testid="observatory-tip">
+          <p class="tip-text">
+            <span class="tip-icon" aria-hidden="true">{{ FRAGMENT }}</span>
+            <span>{{ t('observatory.tip') }}</span>
+          </p>
+          <!-- The whole bubble closes at a touch; for a screen reader, a button that says so. -->
+          <button
+            class="tip-close"
+            type="button"
+            :aria-label="t('observatory.tipClose')"
+            data-testid="observatory-tip-close"
+            @click="closeTip"
+          ></button>
+        </div>
+      </div>
     </div>
 
     <fieldset class="difficulty">
@@ -391,9 +422,17 @@ h2 {
   font-weight: 800;
 }
 
+/* The Observatory button, and the bubble that points at it once (v1.7.4). */
+.observatory-group {
+  display: grid;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
 .observatory {
   flex-direction: row;
-  margin-left: auto;
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
 }
 
 .badge {
@@ -403,6 +442,91 @@ h2 {
   color: #04131a;
   font-size: 0.75rem;
   font-weight: 800;
+  /* On a narrow button the badge goes under the name whole, never cut in two. */
+  white-space: nowrap;
+}
+
+/* With its bubble, the button takes a line of its own under the header, still on the right. */
+.observatory-group.tipped {
+  flex-basis: 100%;
+  grid-template-columns: max-content;
+  justify-content: end;
+}
+
+/* Ringed while the bubble points at it; an outline keeps the button's own relief. */
+.tipped .observatory {
+  outline: 3px solid var(--accent);
+  outline-offset: 0;
+}
+
+.tipped .observatory:focus-visible {
+  outline-color: var(--focus);
+  outline-offset: 2px;
+}
+
+/* In the page's flow, so it hides nothing: as wide as the button, its arrow at the middle. */
+.tip {
+  --tip-rise: -0.4rem;
+  position: relative;
+  width: 0;
+  min-width: 100%;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.tip::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: calc(50% - 8px);
+  width: 16px;
+  height: 16px;
+  border-top: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+  background: var(--surface);
+  transform: rotate(45deg);
+}
+
+.tip-text {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.tip-icon {
+  color: var(--accent);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* The whole bubble is the button that closes it. */
+.tip-close {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tip {
+    transform-origin: 50% 0;
+    animation: tip-in 0.4s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  }
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--tip-rise)) scale(0.94);
+  }
 }
 
 .difficulty {
@@ -518,10 +642,28 @@ h2 {
     display: block;
   }
 
-  .observatory {
+  .observatory-group,
+  .observatory-group.tipped {
     grid-area: 6 / 1;
-    justify-content: space-between;
+    grid-template-columns: minmax(0, 1fr);
     margin-left: 0;
+  }
+
+  .observatory {
+    justify-content: space-between;
+  }
+
+  /* The bubble rises above the button, at the foot of the column. */
+  .tip {
+    --tip-rise: 0.4rem;
+    order: -1;
+    transform-origin: 50% 100%;
+  }
+
+  .tip::before {
+    top: auto;
+    bottom: -9px;
+    transform: rotate(225deg);
   }
 
   .deck {

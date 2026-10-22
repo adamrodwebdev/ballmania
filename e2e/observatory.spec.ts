@@ -19,3 +19,58 @@ test('spends star fragments on upgrades at the Observatory', async ({ page }) =>
   await page.getByTestId('back').click();
   await expect(page.getByTestId('upgrade-ready')).toHaveCount(0);
 });
+
+test.describe('the bubble pointing at the Observatory', () => {
+  test.beforeEach(async ({ page }) => {
+    // A first upgrade within reach, seeded once: reloads keep what the visit saved.
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+      localStorage.setItem('ballmania:player', JSON.stringify({ version: 1, fragments: 5 }));
+    });
+    await page.goto('./');
+    await page.getByTestId('play').click();
+  });
+
+  test('closes at a touch, hands the focus to the button, and never comes back', async ({
+    page,
+  }) => {
+    const tip = page.getByTestId('observatory-tip');
+    await expect(tip).toContainText('Upgrade your game here with your star fragments.');
+    await page.getByRole('button', { name: 'Got it' }).click();
+    await expect(tip).toHaveCount(0);
+    await expect(page.getByTestId('observatory')).toBeFocused();
+    await page.getByTestId('home').click();
+    await page.getByTestId('play').click();
+    await expect(page.getByTestId('level-nebula-01')).toBeVisible();
+    await expect(tip).toHaveCount(0);
+    await page.reload();
+    await page.getByTestId('play').click();
+    await expect(page.getByTestId('level-nebula-01')).toBeVisible();
+    await expect(tip).toHaveCount(0);
+  });
+
+  test('shows on one visit of the map only, even left untouched', async ({ page }) => {
+    // At rest, without its entrance.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const tip = page.getByTestId('observatory-tip');
+    await expect(tip).toBeVisible();
+    // In the page's flow, it covers neither the button nor the difficulty: under the
+    // button on a phone, above it at the foot of the column on a landscape screen.
+    const button = (await page.getByTestId('observatory').boundingBox())!;
+    const bubble = (await tip.boundingBox())!;
+    const difficulty = (await page.locator('.difficulty').boundingBox())!;
+    if (button.y > difficulty.y) {
+      expect(bubble.y).toBeGreaterThanOrEqual(difficulty.y + difficulty.height);
+      expect(bubble.y + bubble.height).toBeLessThanOrEqual(button.y);
+    } else {
+      expect(bubble.y).toBeGreaterThanOrEqual(button.y + button.height);
+      expect(bubble.y + bubble.height).toBeLessThanOrEqual(difficulty.y);
+    }
+    await page.getByTestId('home').click();
+    await page.getByTestId('play').click();
+    await expect(page.getByTestId('level-nebula-01')).toBeVisible();
+    await expect(tip).toHaveCount(0);
+  });
+});

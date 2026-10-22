@@ -507,6 +507,8 @@
     "intro": "Touchez les étoiles filantes de vos tirs pour récolter des fragments d'étoiles, puis améliorez vos instruments. Les améliorations jouent en campagne (jamais au défi du jour ni en Arcade).",
     "balance": "{count} fragments",
     "ready": "Amélioration disponible",
+    "tip": "Améliorez votre jeu ici avec vos fragments d’étoiles.",
+    "tipClose": "Compris",
     "buy": "Améliorer · {cost} fragments",
     "max": "Au meilleur",
     "rank": "Rang {rank} sur {max}",

@@ -507,6 +507,8 @@
     "intro": "Hit shooting stars with your shots to collect star fragments, then upgrade your instruments. Upgrades work in the campaign (never in the daily challenge or the Arcade).",
     "balance": "{count} fragments",
     "ready": "Upgrade available",
+    "tip": "Upgrade your game here with your star fragments.",
+    "tipClose": "Got it",
     "buy": "Upgrade · {cost} fragments",
     "max": "At its best",
     "rank": "Rank {rank} of {max}",

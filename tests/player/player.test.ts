@@ -141,6 +141,29 @@ describe('PlayerProfile', () => {
     expect(restored.view.stats.fragmentsCaught).toBe(6);
   });
 
+  it('points at the Observatory once, when a first upgrade can be bought', () => {
+    const storage = new MemoryStorage();
+    const profile = new PlayerProfile(storage);
+    expect(profile.observatoryTipDue).toBe(false);
+    profile.recordGame(report({ fragments: 5 }), campaign());
+    expect(profile.observatoryTipDue).toBe(true);
+    profile.markTipSeen('observatory');
+    expect(profile.observatoryTipDue).toBe(false);
+    expect(new PlayerProfile(storage).observatoryTipDue).toBe(false);
+  });
+
+  it('spares the bubble to a player who already owns an upgrade', () => {
+    const storage = new MemoryStorage();
+    storage.set(
+      PLAYER_KEY,
+      JSON.stringify({ version: 2, fragments: 20, upgrades: { eye: 1 }, tips: ['nope', 7] }),
+    );
+    const profile = new PlayerProfile(storage);
+    expect(profile.upgradeAffordable).toBe(true);
+    expect(profile.observatoryTipDue).toBe(false);
+    expect(profile.view.tips).toEqual([]);
+  });
+
   it('unlocks the Singularity backdrop by finishing the Volcano', () => {
     const profile = new PlayerProfile(new MemoryStorage());
     const rewards = profile.recordGame(report(), campaign({ worldCompleted: 'volcano' }));
