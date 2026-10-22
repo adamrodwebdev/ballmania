@@ -8,6 +8,7 @@ import type { AdStart, PlatformAdapter, PlatformId } from './PlatformAdapter';
 export class StandalonePlatform implements PlatformAdapter {
   readonly id: PlatformId = 'standalone';
   readonly hasAds: boolean = false;
+  readonly isPortal: boolean = false;
   private readonly storage: KeyValueStorage;
 
   constructor(

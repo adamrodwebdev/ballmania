@@ -2,17 +2,19 @@ import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage
 import type { AdStart, PlatformAdapter } from './PlatformAdapter';
 
 /** How the simulated portal behaves, from the page address (`?ads=blocked`…). */
-export type SimulatedAds = 'normal' | 'blocked' | 'refused';
+export type SimulatedAds = 'normal' | 'blocked' | 'refused' | 'off';
 
 /**
  * A pretend portal, for development and the end-to-end tests of the portal
  * builds (`vite --mode simulated`): ads are a dark modal box that closes by
  * itself, and every call is written to `window.platformLog`.
- * `?ads=blocked` acts as an ad blocker, `?ads=refused` as a rewarded ad closed early.
+ * `?ads=blocked` acts as an ad blocker, `?ads=refused` as a rewarded ad closed
+ * early, `?ads=off` as a build without ads (CrazyGames' Basic Launch).
  */
 export class SimulatedPlatform implements PlatformAdapter {
   readonly id = 'simulated';
-  readonly hasAds = true;
+  readonly hasAds: boolean;
+  readonly isPortal = true;
   readonly log: string[] = [];
   private readonly storage: KeyValueStorage;
 
@@ -22,6 +24,7 @@ export class SimulatedPlatform implements PlatformAdapter {
     private readonly duration = 600,
     storage: KeyValueStorage = BrowserStorage.local(),
   ) {
+    this.hasAds = ads !== 'off';
     this.storage = storage;
   }
 
@@ -68,7 +71,7 @@ export class SimulatedPlatform implements PlatformAdapter {
   }
 
   rewardedAvailable(): boolean {
-    return this.ads !== 'blocked';
+    return this.ads !== 'blocked' && this.ads !== 'off';
   }
 
   async rewarded(onStart: AdStart): Promise<boolean> {

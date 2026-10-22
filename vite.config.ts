@@ -223,6 +223,8 @@ export default defineConfig(({ mode }) => {
       __APP_VERSION__: JSON.stringify(pkg.version),
       __PLATFORM__: JSON.stringify(platform),
       __DEMO__: JSON.stringify(demo),
+      // CrazyGames: no ads in the Basic Launch build, which goes out by default.
+      __CRAZYGAMES_ADS__: JSON.stringify(process.env.CRAZYGAMES_LAUNCH === 'full'),
     },
     plugins: [
       vue(),

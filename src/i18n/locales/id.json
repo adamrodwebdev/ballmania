@@ -616,7 +616,8 @@
     "hintShown": "Petunjuk: tembak bola yang dilingkari.",
     "unavailable": "Belum ada iklan saat ini: tidak ada yang hilang, coba lagi nanti.",
     "blocked": "Bonus video belum tersedia saat ini. Seluruh permainan tetap bisa dimainkan.",
-    "forShards": "Dengan {price} kepingan"
+    "forShards": "Dengan {price} kepingan",
+    "forShardsShort": "{price} kepingan · kamu punya {balance}"
   },
   "demo": {
     "fullGame": "Di game lengkap",

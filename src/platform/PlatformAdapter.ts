@@ -18,6 +18,12 @@ export interface PlatformAdapter {
   readonly id: PlatformId;
   /** True if this platform shows ads at all (never on our own site). */
   readonly hasAds: boolean;
+  /**
+   * True on a portal: there, a continue or a puzzle hint can also be bought
+   * with shards, even when the build shows no ad (specification § 3.7). Our
+   * own site keeps the game plain.
+   */
+  readonly isPortal: boolean;
   /** Loads and starts the SDK. Resolves even when it fails. */
   init(): Promise<void>;
   /** Where saves go: the SDK's storage when the portal asks for it. */

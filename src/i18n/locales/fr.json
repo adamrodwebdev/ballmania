@@ -616,7 +616,8 @@
     "hintShown": "Indice : tirez sur la bille entourée.",
     "unavailable": "Aucune publicité disponible pour le moment : rien n'est perdu, réessayez plus tard.",
     "blocked": "Bonus vidéo indisponibles pour le moment. Le jeu reste entièrement jouable.",
-    "forShards": "Pour {price} éclats"
+    "forShards": "Pour {price} éclats",
+    "forShardsShort": "{price} éclats · vous en avez {balance}"
   },
   "demo": {
     "fullGame": "Dans le jeu complet",

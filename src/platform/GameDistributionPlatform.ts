@@ -29,6 +29,7 @@ const READY_TIMEOUT = 6000;
 export class GameDistributionPlatform implements PlatformAdapter {
   readonly id = 'gamedistribution';
   readonly hasAds = true;
+  readonly isPortal = true;
   private sdk: GameDistributionSdk | null = null;
   private rewardEarned = false;
   private adStart: AdStart | null = null;

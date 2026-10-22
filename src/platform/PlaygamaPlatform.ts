@@ -74,6 +74,7 @@ export interface PlaygamaHost {
 export class PlaygamaPlatform implements PlatformAdapter {
   readonly id = 'playgama';
   readonly hasAds = true;
+  readonly isPortal = true;
   private bridge: PlaygamaBridge | null = null;
   private readonly cache = new Map<string, string>();
   private inLevel = false;

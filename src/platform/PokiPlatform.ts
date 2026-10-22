@@ -25,6 +25,7 @@ export interface PokiHost {
 export class PokiPlatform implements PlatformAdapter {
   readonly id = 'poki';
   readonly hasAds = true;
+  readonly isPortal = true;
   private sdk: PokiSdk | null = null;
   /** `init` fails with an ad blocker: the game runs, without rewarded ads. */
   private adsBlocked = false;
