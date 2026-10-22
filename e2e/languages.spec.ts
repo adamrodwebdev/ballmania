@@ -13,33 +13,35 @@ const SIZES = [
 ] as const;
 
 /** A returning player: every menu has something to show, the gift waits, an upgrade is affordable. */
-const seed = (page: Page, locale: string) =>
-  page.addInitScript((code) => {
-    if (sessionStorage.getItem('seeded')) return;
-    sessionStorage.setItem('seeded', '1');
-    localStorage.setItem(
-      'ballmania:settings',
-      JSON.stringify({ locale: code, difficulty: 'explorer' }),
-    );
-    localStorage.setItem(
-      'ballmania:player',
-      JSON.stringify({
-        version: 1,
-        shards: 120,
-        fragments: 30,
-        worlds: ['nebula', 'neon', 'abyss', 'jewel'],
-        upgrades: { nova: 1 },
-        failures: { 'nebula-02': 3 },
-      }),
-    );
-    localStorage.setItem(
-      'ballmania:progress',
-      JSON.stringify({
-        version: 1,
-        levels: { 'nebula-01': { stars: 3, best: 2000 }, 'nebula-02': { stars: 1, best: 900 } },
-      }),
-    );
-  }, locale);
+const RETURNING = {
+  version: 1,
+  shards: 120,
+  fragments: 30,
+  worlds: ['nebula', 'neon', 'abyss', 'jewel'],
+  upgrades: { nova: 1 },
+  failures: { 'nebula-02': 3 },
+};
+
+const seed = (page: Page, locale: string, player: object = RETURNING) =>
+  page.addInitScript(
+    ({ code, profile }) => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem(
+        'ballmania:settings',
+        JSON.stringify({ locale: code, difficulty: 'explorer' }),
+      );
+      localStorage.setItem('ballmania:player', JSON.stringify(profile));
+      localStorage.setItem(
+        'ballmania:progress',
+        JSON.stringify({
+          version: 1,
+          levels: { 'nebula-01': { stars: 3, best: 2000 }, 'nebula-02': { stars: 1, best: 900 } },
+        }),
+      );
+    },
+    { code: locale, profile: player },
+  );
 
 /**
  * What is wrong with the text on screen: a word out of its button, tile or pill, text out
@@ -66,7 +68,7 @@ const problems = (page: Page) =>
       const box = el.getBoundingClientRect();
       if (box.left < -0.5 || box.right > width + 0.5) found.push(`off screen ${name(el)}`);
       if (getComputedStyle(el).position === 'absolute') continue;
-      const control = el.parentElement?.closest('button, .tile, .chip, .badge, .control, li');
+      const control = el.parentElement?.closest('button, .tile, .chip, .badge, .control, li, .tip');
       if (!control) continue;
       const room = control.getBoundingClientRect();
       if (box.left < room.left - 1 || box.right > room.right + 1)
@@ -135,6 +137,23 @@ test.describe('languages', () => {
         }
       });
     }
+
+    test(`keeps the Observatory bubble's text in place in ${locale} at every size`, async ({
+      page,
+    }) => {
+      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      // A first upgrade within reach and none bought yet: the map points at the Observatory,
+      // on one visit only, so that visit is measured at every size.
+      await page.setViewportSize({ width: SIZES[0][0], height: SIZES[0][1] });
+      await seed(page, locale, { version: 1, fragments: 5 });
+      await page.goto('./');
+      await page.getByTestId('play').click();
+      await expect(page.getByTestId('observatory-tip')).toBeVisible();
+      for (const [width, height] of SIZES) {
+        await page.setViewportSize({ width, height });
+        await check(page, `${locale} ${width}×${height} Observatory bubble`);
+      }
+    });
 
     test(`keeps the game's text in place in ${locale} at every size`, async ({ page }) => {
       test.skip(test.info().project.name !== 'desktop', 'desktop project only');
