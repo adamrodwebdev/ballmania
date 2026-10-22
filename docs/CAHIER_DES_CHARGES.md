@@ -144,7 +144,16 @@ Deux portes d'entrée depuis l'accueil :
   niveau « respiration ») ; une mécanique nouvelle est d'abord présentée seule, sans
   pression, puis combinée.
 - **1 à 3 étoiles** par niveau selon le score ; les étoiles débloquent les cosmétiques (§ 3.6)
-  et les mondes bonus. Rejouer un niveau pour la 3ᵉ étoile = rejouabilité.
+  et les mondes bonus. Rejouer un niveau pour la 3ᵉ étoile = rejouabilité. **Seuils**
+  (v1.7.3) calibrés niveau par niveau sur un robot qui joue comme une personne posée (une
+  décision toutes les 1,5 s, tirs précis, réactions en chaîne préparées), bonus de temps
+  compris : la 3ᵉ étoile pour environ 30 % de ses victoires, la 2ᵉ pour environ 80 % et à
+  85 % de la 3ᵉ au plus (lisibles sur la jauge), arrondis à 50 points en dessous. Vérifié sur
+  d'autres parties que celles du calibrage : trois étoiles pour 22 à 34 % des parties posées
+  et 54 à 66 % des parties appliquées selon le monde (0 % avant, même pour un robot
+  rapide), deux étoiles pour 74 à 83 % des parties posées. Après un changement de niveau,
+  `CALIBRATE=1 npx vitest run tests/levels/calibration.test.ts` recalcule les valeurs ; un
+  test de garde veille sur le monde 1.
 - **Assistance discrète** : après 3 échecs d'affilée sur un niveau, proposition d'un
   ralentissement léger (le joueur garde le choix) ; aucune difficulté cachée qui triche.
   **Livrée au lot 5** : après 3 défaites d'affilée sur un niveau de campagne, l'écran de fin

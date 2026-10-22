@@ -1,7 +1,8 @@
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CLEAR_BONUS, SPEED_BONUS } from '@/engine/Scoring';
-import { CAMPAIGN, type CampaignLevel } from '@/levels/campaign';
+import { CAMPAIGN, starThresholds, type CampaignLevel } from '@/levels/campaign';
+import { referenceTime } from '@/levels/calibration';
 import { CALIBRATION } from '@/levels/calibration.data';
 import { FRAMES, type FrameKind } from '@/levels/tracks';
 import { PLAYERS, playLevel, type BotResult } from './bot';
@@ -95,4 +96,26 @@ describe('calibration of the stars and the time bonus', () => {
       expect(two, level.id).toBeLessThan(three);
     }
   });
+
+  // A guard on world 1, the one newcomers play, on a third of the calibration games.
+  it('keeps world 1 on target: three stars for some careful games, two for most', () => {
+    let careful = 0;
+    let third = 0;
+    for (const level of CAMPAIGN.filter((candidate) => candidate.id.startsWith('nebula-'))) {
+      const [two, three] = starThresholds(level);
+      const reference = referenceTime(level);
+      const reaching = (played: readonly BotResult[], points: number) =>
+        played.filter((game) => rescored(game, reference) >= points).length;
+      const human = games(level, 'human', SEEDS.slice(0, 4));
+      careful += human.length;
+      third += reaching(human, three);
+      expect(reaching(human, two) / human.length, level.id).toBeGreaterThan(0.5);
+      // Within reach: an applied player gets the third star now and then on every level.
+      expect(reaching(games(level, 'applied', SEEDS.slice(0, 4)), three), level.id).toBeGreaterThan(
+        0,
+      );
+    }
+    expect(third / careful).toBeGreaterThan(0.15);
+    expect(third / careful).toBeLessThan(0.45);
+  }, 120_000);
 });

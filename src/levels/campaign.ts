@@ -1,3 +1,4 @@
+import { calibratedStars } from './calibration';
 import { DEMO, DEMO_WORLDS } from './edition';
 import type { WeatherKind } from '@/engine/hazards/Hazards';
 import { POWER_KINDS, type PowerSetup } from '@/engine/powers/Powers';
@@ -976,15 +977,11 @@ export function nextLevel(current: CampaignLevel): CampaignLevel | undefined {
 
 /**
  * Scores for two and three stars; one star is earned by finishing the level.
- * Calibrated with a casual-player bot (tests/levels/bot.ts): it usually earns
- * two stars, three need chain reactions. To be refined with play tests.
+ * Calibrated level by level on a bot that plays like a careful person
+ * (src/levels/calibration.ts): about 30 % of its wins reach the third star.
  */
 export function starThresholds(level: CampaignLevel): readonly [number, number] {
-  const arms =
-    level.track.kind === 'spiral' ? (level.track.arms ?? 1) : level.track.kind === 'twin' ? 2 : 1;
-  const balls = level.length * arms + (level.colossus ? level.colossus.hp / 3 : 0);
-  const round = (value: number) => Math.round(value / 50) * 50;
-  return [round(balls * 30 + 300), round(balls * 48 + 700)];
+  return calibratedStars(level);
 }
 
 export function starsFor(level: CampaignLevel, score: number, won: boolean): number {
