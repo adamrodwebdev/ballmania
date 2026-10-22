@@ -20,6 +20,8 @@ abstract class ArcadeMode implements PlayMode {
   readonly alchemy = false;
   readonly seed: string | null = null;
   readonly continuable: boolean = false;
+  /** No points toward stars in the Arcade: records, stages, wins, or shots for puzzles. */
+  readonly stars = null;
 
   protected constructor(
     readonly request: PlayRequest,

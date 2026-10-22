@@ -86,7 +86,8 @@
       "launcher": "{name} · lanceur",
       "progress": "{have} / {price} éclats",
       "ready": "Disponible à l'Atelier !"
-    }
+    },
+    "gaugeReached": "{count} étoiles à portée"
   },
   "effects": {
     "spectacular": {

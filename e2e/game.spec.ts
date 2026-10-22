@@ -30,6 +30,20 @@ test.describe('game', () => {
     expect(errors).toEqual([]);
   });
 
+  test('shows how far the stars are under the score, inside the HUD', async ({ page }) => {
+    const gauge = page.getByTestId('star-gauge');
+    await expect(gauge).toBeVisible();
+    // In the top strip or the side rail: the board is fitted beside them, so it covers nothing.
+    const box = (await gauge.boundingBox())!;
+    const hud = (await page.locator('.hud').boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(hud.x);
+    expect(box.y).toBeGreaterThanOrEqual(hud.y);
+    expect(box.x + box.width).toBeLessThanOrEqual(hud.x + hud.width);
+    expect(box.y + box.height).toBeLessThanOrEqual(hud.y + hud.height);
+    // Two marks: the second and third stars (the first one is the win).
+    await expect(gauge.locator('.star')).toHaveCount(2);
+  });
+
   test('pauses, resumes and quits', async ({ page }) => {
     await page.getByTestId('pause').click();
     const dialog = page.getByRole('dialog', { name: 'Game paused' });
@@ -163,6 +177,15 @@ test.describe('campaign', () => {
     await page.getByTestId('level-nebula-12').click();
     await expect(page.getByTestId('colossus')).toHaveAttribute('max', '60');
     await expect(page.getByTestId('hint')).toBeVisible();
+    // The star gauge has a line of its own: it never covers the Colossus's health.
+    const gauge = (await page.getByTestId('star-gauge').boundingBox())!;
+    const health = (await page.getByTestId('colossus').boundingBox())!;
+    const apart =
+      gauge.x + gauge.width <= health.x ||
+      health.x + health.width <= gauge.x ||
+      gauge.y + gauge.height <= health.y ||
+      health.y + health.height <= gauge.y;
+    expect(apart).toBe(true);
   });
 });
 

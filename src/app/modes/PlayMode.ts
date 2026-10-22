@@ -64,6 +64,11 @@ export interface PlayMode {
   /** Short name in the top bar ("3-7", "Endless"…). */
   readonly label: Message;
   /**
+   * Points of the second and third stars, for the gauge under the score (the
+   * first star is the win itself); null where stars don't come from points.
+   */
+  readonly stars: readonly [number, number] | null;
+  /**
    * After a defeat, the player may continue once with a rewarded ad (§ 3.7):
    * the campaign and Endless, never a game that is compared (daily challenge,
    * puzzle, song, duel).

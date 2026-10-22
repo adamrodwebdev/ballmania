@@ -86,7 +86,8 @@
       "launcher": "{name} · launcher",
       "progress": "{have} / {price} shards",
       "ready": "Ready in the Workshop!"
-    }
+    },
+    "gaugeReached": "{count} stars within reach"
   },
   "effects": {
     "spectacular": {

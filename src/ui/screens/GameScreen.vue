@@ -34,6 +34,7 @@ import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import AdIcon from '@/ui/components/AdIcon.vue';
 import CosmeticPreview from '@/ui/components/CosmeticPreview.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
+import StarGauge from '@/ui/components/StarGauge.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 
 const props = defineProps<{ request: PlayRequest }>();
@@ -503,6 +504,11 @@ const following = computed(() =>
 const goNext = () => {
   if (following.value) emit('play', following.value.request);
 };
+/** A star of the gauge lights up: its chime, and the news for screen readers. */
+const starReached = (stars: number) => {
+  feedback.sound.star(stars - 1);
+  announcement.value = t('game.gaugeReached', { count: stars });
+};
 /** After a win that paid shards: the launcher they bring closer (§ 3.6). */
 const goal = computed(() =>
   hud.value?.over === 'won' && (settlement.value?.rewards.shards ?? 0) > 0
@@ -682,7 +688,12 @@ const quit = () => emit('quit');
 </script>
 
 <template>
-  <section ref="root" class="game" :class="{ night }" :aria-label="t('game.board')">
+  <section
+    ref="root"
+    class="game"
+    :class="{ night, gauged: mode.stars !== null }"
+    :aria-label="t('game.board')"
+  >
     <!-- The level fills the screen; the HUD and the buttons float over its edges. -->
     <div ref="surface" class="surface">
       <canvas
@@ -723,6 +734,12 @@ const quit = () => emit('quit');
       <p class="score">
         <span class="label">{{ t('game.score') }}</span>
         <span class="value" data-testid="score">{{ number.format(hud?.score ?? 0) }}</span>
+        <StarGauge
+          v-if="mode.stars"
+          :score="hud?.score ?? 0"
+          :thresholds="mode.stars"
+          @reached="starReached"
+        />
         <span v-if="(hud?.streak ?? 0) >= 2" class="streak">
           {{ t('game.streak', { count: hud?.streak ?? 0 }) }}
         </span>
@@ -1136,6 +1153,9 @@ const quit = () => emit('quit');
  */
 .game {
   --hud-row: 3.25rem;
+  /* On an upright screen, the line of the star gauge under the score (none without stars). */
+  --gauge-row: 0rem;
+  --gauge-width: clamp(6rem, 30vw, 7rem);
   --extra-row: 2.25rem;
   --controls-row: 3.75rem;
   --rail: 6rem;
@@ -1150,6 +1170,10 @@ const quit = () => emit('quit');
   touch-action: none;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+.game.gauged {
+  --gauge-row: 1.75rem;
 }
 
 /*
@@ -1215,14 +1239,14 @@ const quit = () => emit('quit');
   pointer-events: auto;
 }
 
-/* Upright screens: a strip along the top… */
+/* Upright screens: a strip along the top, with the gauge's line under its buttons… */
 .hud {
   inset: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: calc(var(--hud-row) + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) max(var(--space-3), env(safe-area-inset-right)) 0
+  height: calc(var(--hud-row) + var(--gauge-row) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) max(var(--space-3), env(safe-area-inset-right)) var(--gauge-row)
     max(var(--space-3), env(safe-area-inset-left));
   background: linear-gradient(to bottom, var(--scrim), transparent);
 }
@@ -1296,6 +1320,15 @@ const quit = () => emit('quit');
   font-variant-numeric: tabular-nums;
 }
 
+/* The star gauge hangs under the score, in the strip's own line: it covers nothing. */
+.score .star-gauge {
+  position: absolute;
+  top: calc(100% + 0.2rem);
+  left: 50%;
+  width: var(--gauge-width);
+  transform: translateX(-50%);
+}
+
 /* Under the score, out of the flow: a streak never moves anything. */
 .streak {
   position: absolute;
@@ -1307,6 +1340,15 @@ const quit = () => emit('quit');
   font-size: 0.75rem;
   font-weight: 800;
   white-space: nowrap;
+}
+
+/*
+ * With a gauge, the streak goes beside it, level with its bar: under the
+ * strip, it would hide the top of the track.
+ */
+.gauged .streak {
+  top: calc(100% + 0.5rem);
+  left: calc(50% + var(--gauge-width) / 2 + 0.4rem);
 }
 
 .hud-end {
@@ -1387,7 +1429,7 @@ const quit = () => emit('quit');
 
 /* …what comes and goes floats just below it, on the right… */
 .chips {
-  top: calc(env(safe-area-inset-top) + var(--hud-row) + var(--space-1));
+  top: calc(env(safe-area-inset-top) + var(--hud-row) + var(--gauge-row) + var(--space-1));
   right: max(var(--space-3), env(safe-area-inset-right));
   display: flex;
   flex-direction: column;
@@ -1396,12 +1438,14 @@ const quit = () => emit('quit');
 }
 
 .chips.low {
-  top: calc(env(safe-area-inset-top) + var(--hud-row) + var(--extra-row) + var(--space-1));
+  top: calc(
+    env(safe-area-inset-top) + var(--hud-row) + var(--gauge-row) + var(--extra-row) + var(--space-1)
+  );
 }
 
 /* …a boss's health, the recipes or the rope get a second line of their own… */
 .hud-extra {
-  top: calc(env(safe-area-inset-top) + var(--hud-row));
+  top: calc(env(safe-area-inset-top) + var(--hud-row) + var(--gauge-row));
   right: 0;
   left: 0;
   display: flex;
@@ -1623,9 +1667,23 @@ const quit = () => emit('quit');
     white-space: normal;
   }
 
+  /* In the rail, the gauge follows the score and the streak goes under both. */
   .score {
-    position: static;
+    position: relative;
+    inset: auto;
     transform: none;
+  }
+
+  .score .star-gauge {
+    position: static;
+    width: 100%;
+    margin-top: 0.35rem;
+    transform: none;
+  }
+
+  .gauged .streak {
+    top: calc(100% + 0.2rem);
+    left: auto;
   }
 
   .value {
