@@ -1,0 +1,63 @@
+/*
+ * The first screen of our site (v1.7.6), inlined into the page by the
+ * `firstPaint` build plugin (vite.config.ts) together with tokens.css: the
+ * night sky and the game's name, painted before any other request. Its title
+ * uses no web font, since one requested now would delay that first paint. The
+ * app's own styles arrive after it, and the app dissolves the card once mounted.
+ */
+body {
+  margin: 0;
+}
+
+.first-paint {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background:
+    radial-gradient(ellipse 50% 40% at 10% 8%, var(--scene-pink), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 92% 6%, var(--scene-cyan), transparent 70%),
+    radial-gradient(
+      ellipse 80% 70% at 50% 52%,
+      var(--scene-core) 0%,
+      var(--scene-mid) 45%,
+      var(--scene-edge) 100%
+    );
+  transition: opacity 0.45s ease;
+}
+
+.first-paint.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .first-paint {
+    transition: none;
+  }
+}
+
+/* As large as the home title at least, so that the app's own is no new largest paint. */
+.first-paint-title {
+  margin: 0;
+  font-family: 'Arial Black', 'Segoe UI Black', system-ui, sans-serif;
+  font-size: clamp(4rem, 2.6rem + 7.5vw, 9rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  background: linear-gradient(
+    180deg,
+    var(--title-top) 0%,
+    var(--title-mid) 38%,
+    var(--title-low) 72%,
+    var(--title-bottom) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0.025em var(--title-edge);
+  filter: drop-shadow(0 0.05em 0 var(--title-depth)) drop-shadow(0 0 0.2em var(--title-glow));
+  transform: rotate(-4deg);
+}

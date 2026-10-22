@@ -32,6 +32,21 @@ export class Palette {
     return luminance(this.board) < 0.4;
   }
 
+  /** The palette of these colours: one sent to a worker (the title scene draws in one, v1.7.6). */
+  static of(colours: PaletteColours): Palette {
+    return new Palette(
+      colours.tones,
+      colours.board,
+      colours.track,
+      colours.trackEdge,
+      colours.hole,
+      colours.danger,
+      colours.accent,
+      colours.text,
+      colours.shooter,
+    );
+  }
+
   static fromStyle(style: Pick<CSSStyleDeclaration, 'getPropertyValue'>): Palette {
     const read = (name: string, fallback: string) =>
       style.getPropertyValue(name).trim() || fallback;
@@ -51,7 +66,28 @@ export class Palette {
   tone(tone: Tone): string {
     return this.tones[tone % MAX_TONES]!;
   }
+
+  /** Its colours as plain data, which `postMessage` can copy to a worker. */
+  colours(): PaletteColours {
+    return {
+      tones: [...this.tones],
+      board: this.board,
+      track: this.track,
+      trackEdge: this.trackEdge,
+      hole: this.hole,
+      danger: this.danger,
+      accent: this.accent,
+      text: this.text,
+      shooter: this.shooter,
+    };
+  }
 }
+
+/** A palette's colours, without its methods. */
+export type PaletteColours = Pick<
+  Palette,
+  'tones' | 'board' | 'track' | 'trackEdge' | 'hole' | 'danger' | 'accent' | 'text' | 'shooter'
+>;
 
 /** Relative luminance (0 to 1) of a `#rrggbb` or `#rgb` colour; 0.5 when unreadable. */
 export function luminance(colour: string): number {

@@ -1,3 +1,4 @@
+import type { Context2D } from '../canvas';
 import type { Palette } from '../Palette';
 
 /** Radius of the shooter's body, in board units (also used to detect a tap on it). */
@@ -12,7 +13,7 @@ export const NEXT_BALL_SCALE = 0.6;
  */
 export interface ShooterSkin {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     angle: number,
     ballRadius: number,
@@ -33,7 +34,7 @@ const GOLD_EDGE = '#8a3a0c';
  * the metal, lit from above. Drawn in the aiming frame.
  */
 function cradle(
-  ctx: CanvasRenderingContext2D,
+  ctx: Context2D,
   ballRadius: number,
   metal: readonly [string, string, string],
   edge: string,
@@ -55,7 +56,7 @@ function cradle(
 }
 
 /** The socket in the middle that holds the next ball, with its rim. */
-function socket(ctx: CanvasRenderingContext2D, rim: string, depth: string): void {
+function socket(ctx: Context2D, rim: string, depth: string): void {
   ctx.beginPath();
   ctx.arc(0, 0, 20.1, 0, TAU);
   ctx.fillStyle = depth;
@@ -66,7 +67,7 @@ function socket(ctx: CanvasRenderingContext2D, rim: string, depth: string): void
 }
 
 /** A small round stone in the loaded colour, with its glint. */
-function gem(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, colour: string) {
+function gem(ctx: Context2D, x: number, y: number, radius: number, colour: string) {
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, TAU);
   ctx.fillStyle = colour;
@@ -85,7 +86,7 @@ function gem(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number
  */
 export class StarHeartSkin implements ShooterSkin {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     _palette: Palette,
     angle: number,
     ballRadius: number,
@@ -180,7 +181,7 @@ const RINGS = [
  */
 export class OrbitSkin implements ShooterSkin {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     _palette: Palette,
     angle: number,
     ballRadius: number,
@@ -281,7 +282,7 @@ export class OrbitSkin implements ShooterSkin {
  */
 export class CrownSkin implements ShooterSkin {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     _palette: Palette,
     angle: number,
     ballRadius: number,
@@ -366,7 +367,7 @@ const LIGHT = '#fff3c4';
  */
 export class HaloSkin implements ShooterSkin {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     _palette: Palette,
     angle: number,
     ballRadius: number,
@@ -459,7 +460,7 @@ const BLINK = 0.28;
  */
 export class EyeSkin implements ShooterSkin {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     _palette: Palette,
     angle: number,
     ballRadius: number,

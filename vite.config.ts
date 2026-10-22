@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { fileURLToPath, URL } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vitest/config';
@@ -137,6 +138,127 @@ Sitemap: ${SITE_URL}sitemap.xml
   },
 });
 
+/** A CSP source matching one inline script or style exactly. */
+const cspHash = (content: string) =>
+  `'sha256-${createHash('sha256').update(content).digest('base64')}'`;
+
+/**
+ * The inline script that fetches our site's styles and code once the first
+ * screen is painted: the stylesheets first (the title card hides the page
+ * until the app mounts, so nothing shows unstyled), the modules in parallel.
+ * It waits for the browser to report that paint (the frame is on screen),
+ * not just for the frame to be drawn: nothing it fetches can then count as
+ * needed for the first paint. A page opened in the background has no paint
+ * to wait for; a browser that does not report it waits one frame.
+ */
+const firstPaintLoader = (entry: string, modules: readonly string[], sheets: readonly string[]) =>
+  `(function () {
+  var started = false;
+  var load = function () {
+    if (started) return;
+    started = true;
+    var styles = ${JSON.stringify(sheets)}.map(function (href) {
+      return new Promise(function (done) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.onload = link.onerror = done;
+        document.head.appendChild(link);
+      });
+    });
+    ${JSON.stringify(modules)}.forEach(function (href) {
+      var link = document.createElement('link');
+      link.rel = 'modulepreload';
+      link.crossOrigin = '';
+      link.href = href;
+      document.head.appendChild(link);
+    });
+    Promise.all(styles).then(function () {
+      import(${JSON.stringify(entry)});
+    });
+  };
+  var types = window.PerformanceObserver && PerformanceObserver.supportedEntryTypes;
+  if (document.visibilityState !== 'visible') {
+    load();
+  } else if (types && types.indexOf('paint') >= 0) {
+    new PerformanceObserver(function (list, observer) {
+      if (!list.getEntriesByName('first-contentful-paint').length) return;
+      observer.disconnect();
+      load();
+    }).observe({ type: 'paint', buffered: true });
+    // Should that report never come (the page sent to the background meanwhile).
+    setTimeout(load, 1000);
+  } else {
+    // requestAnimationFrame runs before the next paint, the timeout after it.
+    requestAnimationFrame(function () {
+      setTimeout(load, 0);
+    });
+  }
+})();
+`;
+
+/**
+ * First paint of our site (v1.7.6, Lighthouse 100): the page paints the
+ * game's title from its own HTML before any other request.
+ * - Inline: the colour tokens and the title card's styles
+ *   (src/styles/first-paint.css), the theme script, and a loader that
+ *   fetches the app's stylesheets and code after that paint. Each block is
+ *   allowed by its hash in the CSP, which stays free of 'unsafe-inline'.
+ * - Gone from the page: Vite's entry script, module preloads and stylesheets
+ *   (the loader adds them back). No web font is asked for before the paint,
+ *   and the body holds no stray text.
+ * - The app dissolves the card once mounted (src/main.ts).
+ * Portal builds keep their usual start: a new player lands straight in play.
+ */
+const firstPaint = (): Plugin => ({
+  name: 'ballmania:first-paint',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler: (html) => {
+      const entry = /<script type="module" crossorigin src="([^"]+)"><\/script>\s*/.exec(html);
+      if (!entry) throw new Error('first-paint: no entry script in index.html');
+      const preloads = [
+        ...html.matchAll(/<link rel="modulepreload" crossorigin href="([^"]+)">\s*/g),
+      ];
+      const sheets = [...html.matchAll(/<link rel="stylesheet" crossorigin href="([^"]+)">\s*/g)];
+      const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
+      const style = read('./src/styles/tokens.css') + read('./src/styles/first-paint.css');
+      const theme = read('./public/theme-boot.js');
+      const loader = firstPaintLoader(
+        entry[1],
+        preloads.map((link) => link[1]),
+        sheets.map((link) => link[1]),
+      );
+      const card =
+        '<div id="first-paint" class="first-paint" aria-hidden="true"><p class="first-paint-title">Ballmania</p></div>';
+      const page = [entry[0], ...preloads.map((link) => link[0]), ...sheets.map((link) => link[0])]
+        .reduce((text, tag) => text.replace(tag, ''), html)
+        .replace(
+          '<script src="./theme-boot.js"></script>',
+          `<style>${style}</style><script>${theme}</script>`,
+        )
+        .replace('</head>', `<script>${loader}</script></head>`)
+        .replace(/<body>[\s\S]*<\/body>/, (body) =>
+          body
+            .replace('<div id="app"></div>', `${card}<div id="app"></div>`)
+            .replace(/>\s+</g, '><'),
+        );
+      // The CSP meta (our site's build only) lets exactly these inline blocks run.
+      return page.replace(
+        /(<meta http-equiv="Content-Security-Policy" content=")([^"]*)(")/,
+        (_, open: string, policy: string, close: string) =>
+          open +
+          policy
+            .replace(/&#39;/g, "'")
+            .replace("script-src 'self'", `script-src 'self' ${cspHash(theme)} ${cspHash(loader)}`)
+            .replace("style-src 'self'", `style-src 'self' ${cspHash(style)}`) +
+          close,
+      );
+    },
+  },
+});
+
 /**
  * Playgama: its Bridge SDK loaded in the <head> before the game (the portal's
  * build check looks for it there), and its configuration next to index.html.
@@ -252,6 +374,7 @@ export default defineConfig(({ mode }) => {
       // portal's page is the one indexed.
       ...(site ? [contentSecurityPolicy(), seo()] : demo ? [contentSecurityPolicy()] : []),
       pageText(platform),
+      ...(platform === 'standalone' ? [firstPaint()] : []),
       ...(platform === 'playgama' ? [playgama()] : []),
       ...(platform === 'crazygames' ? [crazygames()] : []),
     ],

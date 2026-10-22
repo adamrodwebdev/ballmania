@@ -585,7 +585,8 @@ Décisions :
   couvertures ; le thème clair reste un réglage. Polices du jeu servies avec lui : Lilita
   One (titres, chiffres) et Fredoka (interface), sans requête externe.
 - **Écran titre de jeu** (maquette validée) : logo en lettres d'or, scène vivante dessinée
-  sur un canvas chargé après le premier affichage (image fixe en mouvement réduit), un
+  sur un canvas chargé après le premier affichage, par un worker depuis la 1.7.6 (image
+  fixe en mouvement réduit), un
   seul grand bouton Jouer qui mène au prochain niveau, quatre tuiles, trois icônes
   (musique, objectifs, réglages). Étoiles et éclats seulement pour un joueur qui revient.
 - **Plateau lumineux** : couches fixes du tracé peintes une fois (appareils modestes),
@@ -1314,7 +1315,9 @@ Depuis la v1.7.5 :
 
 - Sur notre site : aucun cookie, aucun traceur, aucun appel réseau tiers. Sur les portails,
   seul le SDK du portail (régie et consentement gérés par lui) est chargé.
-- Politique de sécurité du contenu (CSP) stricte, pas de script en ligne.
+- Politique de sécurité du contenu (CSP) stricte, sans `'unsafe-inline'` : les seuls blocs en
+  ligne de la page (styles et scripts du premier affichage, v1.7.6) sont autorisés un par un
+  par leur empreinte.
 
 ### 4.7 Compatibilité
 
@@ -1337,8 +1340,23 @@ Depuis la v1.7.5 :
   `SettingsService` (langue, thème, intensité des effets, validés à la lecture),
   `ThemeController` (préférence système / clair / sombre), script `theme-boot.js` qui
   applique thème et langue avant le premier affichage, sans script en ligne.
-- **CSP** stricte ajoutée à la page construite (`default-src 'self'`, ni script ni style en
-  ligne) ; les gabarits n'utilisent donc jamais d'attribut `style`.
+- **CSP** stricte ajoutée à la page construite (`default-src 'self'`, aucun
+  `'unsafe-inline'`) ; les gabarits n'utilisent donc jamais d'attribut `style`.
+- **Premier affichage** (v1.7.6, notre site seulement) : le module `firstPaint` du build
+  (`vite.config.ts`) met dans la page les jetons de couleur et la carte de titre
+  (`src/styles/first-paint.css`, le nom du jeu sur le ciel de nuit, en police système), le
+  script de thème et un chargeur. La page se peint sans aucune autre requête ; le chargeur
+  attend que le navigateur annonce ce premier affichage (entrée `first-contentful-paint` ;
+  une image plus tard s'il ne l'annonce pas, tout de suite dans un onglet ouvert en
+  arrière-plan), puis demande les feuilles de style et le code ; l'application, une fois
+  montée, fond la carte (`src/main.ts`). Ces blocs en ligne sont autorisés par leur
+  empreinte dans la CSP. Le décor animé de l'accueil attend que la page soit chargée et le
+  navigateur au repos (`src/ui/idle.ts`), puis se dessine dans un worker sur le canvas
+  qu'on lui confie (`OffscreenCanvas`, `src/ui/title/TitleBackdrop.ts`) : la mise en route
+  graphique de sa première image, jusqu'à un dixième de seconde dans un navigateur à froid,
+  ne bloque plus la page. Les navigateurs qui ne savent pas confier un canvas à un worker
+  le dessinent dans la page. Les builds de portail gardent leur démarrage : un nouveau
+  joueur arrive directement en jeu, sans carte de titre.
 
 ### 5.2 Principes orientés objet
 
