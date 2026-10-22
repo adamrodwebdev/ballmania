@@ -65,7 +65,7 @@
     "settings": "Pengaturan",
     "starsLabel": "{count} dari 3 bintang | {count} dari 3 bintang | {count} dari 3 bintang",
     "bonus": "Bonus akhir: +{points}",
-    "timeBonus": "Waktu: +{points} ({seconds} dtk lebih cepat)",
+    "timeBonus": "Unggul {seconds} dtk: +{points}",
     "best": "Rekor: {score}",
     "newBest": "Rekor baru!",
     "nextLevel": "Level berikutnya",

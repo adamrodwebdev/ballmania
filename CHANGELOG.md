@@ -3,6 +3,27 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouté
+
+- **Bonus de temps** : 40 points par seconde gagnée sous le temps de référence du niveau,
+  calibré sur un joueur posé. Le panneau de victoire le dit (« 25 s d'avance : +1 013 ») :
+  la vitesse compte, et une partie rapide rattrape une donne malchanceuse.
+
+### Modifié
+
+- **Trois étoiles à portée** : les seuils sont calibrés niveau par niveau sur un robot qui
+  joue comme une personne posée, bonus de temps compris. La 3ᵉ étoile revient à environ
+  30 % de ses victoires et la 2ᵉ à 80 %, alors qu'aucun robot, même rapide, n'obtenait la
+  troisième. Au niveau 1-2, il faut 1 550 points pour trois étoiles au lieu de 2 350.
+- **Plus d'attente** : quand l'écran se vide et que des billes attendent au tunnel, la
+  chaîne accourt à sa vitesse d'entrée jusqu'à en montrer huit, jamais près du trou ni
+  derrière un Colosse. Sur le monde 1, l'attente passe de 15 s au plus à moins d'une
+  seconde par niveau, et un joueur rapide finit un tiers plus tôt.
+- **Tirage plus juste** : après deux tirs d'une couleur sans paire à l'écran, la bille
+  suivante est d'une couleur qui en a une.
+
 ## [1.7.2] — 2026-10-22
 
 ### Ajouté

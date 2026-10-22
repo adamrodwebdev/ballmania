@@ -26,7 +26,8 @@ Objectifs :
 4. **Effet « waouh » mémorable** : chaque explosion est une récompense visuelle et sonore ;
    les grosses réactions en chaîne deviennent des moments que l'on a envie de partager.
 5. **Viralité** : le résultat du défi du jour se partage en un geste (texte court + lien).
-6. **Qualité web exemplaire** : Lighthouse ≥ 95 dans les quatre catégories, sur mobile.
+6. **Qualité web exemplaire** : Lighthouse sur mobile ≥ 98 en Performance (la plus faible
+   de trois mesures, depuis le 22/10/2026) et ≥ 95 dans les trois autres catégories.
 7. **International dès le lancement** : français, anglais et indonésien.
 8. **Monétisable** : prêt pour les portails de jeux web, avec publicités respectueuses.
 
@@ -1049,7 +1050,7 @@ Livré à l'étape 11.4 :
 
 #### Contraintes
 
-- Lighthouse ≥ 95 (visé : 100) dans les quatre catégories, mobile et ordinateur : les
+- Lighthouse ≥ 98 en Performance et ≥ 95 ailleurs (visé : 100), mobile et ordinateur : les
   animations de menu sont en CSS (`transform`, `opacity`), sans bibliothèque ; aucun
   nouveau code n'est chargé par l'accueil sauf le strict nécessaire.
 
@@ -1124,8 +1125,9 @@ fait éclater son nom au-dessus du plateau.
 
 ### 4.1 Performance et Lighthouse
 
-- Lighthouse **≥ 95** en Performance, Accessibilité, Bonnes pratiques et SEO, sur mobile
-  (profil simulé Lighthouse).
+- Lighthouse sur mobile (profil simulé Lighthouse) **≥ 98** en Performance, sur la plus
+  faible de trois mesures (depuis le 22/10/2026), et **≥ 95** en Accessibilité, Bonnes
+  pratiques et SEO.
 - Écran d'accueil rendu sans attendre le moteur : moteur, rendu et modes chargés à la
   demande (`import()`) au lancement d'une partie.
 - Budget : JS initial ≤ 60 Ko compressés ; aucune police ni image bloquante ; CLS ≈ 0.

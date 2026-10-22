@@ -1,14 +1,14 @@
 // Lighthouse audit of the production build, mobile profile (the default).
 // Usage: npm run build && npm run lighthouse  [-- --desktop]
-// Fails when a required category scores below the threshold of the specification (95).
+// Fails when a required category scores below its threshold in the specification:
+// 98 for performance (since 2026-10-22; judge the worst of three runs), 95 for the others.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
 import desktopConfig from 'lighthouse/core/config/desktop-config.js';
 import { preview } from 'vite';
 
-const THRESHOLD = 95;
-const REQUIRED = ['performance', 'accessibility', 'best-practices', 'seo'];
+const THRESHOLDS = { performance: 98, accessibility: 95, 'best-practices': 95, seo: 95 };
 const PORT = 4176;
 const desktop = process.argv.includes('--desktop');
 
@@ -34,8 +34,9 @@ try {
 
   for (const category of Object.values(result.lhr.categories)) {
     const score = Math.round((category.score ?? 0) * 100);
-    const required = REQUIRED.includes(category.id);
-    const ok = score >= THRESHOLD;
+    const threshold = THRESHOLDS[category.id];
+    const required = threshold !== undefined;
+    const ok = required && score >= threshold;
     if (required) failed ||= !ok;
     const mark = required ? (ok ? '✓' : '✗') : '·';
     console.log(`${mark} ${category.title.padEnd(16)} ${score}`);
@@ -47,6 +48,6 @@ try {
 }
 
 if (failed) {
-  console.error(`At least one category is below ${THRESHOLD}.`);
+  console.error('At least one category is below its threshold (performance 98, others 95).');
   process.exit(1);
 }
