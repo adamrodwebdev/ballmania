@@ -420,7 +420,9 @@ onBeforeUnmount(() => stopScene());
   flex: 1 0 auto;
   flex-direction: column;
   align-items: center;
-  padding: 0 var(--space-4) var(--space-4);
+  /* Clear of a notch and of the home bar (v1.7.6). */
+  padding: 0 max(var(--space-4), env(safe-area-inset-right))
+    max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-4), env(safe-area-inset-left));
   text-align: center;
 }
 
@@ -831,7 +833,9 @@ onBeforeUnmount(() => stopScene());
   .content {
     align-items: flex-start;
     justify-content: center;
-    padding: 0 clamp(var(--space-8), 5vw, 5rem) var(--space-6);
+    padding: 0 max(clamp(var(--space-8), 5vw, 5rem), env(safe-area-inset-right))
+      max(var(--space-6), env(safe-area-inset-bottom))
+      max(clamp(var(--space-8), 5vw, 5rem), env(safe-area-inset-left));
     text-align: left;
   }
 
@@ -894,7 +898,7 @@ onBeforeUnmount(() => stopScene());
   }
 
   .content {
-    padding-bottom: var(--space-2);
+    padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
   }
 
   .title {

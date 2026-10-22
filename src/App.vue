@@ -34,7 +34,7 @@ const props = defineProps<{ opening?: PlayRequest | null }>();
 
 const i18n = useI18n();
 const { t, locale } = i18n;
-const { settings, platform, progress } = useServices();
+const { settings, theme, platform, progress } = useServices();
 
 let games = 0;
 const screen = shallowRef<Screen>(
@@ -170,6 +170,15 @@ watch(
     locale.value = code;
   },
 );
+// The browser's bar takes the colour of the theme shown, not the system's (v1.7.6).
+watch(
+  () => theme.resolved.value,
+  () => {
+    const colour = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    if (colour) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colour);
+  },
+  { immediate: true },
+);
 watchEffect(() => {
   document.documentElement.lang = locale.value;
   // Playgama: the two-word title, the same in the game and on the portal's page.
@@ -185,7 +194,7 @@ watchEffect(() => {
   <StudioIntro v-if="showIntro" @done="introDone" />
   <template v-if="screen.kind === 'home'">
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
-    <main id="main" tabindex="-1" :class="{ enter: navigated }">
+    <main id="main" class="home" tabindex="-1" :class="{ enter: navigated }">
       <HomeScreen
         @play="startCampaign"
         @arcade="arcade"
@@ -270,5 +279,15 @@ main {
 /* The game screen is held still (GameScreen). */
 main.game {
   overflow: hidden;
+}
+
+/*
+ * The menus keep clear of a notch and of the home bar (v1.7.6). The title
+ * screen and the game paint to the edges and place their own content.
+ */
+main:not(.game, .home) {
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 </style>

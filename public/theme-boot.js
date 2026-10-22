@@ -16,6 +16,9 @@
     theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   root.dataset.theme = theme;
+  // The browser's bar in the theme's background, not the system's (tokens.css: --bg).
+  var bar = document.querySelector('meta[name="theme-color"]');
+  if (bar) bar.setAttribute('content', theme === 'light' ? '#f4f2fb' : '#05030d');
   if (['fr', 'en', 'id', 'ru'].indexOf(saved.locale) !== -1) {
     root.lang = saved.locale;
   }

@@ -86,6 +86,12 @@ input {
   color: inherit;
 }
 
+/* Fields at 16 px at least: iOS zooms the page into a smaller one on focus (v1.7.6). */
+select,
+input {
+  font-size: max(1rem, 1em);
+}
+
 button {
   cursor: pointer;
 }

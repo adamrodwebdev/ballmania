@@ -85,6 +85,8 @@ const root = ref<HTMLElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const overlay = ref<HTMLCanvasElement | null>(null);
 const surface = ref<HTMLElement | null>(null);
+/** Holds the screen's safe-area insets (notch, home bar) as its padding, to be read. */
+const safeArea = ref<HTMLElement | null>(null);
 const hudBar = ref<HTMLElement | null>(null);
 const hudExtra = ref<HTMLElement | null>(null);
 const controlsBar = ref<HTMLElement | null>(null);
@@ -163,7 +165,14 @@ const definition = (): LevelDefinition => definitionOn(frame!);
 const measureInsets = (): Insets => {
   const box = root.value?.getBoundingClientRect();
   if (!box) return NO_INSETS;
-  const insets = { top: 0, right: 0, bottom: 0, left: 0 };
+  // The notch and the home bar at least (v1.7.6): on a phone on its side, no rail covers the bottom.
+  const safe = safeArea.value ? getComputedStyle(safeArea.value) : null;
+  const insets = {
+    top: parseFloat(safe?.paddingTop ?? '') || 0,
+    right: parseFloat(safe?.paddingRight ?? '') || 0,
+    bottom: parseFloat(safe?.paddingBottom ?? '') || 0,
+    left: parseFloat(safe?.paddingLeft ?? '') || 0,
+  };
   for (const element of [hudBar.value, hudExtra.value, controlsBar.value]) {
     if (!element) continue;
     const area = element.getBoundingClientRect();
@@ -725,6 +734,7 @@ const quit = () => emit('quit');
     :aria-label="t('game.board')"
   >
     <!-- The level fills the screen; the HUD and the buttons float over its edges. -->
+    <span ref="safeArea" class="safe-area" aria-hidden="true"></span>
     <div ref="surface" class="surface">
       <canvas
         ref="canvas"
@@ -1207,6 +1217,10 @@ const quit = () => emit('quit');
   --extra-row: 2.25rem;
   --controls-row: 3.75rem;
   --rail: 6rem;
+  /* The HUD's small words (level, score, chips): 14 px at least (v1.7.6). */
+  --hud-small: 0.875rem;
+  /* Room left on each side of a 2:1 playing frame (desktop windows wider than that, below). */
+  --side: 0px;
   --scrim: color-mix(in srgb, var(--bg) 84%, transparent);
   position: relative;
   width: 100%;
@@ -1334,7 +1348,7 @@ const quit = () => emit('quit');
 .level-detail {
   overflow: hidden;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: var(--hud-small);
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1353,7 +1367,7 @@ const quit = () => emit('quit');
 
 .label {
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: var(--hud-small);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1385,7 +1399,7 @@ const quit = () => emit('quit');
   border-radius: 999px;
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 0.75rem;
+  font-size: var(--hud-small);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -1418,7 +1432,7 @@ const quit = () => emit('quit');
 }
 
 .chip {
-  font-size: 0.8rem;
+  font-size: var(--hud-small);
   box-shadow: var(--shadow);
 }
 
@@ -1598,6 +1612,24 @@ const quit = () => emit('quit');
   transform: translateY(2px);
 }
 
+/* Zero-size: only its padding counts, the screen's safe area read by measureInsets. */
+.safe-area {
+  position: absolute;
+  width: 0;
+  height: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* The buttons pressed all game long (swap, magnet, Nova): 48 px under a finger (v1.7.6). */
+@media (pointer: coarse) {
+  .control {
+    min-height: 3rem;
+  }
+}
+
 /* On the narrowest phones, a long label takes two balanced lines rather than leave its button. */
 .control-label {
   white-space: normal;
@@ -1706,7 +1738,7 @@ const quit = () => emit('quit');
  */
 @media (min-aspect-ratio: 3/2) {
   .hud {
-    inset: 0 auto 0 0;
+    inset: 0 auto 0 var(--side);
     flex-direction: column;
     gap: var(--space-3);
     width: calc(var(--rail) + env(safe-area-inset-left));
@@ -1759,7 +1791,7 @@ const quit = () => emit('quit');
   .chips {
     top: max(var(--space-3), env(safe-area-inset-top));
     right: auto;
-    left: calc(var(--rail) + env(safe-area-inset-left) + var(--space-2));
+    left: calc(var(--side) + var(--rail) + env(safe-area-inset-left) + var(--space-2));
     align-items: flex-start;
   }
 
@@ -1769,14 +1801,14 @@ const quit = () => emit('quit');
 
   .hud-extra {
     top: 0;
-    right: calc(var(--rail) + env(safe-area-inset-right));
-    left: calc(var(--rail) + env(safe-area-inset-left));
+    right: calc(var(--side) + var(--rail) + env(safe-area-inset-right));
+    left: calc(var(--side) + var(--rail) + env(safe-area-inset-left));
     height: calc(var(--extra-row) + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
   }
 
   .controls {
-    inset: 0 0 0 auto;
+    inset: 0 var(--side) 0 auto;
     flex-direction: column;
     width: calc(var(--rail) + env(safe-area-inset-right));
     height: auto;
@@ -1803,6 +1835,43 @@ const quit = () => emit('quit');
 
   .hint {
     bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  }
+}
+
+/*
+ * A desktop window wider than 2:1 (v1.7.6, Playgama's rule): the playing
+ * frame, board and rails, stays 2:1 in the middle; the board's art goes on
+ * to the window's edges. A phone on its side keeps its whole width.
+ */
+@media (min-aspect-ratio: 2/1) and (pointer: fine) {
+  .game {
+    --side: max(0px, (100vw - 200dvh) / 2);
+  }
+
+  /* The rails' shade starts at the window's edge: the frame shows no seam. */
+  .hud,
+  .controls {
+    isolation: isolate;
+    background: none;
+  }
+
+  .hud::before,
+  .controls::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .hud::before {
+    left: calc(-1 * var(--side));
+    background: linear-gradient(to right, var(--scrim), transparent);
+  }
+
+  .controls::before {
+    right: calc(-1 * var(--side));
+    background: linear-gradient(to left, var(--scrim), transparent);
   }
 }
 
