@@ -11,6 +11,8 @@ export default defineConfigWithVueTs(
       'test-results/**',
       'playwright-report/**',
       'dist-*/**',
+      // Claude Code's own folder: the worktrees of other sessions are copies of the repository.
+      '.claude/**',
     ],
   },
   pluginVue.configs['flat/recommended'],
