@@ -69,7 +69,7 @@ jeu (bille : marble, bola, шар ; éclats : shards, kepingan, осколки�
 
 Fredoka et Lilita One n'ont pas de lettres cyrilliques : le russe s'affiche en Nunito, dans
 un fichier de 23,6 Ko que les autres langues ne téléchargent jamais. Un test de bout en bout
-vérifie chaque écran en russe, en indonésien et en français, de 360 × 640 à 1 280 × 720.
+vérifie chaque écran en russe, en indonésien et en français, de 320 × 568 à 1 280 × 720.
 
 ## Développement
 
@@ -152,13 +152,13 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
   d'accessibilité en anglais et en russe dans les deux thèmes, absence de défilement
   horizontal de 320 à 1 920 px, et chaque écran en russe, en indonésien et en français à
-  360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
+  320 × 568, 360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
 - Lighthouse (v1.7.5), en anglais comme en russe : sur ordinateur, 100 dans les quatre
   catégories ; sur mobile, 100 en accessibilité, bonnes pratiques et SEO, 98 en performance
-  (en anglais, une mesure sur neuf à 97 : le LCP simulé, 2,2 s comme en 1.7.4, laisse peu
-  de marge).
-  Règle du projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur la plus faible de
-  trois mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en dessous.
+  aux trois mesures (premier affichage simulé 1,8 s, plus grand élément 2,2 s). Règle du
+  projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur la plus faible de trois
+  mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en dessous, et la 1.7.6
+  commence par ce premier affichage.
 - Intégration continue GitHub Actions à chaque envoi.
 
 ## Conventions

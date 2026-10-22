@@ -5,6 +5,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [Non publié]
 
+Lighthouse mobile, build de production : performance 98 aux trois mesures, en anglais comme
+en russe, deux points sous le seuil de 100 fixé le 22/10/2026 ; accessibilité, bonnes pratiques
+et SEO à 100 ; 100 dans les quatre catégories sur ordinateur, dans les deux langues. Les temps
+simulés sont ceux de la 1.7.4 (premier affichage 1,8 s, plus grand élément 2,2 s) : la première
+étape de la 1.7.6 affiche le titre dans le HTML statique et charge le code après le premier
+affichage.
+
 ### Ajouté
 
 - **Russe**, quatrième langue : tout le jeu, au vouvoiement, avec la lettre ё, les
@@ -16,9 +23,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   sans saut au premier affichage, et les autres langues ne la téléchargent jamais.
 - `npm run lighthouse -- --lang=ru` : un audit dans une langue donnée.
 - Tests de bout en bout des langues : en russe, en indonésien et en français, chaque menu,
-  la bulle de l'Observatoire et une partie (jeu, pause, défaite) à 360 × 640, 390 × 844 et
-  1280 × 720, sans texte coupé ni sorti de son cadre ; les audits d'accessibilité passent
-  aussi en russe.
+  la bulle de l'Observatoire et une partie (jeu, pause, défaite) à 320 × 568, 360 × 640,
+  390 × 844 et 1280 × 720, sans texte coupé ni sorti de son cadre ; les audits
+  d'accessibilité passent aussi en russe.
 
 ### Modifié
 
@@ -41,6 +48,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   position de la touche.
 - À 360 px, la tuile Observatoire débordait et son badge sortait de l'écran ; les compteurs
   et le titre du cadeau du jour passaient sur deux lignes.
+- À 320 px : le bouton du cadeau couvrait son titre ; « Explorateur » poussait son cadre sur
+  le choix voisin (dès 360 px) ; « Échanger les billes » sortait de son bouton ; en russe, le
+  numéro du niveau restait seul sous le bouton Jouer.
 - Le « ᵉ » des ordinaux s'affichait dans une police de secours.
 
 ## [1.7.4] — 2026-10-22

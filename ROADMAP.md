@@ -46,19 +46,23 @@ affichage), et un mot ne mêle plus deux polices. Les blancs de la page passent 
 système, pour qu'aucune police ne parte avant que le jeu connaisse sa langue. L'accueil
 débordait aussi en anglais à 360 px : compteurs en chiffres à côté de leur icône (la phrase
 entière reste lue aux lecteurs d'écran), en-tête du cadeau resserré, césure conditionnelle
-dans les mots longs des tuiles, badge « Améliorer » au lieu d'« Amélioration disponible ». Les
-audits axe passent en russe dans les deux thèmes ; le test des langues joue une seule partie
-par langue, mesurée aux trois tailles, pour garder l'intégration continue rapide. Laissé pour
-plus tard : la fenêtre des réglages défile dans toutes les langues, anglais compris (254 px à
-360 × 640, 93 px à 1280 × 720). La 1.7.5 repose sur la 1.7.4 : ses nouveaux textes sont
-relus et traduits en russe (« Юный звёздный Колосс », la bulle « Улучшайте здесь свою игру
-за звёздные фрагменты. », l'objectif « Победите любого Колосса. »), et la bulle de
-l'Observatoire est vérifiée en russe, en indonésien et en français aux trois tailles.
-Lighthouse sur mobile, avec la 1.7.4 : en russe, 98 en performance aux trois mesures ; en
-anglais, 98, 97 et 98, puis 98 à cinq mesures de plus. La 1.7.4 seule donne les mêmes temps
-simulés (FCP 1,8 s, LCP 2,2 s, 98 à chaque mesure) : ce n'est pas un recul de la 1.7.5, mais
-la marge est mince (à 2,3 s de LCP, le score tombe à 97). 100 dans les trois autres
-catégories ; 100 × 4 sur ordinateur dans les deux langues.
+dans les mots longs des tuiles, badge « Améliorer » au lieu d'« Amélioration disponible ». La
+revue responsive de la 1.7.4 a fait descendre le test des langues à 320 × 568 : titre du
+cadeau à taille fluide, choix de difficulté qui ne débordent plus sur leur voisin (ils le
+faisaient dès 360 px) et se coupent à 320 px, libellés de la barre de jeu sur deux lignes
+sous 360 px, numéro du niveau insécable sur le bouton Jouer ; les points de rupture ajoutés
+sont en rem (directive du 22/10/2026). Les audits axe passent en russe dans les deux thèmes ;
+le test des langues joue une seule partie par langue, mesurée aux quatre tailles, pour garder
+l'intégration continue rapide. Laissé pour plus tard : la fenêtre des réglages défile dans
+toutes les langues, anglais compris (254 px à 360 × 640, 93 px à 1280 × 720). La 1.7.5
+repose sur la 1.7.4 : ses nouveaux textes sont relus et traduits en russe (« Юный звёздный
+Колосс », la bulle « Улучшайте здесь свою игру за звёздные фрагменты. », l'objectif
+« Победите любого Колосса. »), et la bulle de l'Observatoire est vérifiée en russe, en
+indonésien et en français aux quatre tailles. Lighthouse sur le build de la version : 98 en
+performance aux trois mesures mobiles, en anglais comme en russe, comme la 1.7.4 (premier
+affichage simulé 1,8 s, plus grand élément 2,2 s) ; 100 dans les trois autres catégories ;
+100 × 4 sur ordinateur dans les deux langues. Sous la règle du 22/10/2026 (100 partout), la
+marge revient à la première étape de la 1.7.6.
 
 **Plus tard : les portails russophones** (feuille de route à part) : Yandex Games et les jeux
 VK. Avant toute intégration, lecture complète de leur documentation et fiche de référence dans
