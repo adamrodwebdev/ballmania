@@ -65,6 +65,7 @@
     "settings": "Settings",
     "starsLabel": "{count} star out of 3 | {count} star out of 3 | {count} stars out of 3",
     "bonus": "End bonus: +{points}",
+    "timeBonus": "Time: +{points} ({seconds} s ahead)",
     "best": "Best: {score}",
     "newBest": "New record!",
     "nextLevel": "Next level",

@@ -517,11 +517,19 @@ const goal = computed(() =>
     ? nextLauncher((id) => player.owns(id))
     : null,
 );
-/** The end bonus and the best score, on one line. */
+/** The end bonus (what the time earned, when it did) and the best score, on one line. */
 const scoreLine = computed(() => {
   const parts: string[] = [];
   const bonus = hud.value?.bonus ?? 0;
-  if (bonus > 0) parts.push(t('game.bonus', { points: number.value.format(bonus) }));
+  const time = hud.value?.timeBonus ?? 0;
+  if (time > 0) {
+    parts.push(
+      t('game.timeBonus', {
+        points: number.value.format(time),
+        seconds: number.value.format(hud.value?.ahead ?? 0),
+      }),
+    );
+  } else if (bonus > 0) parts.push(t('game.bonus', { points: number.value.format(bonus) }));
   const record = settlement.value?.record;
   if (record && !record.newBest && record.unit !== 'wins' && record.value > 0) {
     parts.push(t('game.best', { score: number.value.format(record.value) }));

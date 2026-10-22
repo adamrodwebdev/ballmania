@@ -49,6 +49,11 @@ describe('Scoring', () => {
     expect(scoring.streak).toBe(0);
     expect(Scoring.levelBonus(50, 80)).toBe(CLEAR_BONUS + 30 * SPEED_BONUS);
     expect(Scoring.levelBonus(90, 80)).toBe(CLEAR_BONUS);
+    expect([
+      Scoring.secondsAhead(50, 80),
+      Scoring.secondsAhead(90, 80),
+      Scoring.secondsAhead(5),
+    ]).toEqual([30, 0, 0]);
     scoring.bonus(100);
     expect(scoring.score).toBe(3 * 3 * POINTS_PER_BALL + STREAK_BONUS + 100);
   });
@@ -107,6 +112,25 @@ describe('Game', () => {
     expect(game.state).toBe('won');
     expect(log).toEqual(['fired', 'inserted', 'exploded', 'ended']);
     expect(game.score).toBe(3 * POINTS_PER_BALL + CLEAR_BONUS);
+  });
+
+  it('pays each second saved under the reference time, and says how many', () => {
+    const game = new Game({ ...level(2, 2), parTime: 60 }, new FixedRandom(0));
+    let ended: { readonly timeBonus: number; readonly ahead: number } | null = null;
+    game.events.on('ended', (event) => (ended = event));
+    const chain = game.chains[0]!;
+    until(game, () => chain.balls[1]!.s >= 500);
+    game.aimAt(chain.path.pointAt(chain.balls[1]!.s + 10));
+    game.fire();
+    until(game, () => game.state !== 'playing', 5);
+    const saved = 60 - game.elapsed;
+    expect(ended).toEqual({
+      outcome: 'won',
+      score: game.score,
+      bonus: CLEAR_BONUS + Math.round(saved * SPEED_BONUS),
+      timeBonus: Math.round(saved * SPEED_BONUS),
+      ahead: Math.floor(saved),
+    });
   });
 
   it('counts a shot out of the board as a miss', () => {

@@ -40,8 +40,11 @@ export interface HudState {
   reaction: { readonly depth: number; readonly serial: number } | null;
   /** Health of the Colossus on a boss level. */
   colossus: { readonly hp: number; readonly maxHp: number } | null;
-  /** End-of-level bonus included in the score. */
+  /** End-of-level bonus included in the score… */
   bonus: number;
+  /** …of which this much for the time, `ahead` whole seconds under the reference. */
+  timeBonus: number;
+  ahead: number;
   /** Magnet charges on an Abyss level, or null. */
   magnet: { readonly charges: number; readonly max: number } | null;
   /** The next shot pulls a ball out instead. */
@@ -561,10 +564,12 @@ export class PlaySession {
       sound.roar();
       haptics.lose();
     });
-    game.events.on('ended', ({ outcome, bonus }) => {
+    game.events.on('ended', ({ outcome, bonus, timeBonus, ahead }) => {
       this.hud.state = outcome;
       this.hud.score = game.score;
       this.hud.bonus = bonus;
+      this.hud.timeBonus = timeBonus;
+      this.hud.ahead = ahead;
       this.hud.bestDepth = game.bestDepth;
       this.overIn = RESULT_DELAY;
       if (outcome === 'won') {
@@ -603,6 +608,8 @@ export class PlaySession {
         maxHp: this.game.colossus.maxHp,
       },
       bonus: 0,
+      timeBonus: 0,
+      ahead: 0,
       magnet: this.game.magnet,
       magnetArmed: false,
       switched: null,

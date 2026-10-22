@@ -4,8 +4,11 @@ export const POINTS_PER_BALL = 10;
 export const STREAK_BONUS = 20;
 /** Bonus for finishing a level. */
 export const CLEAR_BONUS = 300;
-/** Bonus per second saved under the par time. */
-export const SPEED_BONUS = 10;
+/**
+ * Bonus per second saved under the level's reference time (v1.7.3: 40, from
+ * 10): speed pays, and a quick game makes up for an unlucky draw.
+ */
+export const SPEED_BONUS = 40;
 
 /**
  * The score of a game. Rules (specification § 3.1):
@@ -69,10 +72,14 @@ export class Scoring {
     this.streakValue = 0;
   }
 
-  /** End-of-level bonus: a fixed reward, plus 10 points per second saved under par. */
+  /** End-of-level bonus: a fixed reward, plus 40 points per second saved under the reference time. */
   static levelBonus(elapsed: number, parTime?: number): number {
-    const saved = parTime === undefined ? 0 : Math.max(0, parTime - elapsed);
-    return CLEAR_BONUS + Math.round(saved * SPEED_BONUS);
+    return CLEAR_BONUS + Math.round(Scoring.secondsAhead(elapsed, parTime) * SPEED_BONUS);
+  }
+
+  /** Seconds saved under the reference time (0 without one, or when slower). */
+  static secondsAhead(elapsed: number, parTime?: number): number {
+    return parTime === undefined ? 0 : Math.max(0, parTime - elapsed);
   }
 
   /** Points added outside explosions (end-of-level bonus…). */

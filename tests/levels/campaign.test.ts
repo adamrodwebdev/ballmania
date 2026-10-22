@@ -220,11 +220,11 @@ describe.each(Object.values(FRAMES))('geometry on the $kind board', (frame) => {
       }
     }
 
-    // There is room for the chain and time to play.
+    // There is room for the chain, and a reference time to beat for the time bonus.
     for (const { path } of setup.chains) {
       expect(path.length).toBeGreaterThan(level.length * radius * 2 * 1.2);
     }
-    expect(setup.parTime).toBeGreaterThan(20);
+    expect(setup.parTime).toBeGreaterThan(5);
   });
 
   it.each(CAMPAIGN.map((level) => [level.id, level] as const))('%s starts a game', (_, level) => {

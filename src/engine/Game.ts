@@ -44,7 +44,7 @@ import {
 import type { Branch, ForkSpan, ForkedRoute } from './path/ForkedRoute';
 import type { Path } from './path/Path';
 import { Reflectors, type ReflectorSetup } from './reflectors/Reflectors';
-import { Scoring } from './Scoring';
+import { CLEAR_BONUS, Scoring } from './Scoring';
 import type { Projectile, ProjectileSpecial, ProjectileView } from './shooter/Projectile';
 import { Shooter } from './shooter/Shooter';
 
@@ -239,7 +239,15 @@ export interface GameEvents {
     readonly position: Vec2;
   };
   colossusPhase: { readonly phase: number };
-  ended: { readonly outcome: 'won' | 'lost'; readonly score: number; readonly bonus: number };
+  ended: {
+    readonly outcome: 'won' | 'lost';
+    readonly score: number;
+    /** The whole end-of-level bonus, included in the score… */
+    readonly bonus: number;
+    /** …of which this much for the time: `ahead` whole seconds under the reference. */
+    readonly timeBonus: number;
+    readonly ahead: number;
+  };
 }
 
 /** Fixed simulation step: the same inputs always give the same game, at any frame rate. */
@@ -1306,6 +1314,7 @@ export class Game {
     this.stateValue = outcome;
     this.flying.length = 0;
     let bonus = 0;
+    let ahead = 0;
     if (outcome === 'won') {
       // Whatever is left on the track goes up in one final cascade, the player's.
       this.lastShooter.fill('player');
@@ -1314,9 +1323,16 @@ export class Game {
         if (balls.length > 0) this.report(index, chain, { balls, cause: 'reaction', depth: 1 });
       });
       bonus = Scoring.levelBonus(this.elapsedValue, this.setup.parTime);
+      ahead = Scoring.secondsAhead(this.elapsedValue, this.setup.parTime);
       this.scoring.bonus(bonus);
     }
-    this.events.emit('ended', { outcome, score: this.scoring.score, bonus });
+    this.events.emit('ended', {
+      outcome,
+      score: this.scoring.score,
+      bonus,
+      timeBonus: outcome === 'won' ? bonus - CLEAR_BONUS : 0,
+      ahead: Math.floor(ahead),
+    });
   }
 
   private createContext(): ObjectiveContext {

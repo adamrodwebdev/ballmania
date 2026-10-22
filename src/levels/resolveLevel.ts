@@ -2,6 +2,7 @@ import type { HazardSetup } from '@/engine/hazards/Hazards';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Path } from '@/engine/path/Path';
+import { referenceTime } from './calibration';
 import type { CampaignLevel, MirrorRecipe } from './campaign';
 import { LEVEL_DEFAULTS, type LevelDefinition, type ReflectorDefinition } from './LevelDefinition';
 import { DIFFICULTY_RULES, type Difficulty } from './difficulty';
@@ -95,8 +96,8 @@ export function resolveLevel(
     speed: level.speed * rule.speed,
     rushSpeed: 420,
     rushDistance: Math.min(900, longest * 0.3),
-    // Par: a bit more than half the time the chain would take to reach the hole untouched.
-    parTime: Math.round((longest / level.speed) * 0.55),
+    // Each second saved under it earns the time bonus (v1.7.3, calibrated on a careful player).
+    parTime: referenceTime(level),
     ...(colossus ? { colossus } : {}),
     ...(level.gift ? { gift: level.gift } : {}),
     ...(level.opening ? { opening: level.opening } : {}),

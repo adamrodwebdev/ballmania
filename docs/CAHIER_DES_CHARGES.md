@@ -97,9 +97,15 @@ Différenciation :
   la réaction en chaîne (1 pour la première explosion, +1 pour chaque explosion qui en
   découle). Une explosion provoquée directement par un tir prolonge la **série** ; à partir
   du 3ᵉ tir réussi consécutif, chaque tir ajoute **20 × (série − 2)**. Un tir qui sort du
-  plateau ou ne fait rien exploser casse la série. **Bonus de fin de niveau** (lot 4) :
-  300 points, plus 10 points par seconde gagnée sous le temps de référence du niveau (55 %
-  du temps que mettrait la chaîne à atteindre le trou sans être touchée).
+  plateau ou ne fait rien exploser casse la série. **Bonus de fin de niveau** (lot 4,
+  revu en v1.7.3) : 300 points, plus **40 points par seconde** gagnée sous le temps de
+  référence du niveau, 1,2 fois le temps médian d'un robot qui joue comme une personne posée
+  (une décision toutes les 1,5 s, des tirs précis, des réactions en chaîne préparées),
+  mesuré sur les trois formes de plateau (`src/levels/calibration.data.ts`). La vitesse
+  compte enfin, et une partie rapide rattrape une donne malchanceuse. Le panneau de victoire
+  le dit : « Temps : +600 (15 s d'avance) » au lieu du bonus fixe. Avant, 10 points par
+  seconde sous 55 % du temps que mettrait la chaîne à atteindre le trou sans être touchée :
+  le bonus restait presque toujours à 300.
   **Ricochet** (lot 6) : un tir qui a rebondi sur n miroirs multiplie les points de ses
   billes par n + 1 (la série s'ajoute ensuite sans multiplicateur).
 - La chaîne générée ne contient jamais de groupe déjà explosif (suites limitées à 2 billes
