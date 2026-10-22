@@ -1,22 +1,18 @@
 {
   "meta": {
     "title": "Ballmania — le tir de billes réinventé",
-    "description": "Tir de billes en chaîne réinventé : campagne de six mondes, nouveaux modes, explosions spectaculaires. Gratuit, sans inscription, sur mobile et ordinateur."
+    "description": "Tir de billes en chaîne réinventé\u00a0: campagne de six mondes, nouveaux modes, explosions spectaculaires. Gratuit, sans inscription, sur mobile et ordinateur."
   },
   "app": {
     "name": "Ballmania",
     "version": "Version {version}"
   },
   "nav": {
-    "skip": "Aller au contenu",
-    "home": "Accueil Ballmania"
+    "skip": "Aller au contenu"
   },
   "home": {
     "tagline": "Le tir de billes réinventé",
-    "pitch": "Six mondes à conquérir, des explosions en chaîne et des modes que vous n'avez jamais joués.",
-    "campaign": "Campagne",
     "play": "Jouer",
-    "demo": "Monde 1 : Nébuleuse",
     "next": "{world} · niveau {number}"
   },
   "settings": {
@@ -29,7 +25,7 @@
     "vibration": "Vibrations",
     "done": "Terminé",
     "aimAssist": "Aide à la visée",
-    "aimAssistHint": "Bille fantôme à l'arrivée du tir et groupe qui explosera",
+    "aimAssistHint": "Bille fantôme à l’arrivée du tir et groupe qui explosera",
     "music": "Musique",
     "soundOn": "Couper le son",
     "soundOff": "Remettre le son"
@@ -46,7 +42,7 @@
   },
   "game": {
     "board": "Plateau de jeu",
-    "help": "Visez avec la souris ou le doigt, tirez en cliquant ou en relâchant. Au clavier : flèches pour viser (Maj pour affiner), Espace pour tirer, X pour échanger, P pour la pause.",
+    "help": "Visez avec la souris ou le doigt, puis relâchez pour tirer. Au clavier\u00a0: flèches pour viser (maintenez Maj pour affiner), Espace pour tirer, X pour échanger, P pour la pause.",
     "score": "Score",
     "streak": "Série ×{count}",
     "pause": "Pause",
@@ -55,38 +51,36 @@
     "resume": "Reprendre",
     "restart": "Recommencer",
     "quit": "Quitter",
-    "won": "Chaîne détruite !",
+    "won": "Chaîne détruite\u00a0!",
     "lost": "La chaîne a atteint le trou",
-    "finalScore": "Score : {score}",
-    "bestDepth": "Meilleure réaction en chaîne : ×{depth}",
+    "finalScore": "Score\u00a0: {score}",
+    "bestDepth": "Meilleure réaction en chaîne\u00a0: ×{depth}",
     "playAgain": "Rejouer",
     "reaction": "Réaction en chaîne ×{depth}",
-    "loading": "Chargement du jeu…",
     "settings": "Réglages",
     "starsLabel": "{count} étoile sur 3 | {count} étoile sur 3 | {count} étoiles sur 3",
-    "bonus": "Bonus de fin : +{points}",
-    "timeBonus": "{seconds} s d'avance : +{points}",
-    "best": "Record : {score}",
-    "newBest": "Nouveau record !",
-    "nextLevel": "Niveau suivant",
+    "bonus": "Bonus de fin\u00a0: +{points}",
+    "timeBonus": "{seconds}\u00a0s d’avance\u00a0: +{points}",
+    "best": "Record\u00a0: {score}",
+    "newBest": "Nouveau record\u00a0!",
     "map": "Carte",
     "homeButton": "Accueil",
-    "campaignDone": "Campagne terminée : les six mondes sont à vous !",
+    "campaignDone": "Campagne terminée\u00a0: les six mondes sont à vous\u00a0!",
     "arcadeButton": "Arcade",
     "starsGained": "+{count} étoile | +{count} étoile | +{count} étoiles",
-    "danger": "Attention : la chaîne approche du trou !",
+    "danger": "Attention\u00a0: la chaîne approche du trou\u00a0!",
     "cheer": {
-      "3": "Super !",
-      "4": "Génial !",
-      "5": "Incroyable !",
-      "6": "Cosmique !",
-      "nova": "Nova !"
+      "3": "Super\u00a0!",
+      "4": "Génial\u00a0!",
+      "5": "Incroyable\u00a0!",
+      "6": "Cosmique\u00a0!",
+      "nova": "Nova\u00a0!"
     },
-    "nextLevelNamed": "Suivant : niveau {level}",
+    "nextLevelNamed": "Suivant\u00a0: niveau {level}",
     "reward": {
       "launcher": "{name} · lanceur",
       "progress": "{have} / {price} éclats",
-      "ready": "Disponible à l'Atelier !"
+      "ready": "Disponible à l’Atelier\u00a0!"
     },
     "gaugeReached": "{count} étoiles à portée"
   },
@@ -97,11 +91,11 @@
     },
     "balanced": {
       "name": "Équilibré",
-      "hint": "Moins de particules, sans distorsion de l'écran"
+      "hint": "Moins de particules, sans distorsion de l’écran"
     },
     "subtle": {
       "name": "Sobre",
-      "hint": "L'essentiel, pour les petits téléphones"
+      "hint": "L’essentiel, pour les téléphones peu puissants"
     }
   },
   "campaign": {
@@ -112,17 +106,17 @@
     "levelShort": "{world}-{number}",
     "levelLabel": "Niveau {number}, {stars} étoile(s) sur 3",
     "lockedLabel": "Niveau {number}, verrouillé",
-    "comingSoon": "Bientôt : terminez le monde précédent pour l'ouvrir.",
+    "comingSoon": "Bientôt\u00a0: terminez le monde précédent pour l’ouvrir.",
     "worldsLabel": "Mondes de la campagne"
   },
   "worlds": {
     "nebula": {
       "name": "Nébuleuse",
-      "tagline": "Orbes de verre et d'énergie au cœur des étoiles."
+      "tagline": "Orbes de verre et d’énergie au cœur des étoiles."
     },
     "neon": {
       "name": "Néon",
-      "tagline": "Murs et prismes : faites ricocher vos tirs."
+      "tagline": "Murs et prismes\u00a0: faites ricocher vos tirs."
     },
     "abyss": {
       "name": "Abysses",
@@ -142,39 +136,39 @@
     }
   },
   "hints": {
-    "aim": "Votre première bille est une bombe Nova : visez la chaîne et relâchez !",
-    "swap": "Échangez la bille chargée avec la suivante : touchez le lanceur ou appuyez sur X.",
-    "reaction": "Quand deux morceaux de même couleur se rejoignent, ils explosent à leur tour : c'est la réaction en chaîne.",
-    "twin": "Deux chaînes à la fois : surveillez les deux trous.",
-    "colossus": "Le Colosse pousse la chaîne : faites exploser des billes tout près de lui pour le blesser.",
+    "aim": "Votre première bille est une bombe Nova\u00a0: visez la chaîne et relâchez\u00a0!",
+    "swap": "Échangez la bille chargée avec la suivante\u00a0: touchez le lanceur ou appuyez sur X.",
+    "reaction": "Quand deux groupes de même couleur se rejoignent, ils explosent à leur tour\u00a0: c’est la réaction en chaîne.",
+    "twin": "Deux chaînes à la fois\u00a0: surveillez les deux trous.",
+    "colossus": "Le Colosse pousse la chaîne\u00a0: faites exploser des billes tout près de lui pour le blesser.",
     "ricochet": "Les murs renvoient vos tirs. Une bille touchée après un rebond vaut ×2, après deux rebonds ×3.",
-    "prism": "Les prismes renvoient aussi les tirs : suivez la ligne de visée, elle montre chaque rebond.",
-    "spin": "Ces prismes tournent : attendez le bon angle avant de tirer.",
-    "magnet": "Touchez « Aimant » (ou M), puis visez une bille : elle quitte la chaîne et rejoint votre lanceur.",
-    "magnetCombo": "Aspirez la bille qui sépare deux couleurs identiques : elles se rejoignent et explosent.",
-    "alchemy": "La lumière se mélange : rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose. Tirez une couleur sur une autre pour les fusionner.",
-    "alchemySecondary": "Les couleurs mélangées ne se tirent pas : fusionnez-en trois côte à côte pour les faire exploser.",
-    "switch": "Touchez un aiguillage (ou appuyez sur S) pour envoyer la lave dans le détour : plus long, il vous donne du temps. On ne peut plus le changer une fois la chaîne arrivée.",
-    "hot": "Sur le raccourci, la lave est en fusion : les billes qui y explosent valent double. À vous de choisir entre points et temps.",
-    "gravity": "Le trou noir attire vos tirs : la ligne de visée montre la courbe qu'ils suivront. Un tir qui passe trop près est avalé.",
-    "orbit": "Votre lanceur glisse autour du trou noir : attendez d'être bien placé avant de tirer.",
-    "endless": "La chaîne ne s'arrête jamais : chaque palier l'accélère et peut ajouter une couleur. Tenez le plus longtemps possible.",
-    "puzzle": "La chaîne est immobile et vos tirs sont comptés. « Couleur suivante » (ou X) choisit la couleur : pensez aux réactions en chaîne.",
-    "rhythm": "La chaîne avance au rythme de la musique. Tirez quand l'anneau se referme sur le lanceur : le groove multiplie vos points jusqu'à ×4.",
-    "duel": "Chaque explosion pousse la chaîne vers le trou de l'adversaire. Faites-la tomber dans le sien avant qu'elle n'atteigne le vôtre.",
-    "arrhythmia": "Arythmie : la chaîne accélère puis ralentit sans prévenir. Le tracé rougit quand elle s'emballe.",
-    "meteors": "Des billes tombent du ciel : une ombre annonce où elles vont s'insérer.",
-    "wind": "Vents contraires : pendant une rafale, la ligne de visée montre la dérive de vos tirs. Un tir chargé (maintenir) ne dévie pas.",
-    "cold": "Froid mordant : les tirs ralentissent et des billes gèlent. Déclenchez une réaction en chaîne pour faire éclater toutes les billes gelées.",
-    "solar": "Tempête solaire : les billes deviennent indestructibles. Préparez des groupes : ils exploseront tous quand elle cessera.",
-    "power": "Les billes à anneau cachent un pouvoir : faites-les éclater pour l'utiliser !",
+    "prism": "Les prismes renvoient aussi les tirs\u00a0: suivez la ligne de visée, elle montre chaque rebond.",
+    "spin": "Ces prismes tournent\u00a0: attendez le bon angle avant de tirer.",
+    "magnet": "Touchez «\u00a0Aimant\u00a0» (ou M), puis visez une bille\u00a0: elle quitte la chaîne et rejoint votre lanceur.",
+    "magnetCombo": "Aspirez la bille qui sépare deux groupes de même couleur\u00a0: ils se rejoignent et explosent.",
+    "alchemy": "La lumière se mélange\u00a0: rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose. Tirez une couleur sur une autre pour les fusionner.",
+    "alchemySecondary": "Les couleurs mélangées ne se tirent pas\u00a0: fusionnez-en trois côte à côte pour les faire exploser.",
+    "switch": "Touchez un aiguillage (ou appuyez sur S) pour envoyer la lave dans le détour\u00a0: plus long, il vous donne du temps. Il se verrouille dès que la chaîne l’atteint.",
+    "hot": "Sur le raccourci, la lave est en fusion\u00a0: les billes qui y explosent valent double. À vous de choisir entre points et temps.",
+    "gravity": "Le trou noir attire vos tirs\u00a0: la ligne de visée montre la courbe qu’ils suivront. Un tir qui passe trop près est avalé.",
+    "orbit": "Votre lanceur glisse autour du trou noir\u00a0: attendez d’être bien placé avant de tirer.",
+    "endless": "La chaîne ne s’arrête jamais\u00a0: chaque palier l’accélère et peut ajouter une couleur. Tenez le plus longtemps possible.",
+    "puzzle": "La chaîne est immobile et vos tirs sont comptés. «\u00a0Couleur suivante\u00a0» (ou X) choisit la couleur\u00a0: pensez aux réactions en chaîne.",
+    "rhythm": "La chaîne avance au rythme de la musique. Tirez quand l’anneau se referme sur le lanceur\u00a0: le groove multiplie vos points jusqu’à ×4.",
+    "duel": "Chaque explosion pousse la chaîne vers le trou de l’adversaire. Faites-la tomber dans le sien avant qu’elle n’atteigne le vôtre.",
+    "arrhythmia": "Arythmie\u00a0: la chaîne accélère puis ralentit sans prévenir. Le tracé rougit quand elle s’emballe.",
+    "meteors": "Des billes tombent du ciel\u00a0: une ombre annonce où elles vont s’insérer.",
+    "wind": "Vents contraires\u00a0: pendant une rafale, la ligne de visée montre la dérive de vos tirs. Un tir chargé (maintenir) ne dévie pas.",
+    "cold": "Froid mordant\u00a0: les tirs ralentissent et des billes gèlent. Déclenchez une réaction en chaîne pour faire éclater toutes les billes gelées.",
+    "solar": "Tempête solaire\u00a0: les billes deviennent indestructibles. Préparez des groupes\u00a0: ils exploseront tous quand elle cessera.",
+    "power": "Les billes à anneau cachent un pouvoir\u00a0: faites-les éclater pour l’utiliser\u00a0!",
     "powerSlow": "Le sablier ralentit la chaîne pendant 8 secondes.",
-    "powerRainbow": "La bille arc-en-ciel change votre prochain tir en bille de toutes les couleurs.",
-    "powerLaser": "La bille éclair change votre prochain tir en laser qui traverse 4 billes."
+    "powerRainbow": "La bille arc-en-ciel transforme votre prochain tir en bille qui va avec toutes les couleurs.",
+    "powerLaser": "La bille éclair transforme votre prochain tir en laser qui traverse 4 billes."
   },
   "colossus": {
     "nebula": "Colosse stellaire",
-    "neon": "Colosse prisme",
+    "neon": "Colosse prismatique",
     "abyss": "Colosse abyssal",
     "jewel": "Colosse de cristal",
     "volcano": "Colosse de lave",
@@ -189,17 +183,15 @@
   "daily": {
     "title": "Défi du jour",
     "short": "Défi",
-    "todo": "À jouer : niveau {level}",
-    "done": "Fait : {score} points",
-    "counted": "Seul le premier essai du jour compte : {score} points.",
+    "counted": "Seul le premier essai du jour compte\u00a0: {score} points.",
     "share": "Partager mon résultat",
-    "shareText": "Ballmania · Défi du {date} : {score} points {stars} · {url}",
-    "shareTextNoLink": "Ballmania · Défi du {date} : {score} points {stars}",
+    "shareText": "Ballmania · Défi du {date}\u00a0: {score} points {stars} · {url}",
+    "shareTextNoLink": "Ballmania · Défi du {date}\u00a0: {score} points {stars}",
     "shareOutcome": {
       "shared": "Résultat partagé.",
-      "copied": "Résultat copié : collez-le où vous voulez.",
+      "copied": "Résultat copié\u00a0: collez-le où vous voulez.",
       "cancelled": "Partage annulé.",
-      "unavailable": "Le partage n'est pas disponible sur cet appareil."
+      "unavailable": "Le partage n’est pas disponible sur cet appareil."
     },
     "new": "Nouveau",
     "doneShort": "{score} pts"
@@ -209,40 +201,39 @@
     "day": "Jour {day} sur {days}",
     "collect": "Récupérer +{shards}",
     "streak": "Série de sept jours",
-    "note": "Demain : +{shards} · Un jour manqué et la série recommence",
+    "note": "Demain\u00a0: +{shards} · Un jour manqué et la série recommence",
     "taken": "Jour {day} récupéré · Demain +{shards}",
-    "dayDone": "Jour {day} : {shards} éclats, récupérés",
-    "dayToday": "Jour {day}, aujourd'hui : {shards} éclats",
-    "dayLater": "Jour {day} : {shards} éclats",
-    "received": "Cadeau récupéré : {shards} éclats."
+    "dayDone": "Jour {day}\u00a0: {shards} éclats, récupérés",
+    "dayToday": "Jour {day}, aujourd’hui\u00a0: {shards} éclats",
+    "dayLater": "Jour {day}\u00a0: {shards} éclats",
+    "received": "Cadeau récupéré\u00a0: {shards} éclats."
   },
   "shop": {
     "title": "Atelier",
-    "pitch": "Lanceurs, traînées, éclats",
-    "intro": "Tout se gagne en jouant. Ce sont des looks : aucun objet ne rend le jeu plus facile.",
+    "intro": "Tout se gagne en jouant. Ce ne sont que des apparences\u00a0: rien ne rend le jeu plus facile.",
     "slots": {
       "shooter": "Lanceurs",
       "trail": "Traînées de tir",
-      "burst": "Signatures de bris",
+      "burst": "Styles d’éclatement",
       "board": "Plateaux"
     },
     "equipped": "Équipé",
     "equip": "Équiper",
     "buy": "Acheter · {price}",
     "unlockHint": "Terminez le monde {world}",
-    "unlocked": "Débloqué : {name}",
+    "unlocked": "Débloqué\u00a0: {name}",
     "bought": "{name} acheté et équipé.",
     "equippedNow": "{name} équipé."
   },
   "cosmetics": {
-    "shooter-star": "Cœur d'étoile",
+    "shooter-star": "Cœur d’étoile",
     "shooter-orbit": "Orbite",
     "shooter-crown": "Couronne",
     "shooter-halo": "Halo",
     "shooter-eye": "Œil",
     "trail-none": "Aucune",
     "trail-comet": "Comète",
-    "trail-stardust": "Poussière d'étoiles",
+    "trail-stardust": "Poussière d’étoiles",
     "trail-prism": "Prisme",
     "burst-glass": "Verre",
     "burst-stars": "Étoiles",
@@ -258,9 +249,8 @@
   },
   "achievements": {
     "title": "Objectifs",
-    "count": "{done} / {total} atteints",
-    "intro": "Chaque objectif atteint rapporte des éclats à dépenser dans l'atelier.",
-    "reached": "Objectif atteint : {name}",
+    "intro": "Chaque objectif atteint rapporte des éclats à dépenser à l’Atelier.",
+    "reached": "Objectif atteint\u00a0: {name}",
     "done": "Atteint",
     "progress": "{current} sur {target}",
     "list": {
@@ -278,11 +268,11 @@
       },
       "streak-5": {
         "name": "En rythme",
-        "text": "Réussir {target} tirs d'affilée."
+        "text": "Réussir {target} tirs d’affilée."
       },
       "streak-10": {
         "name": "Infaillible",
-        "text": "Réussir {target} tirs d'affilée."
+        "text": "Réussir {target} tirs d’affilée."
       },
       "balls-500": {
         "name": "Briseur",
@@ -298,7 +288,7 @@
       },
       "magnet-10": {
         "name": "Pêcheur des profondeurs",
-        "text": "Aspirer {target} billes avec l'aimant."
+        "text": "Aspirer {target} billes avec l’aimant."
       },
       "alchemist": {
         "name": "Alchimiste",
@@ -321,7 +311,7 @@
         "text": "Obtenir 3 étoiles sur {target} niveaux."
       },
       "colossus": {
-        "name": "Tueur de géant",
+        "name": "Tueur de géants",
         "text": "Vaincre un Colosse."
       },
       "daily-3": {
@@ -346,14 +336,14 @@
       },
       "slingshot": {
         "name": "Fronde gravitationnelle",
-        "text": "Faire exploser des billes avec {target} tirs courbés d'au moins 45° par le trou noir."
+        "text": "Faire exploser des billes avec {target} tirs courbés d’au moins 45° par le trou noir."
       },
       "world-volcano": {
         "name": "Cœur de magma",
         "text": "Terminer le monde Volcan."
       },
       "world-singularity": {
-        "name": "Au-delà de l'horizon",
+        "name": "Au-delà de l’horizon",
         "text": "Terminer la campagne."
       },
       "endless-5": {
@@ -374,21 +364,19 @@
       },
       "stargazer": {
         "name": "Astronome",
-        "text": "Récolter {target} fragments d'étoiles."
+        "text": "Récolter {target} fragments d’étoiles."
       }
     }
   },
   "assist": {
-    "retry": "Réessayer avec de l'aide",
-    "detail": "La chaîne avance 15 % moins vite pour cet essai.",
+    "retry": "Réessayer avec de l’aide",
+    "detail": "La chaîne avance 15\u00a0% moins vite pour cet essai.",
     "active": "Aide active"
   },
   "magnet": {
     "button": "Aimant",
-    "charges": "{count} charge(s) sur {max}",
     "armed": "Visez la bille à aspirer",
-    "label": "Aimant, {count} charge(s) sur {max}",
-    "pulled": "Bille aspirée"
+    "label": "Aimant, {count} charge(s) sur {max}"
   },
   "tones": {
     "0": "rubis",
@@ -403,36 +391,33 @@
     "formula": "{a} + {b} = {result}"
   },
   "switch": {
-    "label": "Aiguillage {number} : {branch}",
     "short": "raccourci",
     "long": "détour",
-    "locked": "verrouillé",
     "flipped": "Aiguillage vers le {branch}"
   },
   "arcade": {
     "title": "Arcade",
-    "intro": "Quatre modes pour jouer autrement. Chacun s'ouvre en terminant un monde de la campagne.",
-    "open": "{count} / {total} modes ouverts",
-    "locked": "Terminez le monde « {world} » pour l'ouvrir.",
+    "intro": "Quatre modes pour jouer autrement. Chacun s’ouvre en terminant un monde de la campagne.",
+    "locked": "Terminez le monde {world} pour l’ouvrir.",
     "start": "Jouer",
     "endless": {
       "name": "Infini",
       "tagline": "Une chaîne sans fin, de plus en plus rapide et colorée.",
-      "best": "Record : {score}",
+      "best": "Record\u00a0: {score}",
       "over": "Partie terminée",
       "stage": "Palier {stage}",
-      "reached": "Palier atteint : {stage}"
+      "reached": "Palier atteint\u00a0: {stage}"
     },
     "puzzle": {
       "name": "Énigmes",
-      "tagline": "Une chaîne immobile, peu de tirs : trouvez la réaction parfaite.",
+      "tagline": "Une chaîne immobile, peu de tirs\u00a0: trouvez la réaction parfaite.",
       "short": "Énigme {number}",
       "daily": "Énigme du jour",
-      "dailyTodo": "La même pour tous, aujourd'hui",
+      "dailyTodo": "La même pour tous, aujourd’hui",
       "dailyDone": "Résolue en {shots} tirs",
-      "dailyTried": "Tentée aujourd'hui",
+      "dailyTried": "Tentée aujourd’hui",
       "solvedCount": "{count} / {total} énigmes résolues",
-      "solved": "Énigme résolue !",
+      "solved": "Énigme résolue\u00a0!",
       "failed": "Plus de tirs",
       "next": "Énigme suivante",
       "nextColour": "Couleur suivante",
@@ -443,7 +428,7 @@
     },
     "rhythm": {
       "name": "Rythme",
-      "tagline": "La chaîne danse sur le tempo : tirez sur le temps pour faire monter le groove.",
+      "tagline": "La chaîne danse sur le tempo\u00a0: tirez sur le temps pour faire monter le groove.",
       "songs": {
         "pulse": "Pulsation",
         "drive": "Cavalcade",
@@ -455,18 +440,18 @@
     },
     "duel": {
       "name": "Duel",
-      "tagline": "Une chaîne, deux trous, un adversaire : le tir à la corde.",
+      "tagline": "Une chaîne, deux trous, un adversaire\u00a0: le tir à la corde.",
       "levels": {
         "easy": "Rival débutant",
         "normal": "Rival aguerri",
         "hard": "Rival redoutable"
       },
-      "won": "Victoire !",
+      "won": "Victoire\u00a0!",
       "lost": "Défaite",
       "you": "Vous",
       "rival": "Rival · {score}",
       "rope": "Votre avantage dans le tir à la corde",
-      "final": "Score du rival : {score}",
+      "final": "Score du rival\u00a0: {score}",
       "wins": "Aucune victoire | {count} victoire | {count} victoires",
       "harder": "Rival plus fort"
     },
@@ -480,7 +465,7 @@
     },
     "pilot": {
       "name": "Pilote",
-      "hint": "L'expérience prévue"
+      "hint": "L’expérience prévue"
     },
     "legend": {
       "name": "Légende",
@@ -490,43 +475,43 @@
   "weather": {
     "solar": {
       "name": "Tempête solaire",
-      "announce": "Tempête solaire : les billes sont brûlantes et indestructibles. Les groupes formés exploseront à la fin."
+      "announce": "Tempête solaire\u00a0: les billes sont brûlantes et indestructibles. Les groupes formés exploseront à la fin."
     },
     "cold": {
       "name": "Froid mordant",
-      "announce": "Froid mordant : vos tirs ralentissent. Une réaction en chaîne fera éclater les billes gelées."
+      "announce": "Froid mordant\u00a0: vos tirs ralentissent. Une réaction en chaîne fera éclater les billes gelées."
     },
     "wind": {
       "name": "Vents contraires",
-      "announce": "Rafale : vos tirs dérivent et la chaîne change d'allure."
+      "announce": "Rafale\u00a0: vos tirs dérivent et la chaîne change d’allure."
     }
   },
   "observatory": {
     "title": "Observatoire",
     "back": "Retour",
-    "intro": "Touchez les étoiles filantes de vos tirs pour récolter des fragments d'étoiles, puis améliorez vos instruments. Les améliorations jouent en campagne (jamais au défi du jour ni en Arcade).",
+    "intro": "Touchez les étoiles filantes de vos tirs pour récolter des fragments d’étoiles, puis améliorez vos instruments. Les améliorations s’appliquent en campagne (jamais au défi du jour ni en Arcade).",
     "balance": "{count} fragments",
     "ready": "Amélioration disponible",
     "tip": "Améliorez votre jeu ici avec vos fragments d’étoiles.",
     "tipClose": "Compris",
     "buy": "Améliorer · {cost} fragments",
-    "max": "Au meilleur",
+    "max": "Au maximum",
     "rank": "Rang {rank} sur {max}",
-    "bought": "{name} : rang {rank}",
-    "caught": "Aucun fragment | {count} fragment d'étoile | {count} fragments d'étoiles"
+    "bought": "{name}\u00a0: rang {rank}",
+    "caught": "Aucun fragment | {count} fragment d’étoile | {count} fragments d’étoiles"
   },
   "upgrades": {
     "eye": {
       "name": "Œil stellaire",
-      "r1": "La ligne de visée montre un 3ᵉ rebond.",
-      "r2": "Et un 4ᵉ rebond.",
-      "r3": "L'aperçu montre aussi la réaction en chaîne qui suivra."
+      "r1": "La ligne de visée montre un troisième rebond.",
+      "r2": "Et un quatrième.",
+      "r3": "L’aperçu montre aussi la réaction en chaîne qui suivra."
     },
     "chronos": {
       "name": "Chronos",
-      "r1": "Chaîne plus lente de 4 %.",
-      "r2": "Plus lente de 8 %.",
-      "r3": "Plus lente de 12 %."
+      "r1": "Chaîne plus lente de 4\u00a0%.",
+      "r2": "Plus lente de 8\u00a0%.",
+      "r3": "Plus lente de 12\u00a0%."
     },
     "shockwave": {
       "name": "Onde de choc",
@@ -548,58 +533,58 @@
     },
     "icebreaker": {
       "name": "Brise-glace",
-      "r1": "Le froid ralentit vos tirs d'un tiers de moins.",
-      "r2": "De deux tiers de moins.",
+      "r1": "Dans le froid, vos tirs ralentissent un tiers de moins.",
+      "r2": "Deux tiers de moins.",
       "r3": "Toute explosion fait éclater les billes gelées."
     },
     "anchor": {
       "name": "Ancre",
-      "r1": "Le vent dévie vos tirs de 35 % de moins.",
-      "r2": "De 70 % de moins.",
+      "r1": "Le vent dévie vos tirs 35\u00a0% moins fort.",
+      "r2": "70\u00a0% moins fort.",
       "r3": "Le vent ne dévie plus vos tirs."
     },
     "catcher": {
       "name": "Attrape-étoiles",
-      "r1": "Fragments plus fréquents (+25 %) et plus faciles à toucher.",
-      "r2": "+50 %, encore plus faciles.",
+      "r1": "Fragments plus fréquents (+25\u00a0%) et plus faciles à toucher.",
+      "r2": "+50\u00a0%, encore plus faciles.",
       "r3": "Deux fois plus fréquents."
     },
     "nova": {
       "name": "Nova",
-      "ready": "Nova prête !",
-      "r1": "30 billes détruites chargent une bombe : le tir suivant détruit tout autour de lui.",
+      "ready": "Nova prête\u00a0!",
+      "r1": "30 billes détruites chargent une bombe\u00a0: le tir suivant détruit tout autour de lui.",
       "r2": "24 billes, souffle plus large.",
       "r3": "18 billes, souffle immense."
     },
     "secondChance": {
       "name": "Seconde chance",
-      "used": "Seconde chance : la chaîne est repoussée !",
-      "r1": "Une fois par niveau, la chaîne qui atteint le trou est repoussée de 15 % du tracé.",
-      "r2": "De 25 %.",
-      "r3": "De 35 %."
+      "used": "Seconde chance\u00a0: la chaîne est repoussée\u00a0!",
+      "r1": "Une fois par niveau, la chaîne qui atteint le trou est repoussée de 15\u00a0% du tracé.",
+      "r2": "De 25\u00a0%.",
+      "r3": "De 35\u00a0%."
     }
   },
   "power": {
     "rewind": {
-      "cheer": "Recul !",
-      "announce": "Recul : la chaîne repart en arrière.",
+      "cheer": "Recul\u00a0!",
+      "announce": "Recul\u00a0: la chaîne repart en arrière.",
       "name": "Recul"
     },
     "slow": {
-      "cheer": "Ralenti !",
-      "announce": "Ralenti : la chaîne avance à mi-vitesse pendant 8 secondes.",
-      "chip": "Ralenti · {seconds} s",
+      "cheer": "Ralenti\u00a0!",
+      "announce": "Ralenti\u00a0: la chaîne avance à mi-vitesse pendant 8 secondes.",
+      "chip": "Ralenti · {seconds}\u00a0s",
       "name": "Ralenti"
     },
     "rainbow": {
-      "cheer": "Arc-en-ciel !",
-      "announce": "Tir arc-en-ciel : votre prochaine bille va avec toutes les couleurs.",
+      "cheer": "Arc-en-ciel\u00a0!",
+      "announce": "Tir arc-en-ciel\u00a0: votre prochaine bille va avec toutes les couleurs.",
       "ready": "Tir arc-en-ciel prêt",
       "name": "Tir arc-en-ciel"
     },
     "laser": {
-      "cheer": "Laser !",
-      "announce": "Laser : votre prochain tir traverse les 4 premières billes touchées.",
+      "cheer": "Laser\u00a0!",
+      "announce": "Laser\u00a0: votre prochain tir traverse les 4 premières billes touchées.",
       "ready": "Laser prêt",
       "name": "Laser"
     }
@@ -616,7 +601,7 @@
   },
   "ads": {
     "continue": "Continuer",
-    "continueDetail": "Regarder une publicité : la chaîne recule",
+    "continueDetail": "Regarder une publicité\u00a0: la chaîne recule",
     "double": "Doubler les éclats",
     "doubleDetail": "Regarder une publicité",
     "hint": "Indice",
@@ -624,39 +609,39 @@
     "try": "Essayer",
     "tryDetail": "Une publicité, pour la prochaine partie",
     "trying": "À essayer à la prochaine partie",
-    "trial": "{name} : à essayer à la prochaine partie.",
-    "continued": "La chaîne recule : à vous de jouer !",
-    "doubled": "{count} éclats de plus !",
-    "hintShown": "Indice : tirez sur la bille entourée.",
-    "unavailable": "Aucune publicité disponible pour le moment : rien n'est perdu, réessayez plus tard.",
+    "trial": "{name}\u00a0: à essayer à la prochaine partie.",
+    "continued": "La chaîne recule\u00a0: à vous de jouer\u00a0!",
+    "doubled": "{count} éclats de plus\u00a0!",
+    "hintShown": "Indice\u00a0: tirez sur la bille entourée.",
+    "unavailable": "Aucune publicité disponible pour le moment\u00a0: rien n’est perdu, réessayez plus tard.",
     "blocked": "Bonus vidéo indisponibles pour le moment. Le jeu reste entièrement jouable.",
     "forShards": "Pour {price} éclats",
     "forShardsShort": "{price} éclats · vous en avez {balance}"
   },
   "demo": {
     "fullGame": "Dans le jeu complet",
-    "note": "Démo : 2 mondes sur 6",
-    "done": "Fin de la démo ! Quatre autres mondes vous attendent dans le jeu complet."
+    "note": "Démo\u00a0: 2 mondes sur 6",
+    "done": "Fin de la démo\u00a0! Quatre autres mondes vous attendent dans le jeu complet."
   },
   "next": {
-    "world": "Nouveau monde : {name}",
-    "colossus": "Boss : {name}",
-    "power": "Nouvelle bille : {name}",
-    "mechanic": "Nouveauté : {name}",
+    "world": "Nouveau monde\u00a0: {name}",
+    "colossus": "Boss\u00a0: {name}",
+    "power": "Nouvelle bille\u00a0: {name}",
+    "mechanic": "Nouveauté\u00a0: {name}",
     "mechanics": {
       "twin": "deux chaînes à la fois",
       "ricochet": "les tirs en bande",
       "prism": "les prismes",
       "spin": "les prismes tournants",
-      "magnet": "l'aimant",
-      "magnetCombo": "les combos d'aimant",
+      "magnet": "l’aimant",
+      "magnetCombo": "les combos d’aimant",
       "alchemy": "le mélange des couleurs",
       "alchemySecondary": "les couleurs mélangées",
       "switch": "les aiguillages de lave",
       "hot": "le raccourci en fusion",
       "gravity": "la gravité du trou noir",
       "orbit": "le lanceur en orbite",
-      "arrhythmia": "l'arythmie",
+      "arrhythmia": "l’arythmie",
       "meteors": "les pluies de météores",
       "wind": "les vents contraires",
       "cold": "le froid mordant",

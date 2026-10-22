@@ -8,15 +8,11 @@
     "version": "Versi {version}"
   },
   "nav": {
-    "skip": "Langsung ke konten",
-    "home": "Beranda Ballmania"
+    "skip": "Langsung ke konten"
   },
   "home": {
     "tagline": "Tembak bola berantai, dengan cara baru",
-    "pitch": "Enam dunia untuk ditaklukkan, ledakan berantai, dan mode yang belum pernah kamu mainkan.",
-    "campaign": "Kampanye",
     "play": "Main",
-    "demo": "Dunia 1: Nebula",
     "next": "{world} · Level {number}"
   },
   "settings": {
@@ -46,7 +42,7 @@
   },
   "game": {
     "board": "Papan permainan",
-    "help": "Bidik dengan mouse atau jari, tembak dengan klik atau saat jari dilepas. Keyboard: panah untuk membidik (Shift agar lebih presisi), Spasi untuk menembak, X untuk menukar, P untuk jeda.",
+    "help": "Bidik dengan mouse atau jari, lalu lepaskan untuk menembak. Keyboard: panah untuk membidik (tahan Shift agar lebih presisi), Spasi untuk menembak, X untuk menukar, P untuk jeda.",
     "score": "Skor",
     "streak": "Beruntun ×{count}",
     "pause": "Jeda",
@@ -61,14 +57,12 @@
     "bestDepth": "Reaksi berantai terbaik: ×{depth}",
     "playAgain": "Main lagi",
     "reaction": "Reaksi berantai ×{depth}",
-    "loading": "Memuat permainan…",
     "settings": "Pengaturan",
     "starsLabel": "{count} dari 3 bintang | {count} dari 3 bintang | {count} dari 3 bintang",
     "bonus": "Bonus akhir: +{points}",
     "timeBonus": "Unggul {seconds} dtk: +{points}",
     "best": "Rekor: {score}",
     "newBest": "Rekor baru!",
-    "nextLevel": "Level berikutnya",
     "map": "Peta kampanye",
     "homeButton": "Beranda",
     "campaignDone": "Kampanye selesai: keenam dunia milikmu!",
@@ -159,9 +153,9 @@
     "gravity": "Lubang hitam menarik tembakanmu: garis bidik menunjukkan lengkungan yang akan diikutinya. Tembakan yang lewat terlalu dekat akan ditelan.",
     "orbit": "Penembakmu meluncur mengelilingi lubang hitam: tunggu posisi yang tepat sebelum menembak.",
     "endless": "Rantai tak pernah berhenti: setiap tahap mempercepatnya dan bisa menambah warna. Bertahanlah selama mungkin.",
-    "puzzle": "Rantai diam dan tembakanmu terbatas. \"Warna berikutnya\" (atau X) memilih warna: manfaatkan reaksi berantai.",
+    "puzzle": "Rantai diam dan tembakanmu terbatas. “Warna berikutnya” (atau X) memilih warna: manfaatkan reaksi berantai.",
     "rhythm": "Rantai bergerak mengikuti musik. Tembak saat cincin menutup pada penembak: groove melipatgandakan poin hingga ×4.",
-    "duel": "Setiap ledakan mendorong rantai ke lubang lawan. Jatuhkan ke lubang lawan sebelum mencapai lubangmu.",
+    "duel": "Setiap ledakan mendorong rantai ke lubang lawan. Jatuhkan rantai ke lubang lawan sebelum rantai mencapai lubangmu.",
     "arrhythmia": "Aritmia: rantai melaju lalu melambat tanpa peringatan. Lintasan memerah saat rantai melesat.",
     "meteors": "Bola berjatuhan dari langit: bayangan menunjukkan tempat jatuhnya.",
     "wind": "Angin sakal: saat embusan, garis bidik menunjukkan arah melesetnya tembakan. Tembakan bermuatan (tahan) tetap lurus.",
@@ -189,8 +183,6 @@
   "daily": {
     "title": "Tantangan harian",
     "short": "Harian",
-    "todo": "Untuk dimainkan: level {level}",
-    "done": "Selesai: {score} poin",
     "counted": "Hanya percobaan pertama hari ini yang dihitung: {score} poin.",
     "share": "Bagikan hasilku",
     "shareText": "Ballmania · Tantangan {date}: {score} poin {stars} · {url}",
@@ -218,7 +210,6 @@
   },
   "shop": {
     "title": "Bengkel",
-    "pitch": "Penembak, jejak, pecahan",
     "intro": "Semuanya didapat dengan bermain. Ini hanya tampilan: tidak ada yang membuat permainan lebih mudah.",
     "slots": {
       "shooter": "Penembak",
@@ -258,8 +249,7 @@
   },
   "achievements": {
     "title": "Target",
-    "count": "{done} / {total} tercapai",
-    "intro": "Setiap target yang tercapai memberi kepingan untuk dibelanjakan di bengkel.",
+    "intro": "Setiap target yang tercapai memberi kepingan untuk dibelanjakan di Bengkel.",
     "reached": "Target tercapai: {name}",
     "done": "Tercapai",
     "progress": "{current} dari {target}",
@@ -309,7 +299,7 @@
         "text": "Ubah {target} persimpangan."
       },
       "no-swap": {
-        "name": "Tanpa jaring",
+        "name": "Tanpa jaring pengaman",
         "text": "Menangkan level tanpa menukar bola."
       },
       "close-call": {
@@ -321,11 +311,11 @@
         "text": "Dapatkan 3 bintang di {target} level."
       },
       "colossus": {
-        "name": "Pembunuh raksasa",
+        "name": "Penakluk raksasa",
         "text": "Kalahkan satu Kolosus."
       },
       "daily-3": {
-        "name": "Pelanggan setia",
+        "name": "Pemain setia",
         "text": "Mainkan tantangan harian selama {target} hari."
       },
       "world-nebula": {
@@ -385,10 +375,8 @@
   },
   "magnet": {
     "button": "Magnet",
-    "charges": "{count} dari {max} muatan",
     "armed": "Bidik bola yang mau disedot",
-    "label": "Magnet, {count} dari {max} muatan",
-    "pulled": "Bola tersedot"
+    "label": "Magnet, {count} dari {max} muatan"
   },
   "tones": {
     "0": "rubi",
@@ -403,16 +391,13 @@
     "formula": "{a} + {b} = {result}"
   },
   "switch": {
-    "label": "Persimpangan {number}: {branch}",
     "short": "jalan pintas",
     "long": "jalan memutar",
-    "locked": "terkunci",
     "flipped": "Persimpangan diarahkan ke {branch}"
   },
   "arcade": {
     "title": "Arkade",
     "intro": "Empat mode untuk bermain dengan cara lain. Masing-masing terbuka setelah kamu menyelesaikan satu dunia kampanye.",
-    "open": "{count} / {total} mode terbuka",
     "locked": "Selesaikan dunia {world} untuk membukanya.",
     "start": "Main",
     "endless": {
@@ -544,18 +529,18 @@
       "name": "Perisai panas",
       "r1": "Saat badai matahari, kelompok berisi 4 tetap meledak.",
       "r2": "Semua kelompok meledak.",
-      "r3": "Dan badai berlangsung separuh lebih singkat."
+      "r3": "Dan badai hanya berlangsung separuh waktu."
     },
     "icebreaker": {
       "name": "Pemecah es",
-      "r1": "Dingin memperlambat tembakanmu sepertiga lebih sedikit.",
-      "r2": "Dua pertiga lebih sedikit.",
+      "r1": "Efek dingin pada tembakanmu berkurang sepertiga.",
+      "r2": "Berkurang dua pertiga.",
       "r3": "Setiap ledakan memecahkan bola beku."
     },
     "anchor": {
       "name": "Jangkar",
-      "r1": "Angin membelokkan tembakanmu 35% lebih sedikit.",
-      "r2": "70% lebih sedikit.",
+      "r1": "Efek angin pada tembakanmu berkurang 35%.",
+      "r2": "Berkurang 70%.",
       "r3": "Angin tak lagi membelokkan tembakanmu."
     },
     "catcher": {
@@ -586,10 +571,10 @@
       "name": "Mundur"
     },
     "slow": {
-      "cheer": "Perlambat!",
-      "announce": "Perlambat: rantai bergerak setengah kecepatan selama 8 detik.",
-      "chip": "Perlambat · {seconds} dtk",
-      "name": "Perlambat"
+      "cheer": "Perlambatan!",
+      "announce": "Perlambatan: rantai bergerak dengan setengah kecepatan selama 8 detik.",
+      "chip": "Perlambatan · {seconds} dtk",
+      "name": "Perlambatan"
     },
     "rainbow": {
       "cheer": "Pelangi!",
@@ -634,9 +619,9 @@
     "forShardsShort": "{price} kepingan · kamu punya {balance}"
   },
   "demo": {
-    "fullGame": "Di game lengkap",
+    "fullGame": "Di versi lengkap",
     "note": "Demo: 2 dari 6 dunia",
-    "done": "Demo selesai! Empat dunia lagi menantimu di game lengkap."
+    "done": "Demo selesai! Empat dunia lagi menantimu di versi lengkap."
   },
   "next": {
     "world": "Dunia baru: {name}",

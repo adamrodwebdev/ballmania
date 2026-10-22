@@ -62,9 +62,9 @@ Différenciation :
 
 ### 2.3 Nom et propriété intellectuelle
 
-- Les noms des jeux de référence du genre (« Zuma », « Luxor »…) ne sont **jamais
-  utilisés**, ni dans le jeu, ni dans le code, ni dans le référencement : ce sont des marques
-  de leurs éditeurs.
+- Les noms des jeux de référence du genre ne sont **jamais utilisés**, ni dans le jeu, ni
+  dans le code, ni dans la documentation, ni dans le référencement : ce sont des marques de
+  leurs éditeurs.
 - Les règles d'un jeu ne sont pas protégeables, mais **l'apparence** l'est (_Tetris Holding
   v. Xio Interactive_, 2012) : pas de grenouille-idole, pas de temple de pierre ni d'univers
   précolombien, pas de cartouches de niveaux imités. Univers, palette, lanceur, chemins et noms

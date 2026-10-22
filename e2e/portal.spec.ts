@@ -82,7 +82,7 @@ test.describe('portal build', () => {
     await page.getByTestId('ad-hint').click();
     await expect(page.getByTestId('simulated-ad')).toBeVisible();
     await expect(page.getByTestId('simulated-ad')).toBeHidden();
-    await expect(page.getByRole('status').filter({ hasText: 'circled ball' })).toBeAttached();
+    await expect(page.getByRole('status').filter({ hasText: 'circled marble' })).toBeAttached();
     expect(await log(page)).toContain('rewarded');
     // Not offered again at once: a minute between two hints.
     await page.getByTestId('pause').click();

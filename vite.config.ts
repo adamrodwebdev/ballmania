@@ -41,9 +41,15 @@ const contentSecurityPolicy = (): Plugin => ({
 /** Public address of the site, for absolute links (canonical, social cards, sitemap). */
 const SITE_URL = process.env.SITE_URL?.replace(/\/?$/, '/') ?? null;
 
-const TITLE = 'Ballmania — le tir de billes réinventé';
-const DESCRIPTION =
-  'Tir de billes en chaîne réinventé : campagne de six mondes, modes Arcade, explosions spectaculaires. Gratuit, sans inscription, sur mobile et ordinateur.';
+/** A page's title and description are the game's own messages: one text per language. */
+const metaOf = (locale: 'fr' | 'en') =>
+  (
+    JSON.parse(
+      readFileSync(new URL(`./src/i18n/locales/${locale}.json`, import.meta.url), 'utf8'),
+    ) as { meta: { title: string; description: string } }
+  ).meta;
+
+const { title: TITLE, description: DESCRIPTION } = metaOf('fr');
 
 /**
  * Search engines and social networks (specification § 4): Open Graph and
@@ -175,27 +181,31 @@ const playgama = (): Plugin => ({
 });
 
 /**
- * A portal's page speaks English first, the language of the portals'
- * moderators and of most of their players: its language, title and
- * description. The game then follows each player's language (§ 3.7).
+ * The page's language, title and description. Our site speaks French first; a
+ * portal's page speaks English, the language of the portals' moderators and of
+ * most of their players. The game then follows each player's language (§ 3.7).
  */
-const PORTAL_TITLE = 'Ballmania — marble shooting reinvented';
-const PORTAL_DESCRIPTION =
-  'Chain marble shooting reinvented: a six-world campaign, Arcade modes, spectacular explosions. Free, no sign-up, on mobile and desktop.';
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const portalPage = (platform: PlatformId): Plugin => ({
-  name: 'ballmania:portal-page',
-  apply: 'build',
-  transformIndexHtml: (html) =>
-    html
-      .replace('<html lang="fr">', '<html lang="en">')
-      .replace(
-        /<title>[^<]*<\/title>/,
-        // Playgama: the two-word title, as on its page.
-        `<title>${platform === 'playgama' ? PORTAL_TITLE.replace('Ballmania', 'Ball Mania') : PORTAL_TITLE}</title>`,
-      )
-      .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${PORTAL_DESCRIPTION}$2`),
-});
+const pageText = (platform: PlatformId): Plugin => {
+  const locale = platform === 'standalone' ? 'fr' : 'en';
+  const { title, description } = metaOf(locale);
+  // Playgama: the two-word title, as on its page.
+  const shown = platform === 'playgama' ? title.replace('Ballmania', 'Ball Mania') : title;
+  return {
+    name: 'ballmania:page-text',
+    apply: 'build',
+    transformIndexHtml: (page) =>
+      page
+        .replace('<html lang="fr">', `<html lang="${locale}">`)
+        .replace(/<title>[^<]*<\/title>/, () => `<title>${escapeHtml(shown)}</title>`)
+        .replace(
+          /(<meta\s+name="description"\s+content=")[^"]*(")/,
+          (_, start: string, end: string) => `${start}${escapeHtml(description)}${end}`,
+        ),
+  };
+};
 
 /** CrazyGames: its SDK in the <head>, loaded before the game, as their documentation asks. */
 const crazygames = (): Plugin => ({
@@ -240,7 +250,7 @@ export default defineConfig(({ mode }) => {
       // Search engines and the CSP concern our own site: on a portal, the
       // portal's page is the one indexed.
       ...(site ? [contentSecurityPolicy(), seo()] : demo ? [contentSecurityPolicy()] : []),
-      ...(platform === 'standalone' ? [] : [portalPage(platform)]),
+      pageText(platform),
       ...(platform === 'playgama' ? [playgama()] : []),
       ...(platform === 'crazygames' ? [crazygames()] : []),
     ],
