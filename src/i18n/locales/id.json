@@ -145,7 +145,6 @@
     "aim": "Bola pertamamu adalah bom Nova: bidik rantai lalu lepaskan!",
     "swap": "Tukar bola yang siap dengan bola berikutnya: sentuh penembak atau tekan X.",
     "reaction": "Saat dua bagian berwarna sama bertemu, keduanya ikut meledak: itulah reaksi berantai.",
-    "colours": "Warna keempat ikut bermain.",
     "twin": "Dua rantai sekaligus: awasi kedua lubang.",
     "colossus": "Kolosus mendorong rantai: ledakkan bola tepat di dekatnya untuk melukainya.",
     "ricochet": "Dinding memantulkan tembakanmu. Bola yang kena setelah satu pantulan bernilai ×2, setelah dua pantulan ×3.",
@@ -179,7 +178,8 @@
     "abyss": "Kolosus Samudra",
     "jewel": "Kolosus Kristal",
     "volcano": "Kolosus Lava",
-    "singularity": "Kolosus Pamungkas"
+    "singularity": "Kolosus Pamungkas",
+    "young": "Kolosus Bintang Muda"
   },
   "player": {
     "balance": "{count} kepingan",
@@ -322,7 +322,7 @@
       },
       "colossus": {
         "name": "Pembunuh raksasa",
-        "text": "Kalahkan Kolosus Bintang."
+        "text": "Kalahkan satu Kolosus."
       },
       "daily-3": {
         "name": "Pelanggan setia",

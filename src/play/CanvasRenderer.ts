@@ -97,6 +97,16 @@ export interface Scene {
 /** Length of the aim guide without aim assistance, in board units. */
 const GUIDE = 160;
 
+/**
+ * How each form of the Colossus is drawn, in body radii: its orbiting runes,
+ * the size of its eye and how far ahead it sits. The young one (v1.7.4) has
+ * fewer, bigger runes and a wide eye.
+ */
+const COLOSSUS_LOOKS = {
+  adult: { runes: 6, rune: 0.09, eye: 1, gaze: 0.38 },
+  young: { runes: 3, rune: 0.14, eye: 1.45, gaze: 0.3 },
+} as const;
+
 /** Where the loaded ball would land, and the balls that would explode with it. */
 export interface AimPreview {
   readonly position: Vec2;
@@ -755,24 +765,45 @@ export class CanvasRenderer implements Renderer {
     ctx.strokeStyle = palette.danger;
     ctx.stroke();
 
-    // Six runes orbiting the body.
+    // Runes orbiting the body.
+    const look = setup.young ? COLOSSUS_LOOKS.young : COLOSSUS_LOOKS.adult;
     ctx.fillStyle = palette.accent;
-    for (let i = 0; i < 6; i++) {
-      const angle = scene.time * 0.8 + (i / 6) * Math.PI * 2;
+    for (let i = 0; i < look.runes; i++) {
+      const angle = scene.time * 0.8 + (i / look.runes) * Math.PI * 2;
       ctx.beginPath();
-      ctx.arc(Math.cos(angle) * r * 1.22, Math.sin(angle) * r * 1.22, r * 0.09, 0, Math.PI * 2);
+      ctx.arc(
+        Math.cos(angle) * r * 1.22,
+        Math.sin(angle) * r * 1.22,
+        r * look.rune,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
     }
 
     // The eye looks along the track, at the chain it pushes.
-    const eye = ahead.scale(r * 0.38);
+    const eye = ahead.scale(r * look.gaze);
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.ellipse(eye.x, eye.y, r * 0.3, r * 0.2, ahead.angle(), 0, Math.PI * 2);
+    ctx.ellipse(
+      eye.x,
+      eye.y,
+      r * 0.3 * look.eye,
+      r * 0.2 * look.eye,
+      ahead.angle(),
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
     ctx.fillStyle = palette.danger;
     ctx.beginPath();
-    ctx.arc(eye.x + ahead.x * r * 0.08, eye.y + ahead.y * r * 0.08, r * 0.11, 0, Math.PI * 2);
+    ctx.arc(
+      eye.x + ahead.x * r * 0.08,
+      eye.y + ahead.y * r * 0.08,
+      r * 0.11 * look.eye,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
 
     if (scene.colossusFlash > 0) {

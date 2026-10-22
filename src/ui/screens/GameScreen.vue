@@ -90,10 +90,7 @@ const controlsBar = ref<HTMLElement | null>(null);
  * A boss's health, the alchemy recipes or the duel's rope: a second line of
  * the HUD, whose room is kept from the start so that the board never moves.
  */
-const extraRow =
-  alchemy ||
-  request.kind === 'duel' ||
-  (request.kind === 'campaign' && request.level.colossus !== undefined);
+const extraRow = alchemy || request.kind === 'duel' || mode.boss !== null;
 const settingsDialog = ref<{ open: () => void } | null>(null);
 const pauseDialog = ref<HTMLDialogElement | null>(null);
 const endDialog = ref<HTMLDialogElement | null>(null);
@@ -816,8 +813,8 @@ const quit = () => emit('quit');
           <span class="dot" :class="`tone-${recipe.result}`" aria-hidden="true"></span>
         </span>
       </p>
-      <label v-if="hud?.colossus" class="colossus">
-        <span>{{ t(`colossus.${mode.world}`) }}</span>
+      <label v-if="hud?.colossus && mode.boss" class="colossus">
+        <span>{{ say(mode.boss) }}</span>
         <progress
           class="health"
           :max="hud.colossus.maxHp"

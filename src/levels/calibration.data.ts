@@ -8,8 +8,8 @@
 export const CALIBRATION: Readonly<Record<string, readonly [number, number, number]>> = {
   'nebula-01': [17, 1450, 2050],
   'nebula-02': [28, 1150, 1550],
-  'nebula-03': [41, 1450, 1800],
-  'nebula-04': [53, 1600, 2150],
+  'nebula-03': [39, 1100, 1550],
+  'nebula-04': [44, 1650, 2000],
   'nebula-05': [62, 1700, 2250],
   'nebula-06': [51, 1600, 1950],
   'nebula-07': [57, 1900, 2400],

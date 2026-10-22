@@ -1,6 +1,7 @@
 import type { GameReport } from '@/engine/Game';
 import {
   CAMPAIGN,
+  colossusName,
   nextLevel,
   starsFor,
   starThresholds,
@@ -30,14 +31,18 @@ const shortName = (level: CampaignLevel): Message => ({
   params: { world: worldNumber(level), number: level.number },
 });
 
+/** The name of the Colossus a level opposes, if it has one. */
+const bossOf = (level: CampaignLevel): Message | null =>
+  level.colossus ? { key: colossusName(level.world, level.colossus.young) } : null;
+
 /** How each kind of novelty is said under the "next level" button. */
 const NOVELTY_MESSAGES: {
   readonly [K in Novelty['kind']]: (novelty: Extract<Novelty, { kind: K }>) => Message;
 } = {
   world: ({ world }) => ({ key: 'next.world', params: { name: { key: `worlds.${world}.name` } } }),
-  colossus: ({ world }) => ({
+  colossus: ({ world, young }) => ({
     key: 'next.colossus',
-    params: { name: { key: `colossus.${world}` } },
+    params: { name: { key: colossusName(world, young) } },
   }),
   power: ({ power }) => ({ key: 'next.power', params: { name: { key: `power.${power}.name` } } }),
   mechanic: ({ hint }) => ({
@@ -68,6 +73,10 @@ export class CampaignMode implements PlayMode {
 
   get world() {
     return this.level.world;
+  }
+
+  get boss(): Message | null {
+    return bossOf(this.level);
   }
 
   get hint() {
@@ -146,6 +155,10 @@ export class DailyMode implements PlayMode {
 
   get world() {
     return this.challenge.level.world;
+  }
+
+  get boss(): Message | null {
+    return bossOf(this.challenge.level);
   }
 
   get alchemy(): boolean {

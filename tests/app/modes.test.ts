@@ -77,11 +77,17 @@ describe('play modes', () => {
       key: 'game.nextLevelNamed',
       params: { level: { key: 'campaign.levelShort', params: { world: 1, number: 2 } } },
     });
-    // Level 1-2 teaches nothing new; level 1-3 brings the Rewind marble.
+    // Level 1-2 teaches nothing new; level 1-3 brings the young Colossus, 1-4 the Rewind marble.
     expect(mode.next(app)?.detail).toBeUndefined();
     const second = createMode({ kind: 'campaign', level: findLevel('nebula-02')! });
     second.settle(report(), app);
     expect(second.next(app)?.detail).toEqual({
+      key: 'next.colossus',
+      params: { name: { key: 'colossus.young' } },
+    });
+    const third = createMode({ kind: 'campaign', level: findLevel('nebula-03')! });
+    third.settle(report(), app);
+    expect(third.next(app)?.detail).toEqual({
       key: 'next.power',
       params: { name: { key: 'power.rewind.name' } },
     });
@@ -92,6 +98,15 @@ describe('play modes', () => {
       mode.definition(FRAMES.square, play(false, 'pilot')).speed,
     );
     expect(legend.scoreFactor).toBe(1.3);
+  });
+
+  it('name the Colossus a game opposes, the young one of 1-3 included', () => {
+    const boss = (id: string) => createMode({ kind: 'campaign', level: findLevel(id)! }).boss;
+    expect(boss('nebula-01')).toBeNull();
+    expect(boss('nebula-03')).toEqual({ key: 'colossus.young' });
+    expect(boss('nebula-12')).toEqual({ key: 'colossus.nebula' });
+    expect(boss('neon-12')).toEqual({ key: 'colossus.neon' });
+    expect(createMode({ kind: 'endless' }).boss).toBeNull();
   });
 
   it('play the daily challenge with its shared seed', () => {

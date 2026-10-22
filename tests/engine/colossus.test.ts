@@ -114,6 +114,22 @@ describe('ColossusObjective', () => {
     expect(events).toEqual(['hit 10 → 20', 'phase 1', 'hit 12 → 8', 'phase 2', 'hit 8 → 0']);
   });
 
+  it('keeps one pace with a single phase, like the young Colossus', () => {
+    const { chain, ctx, events } = context('abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
+    const objective = new ColossusObjective({ ...setup, phases: [1], young: true });
+    objective.start(ctx);
+    const blow = (balls: number, depth: number) => ({
+      balls: chain.balls.slice(1, 1 + balls),
+      cause: 'shot' as const,
+      depth,
+    });
+    objective.onExplosion(ctx, 0, blow(5, 2));
+    objective.onExplosion(ctx, 0, blow(5, 3));
+    expect(objective.phase).toBe(0);
+    expect(chain.balls.some((ball) => ball.tone === 5)).toBe(false);
+    expect(events).toEqual(['hit 10 → 20', 'hit 15 → 5']);
+  });
+
   it('grows its chain back when it runs out', () => {
     const { chain, ctx } = context('a');
     const objective = new ColossusObjective(setup);

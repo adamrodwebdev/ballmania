@@ -15,7 +15,6 @@ export type HintId =
   | 'powerSlow'
   | 'powerRainbow'
   | 'powerLaser'
-  | 'colours'
   | 'twin'
   | 'colossus'
   | 'ricochet'
@@ -78,7 +77,11 @@ export interface CampaignLevel {
   readonly sequence?: readonly number[];
   /** The first colours the launcher deals (level 1-1: the colour its showcase needs). */
   readonly opening?: readonly number[];
-  readonly colossus?: { readonly hp: number; readonly spit: number };
+  /**
+   * A boss pushes the chain. `young`: the Colossus of world 1 met early, at
+   * 1-3 (v1.7.4): smaller, a single phase, with a name of its own.
+   */
+  readonly colossus?: { readonly hp: number; readonly spit: number; readonly young?: true };
   readonly mirrors?: readonly MirrorRecipe[];
   /**
    * Jewel world: the colours of the chain. Shots are primaries that fuse
@@ -245,9 +248,11 @@ const SHOWCASE_LEAD = 16;
 /**
  * World 1, Nebula: the basic rules, then their combinations, in a saw-tooth
  * curve (three levels up, one to breathe), ending with the stellar Colossus.
- * The powers arrive one at a time (v1.7): Rewind at 1-3, alone and early,
- * Slow-down at 1-6, Rainbow shot at 1-8, Laser at 1-10; one lesson a level.
- * Level 1-1 shows a Laser first, as a glimpse.
+ * Its young form comes at 1-3 (v1.7.4), so a boss shows within minutes, and
+ * 1-4 breathes after it with three colours; the fourth comes at 1-5. The
+ * powers arrive one at a time (v1.7): Rewind at 1-4, Slow-down at 1-6,
+ * Rainbow shot at 1-8, Laser at 1-10; one lesson a level. Level 1-1 shows a
+ * Laser first, as a glimpse.
  */
 const NEBULA: readonly CampaignLevel[] = [
   level(1, {
@@ -273,21 +278,21 @@ const NEBULA: readonly CampaignLevel[] = [
   }),
   level(3, {
     track: { kind: 'serpentine', rows: 3 },
-    length: 36,
+    length: 24,
     tones: 3,
     repeatChance: 0.45,
-    speed: 38,
-    hint: 'power',
-    powers: { kinds: ['rewind'], every: 99, first: 'rewind' },
+    speed: 30,
+    hint: 'colossus',
+    colossus: { hp: 20, spit: 4, young: true },
   }),
   level(4, {
     track: spiral(1.5, 0.5, true),
     length: 40,
-    tones: 4,
+    tones: 3,
     repeatChance: 0.45,
     speed: 44,
-    hint: 'colours',
-    powers: { kinds: ['rewind'], every: 20 },
+    hint: 'power',
+    powers: { kinds: ['rewind'], every: 20, first: 'rewind' },
   }),
   level(5, {
     track: spiral(1.45, 0.75, true, { squareness: 3 }),
@@ -973,6 +978,11 @@ export function findLevel(id: string): CampaignLevel | undefined {
 /** The level after this one in the campaign, if any. */
 export function nextLevel(current: CampaignLevel): CampaignLevel | undefined {
   return CAMPAIGN[CAMPAIGN.indexOf(current) + 1];
+}
+
+/** The i18n key of a Colossus's name: one per world, and one for the young Colossus. */
+export function colossusName(world: WorldId, young = false): string {
+  return young ? 'colossus.young' : `colossus.${world}`;
 }
 
 /**

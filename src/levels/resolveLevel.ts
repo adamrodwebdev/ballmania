@@ -23,6 +23,16 @@ export const WEATHER_DURATION = 7;
 /** Seconds of one arrhythmia cycle. */
 export const ARRHYTHMIA_PERIOD = 9;
 
+/**
+ * The two forms of a Colossus: its size in ball radii, and its pushing speed
+ * in each phase (a new phase starts at each third of its health). The young
+ * one of 1-3 (v1.7.4) is smaller and never speeds up.
+ */
+const COLOSSUS_FORMS = {
+  adult: { radius: 2.3, phases: [1, 1.25, 1.5] },
+  young: { radius: 1.6, phases: [1] },
+} as const;
+
 /** The hazards of a level, scaled by the difficulty (§ 3.9). */
 function hazardsOf(level: CampaignLevel, factor: number): HazardSetup | undefined {
   const hazards = level.hazards;
@@ -63,13 +73,15 @@ export function resolveLevel(
   const longest = Math.max(
     ...track.paths.map((points) => Path.fromPoints(points.map(([x, y]) => new Vec2(x, y))).length),
   );
+  const form = level.colossus?.young ? COLOSSUS_FORMS.young : COLOSSUS_FORMS.adult;
   const colossus: ColossusSetup | undefined = level.colossus && {
     chain: 0,
     hp: level.colossus.hp,
-    radius: radius * 2.3,
+    radius: radius * form.radius,
     reach: radius * 2 * 3,
-    phases: [1, 1.25, 1.5],
+    phases: form.phases,
     spit: level.colossus.spit,
+    ...(level.colossus.young ? { young: true } : {}),
   };
   // Singularity world: the shooter stands at the bottom of a ring around the
   // black hole, and glides along it when the level says so.

@@ -145,7 +145,6 @@
     "aim": "Your first ball is a Nova bomb: aim at the chain and release!",
     "swap": "Swap the loaded ball with the next one: tap the shooter or press X.",
     "reaction": "When two pieces of the same colour meet, they explode in turn: that's a chain reaction.",
-    "colours": "A fourth colour joins the game.",
     "twin": "Two chains at once: watch both holes.",
     "colossus": "The Colossus pushes the chain: blow up balls right next to it to hurt it.",
     "ricochet": "Walls bounce your shots back. A ball hit after one rebound is worth ×2, after two ×3.",
@@ -179,7 +178,8 @@
     "abyss": "Abyssal Colossus",
     "jewel": "Crystal Colossus",
     "volcano": "Lava Colossus",
-    "singularity": "Ultimate Colossus"
+    "singularity": "Ultimate Colossus",
+    "young": "Young Stellar Colossus"
   },
   "player": {
     "balance": "{count} shards",
@@ -322,7 +322,7 @@
       },
       "colossus": {
         "name": "Giant slayer",
-        "text": "Defeat the Stellar Colossus."
+        "text": "Defeat a Colossus."
       },
       "daily-3": {
         "name": "Regular",

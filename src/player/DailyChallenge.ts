@@ -1,8 +1,10 @@
 import { WORLDS, type CampaignLevel } from '@/levels/campaign';
 import { dayKey } from './days';
 
-/** Levels the challenge draws from: the first world, without the tutorials nor the boss. */
-const POOL: readonly CampaignLevel[] = WORLDS[0]!.levels.slice(2, 11);
+/** Levels the challenge draws from: the first world, without the tutorials nor the bosses. */
+const POOL: readonly CampaignLevel[] = WORLDS[0]!.levels
+  .slice(2, 11)
+  .filter((level) => !level.colossus);
 
 /** FNV-1a: a stable hash, so a day always gives the same level. */
 function hash(text: string): number {
