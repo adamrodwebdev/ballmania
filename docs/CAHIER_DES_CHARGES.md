@@ -189,16 +189,16 @@ Deux portes d'entrée depuis l'accueil :
 
 | Niveau | Tracé                                    | Billes        | Couleurs | Vitesse | Conseil affiché          |
 | ------ | ---------------------------------------- | ------------- | -------- | ------- | ------------------------ |
-| 1      | Spirale 1,25 tour                        | 28            | 3        | 30      | Viser et tirer           |
+| 1      | Spirale 1,25 tour (vitrine)              | 36            | 3        | 30      | Viser et tirer           |
 | 2      | Spirale 1,35 tour, sens inverse          | 34            | 3        | 34      | Échanger les billes      |
-| 3      | Serpentin 3 rangées                      | 36            | 3        | 38      | Réaction en chaîne       |
-| 4      | Spirale 1,5 tour                         | 40            | 4        | 44      | Quatrième couleur        |
-| 5      | Spirale « carrée » 1,45 tour             | 44            | 4        | 50      | —                        |
-| 6      | Serpentin 3 rangées (respiration)        | 38            | 4        | 42      | —                        |
+| 3      | Serpentin 3 rangées + **jeune Colosse**  | 24 + renforts | 3        | 30      | Blesser le Colosse       |
+| 4      | Spirale 1,5 tour (respiration)           | 40            | 3        | 44      | Bille Recul              |
+| 5      | Spirale « carrée » 1,45 tour             | 44            | 4        | 50      | Réaction en chaîne       |
+| 6      | Serpentin 3 rangées (respiration)        | 38            | 4        | 42      | Bille Ralenti            |
 | 7      | Double spirale, 2 chaînes                | 2 × 22        | 4        | 44      | Deux chaînes, deux trous |
-| 8      | Spirale 1,7 tour, sens inverse           | 50            | 4        | 58      | —                        |
+| 8      | Spirale 1,7 tour, sens inverse           | 50            | 4        | 58      | Bille Arc-en-ciel        |
 | 9      | Serpentin 4 rangées                      | 52            | 4        | 48      | —                        |
-| 10     | Spirale arrondie (respiration)           | 46            | 4        | 50      | —                        |
+| 10     | Spirale arrondie (respiration)           | 46            | 4        | 50      | Bille Laser              |
 | 11     | Spirale carrée 1,65 tour                 | 54            | 5        | 68      | —                        |
 | 12     | Spirale 1,6 tour + **Colosse stellaire** | 26 + renforts | 4        | 26      | Blesser le Colosse       |
 
@@ -208,6 +208,16 @@ Deux portes d'entrée depuis l'accueil :
   (× 1,25 puis × 1,5), crache 6 billes devant lui et rugit ; une chaîne vide repousse
   aussitôt. Quand il tombe, toutes les billes restantes explosent en cascade. S'il atteint
   le trou, la partie est perdue.
+- **Jeune Colosse** (v1.7.4), au 1-3, pour qu'un boss arrive dès les premières minutes :
+  le même en plus petit (1,6 rayon de bille au lieu de 2,3), 20 points de vie, une seule
+  phase (il n'accélère jamais), 4 billes crachées quand sa chaîne s'épuise ; trois runes et
+  un grand œil au lieu de six runes. Son nom s'affiche sur sa barre de vie (« Jeune Colosse
+  stellaire »), le panneau du 1-2 l'annonce (« Boss : Jeune Colosse stellaire ») et il
+  compte pour l'objectif « Vaincre un Colosse ». Il revient adulte au 1-12 ; le 1-4 souffle
+  ensuite à trois couleurs et enseigne la bille Recul, la quatrième couleur arrive au 1-5.
+  Robots occasionnel, humain et appliqué, six parties sur chacun des cinq plateaux : 90
+  victoires sur 90, en 27 à 34 s, danger moyen de 0,21 à 0,39 du tracé contre 0,46 à 0,72
+  au 1-12.
 - **Équilibrage** : un robot « joueur occasionnel » (un tir toutes les 1,2 s, visée
   imprécise, stratégie gloutonne) joue chaque niveau 6 fois à chaque vérification. Il doit
   gagner au moins 4 parties sur 6 ; la pression (avancée maximale de la tête de chaîne)
@@ -718,10 +728,10 @@ terminer Néon, 200 éclats ; au lot 8 : fusionner 20 fois, 60 éclats, et termi
 Abysses, 250 éclats) : gagner un niveau (20), réaction ×3 (30) et ×5 (80),
 5 et 10 tirs réussis d'affilée (40, 100), 500 et 2 000 billes détruites (50, 120), gagner
 sans échanger (40), gagner alors que la chaîne a dépassé 90 % du tracé (50), 3 étoiles sur
-5 niveaux (80), vaincre le Colosse (100), jouer le défi 3 jours (60), terminer la Nébuleuse
+5 niveaux (80), vaincre un Colosse (100), jouer le défi 3 jours (60), terminer la Nébuleuse
 (150). Atteints automatiquement, payés aussitôt, listés avec leur progression.
 
-**Défi du jour** : un niveau de la Nébuleuse (3 à 11, ni tutoriels ni boss) tiré par
+**Défi du jour** : un niveau de la Nébuleuse (4 à 11, ni tutoriels ni boss) tiré par
 hachage de la date locale, avec la même suite de billes pour tous (graine `daily:AAAAMMJJ`).
 Seul le **premier essai du jour** compte (éclats, résultat affiché sur l'accueil) ; on peut
 rejouer pour le plaisir. Le résultat se **partage** par la feuille de partage du téléphone,
@@ -1001,6 +1011,15 @@ Livré à l'étape 11.2 :
   10. **Seconde chance** : une fois par niveau, quand la chaîne atteint le trou, elle est
       repoussée de 15, 25 puis 35 % du tracé.
 - Une pastille signale **sur l'accueil et la carte** qu'une amélioration est abordable.
+- **Bulle de l'Observatoire** (v1.7.4) : la première fois qu'une amélioration devient
+  abordable, une bulle sous le bouton Observatoire de la carte (au-dessus, au pied de la
+  colonne, sur un écran couché) dit « Améliorez votre jeu ici avec vos fragments
+  d'étoiles. », et un anneau souligne le bouton. Dans le flux de la page, elle ne cache
+  rien. Elle s'affiche lors d'une seule visite de la carte, disparaît au toucher et rend le
+  focus au bouton ; ouvrir l'Observatoire la retire aussi, et qui possède déjà une
+  amélioration ne la voit jamais. Pour un lecteur d'écran, le texte est une note et un
+  bouton « Compris » la ferme ; son entrée disparaît avec le mouvement réduit. Le profil
+  retient les conseils déjà montrés (`tips`).
 
 Livré à l'étape 11.3 :
 
@@ -1092,9 +1111,10 @@ fait éclater son nom au-dessus du plateau.
   billes, au moins une ; celle qu'un niveau enseigne arrive en premier, vers la tête. Dans
   une chaîne qui s'allonge (Infini, Colosse), une bille bonus toutes les `every` billes
   ajoutées, les pouvoirs à tour de rôle.
-- **Apprentissage, une nouveauté par niveau** : Recul au 1-3 (seul, tôt, conseil « Les
-  billes à anneau cachent un pouvoir… »), Ralenti au 1-6, Arc-en-ciel au 1-8, Laser au
-  1-10, après un avant-goût du Laser dans la vitrine du 1-1 ; le conseil sur les réactions en chaîne passe du 1-3 au 1-5. Le Colosse du monde 1
+- **Apprentissage, une nouveauté par niveau** : Recul au 1-4 (au 1-3 jusqu'à la 1.7.3, qui
+  accueille depuis le jeune Colosse ; conseil « Les billes à anneau cachent un pouvoir… »),
+  Ralenti au 1-6, Arc-en-ciel au 1-8, Laser au 1-10, après un avant-goût du Laser dans la
+  vitrine du 1-1 ; le conseil sur les réactions en chaîne passe du 1-3 au 1-5. Le Colosse du monde 1
   ne porte que les pouvoirs d'attaque (arc-en-ciel, laser), rarement, pour garder sa
   pression. Mondes 2 à 6 : les quatre, une toutes les 20 billes. Infini : une toutes les
   24 billes. Pas dans les Énigmes, le Rythme ni le Duel.
@@ -1170,7 +1190,7 @@ fait éclater son nom au-dessus du plateau.
   trou, résultat sans animation.
 - **La suite** (v1.7.2) : le bouton principal du panneau de victoire annonce le niveau
   suivant et ce qu'il apporte pour la première fois (« Suivant : niveau 1-3 », puis
-  « Nouvelle bille : Recul », un Colosse, un nouveau monde ou une mécanique, d'après le
+  « Boss : Jeune Colosse stellaire », une bille, un nouveau monde ou une mécanique, d'après le
   conseil du niveau, `noveltyOf`) ; le bloc des gains donne les objectifs atteints, puis
   les éclats gagnés et la barre vers le prochain lanceur de l'Atelier (le moins cher
   qu'on ne possède pas, avec son aperçu : « Couronne · 115 / 150 éclats ») ; bonus de fin
@@ -1310,12 +1330,18 @@ Règles de simulation :
   **recule** jusqu'à la jonction, qui peut exploser à son tour.
 - **Remise en jeu** (v1.7.3) : quand une chaîne a moins de 8 billes sur le plateau et qu'il
   en reste dans le tunnel, elle reprend sa vitesse d'entrée, freinée à partir de 4 billes,
-  jusqu'à en montrer 8 ; jamais derrière un Colosse, en Duel, pour une chaîne immobile, ni
-  quand sa tête a passé 40 % du tracé. Mesuré au robot sur le monde 1 : l'attente (moins de
-  trois billes à l'écran pendant que d'autres attendent au tunnel) passe de 15,7 s au plus à
-  moins d'une seconde par niveau, et les parties d'un joueur rapide raccourcissent d'un tiers
-  (1-4 : 51 s → 32 s) ; victoires et danger inchangés. Au 1-1, chaque grosse explosion de la
-  vitrine laisse encore l'écran vide environ 0,3 s.
+  jusqu'à en montrer 8 ; jamais en Duel, pour une chaîne immobile, ni quand sa tête a passé
+  40 % du tracé. Mesuré au robot sur le monde 1 : l'attente (moins de trois billes à l'écran
+  pendant que d'autres attendent au tunnel) passe de 15,7 s au plus à moins d'une seconde
+  par niveau, et les parties d'un joueur rapide raccourcissent d'un tiers (1-4 : 51 s →
+  32 s) ; victoires et danger inchangés. Au 1-1, chaque grosse explosion de la vitrine
+  laisse encore l'écran vide environ 0,3 s.
+- **Derrière un Colosse aussi** (v1.7.4) : le Colosse, derrière la queue, est alors lui
+  aussi dans le tunnel ; il ne se presse donc que hors de vue, jamais vers le trou. Robot
+  rapide, part de la partie avec moins de trois billes à viser : 1-3 de 5,9 à 1,2 %,
+  Abysses 12 de 7,7 à 0,6 %, Joaillerie 12 de 13,9 à 1,4 %, Singularité 12 de 11,4 à
+  0,5 %, Volcan 12 de 3,4 à 0,3 %. Le combat de Joaillerie 12 raccourcit nettement (64 s au
+  lieu de 110 s pour le robot occasionnel, danger 0,34 au lieu de 0,49).
 - **Insertion** : la bille tirée se place avant ou après la bille touchée selon le côté de
   l'impact (projection sur la tangente) et pousse les billes devant elle.
 - **Profondeur** : remise à 1 quand plus aucun segment ne recule.

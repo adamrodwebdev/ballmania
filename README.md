@@ -16,7 +16,8 @@ indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
 - **Campagne** de 6 mondes × 12 niveaux, chacun avec sa mécanique et son Colosse :
   Nébuleuse (règles de base, sous un ciel de nébuleuse peint en couches), Néon (miroirs et
   ricochets), Abysses (aimant), Joaillerie (alchimie des couleurs), Volcan (aiguillages),
-  Singularité (gravité d'un trou noir, lanceur en orbite). Trois difficultés : Explorateur,
+  Singularité (gravité d'un trou noir, lanceur en orbite) ; un premier boss dès le niveau
+  1-3, le jeune Colosse stellaire. Trois difficultés : Explorateur,
   Pilote, Légende. Une jauge sous le score montre la 2ᵉ et la 3ᵉ étoile, et un bonus de temps
   récompense la vitesse ; à la victoire, le panneau annonce la nouveauté du niveau suivant et
   le prochain lanceur à gagner.
@@ -74,6 +75,9 @@ npm run dev
 | `npm test`           | Tests unitaires (Vitest)                                     |
 | `npm run test:e2e`   | Parcours Playwright, mobile et ordinateur, audits axe-core   |
 | `npm run lighthouse` | Audit Lighthouse mobile du build (`-- --desktop` sinon)      |
+
+Les parcours servent le build du site sur le port 4174 et celui du portail simulé sur le
+4175 ; si un autre projet les occupe déjà, `E2E_PORT` et `E2E_PORTAL_PORT` les déplacent.
 
 Pour un déploiement, `SITE_URL=https://exemple.org/ npm run build` ajoute le lien
 canonique, les adresses absolues des cartes de partage, `sitemap.xml` et un `robots.txt`
