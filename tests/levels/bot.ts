@@ -19,6 +19,8 @@ export interface BotResult {
   readonly idle: number;
   /** Seconds with fewer balls on the board than a group needs (3) while more wait in the tunnel. */
   readonly thin: number;
+  /** Longest run of shots in a row that each made a group explode. */
+  readonly bestStreak: number;
 }
 
 /**
@@ -301,5 +303,6 @@ export function playDefinition(
     rivalScore: game.rivalScore,
     idle: Math.round(idleFrames / 6) / 10,
     thin: Math.round(thinFrames / 6) / 10,
+    bestStreak: game.summary().bestStreak,
   };
 }
