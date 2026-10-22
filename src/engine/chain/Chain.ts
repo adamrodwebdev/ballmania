@@ -40,6 +40,14 @@ export interface Hit {
 /** Tolerance on "touching", to absorb floating-point drift. */
 const EPSILON = 1e-6;
 
+/**
+ * Fewer balls than this on the board while more wait in the tunnel: the chain
+ * hurries back in at its opening speed, easing off from half this number on.
+ */
+const CATCH_UP_BALLS = 8;
+/** …only while its head is in this first share of the track, far from the hole. */
+const CATCH_UP_REACH = 0.4;
+
 /** Something big behind the tail that pushes the chain instead of the tail itself (the Colossus). */
 interface Pusher {
   s: number;
@@ -337,11 +345,7 @@ export class Chain {
     const head = this.items[this.items.length - 1];
     const front = head?.s ?? this.pusher?.s ?? 0;
     if (front >= this.params.rushDistance) this.rushed = true;
-    const speed =
-      (this.rushed ? this.params.speed : this.params.rushSpeed) *
-      this.speedFactor *
-      this.paceValue *
-      this.powerFactor;
+    const speed = this.cruise(front) * this.speedFactor * this.paceValue * this.powerFactor;
     if (this.pusher) this.pusher.s += speed * dt;
     if (this.isEmpty) return [];
     const wasTouching = this.items.slice(0, -1).map((_, i) => this.touching(i));
@@ -377,6 +381,25 @@ export class Chain {
 
     if (this.settled) this.reaction = 0;
     return explosions;
+  }
+
+  /**
+   * Speed of the rear segment, before the factors: the opening rush, then the
+   * level's speed, and the rush again, eased, when the board runs short of balls
+   * while more wait in the tunnel (nothing to shoot at is waiting, not play).
+   * Never behind a Colossus, in a Duel, near the hole, or for a still chain.
+   */
+  private cruise(front: number): number {
+    const { speed, rushSpeed } = this.params;
+    if (!this.rushed) return rushSpeed;
+    const queued = (this.items[0]?.s ?? 0) < 0;
+    if (!queued || speed <= 0 || rushSpeed <= speed || this.pusher || this.params.compact) {
+      return speed;
+    }
+    if (front > this.path.length * CATCH_UP_REACH) return speed;
+    const onBoard = this.items.reduce((count, ball) => count + (ball.s >= 0 ? 1 : 0), 0);
+    const shortage = Math.min(1, Math.max(0, (CATCH_UP_BALLS - onBoard) / (CATCH_UP_BALLS / 2)));
+    return speed + (rushSpeed - speed) * shortage;
   }
 
   /**
