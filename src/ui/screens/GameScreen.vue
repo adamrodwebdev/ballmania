@@ -2001,6 +2001,26 @@ const quit = () => emit('quit');
   }
 }
 
+/* Phones of 640 px: the fullest result (two goals, an ad, a launcher, a novelty) still fits. */
+@media (max-height: 680px) {
+  .dialog {
+    padding: var(--space-4);
+  }
+
+  .dialog h2 {
+    margin-bottom: var(--space-2);
+  }
+
+  .gains {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .actions {
+    margin-top: var(--space-3);
+  }
+}
+
 /*
  * A won result (§ 3.5): a pane of frosted glass with a ring of light running
  * round its edge, which rises into place as the supernova fades; the title
