@@ -80,6 +80,12 @@
       "5": "Incredible!",
       "6": "Cosmic!",
       "nova": "Nova!"
+    },
+    "nextLevelNamed": "Next: Level {level}",
+    "reward": {
+      "launcher": "{name} · launcher",
+      "progress": "{have} / {price} shards",
+      "ready": "Ready in the Workshop!"
     }
   },
   "effects": {
@@ -572,22 +578,26 @@
   "power": {
     "rewind": {
       "cheer": "Rewind!",
-      "announce": "Rewind: the chain rolls back."
+      "announce": "Rewind: the chain rolls back.",
+      "name": "Rewind"
     },
     "slow": {
       "cheer": "Slow-down!",
       "announce": "Slow-down: the chain moves at half speed for 8 seconds.",
-      "chip": "Slow-down · {seconds} s"
+      "chip": "Slow-down · {seconds} s",
+      "name": "Slow-down"
     },
     "rainbow": {
       "cheer": "Rainbow!",
       "announce": "Rainbow shot: your next ball matches every colour.",
-      "ready": "Rainbow shot ready"
+      "ready": "Rainbow shot ready",
+      "name": "Rainbow shot"
     },
     "laser": {
       "cheer": "Laser!",
       "announce": "Laser: your next shot pierces the first 4 balls it touches.",
-      "ready": "Laser ready"
+      "ready": "Laser ready",
+      "name": "Laser"
     }
   },
   "deck": {
@@ -623,5 +633,30 @@
     "fullGame": "In the full game",
     "note": "Demo: 2 worlds out of 6",
     "done": "End of the demo! Four more worlds await you in the full game."
+  },
+  "next": {
+    "world": "New world: {name}",
+    "colossus": "Boss: {name}",
+    "power": "New marble: {name}",
+    "mechanic": "New: {name}",
+    "mechanics": {
+      "twin": "two chains at once",
+      "ricochet": "bank shots off walls",
+      "prism": "prisms",
+      "spin": "spinning prisms",
+      "magnet": "the magnet",
+      "magnetCombo": "magnet combos",
+      "alchemy": "colour mixing",
+      "alchemySecondary": "mixed colours",
+      "switch": "lava switches",
+      "hot": "the molten shortcut",
+      "gravity": "black-hole gravity",
+      "orbit": "an orbiting shooter",
+      "arrhythmia": "arrhythmia",
+      "meteors": "meteor showers",
+      "wind": "headwinds",
+      "cold": "biting cold",
+      "solar": "solar storms"
+    }
   }
 }

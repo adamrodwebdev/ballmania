@@ -72,6 +72,18 @@ describe('play modes', () => {
     expect(settled.record).toEqual({ value: 2000, newBest: false, unit: 'score' });
     expect(settled.rewards.shards).toBeGreaterThan(0);
     expect(mode.next(app)?.request).toEqual({ kind: 'campaign', level: CAMPAIGN[1] });
+    expect(mode.next(app)?.label).toEqual({
+      key: 'game.nextLevelNamed',
+      params: { level: { key: 'campaign.levelShort', params: { world: 1, number: 2 } } },
+    });
+    // Level 1-2 teaches nothing new; level 1-3 brings the Rewind marble.
+    expect(mode.next(app)?.detail).toBeUndefined();
+    const second = createMode({ kind: 'campaign', level: findLevel('nebula-02')! });
+    second.settle(report(), app);
+    expect(second.next(app)?.detail).toEqual({
+      key: 'next.power',
+      params: { name: { key: 'power.rewind.name' } },
+    });
     const slow = mode.definition(FRAMES.square, play(true, 'pilot'));
     expect(slow.speed).toBeLessThan(mode.definition(FRAMES.square, play(false, 'pilot')).speed);
     const legend = mode.definition(FRAMES.square, play(false, 'legend'));

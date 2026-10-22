@@ -19,6 +19,7 @@ import { CAMPAIGN } from '@/levels/campaign';
 import { DEMO } from '@/levels/edition';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
+import { nextLauncher } from '@/player/catalog';
 import { ASSIST_AFTER, CONTINUE_PRICE, HINT_COOLDOWN, HINT_PRICE } from '@/player/rewards';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
 import { resolveLook } from '@/play/cosmetics/Look';
@@ -31,6 +32,7 @@ import { chooseFrame, contentBounds, NO_INSETS, type Insets } from '@/play/Board
 import type { Silence } from '@/platform/AdService';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import AdIcon from '@/ui/components/AdIcon.vue';
+import CosmeticPreview from '@/ui/components/CosmeticPreview.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 
@@ -45,7 +47,17 @@ const request = props.request;
 /** What kind of game this is decides the level, the texts and the records (§ 3.2). */
 const mode = createMode(request);
 const daily = request.kind === 'daily' ? request.challenge : null;
-const say = (message: Message) => t(message.key, { ...message.params });
+/** A message in the player's language; a message among its values is translated first. */
+const say = (message: Message): string =>
+  t(
+    message.key,
+    Object.fromEntries(
+      Object.entries(message.params ?? {}).map(([name, value]) => [
+        name,
+        typeof value === 'object' ? say(value) : value,
+      ]),
+    ),
+  );
 
 const settlement = shallowRef<Settlement | null>(null);
 const assisted = ref(request.kind === 'campaign' && request.assisted === true);
@@ -491,6 +503,23 @@ const following = computed(() =>
 const goNext = () => {
   if (following.value) emit('play', following.value.request);
 };
+/** After a win that paid shards: the launcher they bring closer (§ 3.6). */
+const goal = computed(() =>
+  hud.value?.over === 'won' && (settlement.value?.rewards.shards ?? 0) > 0
+    ? nextLauncher((id) => player.owns(id))
+    : null,
+);
+/** The end bonus and the best score, on one line. */
+const scoreLine = computed(() => {
+  const parts: string[] = [];
+  const bonus = hud.value?.bonus ?? 0;
+  if (bonus > 0) parts.push(t('game.bonus', { points: number.value.format(bonus) }));
+  const record = settlement.value?.record;
+  if (record && !record.newBest && record.unit !== 'wins' && record.value > 0) {
+    parts.push(t('game.best', { score: number.value.format(record.value) }));
+  }
+  return parts.join(' · ');
+});
 const offerAssist = computed(
   () =>
     request.kind === 'campaign' &&
@@ -917,9 +946,6 @@ const quit = () => emit('quit');
           {{ t('game.finalScore', { score: number.format(hud?.score ?? 0) }) }}
         </span>
       </p>
-      <p v-if="(hud?.bonus ?? 0) > 0" class="detail">
-        {{ t('game.bonus', { points: number.format(hud?.bonus ?? 0) }) }}
-      </p>
       <p v-if="campaignDone" class="record" data-testid="campaign-done">
         {{ t(DEMO ? 'demo.done' : 'game.campaignDone') }}
       </p>
@@ -938,9 +964,7 @@ const quit = () => emit('quit');
       <p v-else-if="settlement?.record?.unit === 'wins'" class="detail" data-testid="wins">
         {{ t('arcade.duel.wins', { count: settlement.record.value }, settlement.record.value) }}
       </p>
-      <p v-else-if="settlement?.record && settlement.record.value > 0" class="detail">
-        {{ t('game.best', { score: number.format(settlement.record.value) }) }}
-      </p>
+      <p v-if="scoreLine" class="detail" data-testid="score-line">{{ scoreLine }}</p>
       <p v-if="(hud?.bestDepth ?? 0) > 1" class="detail">
         {{ t('game.bestDepth', { depth: hud?.bestDepth ?? 0 }) }}
       </p>
@@ -960,17 +984,42 @@ const quit = () => emit('quit');
         "
         class="gains"
       >
-        <li v-if="(hud?.fragments ?? 0) > 0" class="shards" data-testid="fragments-earned">
-          {{ t('observatory.caught', { count: hud?.fragments ?? 0 }, hud?.fragments ?? 0) }}
-        </li>
-        <li v-if="settlement.rewards.shards > 0" class="shards" data-testid="shards-earned">
-          {{ t('player.earned', { count: number.format(settlement.rewards.shards) }) }}
-        </li>
+        <!-- Goals first, then what was earned and the launcher it brings closer. -->
         <li v-for="achievement in settlement.rewards.achievements" :key="achievement.id">
           {{ t('achievements.reached', { name: t(`achievements.list.${achievement.id}.name`) }) }}
         </li>
         <li v-for="item in settlement.rewards.unlocked" :key="item.id" class="unlock">
           {{ t('shop.unlocked', { name: t(`cosmetics.${item.id}`) }) }}
+        </li>
+        <li v-if="(hud?.fragments ?? 0) > 0" class="shards total" data-testid="fragments-earned">
+          {{ t('observatory.caught', { count: hud?.fragments ?? 0 }, hud?.fragments ?? 0) }}
+        </li>
+        <li v-if="settlement.rewards.shards > 0" class="shards total" data-testid="shards-earned">
+          {{ t('player.earned', { count: number.format(settlement.rewards.shards) }) }}
+        </li>
+        <li v-if="goal" class="reward" data-testid="next-launcher">
+          <CosmeticPreview :item="goal" class="reward-preview" />
+          <span class="reward-text">
+            <span class="reward-name">
+              {{ t('game.reward.launcher', { name: t(`cosmetics.${goal.id}`) }) }}
+            </span>
+            <progress
+              class="reward-bar"
+              :max="goal.price"
+              :value="Math.min(player.view.shards, goal.price)"
+              :aria-label="t('game.reward.launcher', { name: t(`cosmetics.${goal.id}`) })"
+            ></progress>
+            <span class="reward-count">
+              {{
+                player.view.shards >= goal.price
+                  ? t('game.reward.ready')
+                  : t('game.reward.progress', {
+                      have: number.format(player.view.shards),
+                      price: number.format(goal.price),
+                    })
+              }}
+            </span>
+          </span>
         </li>
       </ul>
 
@@ -1028,7 +1077,10 @@ const quit = () => emit('quit');
           data-testid="next"
           @click="afterBreak(goNext)"
         >
-          {{ say(following.label) }}
+          <span>{{ say(following.label) }}</span>
+          <small v-if="following.detail" class="next-detail" data-testid="next-detail">
+            {{ say(following.detail) }}
+          </small>
         </button>
         <button
           v-if="daily && dailyRecord"
@@ -1054,19 +1106,22 @@ const quit = () => emit('quit');
           <span>{{ t('assist.retry') }}</span>
           <small>{{ t('assist.detail') }}</small>
         </button>
-        <button
-          class="btn"
-          :class="{ 'btn-primary': primaryReplay }"
-          type="button"
-          :autofocus="primaryReplay"
-          data-testid="replay"
-          @click="afterBreak(restart)"
-        >
-          {{ t('game.playAgain') }}
-        </button>
-        <button class="btn" type="button" data-testid="map" @click="leaveToMenu">
-          {{ t(HOME_LABELS[mode.home]) }}
-        </button>
+        <!-- Side by side under "Next": the whole panel stays in a short window. -->
+        <div class="pair" :class="{ split: !primaryReplay }">
+          <button
+            class="btn"
+            :class="{ 'btn-primary': primaryReplay }"
+            type="button"
+            :autofocus="primaryReplay"
+            data-testid="replay"
+            @click="afterBreak(restart)"
+          >
+            {{ t('game.playAgain') }}
+          </button>
+          <button class="btn" type="button" data-testid="map" @click="leaveToMenu">
+            {{ t(HOME_LABELS[mode.home]) }}
+          </button>
+        </div>
       </div>
     </dialog>
   </section>
@@ -1739,6 +1794,72 @@ const quit = () => emit('quit');
   font-weight: 700;
 }
 
+/* What was earned, set apart from the goals above it. */
+.total:not(:first-child) {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid color-mix(in srgb, var(--text-muted) 24%, transparent);
+}
+
+/* The launcher the shards bring closer: its picture, a bar, what is left. */
+.reward {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: start;
+}
+
+.reward-preview {
+  width: 3rem;
+  margin: 0;
+}
+
+.reward-text {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.reward-name {
+  font-weight: 800;
+}
+
+.reward-bar {
+  width: 100%;
+  height: 0.5rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 26%, transparent);
+  appearance: none;
+}
+
+.reward-bar::-webkit-progress-bar {
+  background: transparent;
+}
+
+.reward-bar::-webkit-progress-value {
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary-mid), var(--primary-top));
+}
+
+.reward-bar::-moz-progress-bar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary-mid), var(--primary-top));
+}
+
+.reward-count {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.next-detail {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
 .earned {
   justify-content: center;
   margin-bottom: var(--space-2);
@@ -1794,6 +1915,30 @@ const quit = () => emit('quit');
   display: grid;
   gap: var(--space-2);
   margin-top: var(--space-6);
+}
+
+.pair {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.pair.split {
+  grid-template-columns: 1fr 1fr;
+}
+
+.pair.split .btn {
+  padding-inline: var(--space-2);
+}
+
+/* Short windows (portal frames): the result keeps every choice in view without scrolling. */
+@media (max-height: 760px) {
+  .actions {
+    margin-top: var(--space-4);
+  }
+
+  .gains {
+    margin-top: var(--space-3);
+  }
 }
 
 /*

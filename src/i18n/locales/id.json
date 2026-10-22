@@ -80,6 +80,12 @@
       "5": "Menakjubkan!",
       "6": "Kosmik!",
       "nova": "Nova!"
+    },
+    "nextLevelNamed": "Berikutnya: Level {level}",
+    "reward": {
+      "launcher": "{name} · penembak",
+      "progress": "{have} / {price} kepingan",
+      "ready": "Tersedia di Bengkel!"
     }
   },
   "effects": {
@@ -572,22 +578,26 @@
   "power": {
     "rewind": {
       "cheer": "Mundur!",
-      "announce": "Mundur: rantai bergulir ke belakang."
+      "announce": "Mundur: rantai bergulir ke belakang.",
+      "name": "Mundur"
     },
     "slow": {
       "cheer": "Perlambat!",
       "announce": "Perlambat: rantai bergerak setengah kecepatan selama 8 detik.",
-      "chip": "Perlambat · {seconds} dtk"
+      "chip": "Perlambat · {seconds} dtk",
+      "name": "Perlambat"
     },
     "rainbow": {
       "cheer": "Pelangi!",
       "announce": "Tembakan pelangi: bola berikutnya cocok dengan semua warna.",
-      "ready": "Tembakan pelangi siap"
+      "ready": "Tembakan pelangi siap",
+      "name": "Tembakan pelangi"
     },
     "laser": {
       "cheer": "Laser!",
       "announce": "Laser: tembakan berikutnya menembus 4 bola pertama yang disentuhnya.",
-      "ready": "Laser siap"
+      "ready": "Laser siap",
+      "name": "Laser"
     }
   },
   "deck": {
@@ -623,5 +633,30 @@
     "fullGame": "Di game lengkap",
     "note": "Demo: 2 dari 6 dunia",
     "done": "Demo selesai! Empat dunia lagi menantimu di game lengkap."
+  },
+  "next": {
+    "world": "Dunia baru: {name}",
+    "colossus": "Bos: {name}",
+    "power": "Bola baru: {name}",
+    "mechanic": "Baru: {name}",
+    "mechanics": {
+      "twin": "dua rantai sekaligus",
+      "ricochet": "tembakan pantul",
+      "prism": "prisma",
+      "spin": "prisma berputar",
+      "magnet": "magnet",
+      "magnetCombo": "kombo magnet",
+      "alchemy": "campuran warna",
+      "alchemySecondary": "warna campuran",
+      "switch": "persimpangan lava",
+      "hot": "jalan pintas membara",
+      "gravity": "gravitasi lubang hitam",
+      "orbit": "penembak mengorbit",
+      "arrhythmia": "aritmia",
+      "meteors": "hujan meteor",
+      "wind": "angin sakal",
+      "cold": "dingin menusuk",
+      "solar": "badai matahari"
+    }
   }
 }
