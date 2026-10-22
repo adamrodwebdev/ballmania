@@ -24,6 +24,8 @@ const MESSAGES: Record<string, Tree> = Object.fromEntries(
   LOCALES.map((locale) => [locale, load(locale)]),
 );
 const fr = MESSAGES.fr!;
+/** The languages checked against the French reference. */
+const OTHERS = LOCALES.filter((locale) => locale !== 'fr');
 
 /**
  * Named placeholders of a message, such as `version` in "Version {version}", each once:
@@ -35,7 +37,7 @@ const placeholders = (text: unknown): string[] =>
 describe('translations', () => {
   const reference = keys(fr).sort();
 
-  it.each(['en', 'id'])('%s has exactly the keys of the French reference', (locale) => {
+  it.each(OTHERS)('%s has exactly the keys of the French reference', (locale) => {
     expect(keys(MESSAGES[locale]!).sort()).toEqual(reference);
   });
 
@@ -46,14 +48,16 @@ describe('translations', () => {
   });
 
   it.each([...LOCALES])('%s gives every plural message all its forms', (locale) => {
-    // "zero | one | other": the forms vue-i18n's default rule picks for 0, 1 and more.
+    // "zero | one | other", the forms vue-i18n's default rule picks for 0, 1 and more;
+    // Russian: "zero | one | few | many" (src/i18n/plurals.ts).
+    const forms = locale === 'ru' ? 4 : 3;
     for (const key of keys(MESSAGES[locale]!)) {
       const text = String(leaf(MESSAGES[locale]!, key));
-      if (text.includes('|')) expect(text.split('|'), key).toHaveLength(3);
+      if (text.includes('|')) expect(text.split('|'), key).toHaveLength(forms);
     }
   });
 
-  it.each(['en', 'id'])('%s keeps the placeholders of the French reference', (locale) => {
+  it.each(OTHERS)('%s keeps the placeholders of the French reference', (locale) => {
     for (const key of reference) {
       expect(placeholders(leaf(MESSAGES[locale]!, key)), key).toEqual(placeholders(leaf(fr, key)));
     }
@@ -79,6 +83,13 @@ describe('typography', () => {
     }
   });
 
+  it('sets Russian punctuation close to its word, a dash and a unit apart from theirs', () => {
+    for (const [key, text] of texts('ru')) {
+      // No space before ! ? : ; in Russian; a no-break one before a dash and before %.
+      expect(text, key).not.toMatch(/[  ][!?:;]| [—%]/);
+    }
+  });
+
   it.each([...LOCALES])('%s uses typographic apostrophes and quotation marks', (locale) => {
     for (const [key, text] of texts(locale)) expect(text, key).not.toMatch(/['"]/);
   });
@@ -92,6 +103,18 @@ describe('detectLocale', () => {
 
   it('understands the legacy Indonesian code', () => {
     expect(detectLocale(['in-ID'])).toBe('id');
+  });
+
+  it('serves Russian to Russian speakers, and to Belarusian, Kazakh and Kyrgyz ones', () => {
+    expect(detectLocale(['ru-RU'])).toBe('ru');
+    expect(detectLocale(['be-BY', 'en'])).toBe('ru');
+    expect(detectLocale(['kk'])).toBe('ru');
+    expect(detectLocale(['ky-KG'])).toBe('ru');
+  });
+
+  it('keeps English for Ukrainian, unless Russian comes next', () => {
+    expect(detectLocale(['uk-UA'])).toBe('en');
+    expect(detectLocale(['uk-UA', 'ru-RU'])).toBe('ru');
   });
 
   it('falls back to English', () => {

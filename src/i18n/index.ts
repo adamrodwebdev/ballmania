@@ -1,8 +1,10 @@
 import { createI18n } from 'vue-i18n';
 import type frMessages from './locales/fr.json';
 import type { Locale } from './locales';
+import { PLURAL_RULES } from './plurals';
 
 export { LOCALES, detectLocale, isLocale, type Locale } from './locales';
+export { PLURAL_RULES } from './plurals';
 
 /** French is the reference: its keys define the schema the other locales must follow. */
 export type MessageSchema = typeof frMessages;
@@ -12,6 +14,7 @@ const LOADERS: Record<Locale, () => Promise<{ default: MessageSchema }>> = {
   fr: () => import('./locales/fr.json'),
   en: () => import('./locales/en.json'),
   id: () => import('./locales/id.json'),
+  ru: () => import('./locales/ru.json'),
 };
 
 export async function loadMessages(locale: Locale): Promise<MessageSchema> {
@@ -23,6 +26,7 @@ export async function createAppI18n(locale: Locale) {
     legacy: false,
     locale,
     fallbackLocale: locale,
+    pluralRules: PLURAL_RULES,
     messages: { [locale]: await loadMessages(locale) } as Record<Locale, MessageSchema>,
   });
 }

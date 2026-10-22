@@ -191,13 +191,16 @@ export class KeyboardControls {
   }
 
   /**
-   * A letter is the one printed on the key, whatever the layout (M is M on
-   * AZERTY too, where it sits elsewhere); other keys go by position.
+   * A Latin letter is the one printed on the key, whatever the layout (M is M
+   * on AZERTY too, where it sits elsewhere). A letter of another alphabet goes
+   * by position: a Russian keyboard prints the Latin letter on the same key
+   * (X is also Ч). Other keys go by position.
    */
   private static nameOf(event: KeyboardEvent): string {
     const printed = typeof event.key === 'string' && event.key.length === 1 && event.key !== ' ';
     if (!printed) return event.code;
-    return /^[a-z]$/i.test(event.key) ? `Key${event.key.toUpperCase()}` : event.key;
+    if (/^[a-z]$/i.test(event.key)) return `Key${event.key.toUpperCase()}`;
+    return /^\p{L}$/u.test(event.key) ? event.code : event.key;
   }
 
   /** Form fields and buttons keep their own keys (a focused button reacts to Space). */
