@@ -1,3 +1,4 @@
+import { FrameCap } from '@/play/FrameCap';
 import type { Palette } from '@/play/Palette';
 import type { TitleMessage } from './messages';
 import type { Room, SceneHost, TitleScene } from './TitleScene';
@@ -7,6 +8,15 @@ export interface TitleBackdrop {
   /** Fits the scene to the canvas's CSS size (see `TitleScene.resize`). */
   resize(width: number, height: number, ratio: number, room?: Room): void;
   stop(): void;
+}
+
+/** How the scene looks and moves. */
+export interface BackdropOptions {
+  readonly palette: Palette;
+  /** One still frame (reduced motion). */
+  readonly still: boolean;
+  /** Most frames drawn a second (60 on a touch screen), or null for every frame. */
+  readonly frameRate: number | null;
 }
 
 /**
@@ -21,11 +31,12 @@ class WorkerBackdrop implements TitleBackdrop {
   constructor(
     private readonly worker: Worker,
     canvas: HTMLCanvasElement,
-    palette: Palette,
-    still: boolean,
+    { palette, still, frameRate }: BackdropOptions,
   ) {
     const offscreen = canvas.transferControlToOffscreen();
-    this.send({ kind: 'start', canvas: offscreen, palette: palette.colours(), still }, [offscreen]);
+    this.send({ kind: 'start', canvas: offscreen, palette: palette.colours(), still, frameRate }, [
+      offscreen,
+    ]);
     this.onVisibility();
     document.addEventListener('visibilitychange', this.onVisibility);
   }
@@ -59,12 +70,17 @@ class PageBackdrop implements TitleBackdrop {
   }
 }
 
-const PAGE: SceneHost = {
-  createCanvas: () => document.createElement('canvas'),
-  visible: () => document.visibilityState === 'visible',
-  requestFrame: (callback) => requestAnimationFrame(callback),
-  cancelFrame: (handle) => cancelAnimationFrame(handle),
-};
+/** The page's own canvases and frames, for a scene drawn in the page. */
+function pageHost(frameRate: number | null): SceneHost {
+  const cap = frameRate === null ? FrameCap.none() : new FrameCap(frameRate);
+  return {
+    createCanvas: () => document.createElement('canvas'),
+    visible: () => document.visibilityState === 'visible',
+    requestFrame: (callback) => requestAnimationFrame(callback),
+    cancelFrame: (handle) => cancelAnimationFrame(handle),
+    admits: (now) => cap.admits(now),
+  };
+}
 
 /**
  * Starts the title scene on `canvas`: in a worker where the browser can hand
@@ -72,13 +88,13 @@ const PAGE: SceneHost = {
  */
 export async function openTitleBackdrop(
   canvas: HTMLCanvasElement,
-  palette: Palette,
-  still: boolean,
+  options: BackdropOptions,
 ): Promise<TitleBackdrop> {
   const worker = 'transferControlToOffscreen' in canvas ? await startWorker() : null;
-  if (worker) return new WorkerBackdrop(worker, canvas, palette, still);
+  if (worker) return new WorkerBackdrop(worker, canvas, options);
   const { TitleScene } = await import('./TitleScene');
-  return new PageBackdrop(new TitleScene(canvas, palette, still, PAGE));
+  const host = pageHost(options.frameRate);
+  return new PageBackdrop(new TitleScene(canvas, options.palette, options.still, host));
 }
 
 /** The scene's worker once it runs; null if it cannot (blocked, failed to load). */

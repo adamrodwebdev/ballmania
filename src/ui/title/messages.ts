@@ -9,6 +9,8 @@ export type TitleMessage =
       readonly canvas: OffscreenCanvas;
       readonly palette: PaletteColours;
       readonly still: boolean;
+      /** Most frames drawn a second (60 on a touch screen), or null for every frame. */
+      readonly frameRate: number | null;
     }
   | {
       readonly kind: 'resize';

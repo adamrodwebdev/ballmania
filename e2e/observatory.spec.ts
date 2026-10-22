@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, overflowOf, test } from './fixtures';
 
 test('spends star fragments on upgrades at the Observatory', async ({ page }) => {
   await page.addInitScript(() => {
@@ -87,13 +87,7 @@ test.describe('the bubble pointing at the Observatory', () => {
       const tip = page.getByTestId('observatory-tip');
       await expect(tip).toBeVisible();
       // The world deck takes a moment to follow a new window size.
-      await expect
-        .poll(() =>
-          page.evaluate(
-            () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
-          ),
-        )
-        .toBeLessThanOrEqual(0);
+      await expect.poll(() => overflowOf(page)).toBeLessThanOrEqual(0);
       const button = (await page.getByTestId('observatory').boundingBox())!;
       const bubble = (await tip.boundingBox())!;
       expect(button.y + button.height).toBeLessThanOrEqual(height);

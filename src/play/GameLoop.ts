@@ -1,7 +1,12 @@
+import { FrameCap } from './FrameCap';
+
 /** Longest frame passed on (a tab coming back from the background). */
 const MAX_FRAME = 0.1;
 
-/** Calls `frame` with the elapsed seconds on every animation frame, until stopped. */
+/**
+ * Calls `frame` with the elapsed seconds on every animation frame the cap
+ * admits (all of them by default), until stopped.
+ */
 export class GameLoop {
   private handle: number | null = null;
   private last = 0;
@@ -12,6 +17,7 @@ export class GameLoop {
       Window,
       'requestAnimationFrame' | 'cancelAnimationFrame'
     > = window,
+    private readonly cap: FrameCap = FrameCap.none(),
   ) {}
 
   get running(): boolean {
@@ -30,9 +36,11 @@ export class GameLoop {
   }
 
   private readonly tick = (now: number): void => {
+    this.handle = this.scheduler.requestAnimationFrame(this.tick);
+    // A skipped frame's time goes to the next one drawn.
+    if (!this.cap.admits(now)) return;
     const dt = Math.min(Math.max(0, (now - this.last) / 1000), MAX_FRAME);
     this.last = now;
-    this.handle = this.scheduler.requestAnimationFrame(this.tick);
     this.frame(dt);
   };
 }

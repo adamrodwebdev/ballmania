@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 
 /**
  * The journeys start where players land after the studio intro: it plays
@@ -17,5 +17,20 @@ export const test = base.extend({
     await use(page);
   },
 });
+
+/**
+ * How far the current screen scrolls, in CSS pixels (0 when it all fits): in
+ * its own frame, the `<main>` (v1.7.6), or in the page, should anything ever
+ * spill out of that frame.
+ */
+export const overflowOf = (page: Page): Promise<number> =>
+  page.evaluate(() => {
+    const root = document.documentElement;
+    const screen = document.querySelector('main');
+    return Math.max(
+      root.scrollHeight - root.clientHeight,
+      screen ? screen.scrollHeight - screen.clientHeight : 0,
+    );
+  });
 
 export { expect, type Page } from '@playwright/test';

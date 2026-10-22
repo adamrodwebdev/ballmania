@@ -8,6 +8,7 @@ import type { PlayRequest } from '@/app/PlayRequest';
 import type { CampaignLevel } from '@/levels/campaign';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
 import StudioIntro from '@/ui/components/StudioIntro.vue';
+import { ScrollKeyGuard } from '@/ui/ScrollKeys';
 
 /** The campaign map, the game screen and the engine are downloaded only when needed. */
 const CampaignScreen = defineAsyncComponent(() => import('@/ui/screens/CampaignScreen.vue'));
@@ -106,6 +107,8 @@ window.addEventListener(
   },
   true,
 );
+// The arrows, Page Up and Down, Home, End and Space never scroll a portal's page.
+new ScrollKeyGuard(window);
 watch([() => settings.current.music, () => settings.current.muted, portalMuted], () =>
   engine.value?.setMusicVolume(musicVolume()),
 );
@@ -120,10 +123,10 @@ platform.onPausedChange((paused) => {
 
 /** True after the first change of screen: from then on, screens slide in. */
 const navigated = ref(false);
+// Each screen scrolls in its own <main>, which starts at the top.
 const show = (next: Screen) => {
   navigated.value = true;
   screen.value = next;
-  window.scrollTo(0, 0);
 };
 const home = () => show({ kind: 'home' });
 const campaign = () => show({ kind: 'campaign' });
@@ -227,7 +230,7 @@ watchEffect(() => {
   >
     <AchievementsScreen @home="home" />
   </main>
-  <main v-else id="main" tabindex="-1" :class="{ enter: navigated }">
+  <main v-else id="main" class="game" tabindex="-1" :class="{ enter: navigated }">
     <GameScreen
       :key="screen.id"
       :request="screen.request"
@@ -253,7 +256,19 @@ watchEffect(() => {
   top: var(--space-2);
 }
 
+/*
+ * A screen fills the window and scrolls inside it when its content is taller
+ * (v1.7.6): the page never does, nor the portal's page around the game.
+ */
 main {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   outline: none;
+}
+
+/* The game screen is held still (GameScreen). */
+main.game {
+  overflow: hidden;
 }
 </style>

@@ -21,6 +21,7 @@ import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
 import { nextLauncher } from '@/player/catalog';
 import { ASSIST_AFTER, CONTINUE_PRICE, HINT_COOLDOWN, HINT_PRICE } from '@/player/rewards';
+import { pixelRatioFor } from '@/play/canvas';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
 import { resolveLook } from '@/play/cosmetics/Look';
 import { DistortionLayer } from '@/play/effects/DistortionLayer';
@@ -36,6 +37,7 @@ import CosmeticPreview from '@/ui/components/CosmeticPreview.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
 import StarGauge from '@/ui/components/StarGauge.vue';
 import StarRow from '@/ui/components/StarRow.vue';
+import { frameRateCap } from '@/ui/frameRate';
 
 const props = defineProps<{ request: PlayRequest }>();
 const emit = defineEmits<{ quit: []; play: [request: PlayRequest] }>();
@@ -177,19 +179,27 @@ const measureInsets = (): Insets => {
   return insets;
 };
 
+/**
+ * The board shape that shows this level largest on the screen as it is now:
+ * at the start, and again at each restart, the phone may have been turned.
+ */
+const chooseShape = (): Frame => {
+  const box = surface.value?.getBoundingClientRect();
+  return chooseFrame(
+    (shape) => contentBounds(toLevelSetup(definitionOn(shape))),
+    box?.width ?? window.innerWidth,
+    box?.height ?? window.innerHeight,
+    measureInsets(),
+  );
+};
+
 let cleanups: (() => void)[] = [];
 
 onMounted(() => {
   if (!canvas.value || !surface.value || !root.value) return;
-  const box = surface.value.getBoundingClientRect();
-  // The board shape that shows this level largest on this screen.
-  frame = chooseFrame(
-    (shape) => contentBounds(toLevelSetup(definitionOn(shape))),
-    box.width,
-    box.height,
-    measureInsets(),
-  );
+  frame = chooseShape();
   const seed = mode.seed;
+  const frameRate = frameRateCap();
   const play = new PlaySession({
     canvas: canvas.value,
     distortion: overlay.value ? DistortionLayer.create(overlay.value) : null,
@@ -203,6 +213,7 @@ onMounted(() => {
     aimAssist: settings.current.aimAssist,
     // The very first level teaches by a gesture, not a sentence.
     tutorial: request.kind === 'campaign' && request.level.hint === 'aim',
+    ...(frameRate === null ? {} : { frameRate }),
   });
   session.value = play;
   if (hintVisible.value) window.setTimeout(() => (hintVisible.value = false), 6000);
@@ -225,7 +236,12 @@ onMounted(() => {
   const observer = new ResizeObserver(([entry]) => {
     if (!entry) return;
     const { width, height } = entry.contentRect;
-    play.resize(width, height, Math.min(window.devicePixelRatio || 1, 2), measureInsets());
+    play.resize(
+      width,
+      height,
+      pixelRatioFor(width, height, window.devicePixelRatio),
+      measureInsets(),
+    );
   });
   observer.observe(surface.value);
 
@@ -238,7 +254,6 @@ onMounted(() => {
   // The screen never moves while a level is played: no scroll, no bounce, no
   // pinch-zoom (iOS Safari heeds a touch that is held back better than CSS).
   // Only the dialogs may scroll, when their content is taller than the screen.
-  document.documentElement.classList.add('in-game');
   const holdStill = (event: TouchEvent) => {
     const inDialog = event.target instanceof Element && event.target.closest('dialog');
     if (!inDialog || event.touches.length > 1) event.preventDefault();
@@ -251,7 +266,6 @@ onMounted(() => {
     () => keyboard.destroy(),
     () => observer.disconnect(),
     () => document.removeEventListener('visibilitychange', onVisibility),
-    () => document.documentElement.classList.remove('in-game'),
     () => section.removeEventListener('touchmove', holdStill),
     () => play.destroy(),
     () => motionQuery.removeEventListener('change', onMotionChange),
@@ -489,6 +503,7 @@ const restart = () => {
   continued.value = false;
   doubled.value = false;
   adMessage.value = '';
+  frame = chooseShape();
   session.value?.restart(definition());
   canvas.value?.focus();
 };
@@ -930,7 +945,9 @@ const quit = () => emit('quit');
             <small>{{ shardPrice(HINT_PRICE) }}</small>
           </button>
         </template>
-        <button class="btn" type="button" @click="restart">{{ t('game.restart') }}</button>
+        <button class="btn" type="button" data-testid="restart" @click="restart">
+          {{ t('game.restart') }}
+        </button>
         <button
           class="btn"
           type="button"

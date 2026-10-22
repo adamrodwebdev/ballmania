@@ -4,6 +4,7 @@ import { Chain } from '@/engine/chain/Chain';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallMotion, LANDING_TIME } from '@/play/BallMotion';
 import { KeyboardControls, type PlayCommands } from '@/play/Controls';
+import { FrameCap } from '@/play/FrameCap';
 import { GameLoop } from '@/play/GameLoop';
 import { luminance, Palette, TONE_VARIABLES } from '@/play/Palette';
 import { PARAMS, straightPath } from '../engine/helpers';
@@ -87,6 +88,24 @@ describe('GameLoop', () => {
     loop.stop();
     expect(loop.running).toBe(false);
     expect(scheduler.cancelAnimationFrame).toHaveBeenCalled();
+  });
+
+  it('skips the frames its cap holds back, and gives their time to the next one', () => {
+    const callbacks: FrameRequestCallback[] = [];
+    const scheduler = {
+      requestAnimationFrame: (callback: FrameRequestCallback) => callbacks.push(callback),
+      cancelAnimationFrame: vi.fn(),
+    };
+    const frames: number[] = [];
+    const loop = new GameLoop((dt) => frames.push(dt), scheduler, new FrameCap(60));
+    loop.start();
+    const start = performance.now();
+    // A 120 Hz screen: every other frame is drawn, each covering two refreshes.
+    for (let i = 1; i <= 8; i++) callbacks[i - 1]!(start + (i * 1000) / 120);
+    expect(frames).toHaveLength(4);
+    expect(frames[2]).toBeCloseTo(2 / 120);
+    // The loop keeps asking for frames, drawn or not.
+    expect(callbacks).toHaveLength(9);
   });
 });
 

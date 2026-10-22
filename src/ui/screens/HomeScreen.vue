@@ -3,10 +3,12 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { CAMPAIGN } from '@/levels/campaign';
+import { pixelRatioFor } from '@/play/canvas';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { GIFT_SHARDS } from '@/player/DailyGift';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
+import { frameRateCap } from '@/ui/frameRate';
 import { whenIdle } from '@/ui/idle';
 
 const { t, locale } = useI18n();
@@ -92,12 +94,11 @@ const startScene = async () => {
     import('@/play/Palette'),
   ]);
   if (!sceneCanvas.value) return;
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const scene = await openTitleBackdrop(
-    canvas,
-    Palette.fromStyle(getComputedStyle(document.documentElement)),
-    still,
-  );
+  const scene = await openTitleBackdrop(canvas, {
+    palette: Palette.fromStyle(getComputedStyle(document.documentElement)),
+    still: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    frameRate: frameRateCap(),
+  });
   // Left the title screen while the scene was starting.
   if (sceneCanvas.value !== canvas) {
     scene.stop();
@@ -110,7 +111,7 @@ const startScene = async () => {
     scene.resize(
       box.width,
       box.height,
-      Math.min(window.devicePixelRatio || 1, 2),
+      pixelRatioFor(box.width, box.height, window.devicePixelRatio),
       room && { top: room.top - box.top, bottom: room.bottom - box.top },
     );
   });

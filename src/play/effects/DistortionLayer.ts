@@ -102,9 +102,10 @@ export class DistortionLayer {
     return program ? new DistortionLayer(canvas, gl, program) : null;
   }
 
+  /** Its drawing buffer follows the board's canvas; set again only when that size changes. */
   resize(width: number, height: number): void {
-    this.canvas.width = width;
-    this.canvas.height = height;
+    if (this.canvas.width !== width) this.canvas.width = width;
+    if (this.canvas.height !== height) this.canvas.height = height;
   }
 
   /** Draws the distorted board, or hides the layer when there is no wave. */

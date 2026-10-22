@@ -786,6 +786,61 @@ h2 {
   }
 }
 
+/*
+ * Phones on their side (v1.7.6: 844 × 390, 734 × 343, 640 × 400): the
+ * difficulties side by side in a narrower column, and the deck without its
+ * row of names (the card names its world; the arrows and a swipe still move
+ * it), so the whole map fits with tiles still 44 px wide.
+ */
+@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 430px) {
+  .campaign {
+    grid-template-columns: 14rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+  }
+
+  .difficulty {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .option span {
+    align-content: center;
+    padding: var(--space-2) var(--space-1);
+    font-size: 0.8rem;
+    text-align: center;
+    hyphens: auto;
+  }
+
+  .deck :deep(.bullets) {
+    display: none;
+  }
+
+  .deck :deep(.swiper) {
+    padding: var(--space-1) 0 var(--space-2);
+  }
+
+  .swiper-slide {
+    padding-top: 1.1rem;
+  }
+
+  .world {
+    width: min(calc(100% - 1.5rem), 46rem);
+    padding: calc(var(--space-2) + 1rem) var(--space-3) var(--space-3);
+  }
+
+  .banner {
+    top: -1.1rem;
+  }
+
+  .orb {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .tile {
+    min-height: 3rem;
+  }
+}
+
 .option input:checked + span {
   border-color: var(--accent);
   background: var(--surface-2);
