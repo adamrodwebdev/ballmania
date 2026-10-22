@@ -111,7 +111,9 @@ test.describe('portal build', () => {
     await expect(page.getByTestId('board')).toHaveCount(0);
   });
 
-  test('continues once after a defeat, then shows an ad before replaying', async ({ page }) => {
+  test('continues once after a defeat, and spares a new player any ad after it', async ({
+    page,
+  }) => {
     // Six and a half minutes of play, simulated frame by frame.
     test.setTimeout(300_000);
     await english(page);
@@ -131,21 +133,38 @@ test.describe('portal build', () => {
     await page.clock.runFor(1000);
     await expect(dialog).toBeHidden();
     await expect(page.getByTestId('board')).toBeFocused();
-    // Lost again: no second continue. Three minutes after the rewarded ad, an ad
-    // may play between games.
+    // Lost again: no second continue. On a first visit, a defeat is never followed
+    // by an ad, even three minutes after the rewarded one.
     await page.clock.runFor(190_000);
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('ad-continue')).toHaveCount(0);
     await dialog.getByTestId('replay').click();
-    await expect(page.getByTestId('simulated-ad')).toBeVisible();
-    await page.clock.runFor(1000);
     await expect(dialog).toBeHidden();
-    expect(await log(page)).toEqual(expect.arrayContaining(['rewarded', 'interstitial']));
+    await expect(page.getByTestId('simulated-ad')).toHaveCount(0);
+    expect(await log(page)).toContain('rewarded');
     // Back to a menu: never an ad.
     await page.clock.runFor(100_000);
     await dialog.getByTestId('map').click();
     await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
-    expect((await log(page)).filter((event) => event === 'interstitial')).toHaveLength(1);
+    expect(await log(page)).not.toContain('interstitial');
+  });
+
+  test('shows a returning player an ad between games after three minutes', async ({ page }) => {
+    test.setTimeout(240_000);
+    await english(page);
+    await returning(page);
+    await page.clock.install();
+    await page.goto('./');
+    await page.getByTestId('daily').click();
+    await expect(page.getByTestId('board')).toBeVisible();
+    await page.clock.runFor(190_000);
+    const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId('replay').click();
+    await expect(page.getByTestId('simulated-ad')).toBeVisible();
+    await page.clock.runFor(1000);
+    await expect(dialog).toBeHidden();
+    expect(await log(page)).toContain('interstitial');
   });
 
   test('doubles the shards of a game, and lends a cosmetic to try', async ({ page }) => {

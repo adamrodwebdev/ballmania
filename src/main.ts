@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import { APP_SERVICES, createBrowserServices } from './app/AppServices';
+import { APP_SERVICES, createBrowserServices, playerTrace } from './app/AppServices';
 import { landing } from './app/landing';
 import type { PlayRequest } from './app/PlayRequest';
 import { createAppI18n } from './i18n';
@@ -20,11 +20,7 @@ const i18n = await createAppI18n(services.settings.current.locale);
  * before the first paint, so the first frame they see is the game itself.
  */
 async function opening(): Promise<PlayRequest | null> {
-  const where = landing(platform.id, {
-    gamesPlayed: services.player.view.stats.gamesPlayed,
-    levelsFinished: Object.keys(services.progress.levels).length,
-    worldsFinished: services.player.view.worlds.length,
-  });
+  const where = landing(platform.id, playerTrace(services.player, services.progress));
   if (where === 'title') return null;
   const [{ CAMPAIGN }] = await Promise.all([
     import('./levels/campaign'),

@@ -13,6 +13,11 @@ export interface PlayerTrace {
 /** The first screen of a visit. */
 export type Landing = 'title' | 'first-level';
 
+/** True for a player who has never played: the first visit. */
+export function isFirstVisit(trace: PlayerTrace): boolean {
+  return trace.gamesPlayed === 0 && trace.levelsFinished === 0 && trace.worldsFinished === 0;
+}
+
 /**
  * Where a visit begins (specification § 3.7). Portals want players in the
  * game at once: on a portal, a player who has never played lands straight in
@@ -21,7 +26,5 @@ export type Landing = 'title' | 'first-level';
  */
 export function landing(platform: PlatformId, trace: PlayerTrace): Landing {
   if (platform === 'standalone') return 'title';
-  const firstVisit =
-    trace.gamesPlayed === 0 && trace.levelsFinished === 0 && trace.worldsFinished === 0;
-  return firstVisit ? 'first-level' : 'title';
+  return isFirstVisit(trace) ? 'first-level' : 'title';
 }

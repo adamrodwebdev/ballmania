@@ -1,6 +1,7 @@
 import { inject, type InjectionKey } from 'vue';
+import { isFirstVisit, type PlayerTrace } from '@/app/landing';
 import { detectLocale } from '@/i18n/locales';
-import { AdPolicy, AdService, GameplaySignals } from '@/platform/AdService';
+import { AD_INTERVAL, AdPolicy, AdService, GameplaySignals } from '@/platform/AdService';
 import type { PlatformAdapter } from '@/platform/PlatformAdapter';
 import { PlayerProfile } from '@/player/PlayerProfile';
 import { ArcadeProgress } from '@/services/ArcadeProgress';
@@ -28,6 +29,15 @@ export interface AppServices {
 
 export const APP_SERVICES: InjectionKey<AppServices> = Symbol('AppServices');
 
+/** What the saves tell of the player's past: enough to recognise a first visit (§ 3.7). */
+export function playerTrace(player: PlayerProfile, progress: CampaignProgress): PlayerTrace {
+  return {
+    gamesPlayed: player.view.stats.gamesPlayed,
+    levelsFinished: Object.keys(progress.levels).length,
+    worldsFinished: player.view.worlds.length,
+  };
+}
+
 /**
  * Settings stay in the browser (the theme script reads them before the first
  * paint); saves go where the platform keeps them.
@@ -50,17 +60,20 @@ export function createBrowserServices(
     aimAssist: true,
     difficulty: 'pilot',
   });
+  const progress = new CampaignProgress(saves);
+  const player = new PlayerProfile(saves);
+  const newcomer = isFirstVisit(playerTrace(player, progress));
   return {
     settings,
     theme: new ThemeController(settings, document.documentElement, (query) =>
       window.matchMedia(query),
     ),
-    progress: new CampaignProgress(saves),
+    progress,
     arcade: new ArcadeProgress(saves),
-    player: new PlayerProfile(saves),
+    player,
     share: new ShareService(navigator),
     platform,
-    ads: new AdService(platform, new AdPolicy(Date.now()), () => Date.now()),
+    ads: new AdService(platform, new AdPolicy(Date.now(), AD_INTERVAL, newcomer), () => Date.now()),
     gameplay: new GameplaySignals(platform),
     today: () => new Date(),
   };
