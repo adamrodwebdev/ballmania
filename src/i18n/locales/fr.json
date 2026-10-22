@@ -488,11 +488,11 @@
     }
   },
   "observatory": {
-    "title": "Observatoire",
+    "title": "Obser\u00advatoire",
     "back": "Retour",
     "intro": "Touchez les étoiles filantes de vos tirs pour récolter des fragments d’étoiles, puis améliorez vos instruments. Les améliorations s’appliquent en campagne (jamais au défi du jour ni en Arcade).",
     "balance": "{count} fragment | {count} fragment | {count} fragments",
-    "ready": "Amélioration disponible",
+    "ready": "Améliorer",
     "tip": "Améliorez votre jeu ici avec vos fragments d’étoiles.",
     "tipClose": "Compris",
     "buy": "Améliorer · {cost} fragments",

@@ -488,11 +488,11 @@
     }
   },
   "observatory": {
-    "title": "Observatorium",
+    "title": "Obser\u00advatorium",
     "back": "Kembali",
     "intro": "Tembak bintang jatuh untuk mengumpulkan pecahan bintang, lalu tingkatkan instrumenmu. Peningkatan berlaku di kampanye (tidak di tantangan harian maupun Arkade).",
     "balance": "{count} pecahan",
-    "ready": "Peningkatan tersedia",
+    "ready": "Tingkatkan",
     "tip": "Tingkatkan permainanmu di sini dengan pecahan bintangmu.",
     "tipClose": "Mengerti",
     "buy": "Tingkatkan · {cost} pecahan",
