@@ -1156,6 +1156,15 @@ fait éclater son nom au-dessus du plateau.
   le bouton principal. Tout le panneau tient sans défilement à 1280 × 720 et au téléphone,
   même avec l'offre de publicité. Mesuré : le panneau s'ouvre 1,8 s après la dernière
   bille, et le niveau suivant accepte un tir 0,05 s après le clic.
+- **Jauge d'étoiles** (v1.7.2) : sous le score, une barre se remplit vers les points de la
+  2ᵉ et de la 3ᵉ étoile (`starThresholds` ; la 1ʳᵉ est la victoire), et chaque étoile
+  s'allume avec son carillon quand le score l'atteint (annoncé aux lecteurs d'écran :
+  « 2 étoiles à portée »). Campagne et défi du jour seulement : l'Arcade compte autrement.
+  Sur un écran droit, la bande du haut lui garde une ligne sous ses boutons (1,75 rem, le
+  plateau s'ajuste dessous comme sous la barre du Colosse) : elle ne couvre ni la piste, ni
+  la barre du Colosse, ni les recettes de l'Alchimie, et la série se place à sa droite, au
+  niveau de la barre ; le plateau y perd au plus 2 % (mesuré de 320 × 568 à 390 × 844).
+  Dans le rail d'un écran large, elle suit le score et la série passe dessous.
 - Typographie fluide (`clamp()`), espacements en `rem`, cibles tactiles ≥ 44 × 44 px.
 
 ### 4.3 Accessibilité

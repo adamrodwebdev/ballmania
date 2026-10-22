@@ -1,5 +1,12 @@
 import type { GameReport } from '@/engine/Game';
-import { CAMPAIGN, nextLevel, starsFor, WORLDS, type CampaignLevel } from '@/levels/campaign';
+import {
+  CAMPAIGN,
+  nextLevel,
+  starsFor,
+  starThresholds,
+  WORLDS,
+  type CampaignLevel,
+} from '@/levels/campaign';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { noveltyOf, type Novelty } from '@/levels/novelty';
 import { resolveLevel } from '@/levels/resolveLevel';
@@ -75,6 +82,10 @@ export class CampaignMode implements PlayMode {
     return shortName(this.level);
   }
 
+  get stars(): readonly [number, number] {
+    return starThresholds(this.level);
+  }
+
   outcome(won: boolean): Message {
     return { key: won ? 'game.won' : 'game.lost' };
   }
@@ -147,6 +158,10 @@ export class DailyMode implements PlayMode {
 
   get label(): Message {
     return { key: 'daily.short' };
+  }
+
+  get stars(): readonly [number, number] {
+    return starThresholds(this.challenge.level);
   }
 
   outcome(won: boolean): Message {

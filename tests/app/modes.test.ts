@@ -4,7 +4,7 @@ import { createMode, type Settlement } from '@/app/modes';
 import type { GameReport } from '@/engine/Game';
 import { PUZZLES } from '@/levels/arcade/puzzles';
 import { SONGS } from '@/levels/arcade/rhythm';
-import { CAMPAIGN, findLevel } from '@/levels/campaign';
+import { CAMPAIGN, findLevel, starThresholds } from '@/levels/campaign';
 import type { Difficulty } from '@/levels/difficulty';
 import { FRAMES } from '@/levels/tracks';
 import { DailyChallenge } from '@/player/DailyChallenge';
@@ -64,6 +64,7 @@ describe('play modes', () => {
     const level = findLevel('nebula-01')!;
     const mode = createMode({ kind: 'campaign', level });
     expect(mode.label).toEqual({ key: 'campaign.levelShort', params: { world: 1, number: 1 } });
+    expect(mode.stars).toEqual(starThresholds(level));
     expect(mode.home).toBe('campaign');
     expect(mode.hint).toBe('aim');
     expect(mode.next(app)).toBeNull();
@@ -105,6 +106,7 @@ describe('play modes', () => {
     const app = services();
     const mode = createMode({ kind: 'endless' });
     expect(mode.home).toBe('arcade');
+    expect(mode.stars).toBeNull();
     expect(mode.outcome(false)).toEqual({ key: 'arcade.endless.over' });
     const settled = mode.settle(report({ outcome: 'lost', score: 12_345, stage: 3 }), app);
     expect(settled.stars).toBeNull();

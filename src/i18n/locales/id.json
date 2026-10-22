@@ -86,7 +86,8 @@
       "launcher": "{name} · penembak",
       "progress": "{have} / {price} kepingan",
       "ready": "Tersedia di Bengkel!"
-    }
+    },
+    "gaugeReached": "{count} bintang dalam jangkauan"
   },
   "effects": {
     "spectacular": {
