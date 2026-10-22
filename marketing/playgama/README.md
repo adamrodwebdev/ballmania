@@ -21,7 +21,8 @@ titre qui diffère entre le jeu et la fiche.
 - **Game Engine** : js (JavaScript sans moteur)
 - **Supported Devices** : iOS, Android, Desktop
 - **Screen Orientation** : landscape et portrait
-- **Game Languages** : English, French, Indonesian
+- **Game Languages** : English, French, Indonesian, Russian (le russe depuis la v1.7.5 ; la
+  fiche en ligne ne change qu'avec l'accord de l'auteur)
 - **Game Features** : aucune (ni classement, ni multijoueur, ni achats)
 - **Distribution** : partenaires par défaut, aucune exclusion
 
@@ -54,8 +55,9 @@ Claude Opus 5.5) sous la direction de l'auteur ; les visuels sont dessinés par 
   `bridge.initialize()` attendu avant tout ; aucune autre requête externe (polices dans le
   build).
 - Sauvegardes et réglages par `bridge.storage`, chargés en un seul appel au démarrage.
-- Langue du portail (`platform.language`), repli sur l'anglais ; langue changeable par
-  l'icône engrenage, langues écrites dans leur propre langue.
+- Langue du portail (`platform.language`), repli sur l'anglais (le biélorusse, le kazakh et
+  le kirghize mènent au russe) ; langue changeable par l'icône engrenage, langues écrites
+  dans leur propre langue.
 - `game_ready` quand l'écran titre est jouable ; `level_started`, `level_paused`,
   `level_resumed`, `level_completed`, `level_failed`.
 - Son et pause du portail suivis (`AUDIO_STATE_CHANGED`, `PAUSE_STATE_CHANGED`, valeur de

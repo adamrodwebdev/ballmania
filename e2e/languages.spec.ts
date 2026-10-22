@@ -5,46 +5,49 @@ import { expect, test, type Page } from './fixtures';
  * every screen keeps its text inside its controls and on the screen.
  */
 const LONG = ['ru', 'id', 'fr'] as const;
-/** The smallest common phone, a tall one, and a portal's frame. */
+/** The narrowest phone, the smallest common one, a tall one, and a portal's frame. */
 const SIZES = [
+  [320, 568],
   [360, 640],
   [390, 844],
   [1280, 720],
 ] as const;
 
 /** A returning player: every menu has something to show, the gift waits, an upgrade is affordable. */
-const seed = (page: Page, locale: string) =>
-  page.addInitScript((code) => {
-    if (sessionStorage.getItem('seeded')) return;
-    sessionStorage.setItem('seeded', '1');
-    localStorage.setItem(
-      'ballmania:settings',
-      JSON.stringify({ locale: code, difficulty: 'explorer' }),
-    );
-    localStorage.setItem(
-      'ballmania:player',
-      JSON.stringify({
-        version: 1,
-        shards: 120,
-        fragments: 30,
-        worlds: ['nebula', 'neon', 'abyss', 'jewel'],
-        upgrades: { nova: 1 },
-        failures: { 'nebula-02': 3 },
-      }),
-    );
-    localStorage.setItem(
-      'ballmania:progress',
-      JSON.stringify({
-        version: 1,
-        levels: { 'nebula-01': { stars: 3, best: 2000 }, 'nebula-02': { stars: 1, best: 900 } },
-      }),
-    );
-  }, locale);
+const RETURNING = {
+  version: 1,
+  shards: 120,
+  fragments: 30,
+  worlds: ['nebula', 'neon', 'abyss', 'jewel'],
+  upgrades: { nova: 1 },
+  failures: { 'nebula-02': 3 },
+};
+
+const seed = (page: Page, locale: string, player: object = RETURNING) =>
+  page.addInitScript(
+    ({ code, profile }) => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem(
+        'ballmania:settings',
+        JSON.stringify({ locale: code, difficulty: 'explorer' }),
+      );
+      localStorage.setItem('ballmania:player', JSON.stringify(profile));
+      localStorage.setItem(
+        'ballmania:progress',
+        JSON.stringify({
+          version: 1,
+          levels: { 'nebula-01': { stars: 3, best: 2000 }, 'nebula-02': { stars: 1, best: 900 } },
+        }),
+      );
+    },
+    { code: locale, profile: player },
+  );
 
 /**
- * What is wrong with the text on screen: a word out of its button, tile or pill, text out
- * of the screen, a pill or a title on two lines, the page scrolling sideways, a result panel
- * that must scroll to show its choices.
+ * What is wrong with the text on screen: a word out of its button, tile, pill or choice,
+ * text out of the screen, a pill or a title on two lines, a choice pushed out of its column,
+ * the page scrolling sideways, a result panel that must scroll to show its choices.
  */
 const problems = (page: Page) =>
   page.evaluate(() => {
@@ -66,13 +69,23 @@ const problems = (page: Page) =>
       const box = el.getBoundingClientRect();
       if (box.left < -0.5 || box.right > width + 0.5) found.push(`off screen ${name(el)}`);
       if (getComputedStyle(el).position === 'absolute') continue;
-      const control = el.parentElement?.closest('button, .tile, .chip, .badge, .control, li');
+      const control = el.parentElement?.closest(
+        'button, .tile, .chip, .badge, .control, li, .tip, .option',
+      );
       if (!control) continue;
       const room = control.getBoundingClientRect();
       if (box.left < room.left - 1 || box.right > room.right + 1)
         found.push(`out of its box ${name(el)}`);
     }
-    for (const pill of document.querySelectorAll('.chip, .badge, .collect')) {
+    // A choice's box stays in its column: a long name must not push it into its neighbour.
+    for (const choice of document.querySelectorAll('.option > span')) {
+      if (!shown(choice) || !choice.parentElement) continue;
+      const box = choice.getBoundingClientRect();
+      const room = choice.parentElement.getBoundingClientRect();
+      if (box.left < room.left - 1 || box.right > room.right + 1)
+        found.push(`choice out of its column ${name(choice)}`);
+    }
+    for (const pill of document.querySelectorAll('.chip, .badge, .collect, .gift-name')) {
       if (!shown(pill)) continue;
       // The lines of its visible text only: an icon beside it sits at another height.
       const lines = new Set<number>();
@@ -91,8 +104,14 @@ const problems = (page: Page) =>
     return found;
   });
 
-/** Measures a screen once its entrances are over (screens slide in, lists rise). */
+/**
+ * Measures a screen in its final state: its fonts loaded (a fallback font is wider) and its
+ * entrances over (screens slide in, lists rise).
+ */
 const check = async (page: Page, what: string) => {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
   await page.waitForFunction(() =>
     document
       .getAnimations()
@@ -122,6 +141,8 @@ test.describe('languages', () => {
       }) => {
         // The viewport is set per test: one project is enough.
         test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+        // Six screens, each measured at rest.
+        test.setTimeout(60_000);
         await page.setViewportSize({ width, height });
         await seed(page, locale);
         const at = `${locale} ${width}×${height}`;
@@ -135,6 +156,23 @@ test.describe('languages', () => {
         }
       });
     }
+
+    test(`keeps the Observatory bubble's text in place in ${locale} at every size`, async ({
+      page,
+    }) => {
+      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      // A first upgrade within reach and none bought yet: the map points at the Observatory,
+      // on one visit only, so that visit is measured at every size.
+      await page.setViewportSize({ width: SIZES[0][0], height: SIZES[0][1] });
+      await seed(page, locale, { version: 1, fragments: 5 });
+      await page.goto('./');
+      await page.getByTestId('play').click();
+      await expect(page.getByTestId('observatory-tip')).toBeVisible();
+      for (const [width, height] of SIZES) {
+        await page.setViewportSize({ width, height });
+        await check(page, `${locale} ${width}×${height} Observatory bubble`);
+      }
+    });
 
     test(`keeps the game's text in place in ${locale} at every size`, async ({ page }) => {
       test.skip(test.info().project.name !== 'desktop', 'desktop project only');

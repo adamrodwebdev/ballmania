@@ -2,7 +2,7 @@
   "name": "ballmania",
   "version": "1.7.4",
   "private": true,
-  "description": "Jeu de tir de billes en chaîne réinventé : campagne, nouveaux modes, destruction spectaculaire, en français, anglais et indonésien. Vue 3, TypeScript, mobile d'abord.",
+  "description": "Jeu de tir de billes en chaîne réinventé : campagne, nouveaux modes, destruction spectaculaire, en français, anglais, indonésien et russe. Vue 3, TypeScript, mobile d'abord.",
   "type": "module",
   "engines": {
     "node": ">=22.12"

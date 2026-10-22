@@ -71,7 +71,7 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
 > - 4 Arcade modes, a daily challenge and a daily gift
 > - Charged shots and an optional aim assist
 > - Colour-blind friendly: every colour carries a symbol
-> - Plays in English, French and Indonesian
+> - Plays in English, French, Indonesian and Russian
 
 ## Commandes (à coller, en anglais)
 
@@ -111,7 +111,8 @@ tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la sup
   option, le module renvoie `dataModuleDisabled`, la progression est perdue à chaque
   rechargement et la console de l'outil de QA l'affiche. Vérifier un rechargement dans
   l'outil de QA avant de soumettre.
-- **Langue** : anglais complet ; le jeu suit la langue du joueur (`systemInfo.locale`),
+- **Langue** : anglais complet ; le jeu suit la langue du joueur (`systemInfo.locale`) :
+  français, indonésien ou russe (aussi pour le biélorusse, le kazakh et le kirghize),
   anglais par défaut.
 - **Public** : tout public (CrazyGames exige la conformité PEGI 12) : aucune violence,
   aucun achat, aucune donnée personnelle collectée.

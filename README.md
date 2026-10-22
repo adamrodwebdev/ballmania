@@ -6,8 +6,8 @@ chaîne font le spectacle. Ballmania garde cette prise en main connue de tous et
 six mondes à mécaniques nouvelles, quatre modes Arcade, des aléas, des améliorations à
 débloquer et une destruction soignée.
 
-Jeu web gratuit, sans inscription ni publicité sur ce site, en **français, anglais et
-indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
+Jeu web gratuit, sans inscription ni publicité sur ce site, en **français, anglais,
+indonésien et russe**, thèmes clair et sombre, sur mobile comme sur ordinateur.
 
 ![Ballmania](public/og.jpg)
 
@@ -58,6 +58,19 @@ indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
 - `prefers-reduced-motion` respecté : ni secousses, ni ralentis, ni distorsions, ni fonds
   animés ; trois niveaux d'intensité des effets dans les réglages.
 
+## Langues
+
+Français, anglais, indonésien et russe, un fichier par langue aux mêmes clés (vérifié par
+un test) : le joueur ne télécharge que la sienne. La langue suit le navigateur ou le compte
+du portail (le biélorusse, le kazakh et le kirghize mènent au russe) et se change dans les
+réglages. Nombres et dates passent par `Intl`, et chaque nombre accorde son nom, avec les
+quatre formes du russe (« 1 шар, 2 шара, 5 шаров »). Un glossaire commun tient les noms du
+jeu (bille : marble, bola, шар ; éclats : shards, kepingan, осколки…).
+
+Fredoka et Lilita One n'ont pas de lettres cyrilliques : le russe s'affiche en Nunito, dans
+un fichier de 23,6 Ko que les autres langues ne téléchargent jamais. Un test de bout en bout
+vérifie chaque écran en russe, en indonésien et en français, de 320 × 568 à 1 280 × 720.
+
 ## Développement
 
 Node 24 (voir `.nvmrc`).
@@ -67,14 +80,14 @@ npm install
 npm run dev
 ```
 
-| Commande             | Rôle                                                         |
-| -------------------- | ------------------------------------------------------------ |
-| `npm run dev`        | Serveur de développement                                     |
-| `npm run build`      | Vérification des types puis build de production (`dist/`)    |
-| `npm run verify`     | Lint, format, types, tests unitaires et build (avant commit) |
-| `npm test`           | Tests unitaires (Vitest)                                     |
-| `npm run test:e2e`   | Parcours Playwright, mobile et ordinateur, audits axe-core   |
-| `npm run lighthouse` | Audit Lighthouse mobile du build (`-- --desktop` sinon)      |
+| Commande             | Rôle                                                              |
+| -------------------- | ----------------------------------------------------------------- |
+| `npm run dev`        | Serveur de développement                                          |
+| `npm run build`      | Vérification des types puis build de production (`dist/`)         |
+| `npm run verify`     | Lint, format, types, tests unitaires et build (avant commit)      |
+| `npm test`           | Tests unitaires (Vitest)                                          |
+| `npm run test:e2e`   | Parcours Playwright, mobile et ordinateur, audits axe-core        |
+| `npm run lighthouse` | Audit Lighthouse mobile du build (`-- --desktop`, `-- --lang=ru`) |
 
 Les parcours servent le build du site sur le port 4174 et celui du portail simulé sur le
 4175 ; si un autre projet les occupe déjà, `E2E_PORT` et `E2E_PORTAL_PORT` les déplacent.
@@ -120,6 +133,7 @@ ni juste après sa défaite. Détails : § 3.7 du
 | `src/audio`    | Sons et musique synthétisés (Web Audio, aucun fichier)                              |
 | `src/player`   | Profil, objectifs, cosmétiques, défi du jour                                        |
 | `src/services` | Réglages, sauvegardes, partage, thème                                               |
+| `src/i18n`     | Langues (un fichier chacune, chargé à la demande), pluriels, détection              |
 | `src/app`      | Services injectés et modes de jeu (stratégies)                                      |
 | `src/platform` | Notre site et les portails (publicités, sauvegarde, signaux), choisis au build      |
 | `src/ui`       | Écrans et composants Vue 3                                                          |
@@ -136,11 +150,15 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   gagne (billes bonus comprises) et calibre ses étoiles et son temps de référence (profils
   pressé, posé et appliqué), et un test qui fait résoudre chaque énigme par le vrai moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
-  d'accessibilité, absence de défilement horizontal de 320 à 1 920 px.
-- Lighthouse (v1.7.4) : sur ordinateur, 100 dans les quatre catégories ; sur mobile, 100 en
-  accessibilité, bonnes pratiques et SEO, 98, 98 et 97 en performance. Règle du projet depuis
-  le 22/10/2026 : 100 dans les quatre catégories, sur la plus faible de trois mesures mobiles
-  et sur ordinateur ; `npm run lighthouse` échoue en dessous.
+  d'accessibilité en anglais et en russe dans les deux thèmes, absence de défilement
+  horizontal de 320 à 1 920 px, et chaque écran en russe, en indonésien et en français à
+  320 × 568, 360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
+- Lighthouse (v1.7.5), en anglais comme en russe : sur ordinateur, 100 dans les quatre
+  catégories ; sur mobile, 100 en accessibilité, bonnes pratiques et SEO, 98 en performance
+  aux trois mesures (premier affichage simulé 1,8 s, plus grand élément 2,2 s). Règle du
+  projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur la plus faible de trois
+  mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en dessous, et la 1.7.6
+  commence par ce premier affichage.
 - Intégration continue GitHub Actions à chaque envoi.
 
 ## Conventions
@@ -148,5 +166,15 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 Branche `main` stable, une branche par lot fusionnée sans avance rapide, commits en
 français au format Conventional Commits ; code et commentaires en anglais, documentation
 en français.
+
+## Crédits
+
+Polices sous licence [SIL Open Font License 1.1](https://openfontlicense.org) : Lilita One
+(© 2011 Juan Montoreano) pour les titres, Fredoka (© 2016 The Fredoka Project Authors) pour
+l'interface et, pour le russe, un sous-ensemble de Nunito (© 2014 The Nunito Project
+Authors) dont le fichier garde le copyright et la licence. Sons et musique sont synthétisés
+par le jeu.
+
+## Licence
 
 Tous droits réservés : aucune licence de réutilisation n'est accordée pour le moment.

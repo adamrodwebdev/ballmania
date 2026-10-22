@@ -561,11 +561,12 @@ h2 {
   opacity: 0;
 }
 
+/* Narrow sides, so the longest names fit their third of a phone (they hyphenate at 320 px). */
 .option span {
   display: grid;
   flex: 1;
   gap: var(--space-1);
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);

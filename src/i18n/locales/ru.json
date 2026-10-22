@@ -13,7 +13,7 @@
   "home": {
     "tagline": "Стрельба шарами на новый лад",
     "play": "Играть",
-    "next": "{world} · уровень {number}"
+    "next": "{world}\u00a0· уровень\u00a0{number}"
   },
   "settings": {
     "language": "Язык",
@@ -461,7 +461,7 @@
   "difficulty": {
     "title": "Сложность",
     "explorer": {
-      "name": "Разведчик",
+      "name": "Развед\u00adчик",
       "hint": "Цепочка медленнее, помехи слабее, очки ×0,8"
     },
     "pilot": {
