@@ -6,10 +6,15 @@ import { playLevel } from './bot';
 const SEEDS = ['a', 'b', 'c', 'd', 'e', 'f'];
 
 describe('playability (casual bot: one shot every 1.2 s, imprecise)', () => {
-  it.each(CAMPAIGN.map((level) => [level.id, level] as const))('%s can be won', (_, level) => {
-    const runs = SEEDS.map((seed) => playLevel(level, FRAMES.square, seed, 72, 24));
-    expect(runs.filter((run) => run.outcome === 'won').length).toBeGreaterThanOrEqual(4);
-  });
+  // Six whole games per level: a busy or hot machine can take longer than the default 5 s.
+  it.each(CAMPAIGN.map((level) => [level.id, level] as const))(
+    '%s can be won',
+    (_, level) => {
+      const runs = SEEDS.map((seed) => playLevel(level, FRAMES.square, seed, 72, 24));
+      expect(runs.filter((run) => run.outcome === 'won').length).toBeGreaterThanOrEqual(4);
+    },
+    20_000,
+  );
 
   it('starts gently and saves the greatest pressure for the Colossus', () => {
     const danger = (id: string) => {

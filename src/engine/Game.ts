@@ -267,6 +267,12 @@ export const WIND_PACE = 0.35;
 /** A shot bent at least this much by gravity is a curve (radians). */
 export const CURVE_ANGLE = Math.PI / 4;
 
+/**
+ * Shots in a row of a colour with no pair on the board, after which the next
+ * ball dealt is one of a colour that has a pair (a fairer draw, § 3.1).
+ */
+export const DRY_SHOTS = 2;
+
 /** Longest frame simulated at once (a tab coming back from the background). */
 const MAX_FRAME = 0.25;
 
@@ -291,6 +297,8 @@ export class Game {
   private bestGroove = 1;
   private beatIndex = 0;
   private shotsFired = 0;
+  /** The player's last shots in a row of a colour that had no pair on the board. */
+  private dryShots = 0;
   private readonly random: RandomSource;
   /** The Observatory's upgrades (§ 3.9). */
   readonly upgrades: Upgrades;
@@ -832,11 +840,13 @@ export class Game {
   fire(power = false): boolean {
     if (this.stateValue !== 'playing' || this.shotsLeft === 0) return false;
     const special = this.loadedSpecial;
+    const favoured = this.shooter.ready ? this.fairDraw(special) : [];
     // A laser flies like a charged shot: fast, and straight whatever the gravity or the wind.
     const projectile = this.shooter.fire(
       this.shooterTones(),
       (power || special === 'laser' ? POWER_SPEED : 1) * this.shotSpeedFactor,
       special,
+      favoured,
     );
     if (!projectile) return false;
     if (special === 'bomb') {
@@ -1361,6 +1371,32 @@ export class Game {
   private availableTones(): Tone[] {
     const tones = new Set<Tone>();
     for (const chain of this.chains) for (const tone of chain.tones()) tones.add(tone);
+    return [...tones].sort((a, b) => a - b);
+  }
+
+  /**
+   * Counts the shot about to leave: a colour with no pair on the board is a dry
+   * shot (a special one never is). After `DRY_SHOTS` in a row, the colours to
+   * favour for the next ball dealt: those with a pair on the board. Not in the
+   * Jewel world, whose colours are mixed rather than matched.
+   */
+  private fairDraw(special: ProjectileSpecial): Tone[] {
+    const pairs = this.pairTones();
+    const dry = special === null && pairs.length > 0 && !pairs.includes(this.shooter.current);
+    this.dryShots = dry ? this.dryShots + 1 : 0;
+    return this.dryShots >= DRY_SHOTS && !this.setup.alchemy ? pairs : [];
+  }
+
+  /** Colours of which two touching balls are on the board: one more ball of them makes a group. */
+  private pairTones(): Tone[] {
+    const tones = new Set<Tone>();
+    for (const chain of this.chains) {
+      const balls = chain.balls;
+      for (let i = 0; i + 1 < balls.length; i++) {
+        const [a, b] = [balls[i]!, balls[i + 1]!];
+        if (a.s >= 0 && a.tone === b.tone && b.s - a.s <= chain.diameter + 1e-6) tones.add(a.tone);
+      }
+    }
     return [...tones].sort((a, b) => a - b);
   }
 }

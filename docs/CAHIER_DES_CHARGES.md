@@ -84,7 +84,12 @@ Différenciation :
   les deux billes qui se rejoignent ont la même couleur et forment un groupe ≥ 3, nouvelle
   explosion : c'est la **réaction en chaîne** (combo).
 - Les couleurs proposées au lanceur sont tirées **parmi celles encore présentes** sur le
-  plateau (pas de tir impossible en fin de manche).
+  plateau (pas de tir impossible en fin de manche). **Tirage plus juste** (v1.7.3) : après
+  deux tirs de suite d'une couleur sans paire à l'écran, la bille suivante est d'une couleur
+  qui en a une (sauf en Joaillerie, où les couleurs se mélangent). Mesuré au robot sur le
+  monde 1, le hasard pèse déjà peu (le dixième le plus malchanceux des parties fait 91 % du
+  score médian) et le tirage n'y change presque rien : c'est un filet contre les rares
+  sécheresses, la même graine rejouant toujours la même partie.
 - **Bonus** apparaissant sur certaines billes, déclenchés quand elles explosent : bombe
   (rayon), ralenti, recul de la chaîne, foudre (toutes les billes d'une couleur), joker
   multicolore.

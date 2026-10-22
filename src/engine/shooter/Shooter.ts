@@ -128,12 +128,14 @@ export class Shooter {
 
   /**
    * Launches the loaded ball, or returns null while reloading; a powered shot
-   * flies `power` times faster.
+   * flies `power` times faster. The ball drawn to follow is one of `favoured`
+   * when any of them is available (a fairer draw after a run of bad luck).
    */
   fire(
     available: readonly Tone[],
     power = 1,
     special: ProjectileSpecial = null,
+    favoured: readonly Tone[] = [],
   ): Projectile | null {
     if (!this.ready) return null;
     // The rival's shots count down, so no two projectiles share an id.
@@ -153,7 +155,7 @@ export class Shooter {
       return projectile;
     }
     this.currentTone = this.nextTone;
-    this.nextTone = this.draw(available);
+    this.nextTone = this.draw(available, favoured);
     this.pinned = this.pinned === 'next' ? 'current' : null;
     return projectile;
   }
@@ -174,10 +176,13 @@ export class Shooter {
     }
   }
 
-  private draw(available: readonly Tone[]): Tone {
+  /** The level's opening first, then chance, among the favoured colours when there are some. */
+  private draw(available: readonly Tone[], favoured: readonly Tone[] = []): Tone {
     if (available.length === 0) return this.currentTone;
     const dealt = this.opening.shift();
     if (dealt !== undefined && available.includes(dealt)) return dealt;
-    return available[this.random.nextInt(available.length)]!;
+    const fair = favoured.filter((tone) => available.includes(tone));
+    const pool = fair.length > 0 ? fair : available;
+    return pool[this.random.nextInt(pool.length)]!;
   }
 }

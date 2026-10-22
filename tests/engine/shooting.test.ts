@@ -45,6 +45,24 @@ describe('the shooting module', () => {
     expect([skipped.shooter.current, skipped.shooter.next]).toEqual([0, 1]);
   });
 
+  it('deals a colour that has a pair after two shots of colours that had none', () => {
+    // Tail first: a pair of cyan, then yellow and red; chance always deals red (index 0).
+    const game = new Game(level([1, 1, 2, 0]), new FixedRandom(0));
+    expect([game.shooter.current, game.shooter.next]).toEqual([0, 0]);
+    // Straight up, past the chain: red shots, with no red pair on the board.
+    game.aimAt(new Vec2(500, 0));
+    expect(game.fire()).toBe(true);
+    expect(game.shooter.next).toBe(0);
+    expect(game.fire()).toBe(true);
+    expect(game.shooter.next).toBe(1);
+    // A shot of a colour that has a pair is never dry: chance keeps dealing.
+    const lucky = new Game(level([0, 0, 2, 1]), new FixedRandom(0));
+    lucky.aimAt(new Vec2(500, 0));
+    lucky.fire();
+    lucky.fire();
+    expect(lucky.shooter.next).toBe(0);
+  });
+
   it('previews the slot of the shot and the group it would burst', () => {
     // Tail first: a a b c, ball radius 10 so balls are 20 apart from x = 300.
     const game = new Game(level([0, 0, 1, 2]), new FixedRandom(0));
