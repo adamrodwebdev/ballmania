@@ -331,6 +331,8 @@ watch(
       endDialog.value?.showModal();
     } else if (endDialog.value?.open) endDialog.value.close();
   },
+  // Once the result is drawn: its first choice ("Next", the help) is there to take the focus.
+  { flush: 'post' },
 );
 
 /** A won result: the futuristic panel, its score counting up, its stars chiming. */

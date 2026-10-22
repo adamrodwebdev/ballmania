@@ -274,6 +274,8 @@ test('offers help after three failures in a row on a level', async ({ page }) =>
   await page.clock.runFor(100_000);
   const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
   await expect(dialog).toBeVisible();
+  // The first choice has the focus: Enter takes it, not "Play again".
+  await expect(dialog.getByTestId('assist')).toBeFocused();
   await dialog.getByTestId('assist').click();
   await expect(dialog).toBeHidden();
   await expect(page.getByTestId('assisted')).toHaveText('Help on');
