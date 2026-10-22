@@ -5,6 +5,12 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [1.7.4] — 2026-10-22
 
+Lighthouse mobile, build de production : performance 98, 98 et 97 aux trois mesures, un point
+sous le seuil de 98 à la troisième ; accessibilité, bonnes pratiques et SEO à 100 ; 100 dans les
+quatre catégories sur ordinateur. La marge manque depuis la 1.7.3 (premier affichage 1,8 s,
+plus grand élément 2,2 s) : la 1.7.6 commence par afficher le titre dans le HTML statique et
+charger le code après le premier affichage.
+
 ### Ajouté
 
 - **Un premier boss au 1-3** : le jeune Colosse stellaire, plus petit que l'adulte, avec 20
