@@ -3,34 +3,6 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
-## v1.7.3 — Étoiles à portée (en préparation)
-
-**But** : rendre les trois étoiles atteignables par un joueur appliqué et faire compter la
-vitesse, d'après le retour de l'auteur (trois étoiles presque impossibles sur les chaînes
-courtes du début, longues attentes de billes) et les mesures du 22/10/2026 sur le monde 1
-(1 080 parties de robot) : trois étoiles dans 0 % des parties, même pour le profil habile ;
-un score presque indépendant de l'habileté (0 à 10 % d'écart entre l'occasionnel et
-l'habile) ; un bonus de temps presque toujours réduit à ses 300 points fixes ; jusqu'à un
-tiers de la partie avec moins de trois billes à l'écran (1-1, 1-3, 1-6).
-
-**Public et plateformes** : joueurs du bac à sable Playgama (temps de jeu moyen 3:35 pour un
-objectif de 5:00) et futurs joueurs de CrazyGames, ordinateur et téléphone.
-
-**Calibrage** : sur un robot « humain », plus lent à décider qu'un robot glouton (environ
-1,5 s par tir) mais précis et qui prépare ses réactions en chaîne, et non sur les seuls
-robots rapides : un vrai joueur prend le temps de choisir, puis tire juste.
-
-| Étape                | Contenu                                                                                                                                                                                                                                                                                                          | Fini quand                                                                                                                                                                                                                              |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Remise en jeu     | Quand une chaîne a moins de 8 billes à l'écran et qu'il en reste dans le tunnel, elle accourt à la vitesse d'ouverture du niveau jusqu'à en montrer 8 ; jamais derrière un Colosse, ni quand sa tête a passé 40 % du tracé, ni en Duel. Le robot relève le temps sans bille et le temps à moins de trois billes. | Robot : moins de trois billes à l'écran pendant moins de 5 % de la partie sur chaque niveau du monde 1 ; aucune défaite de plus ; tests.                                                                                                |
-| 2. Tirage plus juste | Après deux tirs sans couleur utile, la bille suivante privilégie une couleur qui forme une paire à l'écran ; le reste du tirage reste aléatoire, et une même graine rejoue toujours la même partie (défi du jour).                                                                                               | Tests du tirage (déterminisme, jamais une couleur absente) ; séries mesurées avant et après.                                                                                                                                            |
-| 3. Bonus de temps    | Bonus de fin : 300 points, plus 40 par seconde gagnée sur un temps de référence réglé sur le robot humain moyen ; le panneau de victoire le détaille (« Temps : +600, 15 s d'avance »).                                                                                                                          | Tests du calcul ; textes en anglais, français et indonésien ; panneau toujours sans défilement de 360 × 640 à 1280 × 720.                                                                                                               |
-| 4. Seuils recalibrés | Seuils des 2ᵉ et 3ᵉ étoiles tirés des parties mesurées, sans forfait qui écrase les chaînes courtes ; robot humain (moyen et appliqué) à côté des robots existants.                                                                                                                                              | Test des cibles sur chaque niveau du monde 1, en Pilote : trois étoiles pour environ la moitié des parties humaines appliquées, 20 à 30 % des moyennes, au plus 10 % des occasionnelles ; deux étoiles pour au moins 80 % des moyennes. |
-| 5. Livraison         | CHANGELOG, cahier des charges (règles du score et des étoiles, mesures avant et après), builds, bac à sable Playgama.                                                                                                                                                                                            | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 dans les trois autres catégories.                                                                                     |
-
-Les seuils et le temps de référence se calculent d'après le niveau (billes, longueur, vitesse) :
-ils suivront les réglages du monde 1 prévus en 1.8.0 (tableau de rythme, tension).
-
 ## v1.8.0 — Les cinq premières minutes (en préparation)
 
 **But** : sur les portails, accrocher le joueur dès le premier geste avec un entraînement qui
@@ -75,6 +47,48 @@ récompensée avant 3 à 5 minutes ; difficulté personnalisée, après la 1.8.0
 vitesse, couleurs, longueur, billes bonus ; ni étoiles, ni éclats, ni objectifs, ni défi du
 jour, ni partage), et un curseur « Vitesse du jeu » borné (70 à 100 %) pour l'accessibilité ;
 paramètres bornés et validés à la lecture, jamais lus dans l'adresse.
+
+## v1.7.3 — Étoiles à portée (livrée le 22/10/2026)
+
+**But** : rendre les trois étoiles atteignables par un joueur appliqué et faire compter la
+vitesse, d'après le retour de l'auteur (trois étoiles presque impossibles sur les chaînes
+courtes du début, longues attentes de billes) et les mesures du 22/10/2026 sur le monde 1
+(1 080 parties de robot) : trois étoiles dans 0 % des parties, même pour le profil habile ;
+un score presque indépendant de l'habileté (0 à 10 % d'écart entre l'occasionnel et
+l'habile) ; un bonus de temps presque toujours réduit à ses 300 points fixes ; jusqu'à un
+tiers de la partie avec moins de trois billes à l'écran (1-1, 1-3, 1-6).
+
+**Public et plateformes** : joueurs du bac à sable Playgama (temps de jeu moyen 3:35 pour un
+objectif de 5:00) et futurs joueurs de CrazyGames, ordinateur et téléphone.
+
+**Calibrage** : sur un robot « humain », plus lent à décider qu'un robot glouton (environ
+1,5 s par tir) mais précis et qui prépare ses réactions en chaîne, et non sur les seuls
+robots rapides : un vrai joueur prend le temps de choisir, puis tire juste.
+
+| Étape                | Contenu                                                                                                                                                                                                                                                                                                          | Fini quand                                                                                                                                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Remise en jeu     | Quand une chaîne a moins de 8 billes à l'écran et qu'il en reste dans le tunnel, elle accourt à la vitesse d'ouverture du niveau jusqu'à en montrer 8 ; jamais derrière un Colosse, ni quand sa tête a passé 40 % du tracé, ni en Duel. Le robot relève le temps sans bille et le temps à moins de trois billes. | Robot : moins de trois billes à l'écran pendant moins de 5 % de la partie sur chaque niveau du monde 1 ; aucune défaite de plus ; tests.                                                                                                |
+| 2. Tirage plus juste | Après deux tirs sans couleur utile, la bille suivante privilégie une couleur qui forme une paire à l'écran ; le reste du tirage reste aléatoire, et une même graine rejoue toujours la même partie (défi du jour).                                                                                               | Tests du tirage (déterminisme, jamais une couleur absente) ; séries mesurées avant et après.                                                                                                                                            |
+| 3. Bonus de temps    | Bonus de fin : 300 points, plus 40 par seconde gagnée sur un temps de référence réglé sur le robot humain moyen ; le panneau de victoire le détaille (« Temps : +600, 15 s d'avance »).                                                                                                                          | Tests du calcul ; textes en anglais, français et indonésien ; panneau toujours sans défilement de 360 × 640 à 1280 × 720.                                                                                                               |
+| 4. Seuils recalibrés | Seuils des 2ᵉ et 3ᵉ étoiles tirés des parties mesurées, sans forfait qui écrase les chaînes courtes ; robot humain (moyen et appliqué) à côté des robots existants.                                                                                                                                              | Test des cibles sur chaque niveau du monde 1, en Pilote : trois étoiles pour environ la moitié des parties humaines appliquées, 20 à 30 % des moyennes, au plus 10 % des occasionnelles ; deux étoiles pour au moins 80 % des moyennes. |
+| 5. Livraison         | CHANGELOG, cahier des charges (règles du score et des étoiles, mesures avant et après), builds, bac à sable Playgama.                                                                                                                                                                                            | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 dans les trois autres catégories.                                                                                     |
+
+Ajouts et écarts décidés pendant la livraison (22/10/2026) : la remise en jeu s'arrête à 8 billes
+(à 10, le Singularité 11 devenait trop dur au robot pressé) ; l'attente se mesure pour un joueur
+qui tire toutes les 0,9 s (le robot le plus rapide attend encore 5,3 % du 1-1, environ 0,3 s
+après chaque grosse explosion). Le tirage plus juste reste comme filet : le hasard pèse déjà
+peu (le dixième le plus malchanceux des parties fait 91 % du score médian). Une formule unique
+se trompait trop d'un niveau à l'autre (trois étoiles pour 93 % des parties au 1-10, 6 % au
+Colosse) : chaque niveau est calibré sur le robot posé (temps de référence 1,2 fois sa durée
+médiane, 3ᵉ étoile pour 30 % de ses victoires, 2ᵉ pour 80 % et à 85 % de la 3ᵉ au plus), dans
+`src/levels/calibration.data.ts`, que `CALIBRATE=1 npx vitest run tests/levels/calibration.test.ts`
+recalcule après un changement de niveau (1.8.0 comprise). Vérifié sur d'autres parties : trois
+étoiles pour 22 à 34 % des parties posées et 54 à 66 % des appliquées selon le monde (0 % avant).
+Écart assumé : le robot pressé en obtient 35 à 48 %, car le score récompense encore la vitesse
+et le volume de tirs plus que la précision ; l'essai de l'auteur a validé le résultat. La ligne
+du bonus se lit « 25 s d'avance : +1 013 » pour tenir sur une ligne dans les trois langues.
+Lighthouse : 98 en performance sur mobile aux trois mesures (seuil relevé à 98 le jour même), 100
+dans les trois autres catégories, 100 × 4 sur ordinateur.
 
 ## v1.7.2 — Prête pour la revue (livrée le 22/10/2026)
 
