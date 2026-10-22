@@ -26,6 +26,10 @@ export const PLAYER_KEY = 'ballmania:player';
 /** Format version of the saved profile; bump it with a migration when it changes. */
 export const PLAYER_VERSION = 2;
 
+/** Tips shown once, then never again (v1.7.4): the bubble that points at the Observatory. */
+export type TipId = 'observatory';
+const TIP_IDS: readonly TipId[] = ['observatory'];
+
 /** Result of one day's challenge: the first attempt counts for the day. */
 export interface DailyRecord {
   readonly score: number;
@@ -77,6 +81,8 @@ interface State {
   upgrades: Partial<Record<UpgradeId, number>>;
   /** The daily gift's streak (v1.7). */
   gift: GiftRecord;
+  /** The one-time tips already shown. */
+  tips: TipId[];
 }
 
 /**
@@ -151,6 +157,25 @@ export class PlayerProfile {
       const cost = this.upgradeCost(id);
       return cost !== null && cost <= this.state.fragments;
     });
+  }
+
+  /**
+   * True when the map should point at the Observatory (v1.7.4): a first
+   * upgrade can be bought, none has been yet, and the bubble was never shown.
+   */
+  get observatoryTipDue(): boolean {
+    return (
+      this.upgradeAffordable &&
+      UPGRADE_IDS.every((id) => this.upgradeRank(id) === 0) &&
+      !this.state.tips.includes('observatory')
+    );
+  }
+
+  /** A one-time tip has been shown, or what it points at was opened: it never comes back. */
+  markTipSeen(id: TipId): void {
+    if (this.state.tips.includes(id)) return;
+    this.state.tips.push(id);
+    this.save();
   }
 
   /** Spends fragments on the next rank of an upgrade; false if it cannot be bought. */
@@ -309,6 +334,7 @@ export class PlayerProfile {
       fragments: 0,
       upgrades: {},
       gift: { last: null, streak: 0 },
+      tips: [],
     };
     if (typeof value !== 'object' || value === null) return fresh;
     const saved = value as Partial<Record<keyof State | 'version', unknown>>;
@@ -362,6 +388,7 @@ export class PlayerProfile {
       const rank = Math.min(MAX_RANK, count(upgrades[id]));
       if (rank > 0) fresh.upgrades[id] = rank;
     }
+    fresh.tips = TIP_IDS.filter((id) => strings(saved.tips).includes(id));
     return fresh;
   }
 }

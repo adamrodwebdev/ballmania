@@ -10,6 +10,8 @@ const { player } = useServices();
 
 const number = computed(() => new Intl.NumberFormat(locale.value));
 const announcement = ref('');
+// The player found the Observatory: the map's bubble pointing at it is no longer needed.
+player.markTipSeen('observatory');
 
 const upgrades = computed(() =>
   UPGRADE_IDS.map((id) => {
