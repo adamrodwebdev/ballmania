@@ -1,14 +1,14 @@
 // Lighthouse audit of the production build, mobile profile (the default).
 // Usage: npm run build && npm run lighthouse  [-- --desktop]
-// Fails when a required category scores below its threshold in the specification:
-// 98 for performance (since 2026-10-22; judge the worst of three runs), 95 for the others.
+// Fails when a category scores below the specification's threshold: 100 in all four
+// (since 2026-10-22), on mobile and on desktop; judge the worst of three mobile runs.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
 import desktopConfig from 'lighthouse/core/config/desktop-config.js';
 import { preview } from 'vite';
 
-const THRESHOLDS = { performance: 98, accessibility: 95, 'best-practices': 95, seo: 95 };
+const THRESHOLDS = { performance: 100, accessibility: 100, 'best-practices': 100, seo: 100 };
 const PORT = 4176;
 const desktop = process.argv.includes('--desktop');
 
@@ -48,6 +48,6 @@ try {
 }
 
 if (failed) {
-  console.error('At least one category is below its threshold (performance 98, others 95).');
+  console.error('At least one category is below 100.');
   process.exit(1);
 }
