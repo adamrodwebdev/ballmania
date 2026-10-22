@@ -7,7 +7,9 @@ import {
   chooseFrame,
   contentBounds,
   fitBoard,
+  leverReach,
   settleBoard,
+  TOUCH_REACH,
   type BoardView,
   type Bounds,
   type Content,
@@ -149,3 +151,16 @@ describe('BoardView', () => {
 });
 
 const SIDE_RAILS: Insets = { top: 0, right: 96, bottom: 0, left: 96 };
+
+describe('leverReach', () => {
+  it('answers a tap 1.6 lever radii away on a large board', () => {
+    expect(leverReach(30, 1)).toBe(48);
+  });
+
+  it('never makes a switch smaller than a 44 px touch target on a phone', () => {
+    // A phone's board: about 0.37 CSS px per board unit, where 48 units are 18 px only.
+    const reach = leverReach(30, 0.37);
+    expect(reach * 0.37).toBeCloseTo(TOUCH_REACH);
+    expect(reach * 0.37 * 2).toBeGreaterThanOrEqual(44);
+  });
+});

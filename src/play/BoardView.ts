@@ -52,6 +52,19 @@ const CLOSE_SMALL = 0.98;
 const CLOSE_LARGE = 0.88;
 const LARGE_BALL = 14;
 
+/** Half of a touch target (44 CSS px): the least distance a tap on the board answers to. */
+export const TOUCH_REACH = 22;
+
+/**
+ * How near a tap must land to a lever of `radius` board units, in board
+ * units: a finger is wider than the lever (1.6 times its radius), and the
+ * target is never smaller than 44 CSS px across at `scale` CSS px per board
+ * unit (v1.7.6: a Volcano switch on a phone).
+ */
+export function leverReach(radius: number, scale: number): number {
+  return Math.max(radius * 1.6, TOUCH_REACH / scale);
+}
+
 /**
  * The part of the board the player must see: the tracks as far as they run on
  * the board (the entrance tunnels come from off-screen), every branch of the

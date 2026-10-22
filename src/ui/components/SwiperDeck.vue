@@ -161,15 +161,16 @@ defineExpose({ slideTo: (index: number) => swiper?.slideTo(index) });
   gap: var(--space-2);
 }
 
+/* Each name is a button to touch: 44 px tall at least (v1.7.6). */
 .bullets :deep(.swiper-pagination-bullet) {
-  min-height: 2.25rem;
-  padding: 0 var(--space-3);
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
   color: var(--text-muted);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   transition:

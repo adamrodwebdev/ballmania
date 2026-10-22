@@ -192,13 +192,16 @@ export class CanvasRenderer implements Renderer {
     this.scale = this.view.scale;
     this.offsetX = this.view.offsetX;
     this.offsetY = this.view.offsetY;
-    // Read by the end-to-end tests, which aim at board points.
+    // Read by the end-to-end tests, which aim at board points and check what the level covers.
     Object.assign(this.canvas.dataset, {
       scale: String(this.scale),
       offsetX: String(this.offsetX),
       offsetY: String(this.offsetY),
       boardWidth: String(this.game.setup.board.width),
       boardHeight: String(this.game.setup.board.height),
+      content: [this.content.left, this.content.top, this.content.right, this.content.bottom].join(
+        ' ',
+      ),
     });
     this.rebuildSprites();
     if (resized || !this.background) this.repaintBackground();

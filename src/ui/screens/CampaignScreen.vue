@@ -787,12 +787,13 @@ h2 {
 }
 
 /*
- * Phones on their side (v1.7.6: 844 × 390, 734 × 343, 640 × 400): the
- * difficulties side by side in a narrower column, and the deck without its
- * row of names (the card names its world; the arrows and a swipe still move
- * it), so the whole map fits with tiles still 44 px wide.
+ * Phones on their side (v1.7.6: 844 × 390, 734 × 343, 640 × 400, and
+ * CrazyGames' 800 × 450): the difficulties side by side in a narrower column,
+ * and the deck without its row of names (the card names its world; the
+ * arrows and a swipe still move it), so the whole map fits with tiles still
+ * 44 px wide.
  */
-@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 430px) {
+@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 460px) {
   .campaign {
     grid-template-columns: 14rem minmax(0, 1fr);
     column-gap: var(--space-4);

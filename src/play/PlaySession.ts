@@ -7,7 +7,7 @@ import type { PowerKind, PowerShot } from '@/engine/powers/Powers';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
-import { NO_INSETS, type Insets } from './BoardView';
+import { leverReach, NO_INSETS, type Insets } from './BoardView';
 import { CanvasRenderer, SWITCH_RADIUS, type Renderer } from './CanvasRenderer';
 import { Destruction } from './effects/Destruction';
 import type { DistortionLayer } from './effects/DistortionLayer';
@@ -343,10 +343,12 @@ export class PlaySession {
   flipSwitchAt(x: number, y: number): boolean {
     if (!this.acceptsCommands) return false;
     const point = this.renderer.toBoard(x, y);
-    // A generous target: a finger is wider than the lever.
+    // A generous target: a finger is wider than the lever, and 44 CSS px across at least.
+    const scale = 1 / this.renderer.toBoard(x + 1, y).distanceTo(point);
+    const reach = leverReach(SWITCH_RADIUS, scale);
     const view = this.game
       .switches()
-      .find((candidate) => candidate.position.distanceTo(point) < SWITCH_RADIUS * 1.6);
+      .find((candidate) => candidate.position.distanceTo(point) < reach);
     if (!view) return false;
     this.feedback.sound.unlock();
     if (!this.game.toggleSwitch(view.chain, view.fork)) this.feedback.sound.locked();

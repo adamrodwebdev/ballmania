@@ -1193,8 +1193,8 @@ fait éclater son nom au-dessus du plateau.
   gauche (retour, titre, étoiles, difficulté, Observatoire en bas), le paquet des mondes à
   droite, douze niveaux en deux rangées de six ; la page ne défile pas (testé de 915 × 412
   à 1280 × 720). Sous 480 px de haut, la devise du monde et la description de la difficulté
-  s'effacent. Sur un téléphone couché, jusqu'à 430 px de haut (v1.7.6 : 844 × 390,
-  734 × 343, 640 × 400), les trois difficultés se rangent côte à côte dans une colonne de
+  s'effacent. Sur un téléphone couché, jusqu'à 460 px de haut (v1.7.6 : 844 × 390,
+  734 × 343, 640 × 400 et le 800 × 450 de CrazyGames), les trois difficultés se rangent côte à côte dans une colonne de
   14 rem, et le paquet perd sa rangée de noms : la carte nomme son monde, les flèches et le
   glissement le font tourner ; les cases gardent 44 px de large. Testé de 640 × 400 à
   1280 × 720, en anglais, en français et en russe.
@@ -1256,6 +1256,26 @@ fait éclater son nom au-dessus du plateau.
   la barre du Colosse, ni les recettes de l'Alchimie, et la série se place à sa droite, au
   niveau de la barre ; le plateau y perd au plus 2 % (mesuré de 320 × 568 à 390 × 844).
   Dans le rail d'un écran large, elle suit le score et la série passe dessous.
+- **Cibles et textes** (v1.7.6, maquette validée) : sur un écran tactile, les boutons pressés
+  toute la partie (Échanger, Aimant, Nova) font 48 px de haut, les noms des mondes au-dessus
+  du paquet 44 px ; un aiguillage du Volcan répond à un toucher dans un cercle de 44 px au
+  moins, quelle que soit la taille du plateau (`leverReach`) ; les mots du HUD (niveau,
+  difficulté, « Score », série, puces) font 14 px au moins, mesurés dans le plus petit cadre
+  de CrazyGames (821 × 462) ; les listes déroulantes font 16 px, sous lesquels iOS zoome la
+  page. La carte du cadeau du jour tenait déjà à 320 px (1.7.5).
+- **Encoches et barre d'accueil** (v1.7.6) : les menus se tiennent à l'écart des zones de
+  sécurité (`env(safe-area-inset-*)` sur le `<main>` de chaque menu) ; l'écran titre place son
+  contenu à l'intérieur et garde son décor jusqu'aux bords ; en jeu, le plateau se règle aussi
+  sur ces marges et reste, sur un téléphone couché, au-dessus de la barre d'accueil. Testé
+  avec une encoche de 47 px et une barre de 21 px simulées.
+- **Cadre de jeu à 2:1 au plus** (v1.7.6, règle de Playgama, décidé le 22/10/2026) : dans une
+  fenêtre d'ordinateur plus large que 2:1, le plateau et les rails du HUD tiennent dans un
+  cadre de 2:1 au milieu ; l'art du plateau va jusqu'aux bords de la fenêtre, sans bandes
+  noires, et l'ombre des rails part du bord de la fenêtre. Un téléphone couché garde toute
+  sa largeur.
+- **Barre du navigateur** (v1.7.6) : elle prend la couleur du fond du thème affiché
+  (`theme-color`, réglée par `theme-boot.js` puis à chaque changement de thème), et non plus
+  celle du système : le jeu est sombre par défaut, même sur un système clair.
 - Typographie fluide (`clamp()`), espacements en `rem`, cibles tactiles ≥ 44 × 44 px.
 
 ### 4.3 Accessibilité
