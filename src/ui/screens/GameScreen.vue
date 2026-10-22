@@ -585,7 +585,7 @@ const doubleShards = async () => {
   if (await ads.reward(silence())) {
     player.grantShards(shards);
     doubled.value = true;
-    adMessage.value = t('ads.doubled', { count: number.value.format(shards) });
+    adMessage.value = t('ads.doubled', { count: number.value.format(shards) }, shards);
   } else adMessage.value = t('ads.unavailable');
   endDialog.value?.showModal();
 };
@@ -634,10 +634,16 @@ const hintForShards = () => {
   giveHint(play);
 };
 /** The price of a choice paid in shards, with the balance when it can't be paid yet. */
-const shardPrice = (price: number) =>
-  player.view.shards < price
-    ? t('ads.forShardsShort', { price, balance: player.view.shards })
-    : t('ads.forShards', { price });
+const shardPrice = (price: number) => {
+  const shown = number.value.format(price);
+  return player.view.shards < price
+    ? t(
+        'ads.forShardsShort',
+        { price: shown, balance: number.value.format(player.view.shards) },
+        price,
+      )
+    : t('ads.forShards', { price: shown }, price);
+};
 
 /** A portal with ads, but none can be offered: an ad blocker. Said, never punished. */
 const adsBlocked = computed(() => platform.hasAds && !ads.rewardsOffered);
@@ -688,7 +694,9 @@ const shareResult = async () => {
   // On a portal, the link is the portal's own (or none where links are not allowed).
   const url = await platform.shareLink({ day: daily.day });
   const params = { date: dayLabel.value, score: number.value.format(record.score), stars };
-  const text = url ? t('daily.shareText', { ...params, url }) : t('daily.shareTextNoLink', params);
+  const text = url
+    ? t('daily.shareText', { ...params, url }, record.score)
+    : t('daily.shareTextNoLink', params, record.score);
   shareOutcome.value = await share.share(text);
 };
 const quit = () => emit('quit');
@@ -974,7 +982,13 @@ const quit = () => emit('quit');
         {{ t(DEMO ? 'demo.done' : 'game.campaignDone') }}
       </p>
       <p v-if="puzzleResult" class="detail" data-testid="puzzle-result">
-        {{ t('arcade.puzzle.result', { shots: puzzleResult.shots, par: puzzleResult.par }) }}
+        {{
+          t(
+            'arcade.puzzle.result',
+            { shots: puzzleResult.shots, par: puzzleResult.par },
+            puzzleResult.shots,
+          )
+        }}
       </p>
       <p v-if="hud && hud.stage !== null" class="detail">
         {{ t('arcade.endless.reached', { stage: hud.stage + 1 }) }}
@@ -996,7 +1010,7 @@ const quit = () => emit('quit');
         v-if="daily && settlement && !settlement.rewards.firstDailyAttempt && dailyRecord"
         class="detail"
       >
-        {{ t('daily.counted', { score: number.format(dailyRecord.score) }) }}
+        {{ t('daily.counted', { score: number.format(dailyRecord.score) }, dailyRecord.score) }}
       </p>
 
       <ul
@@ -1019,7 +1033,13 @@ const quit = () => emit('quit');
           {{ t('observatory.caught', { count: hud?.fragments ?? 0 }, hud?.fragments ?? 0) }}
         </li>
         <li v-if="settlement.rewards.shards > 0" class="shards total" data-testid="shards-earned">
-          {{ t('player.earned', { count: number.format(settlement.rewards.shards) }) }}
+          {{
+            t(
+              'player.earned',
+              { count: number.format(settlement.rewards.shards) },
+              settlement.rewards.shards,
+            )
+          }}
         </li>
         <li v-if="goal" class="reward" data-testid="next-launcher">
           <CosmeticPreview :item="goal" class="reward-preview" />
@@ -1037,10 +1057,14 @@ const quit = () => emit('quit');
               {{
                 player.view.shards >= goal.price
                   ? t('game.reward.ready')
-                  : t('game.reward.progress', {
-                      have: number.format(player.view.shards),
-                      price: number.format(goal.price),
-                    })
+                  : t(
+                      'game.reward.progress',
+                      {
+                        have: number.format(player.view.shards),
+                        price: number.format(goal.price),
+                      },
+                      goal.price,
+                    )
               }}
             </span>
           </span>

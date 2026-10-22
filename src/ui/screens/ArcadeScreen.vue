@@ -111,7 +111,11 @@ const current = computed(() => {
                 <small v-if="dailyRecord">
                   {{
                     dailyRecord.won
-                      ? t('arcade.puzzle.dailyDone', { shots: dailyRecord.shots })
+                      ? t(
+                          'arcade.puzzle.dailyDone',
+                          { shots: dailyRecord.shots },
+                          dailyRecord.shots,
+                        )
                       : t('arcade.puzzle.dailyTried')
                   }}
                 </small>
@@ -136,10 +140,11 @@ const current = computed(() => {
                   :data-testid="`puzzle-${tile.puzzle.number}`"
                   :aria-label="
                     tile.open
-                      ? t('arcade.puzzle.tileLabel', {
-                          number: tile.puzzle.number,
-                          stars: tile.stars,
-                        })
+                      ? t(
+                          'arcade.puzzle.tileLabel',
+                          { number: tile.puzzle.number, stars: tile.stars },
+                          tile.stars,
+                        )
                       : t('arcade.puzzle.lockedLabel', { number: tile.puzzle.number })
                   "
                   @click="emit('play', { kind: 'puzzle', puzzle: tile.puzzle })"

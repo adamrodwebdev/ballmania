@@ -82,7 +82,7 @@
       "progress": "{have} / {price} éclats",
       "ready": "Disponible à l’Atelier\u00a0!"
     },
-    "gaugeReached": "{count} étoiles à portée"
+    "gaugeReached": "{count} étoile à portée | {count} étoile à portée | {count} étoiles à portée"
   },
   "effects": {
     "spectacular": {
@@ -104,7 +104,7 @@
     "world": "Monde {number}",
     "stars": "{count} / {total} étoiles",
     "levelShort": "{world}-{number}",
-    "levelLabel": "Niveau {number}, {stars} étoile(s) sur 3",
+    "levelLabel": "Niveau {number}, {stars} étoile sur 3 | Niveau {number}, {stars} étoile sur 3 | Niveau {number}, {stars} étoiles sur 3",
     "lockedLabel": "Niveau {number}, verrouillé",
     "comingSoon": "Bientôt\u00a0: terminez le monde précédent pour l’ouvrir.",
     "worldsLabel": "Mondes de la campagne"
@@ -176,17 +176,17 @@
     "young": "Jeune Colosse stellaire"
   },
   "player": {
-    "balance": "{count} éclats",
-    "earned": "+{count} éclats",
-    "reward": "+{count} éclats"
+    "balance": "{count} éclat | {count} éclat | {count} éclats",
+    "earned": "+{count} éclat | +{count} éclat | +{count} éclats",
+    "reward": "+{count} éclat | +{count} éclat | +{count} éclats"
   },
   "daily": {
     "title": "Défi du jour",
     "short": "Défi",
-    "counted": "Seul le premier essai du jour compte\u00a0: {score} points.",
+    "counted": "Seul le premier essai du jour compte\u00a0: {score} point. | Seul le premier essai du jour compte\u00a0: {score} point. | Seul le premier essai du jour compte\u00a0: {score} points.",
     "share": "Partager mon résultat",
-    "shareText": "Ballmania · Défi du {date}\u00a0: {score} points {stars} · {url}",
-    "shareTextNoLink": "Ballmania · Défi du {date}\u00a0: {score} points {stars}",
+    "shareText": "Ballmania · Défi du {date}\u00a0: {score} point {stars} · {url} | Ballmania · Défi du {date}\u00a0: {score} point {stars} · {url} | Ballmania · Défi du {date}\u00a0: {score} points {stars} · {url}",
+    "shareTextNoLink": "Ballmania · Défi du {date}\u00a0: {score} point {stars} | Ballmania · Défi du {date}\u00a0: {score} point {stars} | Ballmania · Défi du {date}\u00a0: {score} points {stars}",
     "shareOutcome": {
       "shared": "Résultat partagé.",
       "copied": "Résultat copié\u00a0: collez-le où vous voulez.",
@@ -376,7 +376,7 @@
   "magnet": {
     "button": "Aimant",
     "armed": "Visez la bille à aspirer",
-    "label": "Aimant, {count} charge(s) sur {max}"
+    "label": "Aimant, {count} charge sur {max} | Aimant, {count} charge sur {max} | Aimant, {count} charges sur {max}"
   },
   "tones": {
     "0": "rubis",
@@ -414,7 +414,7 @@
       "short": "Énigme {number}",
       "daily": "Énigme du jour",
       "dailyTodo": "La même pour tous, aujourd’hui",
-      "dailyDone": "Résolue en {shots} tirs",
+      "dailyDone": "Résolue en {shots} tir | Résolue en {shots} tir | Résolue en {shots} tirs",
       "dailyTried": "Tentée aujourd’hui",
       "solvedCount": "{count} / {total} énigmes résolues",
       "solved": "Énigme résolue\u00a0!",
@@ -422,8 +422,8 @@
       "next": "Énigme suivante",
       "nextColour": "Couleur suivante",
       "shotsLeft": "{count} tir | {count} tir | {count} tirs",
-      "result": "{shots} tirs pour un minimum de {par}",
-      "tileLabel": "Énigme {number}, {stars} étoile(s) sur 3",
+      "result": "{shots} tir pour un minimum de {par} | {shots} tir pour un minimum de {par} | {shots} tirs pour un minimum de {par}",
+      "tileLabel": "Énigme {number}, {stars} étoile sur 3 | Énigme {number}, {stars} étoile sur 3 | Énigme {number}, {stars} étoiles sur 3",
       "lockedLabel": "Énigme {number}, verrouillée"
     },
     "rhythm": {
@@ -490,7 +490,7 @@
     "title": "Observatoire",
     "back": "Retour",
     "intro": "Touchez les étoiles filantes de vos tirs pour récolter des fragments d’étoiles, puis améliorez vos instruments. Les améliorations s’appliquent en campagne (jamais au défi du jour ni en Arcade).",
-    "balance": "{count} fragments",
+    "balance": "{count} fragment | {count} fragment | {count} fragments",
     "ready": "Amélioration disponible",
     "tip": "Améliorez votre jeu ici avec vos fragments d’étoiles.",
     "tipClose": "Compris",
@@ -611,7 +611,7 @@
     "trying": "À essayer à la prochaine partie",
     "trial": "{name}\u00a0: à essayer à la prochaine partie.",
     "continued": "La chaîne recule\u00a0: à vous de jouer\u00a0!",
-    "doubled": "{count} éclats de plus\u00a0!",
+    "doubled": "{count} éclat de plus\u00a0! | {count} éclat de plus\u00a0! | {count} éclats de plus\u00a0!",
     "hintShown": "Indice\u00a0: tirez sur la bille entourée.",
     "unavailable": "Aucune publicité disponible pour le moment\u00a0: rien n’est perdu, réessayez plus tard.",
     "blocked": "Bonus vidéo indisponibles pour le moment. Le jeu reste entièrement jouable.",

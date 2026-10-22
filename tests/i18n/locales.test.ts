@@ -25,9 +25,12 @@ const MESSAGES: Record<string, Tree> = Object.fromEntries(
 );
 const fr = MESSAGES.fr!;
 
-/** Named placeholders of a message, such as `version` in "Version {version}". */
+/**
+ * Named placeholders of a message, such as `version` in "Version {version}", each once:
+ * a plural message repeats them in every form.
+ */
 const placeholders = (text: unknown): string[] =>
-  [...String(text).matchAll(/\{(\w+)\}/g)].map((match) => match[1]!);
+  [...new Set([...String(text).matchAll(/\{(\w+)\}/g)].map((match) => match[1]!))].sort();
 
 describe('translations', () => {
   const reference = keys(fr).sort();
@@ -39,6 +42,14 @@ describe('translations', () => {
   it.each([...LOCALES])('%s has no empty message', (locale) => {
     for (const key of keys(MESSAGES[locale]!)) {
       expect(String(leaf(MESSAGES[locale]!, key)).trim(), key).not.toBe('');
+    }
+  });
+
+  it.each([...LOCALES])('%s gives every plural message all its forms', (locale) => {
+    // "zero | one | other": the forms vue-i18n's default rule picks for 0, 1 and more.
+    for (const key of keys(MESSAGES[locale]!)) {
+      const text = String(leaf(MESSAGES[locale]!, key));
+      if (text.includes('|')) expect(text.split('|'), key).toHaveLength(3);
     }
   });
 

@@ -151,10 +151,11 @@ const closeTip = () => {
                 :data-testid="`level-${tile.level.id}`"
                 :aria-label="
                   tile.unlocked
-                    ? t('campaign.levelLabel', {
-                        number: tile.level.number,
-                        stars: tile.stars,
-                      })
+                    ? t(
+                        'campaign.levelLabel',
+                        { number: tile.level.number, stars: tile.stars },
+                        tile.stars,
+                      )
                     : t('campaign.lockedLabel', { number: tile.level.number })
                 "
                 @click="emit('play', tile.level)"
