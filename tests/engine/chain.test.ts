@@ -68,15 +68,19 @@ describe('Chain movement', () => {
       expect(step(lined(2, 2))).toBeCloseTo(0.5);
     });
 
-    it('never near the hole, behind a Colossus, or for a chain that stands still', () => {
-      const rear = [1, 2, 3].map((i) => new Ball(i, i % 3, -i * D));
-      const ahead = [new Ball(4, 0, 500), new Ball(5, 1, 500 + D)];
-      expect(step(new Chain(straightPath(), [...rear, ...ahead], HURRY))).toBeCloseTo(0.5);
+    it('behind a Colossus too, which is then still in the tunnel', () => {
       const pushed = lined(8, 2);
       pushed.attachPusher(30);
       const before = pushed.pusherArc!;
+      expect(before).toBeLessThan(0);
       pushed.advance(0.01);
-      expect(pushed.pusherArc! - before).toBeCloseTo(0.5);
+      expect(pushed.pusherArc! - before).toBeCloseTo(5);
+    });
+
+    it('never near the hole, or for a chain that stands still', () => {
+      const rear = [1, 2, 3].map((i) => new Ball(i, i % 3, -i * D));
+      const ahead = [new Ball(4, 0, 500), new Ball(5, 1, 500 + D)];
+      expect(step(new Chain(straightPath(), [...rear, ...ahead], HURRY))).toBeCloseTo(0.5);
       expect(step(lined(8, 2, { ...HURRY, speed: 0 }))).toBe(0);
     });
   });
