@@ -1,7 +1,12 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CAMPAIGN, findLevel } from '@/levels/campaign';
 import { noveltyOf, type Novelty } from '@/levels/novelty';
-import en from '@/i18n/locales/en.json';
+
+/** The raw English messages: importing them would go through the i18n compiler. */
+const en: unknown = JSON.parse(
+  readFileSync(new URL('../../src/i18n/locales/en.json', import.meta.url), 'utf8'),
+);
 
 const novelty = (id: string): Novelty | null => noveltyOf(findLevel(id)!);
 
@@ -13,14 +18,14 @@ const nameKey = (found: Novelty): string => {
   return `next.mechanics.${found.hint}`;
 };
 
-/** True if the English messages hold a text at this key (precompiled: not always a string). */
+/** True if the English messages hold a text at this key. */
 const has = (key: string): boolean => {
   let node: unknown = en;
   for (const part of key.split('.')) {
     if (typeof node !== 'object' || node === null) return false;
     node = (node as Record<string, unknown>)[part];
   }
-  return node !== undefined && node !== null;
+  return typeof node === 'string';
 };
 
 describe('noveltyOf', () => {
