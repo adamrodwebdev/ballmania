@@ -331,6 +331,8 @@ watch(
       endDialog.value?.showModal();
     } else if (endDialog.value?.open) endDialog.value.close();
   },
+  // Once the result is drawn: its first choice ("Next", the help) is there to take the focus.
+  { flush: 'post' },
 );
 
 /** A won result: the futuristic panel, its score counting up, its stars chiming. */
@@ -1995,6 +1997,26 @@ const quit = () => emit('quit');
   }
 
   .gains {
+    margin-top: var(--space-3);
+  }
+}
+
+/* Phones of 640 px: the fullest result (two goals, an ad, a launcher, a novelty) still fits. */
+@media (max-height: 680px) {
+  .dialog {
+    padding: var(--space-4);
+  }
+
+  .dialog h2 {
+    margin-bottom: var(--space-2);
+  }
+
+  .gains {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .actions {
     margin-top: var(--space-3);
   }
 }
