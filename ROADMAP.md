@@ -3,43 +3,44 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
-## v1.7.4 — Le premier boss (livrée le 22/10/2026)
+## v1.7.5 — Traductions revues et russe (en préparation)
 
-**But** : accrocher le joueur dès le 3ᵉ niveau avec un mini-boss, et lui apprendre, sans
-l'interrompre, que l'Observatoire améliore son jeu (décidé le 22/10/2026, après l'essai de la
-1.7.3 par l'auteur). L'Atelier ne vend que de l'apparence : ce sont les améliorations de
-l'Observatoire, payées en fragments d'étoile, qui changent le jeu.
+**But** : des textes justes et naturels dans les trois langues du jeu, puis le russe en
+quatrième langue, première pierre d'une publication sur les portails russophones. Revue du
+22/10/2026 avec la compétence de traduction : en anglais, « ball » pour la bille (33 textes),
+« shooter » pour le lanceur (6), 11 pluriels faux (« 1 shards », « 0 star out of 3 ») et deux
+objectifs du même nom ; en français, 105 textes sans espace insécable avant « : ; ! ? % », 42
+apostrophes droites, 14 pluriels faux (« étoile(s) », « 1 éclats ») et un « 3ᵉ » affiché dans
+une police de secours ; en indonésien, 10 corrections ; 15 clés qu'aucun écran n'affiche plus ;
+Fredoka et Lilita One sans aucune lettre cyrillique ; à 360 px, dans les trois langues, la
+tuile Observatoire qui déborde et le badge d'amélioration qui sort de l'écran.
 
-**Public et plateformes** : tous les joueurs, notre site comme les portails ; le même boss
-resservira au niveau d'entraînement E3 de la 1.8.0.
+**Public et plateformes** : les joueurs actuels (anglais, français, indonésien) et les joueurs
+russophones (Russie, Biélorussie, Kazakhstan, Kirghizistan…), sur notre site, CrazyGames et
+Playgama dès cette version, ordinateur et téléphone.
 
-| Étape                      | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Fini quand                                                                                                                                                                        |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Jeune Colosse au 1-3    | Le Colosse stellaire en plus petit, avec son dessin : environ 20 points de vie (60 au 1-12), une seule phase, il crache 4 billes. Vaincu au 1-3, il revient adulte au 1-12. Le panneau du 1-2 l'annonce (« Boss : Jeune Colosse stellaire ») ; il compte pour l'objectif « Vaincre un Colosse » (+100 éclats). La bille Recul passe au 1-4, qui reste à trois couleurs pour souffler après le boss ; la quatrième couleur arrive au 1-5 (décidé le 22/10/2026, une seule nouveauté par niveau).                                                                               | Maquette validée ; robot pressé : le 1-3 gagné au moins 5 fois sur 6, pression sous celle du 1-12 ; barre de vie visible au 1-3 (test de bout en bout) ; recalibrage des étoiles. |
-| 2. Bulle de l'Observatoire | La première fois qu'une amélioration devient abordable, une petite bulle près du bouton Observatoire de la carte explique qu'on y améliore son jeu avec ses fragments d'étoiles ; dans le flux de la page, elle ne cache rien (sous le bouton au téléphone, au-dessus dans la colonne de l'ordinateur). Elle s'affiche lors d'une seule visite de la carte, disparaît au toucher et ne revient jamais ; ouvrir l'Observatoire la retire aussi, et qui possède déjà une amélioration ne la voit pas. Accessible au clavier et aux lecteurs d'écran, mouvement réduit respecté. | Maquette validée (téléphone et ordinateur, deux thèmes) ; test de bout en bout : la bulle s'affiche une fois, jamais deux.                                                        |
-| 3. Livraison               | Textes relus avec la compétence de traduction (anglais, français, indonésien), CHANGELOG, cahier des charges, bac à sable Playgama.                                                                                                                                                                                                                                                                                                                                                                                                                                           | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                                                       |
+**Décisions** (validées le 22/10/2026) : un glossaire commun aux quatre langues (bille :
+marble, bola, шар ; lanceur : launcher, penembak, пушка ; éclats : shards, kepingan,
+осколки…) ; « marble » et « launcher » partout en anglais ; le vouvoiement en russe (« вы »)
+et la lettre ё ; la police cyrillique Nunito, en sous-ensembles de 25,6 Ko chargés seulement
+quand du russe s'affiche ; le biélorusse, le kazakh et le kirghize mènent au russe,
+l'ukrainien reste à l'anglais. Numérotée 1.7.5 et menée en parallèle de la 1.7.4 : ses
+nouveaux textes seront relus et traduits en russe avant la livraison.
 
-Ajouts et écarts décidés pendant la livraison (22/10/2026) : le test d'attente échouait au 1-3
-(5,9 % de la partie avec moins de trois billes à viser pour le robot rapide), car la remise en
-jeu de la 1.7.3 ne jouait jamais derrière un Colosse. Elle joue désormais tant que le Colosse
-est encore dans le tunnel : il ne se presse que hors de vue, et l'attente des combats tombe de
-14 % au plus (Joaillerie 12) à moins de 1,5 %. Contrepartie à surveiller : le combat de
-Joaillerie 12 raccourcit nettement (64 s au lieu de 110 s pour le robot occasionnel, danger
-0,34 au lieu de 0,49). Le jeune Colosse tombe en 27 à 34 s face aux robots, plus lentement
-face à un humain ; le tableau de rythme de la 1.8.0 réglera sa durée. Les robots le battent
-90 fois sur 90, danger moyen de 0,21 à 0,39 du tracé contre 0,46 à 0,72 au 1-12. Le défi du
-jour écarte les boss, et l'objectif des Colosses se lit « Vaincre un Colosse ». La revue
-responsive du 22/10/2026 a montré que la bulle faisait dépasser la carte de l'écran sur les
-fenêtres basses des portails (821 × 462, 907 × 510, 915 × 412), bouton Observatoire sous la
-ligne de flottaison : sur un écran couché de 600 px de haut au plus, elle flotte au-dessus du
-bouton, sur les dernières difficultés, jusqu'au toucher (décidé le 22/10/2026), et la colonne
-se resserre à 480 px pour garder le badge en entier à 915 × 412. Corrigé au passage : avec le
-mouvement réduit, le conseil d'ouverture des niveaux disparaissait aussitôt. Les ports des
-tests de bout en bout deviennent réglables (`E2E_PORT`, `E2E_PORTAL_PORT`) : un autre projet
-occupait le 4175. Lighthouse sur le build de la version, machine au repos : 98, 98 et 97 en
-performance sur mobile, 100 dans les trois autres catégories, 100 × 4 sur ordinateur. La
-troisième mesure passe un point sous le seuil ; publiée quand même, la marge devient la première
-étape de la 1.7.6 (décidé le 22/10/2026).
+| Étape                | Contenu                                                                                                                                                                                                                                                                                                                                                                                   | Fini quand                                                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Revue des textes  | Corrections anglaises, françaises et indonésiennes de la revue (glossaire, sens, tournures, espaces insécables U+00A0 car Fredoka n'a pas l'espace fine, apostrophes typographiques, ordinaux en toutes lettres) ; clés inutilisées supprimées ; textes des kits CrazyGames et Playgama, métadonnées (index.html, manifeste, SEO) ; § 2.3 du cahier des charges sans nom de jeu existant. | Tests de parité verts ; test de typographie française (aucune espace ordinaire avant « : ; ! ? % » ni dans « ») ; relecture des trois fichiers. |
+| 2. Pluriels          | Chaque nombre suivi d'un nom passe par le pluriel de vue-i18n : les appels passent le nombre en plus du texte formaté par `Intl` ; plus aucun « (s) ».                                                                                                                                                                                                                                    | Test : chaque message au pluriel a trois formes (quatre en russe) ; formes vérifiées pour 0, 1, 2, 5 et 21.                                     |
+| 3. Russe             | `ru.json` aux mêmes clés, règle de pluriel russe (`Intl.PluralRules`), « Русский » dans le choix de langue, détection (navigateur, `systemInfo.locale` de CrazyGames, `platform.language` de Playgama, langues voisines), `theme-boot.js`, SEO (`inLanguage`, `og:locale:alternate`).                                                                                                     | Parité des clés et des variables testée pour le russe ; détection testée ; relecture du fichier entier.                                         |
+| 4. Police cyrillique | Nunito en sous-ensembles cyrilliques servis avec le jeu (`unicode-range`), graisses accordées à Fredoka (texte, gras) et à Lilita One (titres) ; en russe, demandée dès le démarrage pour éviter un saut de texte.                                                                                                                                                                        | Lighthouse mobile, trois mesures, en anglais et en russe : performance ≥ 98, les trois autres ≥ 95 ; aucune lettre dans une police de secours.  |
+| 5. Débordements      | Chaque écran en russe à 360 × 640, 390 × 844 et 1280 × 720, clair et sombre ; mots longs, badge et titre du cadeau corrigés pour toutes les langues ; test de bout en bout des langues longues (russe, indonésien, français) : aucun texte coupé ni sorti de son bouton, aucune barre de défilement ; axe en russe dans les deux thèmes.                                                  | Tests de bout en bout verts sur mobile et ordinateur.                                                                                           |
+| 6. Livraison         | Nouveaux textes de la 1.7.4 relus et traduits en russe ; README, CHANGELOG, cahier des charges (quatre langues), feuille de route ; builds de portail et fiches (langues) seulement avec l'accord de l'auteur.                                                                                                                                                                            | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                     |
+
+**Plus tard : les portails russophones** (feuille de route à part) : Yandex Games et les jeux
+VK. Avant toute intégration, lecture complète de leur documentation et fiche de référence dans
+la compétence de revue des portails (règles, SDK, langue imposée par le portail, paiement des
+développeurs étrangers), puis un adaptateur de plateforme et un build par portail. La 1.8.0
+traduira aussi ses nouveaux textes en russe : le test de parité l'exige.
 
 ## v1.7.6 — Socle solide (en préparation)
 
@@ -124,6 +125,44 @@ paramètres bornés et validés à la lecture, jamais lus dans l'adresse ; le Co
 (4-12), raccourci par la remise en jeu derrière les Colosses de la 1.7.4 (64 s au lieu de
 110 s pour le robot occasionnel, danger 0,34 au lieu de 0,49), à revoir avec le réglage des
 mondes suivants (décidé le 22/10/2026).
+
+## v1.7.4 — Le premier boss (livrée le 22/10/2026)
+
+**But** : accrocher le joueur dès le 3ᵉ niveau avec un mini-boss, et lui apprendre, sans
+l'interrompre, que l'Observatoire améliore son jeu (décidé le 22/10/2026, après l'essai de la
+1.7.3 par l'auteur). L'Atelier ne vend que de l'apparence : ce sont les améliorations de
+l'Observatoire, payées en fragments d'étoile, qui changent le jeu.
+
+**Public et plateformes** : tous les joueurs, notre site comme les portails ; le même boss
+resservira au niveau d'entraînement E3 de la 1.8.0.
+
+| Étape                      | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Fini quand                                                                                                                                                                        |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Jeune Colosse au 1-3    | Le Colosse stellaire en plus petit, avec son dessin : environ 20 points de vie (60 au 1-12), une seule phase, il crache 4 billes. Vaincu au 1-3, il revient adulte au 1-12. Le panneau du 1-2 l'annonce (« Boss : Jeune Colosse stellaire ») ; il compte pour l'objectif « Vaincre un Colosse » (+100 éclats). La bille Recul passe au 1-4, qui reste à trois couleurs pour souffler après le boss ; la quatrième couleur arrive au 1-5 (décidé le 22/10/2026, une seule nouveauté par niveau).                                                                               | Maquette validée ; robot pressé : le 1-3 gagné au moins 5 fois sur 6, pression sous celle du 1-12 ; barre de vie visible au 1-3 (test de bout en bout) ; recalibrage des étoiles. |
+| 2. Bulle de l'Observatoire | La première fois qu'une amélioration devient abordable, une petite bulle près du bouton Observatoire de la carte explique qu'on y améliore son jeu avec ses fragments d'étoiles ; dans le flux de la page, elle ne cache rien (sous le bouton au téléphone, au-dessus dans la colonne de l'ordinateur). Elle s'affiche lors d'une seule visite de la carte, disparaît au toucher et ne revient jamais ; ouvrir l'Observatoire la retire aussi, et qui possède déjà une amélioration ne la voit pas. Accessible au clavier et aux lecteurs d'écran, mouvement réduit respecté. | Maquette validée (téléphone et ordinateur, deux thèmes) ; test de bout en bout : la bulle s'affiche une fois, jamais deux.                                                        |
+| 3. Livraison               | Textes relus avec la compétence de traduction (anglais, français, indonésien), CHANGELOG, cahier des charges, bac à sable Playgama.                                                                                                                                                                                                                                                                                                                                                                                                                                           | `npm run verify` et tests de bout en bout verts ; Lighthouse mobile ≥ 98 en performance sur trois mesures et ≥ 95 ailleurs.                                                       |
+
+Ajouts et écarts décidés pendant la livraison (22/10/2026) : le test d'attente échouait au 1-3
+(5,9 % de la partie avec moins de trois billes à viser pour le robot rapide), car la remise en
+jeu de la 1.7.3 ne jouait jamais derrière un Colosse. Elle joue désormais tant que le Colosse
+est encore dans le tunnel : il ne se presse que hors de vue, et l'attente des combats tombe de
+14 % au plus (Joaillerie 12) à moins de 1,5 %. Contrepartie à surveiller : le combat de
+Joaillerie 12 raccourcit nettement (64 s au lieu de 110 s pour le robot occasionnel, danger
+0,34 au lieu de 0,49). Le jeune Colosse tombe en 27 à 34 s face aux robots, plus lentement
+face à un humain ; le tableau de rythme de la 1.8.0 réglera sa durée. Les robots le battent
+90 fois sur 90, danger moyen de 0,21 à 0,39 du tracé contre 0,46 à 0,72 au 1-12. Le défi du
+jour écarte les boss, et l'objectif des Colosses se lit « Vaincre un Colosse ». La revue
+responsive du 22/10/2026 a montré que la bulle faisait dépasser la carte de l'écran sur les
+fenêtres basses des portails (821 × 462, 907 × 510, 915 × 412), bouton Observatoire sous la
+ligne de flottaison : sur un écran couché de 600 px de haut au plus, elle flotte au-dessus du
+bouton, sur les dernières difficultés, jusqu'au toucher (décidé le 22/10/2026), et la colonne
+se resserre à 480 px pour garder le badge en entier à 915 × 412. Corrigé au passage : avec le
+mouvement réduit, le conseil d'ouverture des niveaux disparaissait aussitôt. Les ports des
+tests de bout en bout deviennent réglables (`E2E_PORT`, `E2E_PORTAL_PORT`) : un autre projet
+occupait le 4175. Lighthouse sur le build de la version, machine au repos : 98, 98 et 97 en
+performance sur mobile, 100 dans les trois autres catégories, 100 × 4 sur ordinateur. La
+troisième mesure passe un point sous le seuil ; publiée quand même, la marge devient la première
+étape de la 1.7.6 (décidé le 22/10/2026).
 
 ## v1.7.3 — Étoiles à portée (livrée le 22/10/2026)
 
