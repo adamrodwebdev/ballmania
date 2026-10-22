@@ -17,8 +17,9 @@ indonésien**, thèmes clair et sombre, sur mobile comme sur ordinateur.
   Nébuleuse (règles de base, sous un ciel de nébuleuse peint en couches), Néon (miroirs et
   ricochets), Abysses (aimant), Joaillerie (alchimie des couleurs), Volcan (aiguillages),
   Singularité (gravité d'un trou noir, lanceur en orbite). Trois difficultés : Explorateur,
-  Pilote, Légende. Une jauge sous le score montre la 2ᵉ et la 3ᵉ étoile ; à la victoire,
-  le panneau annonce la nouveauté du niveau suivant et le prochain lanceur à gagner.
+  Pilote, Légende. Une jauge sous le score montre la 2ᵉ et la 3ᵉ étoile, et un bonus de temps
+  récompense la vitesse ; à la victoire, le panneau annonce la nouveauté du niveau suivant et
+  le prochain lanceur à gagner.
 - **Billes bonus** cachées dans la chaîne : **Recul**, **Ralenti**, **Tir arc-en-ciel**
   et **Laser**, une nouveauté par niveau dans le monde 1, puis mêlées aux mondes suivants.
 - **Aléas** : billes qui tombent du ciel, arythmie, tempête solaire, froid mordant, vents
@@ -128,8 +129,8 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 ## Qualité
 
 - Plus de 1 200 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
-  gagne (billes bonus comprises) et un test qui fait résoudre chaque énigme par le vrai
-  moteur.
+  gagne (billes bonus comprises) et calibre ses étoiles et son temps de référence (profils
+  pressé, posé et appliqué), et un test qui fait résoudre chaque énigme par le vrai moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
   d'accessibilité, absence de défilement horizontal de 320 à 1 920 px.
 - Lighthouse (v1.7.2) : sur ordinateur, 100 dans les quatre catégories ; sur mobile, 100 en
