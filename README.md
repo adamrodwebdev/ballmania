@@ -132,7 +132,7 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
   d'accessibilité, absence de défilement horizontal de 320 à 1 920 px.
-- Lighthouse (v1.7.1) : sur ordinateur, 100 dans les quatre catégories ; sur mobile, 100 en
+- Lighthouse (v1.7.2) : sur ordinateur, 100 dans les quatre catégories ; sur mobile, 100 en
   accessibilité, bonnes pratiques et SEO, 98 en performance (seuil du projet : 95).
 - Intégration continue GitHub Actions à chaque envoi.
 
