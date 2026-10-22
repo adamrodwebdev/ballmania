@@ -9,9 +9,13 @@
 :root {
   color-scheme: light;
 
-  /* Rounded game type (Fredoka) and a bold display face (Lilita One), served with the game. */
-  --font-ui: 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Lilita One', 'Fredoka', system-ui, sans-serif;
+  /*
+   * Rounded game type (Fredoka) and a bold display face (Lilita One), served with the
+   * game; a Cyrillic letter comes from Nunito (russian.css), downloaded only for it.
+   */
+  --font-ui: 'Fredoka', 'Ballmania Russian', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display:
+    'Lilita One', 'Ballmania Russian Display', 'Fredoka', 'Ballmania Russian', system-ui, sans-serif;
 
   /* The big gold button (Play, Next level): the same in both themes. */
   --primary-top: #ffe680;
@@ -83,6 +87,16 @@
   --space-8: 2rem;
   --space-12: 3rem;
   --touch: 2.75rem;
+}
+
+/*
+ * Russian: Nunito sets the whole text, digits and Latin letters included, so a word
+ * never mixes two faces and Fredoka is not downloaded; titles keep Lilita One.
+ */
+:root:lang(ru) {
+  --font-ui: 'Ballmania Russian', 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display:
+    'Lilita One', 'Ballmania Russian Display', 'Ballmania Russian', 'Fredoka', system-ui, sans-serif;
 }
 
 :root[data-theme='dark'] {

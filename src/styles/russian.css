@@ -1,0 +1,60 @@
+/*
+ * Russian, whose Cyrillic letters Fredoka and Lilita One lack, is set in Nunito,
+ * rounded like Fredoka (SIL Open Font License 1.1, copyright and licence names
+ * kept in the file). One variable file for every weight, cut with fontTools from
+ * Google Fonts' Nunito[wght] to what Russian shows: its alphabet, the digits,
+ * the punctuation and the few Latin letters of its texts (23.6 KB). A missing
+ * character falls back to Fredoka.
+ *
+ * Weights are matched to the game's faces: each rule declares a single weight,
+ * and the browser clamps the font's weight axis to it. Text (Fredoka 500) is set
+ * in Nunito 600, bold (700) in 800, heavy (800) and titles (Lilita One) in 900.
+ *
+ * In the other languages Fredoka comes first in the stacks (tokens.css): this
+ * file downloads only when a Cyrillic letter is shown.
+ */
+@font-face {
+  font-family: 'Ballmania Russian';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url('../assets/fonts/nunito-russian-wght.woff2') format('woff2');
+  unicode-range:
+    U+0020-007E, U+00A0, U+00AB, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2013-2014, U+2026,
+    U+2116, U+0401, U+0410-044F, U+0451;
+}
+
+@font-face {
+  font-family: 'Ballmania Russian';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url('../assets/fonts/nunito-russian-wght.woff2') format('woff2');
+  unicode-range:
+    U+0020-007E, U+00A0, U+00AB, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2013-2014, U+2026,
+    U+2116, U+0401, U+0410-044F, U+0451;
+}
+
+@font-face {
+  font-family: 'Ballmania Russian';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 900;
+  src: url('../assets/fonts/nunito-russian-wght.woff2') format('woff2');
+  unicode-range:
+    U+0020-007E, U+00A0, U+00AB, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2013-2014, U+2026,
+    U+2116, U+0401, U+0410-044F, U+0451;
+}
+
+/*
+ * Titles keep Lilita One for their Latin letters and digits: only the Cyrillic
+ * ones come from Nunito, at its heaviest.
+ */
+@font-face {
+  font-family: 'Ballmania Russian Display';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 900;
+  src: url('../assets/fonts/nunito-russian-wght.woff2') format('woff2');
+  unicode-range: U+0401, U+0410-044F, U+0451, U+2116;
+}
