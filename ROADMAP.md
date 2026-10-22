@@ -39,6 +39,37 @@ tests de bout en bout deviennent réglables (`E2E_PORT`, `E2E_PORTAL_PORT`) : un
 occupait le 4175. Lighthouse : 98 en performance sur mobile aux trois mesures, 100 dans les
 trois autres catégories, 100 × 4 sur ordinateur.
 
+## v1.7.6 — Socle solide (en préparation)
+
+**But** : tenir la directive responsive mise à jour le 22/10/2026 et les règles des portails
+avant la 1.8.0, et préparer l'écran de jeu à l'entraînement de la 1.8.0 (décidé le 22/10/2026).
+La revue du même jour, mesurée sur onze tailles d'écran, a trouvé :
+
+- **Ce qui va** : aucun défilement horizontal de 320 à 2560 px, et un plateau plein écran dans
+  les deux orientations.
+- **Ce qui manque** : aucun plafond à 60 images par seconde ; des touches qui font défiler la
+  page du portail ; des listes qui font défiler la page ; une carte trop haute sur un
+  téléphone couché ; des cibles et des libellés trop petits.
+- **Côté code** : un `GameScreen.vue` de 2 193 lignes qui prend des décisions de jeu.
+
+**Ordre** : après la fusion de la 1.7.5 (traductions et russe), qui touche les mêmes écrans.
+
+| Étape                        | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Fini quand                                                                                                                                               |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Règles des portails       | Plafond à 60 images par seconde sur écran tactile ; flèches et Page haut/bas sans effet sur la page du portail ; les listes (Observatoire, Atelier, objectifs, Arcade) défilent dans le jeu, jamais la page du navigateur ; la carte tient sur un téléphone couché (844 × 390, 734 × 343, 640 × 400) ; canevas limité à environ 4 mégapixels et recréé seulement quand sa taille change ; forme du plateau choisie à nouveau au redémarrage après une rotation. | Aucune barre de défilement de page aux tailles de test de Playgama et de CrazyGames ; plafond mesuré sur un profil tactile ; tests des robots inchangés. |
+| 2. Toucher, textes, encoches | Échanger et Aimant à 48 px au toucher ; onglets des mondes et aiguillages du Volcan à 44 px au moins ; libellés du HUD à 14 px au moins à 821 × 462 ; marges de sécurité (encoches, barre d'accueil) sur tous les menus et sous le plateau couché ; carte du cadeau du jour à 320 px, si la 1.7.5 ne l'a pas réglée ; listes déroulantes à 16 px ; couleur de la barre du navigateur selon le thème.                                                            | Maquette des écrans qui changent validée (téléphone et ordinateur, deux thèmes).                                                                         |
+| 3. CSS moderne               | Points de rupture en `rem` (40, 48, 64 et 80 rem) en syntaxe d'intervalle ; requêtes de conteneur pour les panneaux du HUD, le panneau de fin et les cartes des mondes ; plus de `overflow-x: hidden` qui masque un débordement.                                                                                                                                                                                                                                | Captures identiques avant et après sur toute la matrice.                                                                                                 |
+| 4. Matrice de tests          | Projets Playwright en 320 × 568, 360 × 800, 393 × 659, 844 × 390, 768 × 1024, 1280 × 800, 1920 × 1080 et 2560 × 1440, zoom à 200 % et 400 % ; balayage du défilement horizontal de 320 à 2560 px sur chaque écran ; audit d'accessibilité avec la taille des cibles (WCAG 2.2) ; la bulle de l'Observatoire comprise.                                                                                                                                           | Tout vert.                                                                                                                                               |
+| 5. Écran de jeu              | `GameScreen.vue` découpé : barre du haut, barre des commandes, panneau de pause, panneau de fin et un composable de session. Les règles de fin de partie (aide, continuer, éclats, délai de l'indice) passent dans un service, et le mode de jeu répond à l'écran au lieu de ses 13 tests du type de partie. La ligne de visée est calculée une fois par image, et l'indice d'énigme ne compte plus comme des échanges.                                         | Comportement inchangé (tous les tests verts) ; script de l'écran de 250 lignes environ au plus ; temps par image pas plus long.                          |
+| 6. Livraison                 | Essai sur un vrai iPhone et un vrai Android (l'auteur) ; Lighthouse mobile à 98 au moins avec de la marge (98 tout juste aujourd'hui, avec une LCP simulée de 2,2 s) ; CHANGELOG, cahier des charges, bac à sable Playgama.                                                                                                                                                                                                                                     | `npm run verify` et tests de bout en bout verts.                                                                                                         |
+
+**Laissé pour plus tard**, après la 1.8.0 (décidé le 22/10/2026) :
+
+- `Game.ts` (1 418 lignes) et `CanvasRenderer.ts` (1 334) découpés en classes et en peintres :
+  météo et tirs spéciaux deviennent des stratégies ;
+- des menus plus légers (l'accueil charge tout le fichier de la campagne) ;
+- le sort de la touche Échap, que le jeu ignore exprès.
+
 ## v1.8.0 — Les cinq premières minutes (en préparation)
 
 **But** : sur les portails, accrocher le joueur dès le premier geste avec un entraînement qui
