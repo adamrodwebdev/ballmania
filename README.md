@@ -147,7 +147,7 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 
 ## Qualité
 
-- Plus de 1 200 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
+- Plus de 1 300 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
   gagne (billes bonus comprises) et calibre ses étoiles et son temps de référence (profils
   pressé, posé et appliqué), et un test qui fait résoudre chaque énigme par le vrai moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
@@ -156,12 +156,11 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   garde la page immobile et passe l'audit WCAG 2.2 ; un balayage de 320 à 2 560 px sans
   défilement horizontal ; et chaque écran en russe, en indonésien et en français à
   320 × 568, 360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
-- Lighthouse (v1.7.5), en anglais comme en russe : sur ordinateur, 100 dans les quatre
-  catégories ; sur mobile, 100 en accessibilité, bonnes pratiques et SEO, 98 en performance
-  aux trois mesures (premier affichage simulé 1,8 s, plus grand élément 2,2 s). Règle du
-  projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur la plus faible de trois
-  mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en dessous, et la 1.7.6
-  commence par ce premier affichage.
+- Lighthouse (v1.7.6), en anglais comme en russe : 100 dans les quatre catégories sur
+  mobile, aux trois mesures (premier affichage simulé 0,6 s, plus grand élément 0,9 s), et
+  sur ordinateur. Règle du projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur
+  la plus faible de trois mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en
+  dessous.
 - Intégration continue GitHub Actions à chaque envoi.
 
 ## Conventions
