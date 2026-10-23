@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                               |
-| ------- | ---------- | ------------------------------------ |
-| 1.5     | 22/10/2026 | Traductions revues et russe (v1.7.5) |
+| Version | Date       | Statut                |
+| ------- | ---------- | --------------------- |
+| 1.6     | 23/10/2026 | Socle solide (v1.7.6) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1755,3 +1755,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                   |
 | 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                         |
 | 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                             |
+| 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).               |

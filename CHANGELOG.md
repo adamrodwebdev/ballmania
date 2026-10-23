@@ -3,6 +3,61 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+Lighthouse mobile, build de production : 100 dans les quatre catégories aux trois mesures, au
+seuil fixé le 22/10/2026 (performance 98 en 1.7.5), et 100 dans les quatre sur ordinateur. Le
+titre du jeu s'affiche dès le HTML statique : premier affichage simulé 0,6 s, plus grand
+élément 0,9 s.
+
+### Ajouté
+
+- **Cadre de jeu 2:1** : dans une fenêtre d'ordinateur plus large que 2:1, le plateau et ses
+  rails restent à 2:1 au milieu de l'écran, et l'art du plateau va jusqu'aux bords (règle de
+  Playgama). Un téléphone couché garde toute sa largeur.
+- **Encoches et barre d'accueil** : menus, écran titre et plateau se tiennent à l'écart d'une
+  encoche et de la barre d'accueil, dans les deux orientations.
+- **Matrice de tests** : chaque écran (menus, réglages, partie, pause, résultat) est vérifié à
+  320 × 568, 360 × 800, 393 × 659, 844 × 390, 768 × 1024, 1920 × 1080 et 2560 × 1440, et en
+  zoom à 200 % et 400 % : page immobile, aucun défilement de côté, audit d'accessibilité WCAG
+  2.2 (taille des cibles comprise). Le défilement horizontal est balayé de 320 à 2560 px.
+
+### Modifié
+
+- **Premier affichage** (notre site) : le nom du jeu peint sur son ciel de nuit dès le HTML
+  statique, avant toute autre requête ; le code et les styles arrivent ensuite, et le décor
+  animé de l'accueil se dessine dans un worker. Les builds de portail gardent leur démarrage.
+- **La page ne défile jamais** : chaque écran défile dans son propre cadre, avec une barre fine
+  aux couleurs du thème ; les flèches, Page haut et bas, Début, Fin et Espace font défiler les
+  listes du jeu, jamais la page d'un portail autour de lui.
+- **60 images par seconde au plus** sur un écran tactile, pour la partie comme pour le décor de
+  l'accueil ; un ordinateur les garde toutes. Le canevas plein écran est limité à environ
+  4 mégapixels.
+- **Toucher et lecture** : Échanger, Aimant et Nova font 48 px sur un écran tactile, les noms
+  des mondes 44 px, et un aiguillage du Volcan répond dans un cercle de 44 px au moins ; les
+  mots du HUD font 14 px au moins (11 à 13 px avant) ; les listes déroulantes font 16 px, et
+  iOS ne zoome plus la page.
+- **Carte compacte** sur un téléphone couché et dans les fenêtres basses, jusqu'à 460 px de
+  haut (844 × 390, 800 × 450 de CrazyGames, 734 × 343, 640 × 400) : difficultés côte à côte,
+  cases de 44 px.
+- La barre du navigateur prend la couleur du thème affiché, et non plus celle du système.
+- « Recommencer » choisit à nouveau la forme du plateau : le téléphone a pu tourner.
+- Points de rupture en `rem`, qui suivent la taille de texte choisie par le joueur ; l'écran de
+  jeu s'adapte à sa propre taille (requêtes de conteneur).
+- **Écran de jeu réorganisé** : barre du haut, barre des commandes, panneaux de pause et de fin
+  et session séparés, règles de fin de partie dans un service ; la ligne de visée n'est plus
+  tracée qu'une fois par image (temps médian par image de 3,0 à 2,7 ms, processeur ralenti
+  4 fois). Rien ne change à l'écran.
+
+### Corrigé
+
+- Gagner le dernier niveau de la campagne déclenche enfin la fête du portail (CrazyGames) :
+  elle n'arrivait que si un objet se débloquait au même moment.
+- Les échanges qu'un indice d'énigme fait pour charger sa couleur ne comptent plus comme ceux du
+  joueur : une énigme gagnée sans échanger soi-même compte pour l'objectif « Sans filet ».
+- Monde Joaillerie : la couleur du mélange, au bout de la ligne de visée, suit la ligne dessinée
+  (tir chargé, rebonds de l'Observatoire) au lieu d'un second tracé.
+
 ## [1.7.5] — 2026-10-22
 
 Lighthouse mobile, build de production : performance 98 aux trois mesures, en anglais comme
