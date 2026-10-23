@@ -390,6 +390,25 @@ export class SoundEngine {
     });
   }
 
+  /** A showcase of the training is won: a lighter blow and a short bright chord. */
+  burst(): void {
+    this.play((ctx, out, now) => {
+      this.thump(ctx, out, now, 0.4);
+      [0, 4, 7].forEach((step, i) => {
+        this.bell(ctx, out, now + i * 0.04, semitones(523, step), 1.1, 0.12);
+      });
+      this.noiseBurst(ctx, out, now, 0.5, 3200, 0.08);
+    });
+  }
+
+  /** The black hole stirs before the young Colossus rises out of it: a deep rumble. */
+  rumble(): void {
+    this.play((ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sawtooth', 36, 72, 1.3, 0.16, 260);
+      this.sweep(ctx, out, now, 'sine', 48, 30, 1.2, 0.22);
+    });
+  }
+
   /** The supernova: a deep blow, a bright chord, a shower of glass and a breath of air. */
   nova(): void {
     this.play((ctx, out, now) => {

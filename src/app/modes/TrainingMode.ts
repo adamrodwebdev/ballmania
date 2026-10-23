@@ -36,7 +36,6 @@ export class TrainingMode implements PlayMode {
   readonly assisted = false;
   readonly rope = false;
   readonly root = null;
-  readonly tutorial = true;
   readonly ranked = false;
   readonly swapLabel: Message = { key: 'game.swap' };
   readonly hintable = false;

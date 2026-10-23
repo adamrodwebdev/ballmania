@@ -121,6 +121,8 @@ export interface LevelDefinition {
   readonly halt?: number;
   /** The hand's gesture, shown until its lesson is done (the first level, the training). */
   readonly lesson?: Lesson;
+  /** Seconds without a shot after which the hand comes back, its lesson done (training). */
+  readonly nudge?: number;
   /** How a win ends (the training, see `Victory`); the full victory without. */
   readonly victory?: Victory;
   /** Falling balls, arrhythmia and weather (§ 3.9). */

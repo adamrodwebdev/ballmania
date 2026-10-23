@@ -1,3 +1,6 @@
+import type { Victory } from '@/levels/LevelDefinition';
+import { PROMISE_AFTER, PROMISE_LENGTH } from './Promise';
+
 /**
  * The victory, in real seconds from the last explosion (specification § 3.5):
  * light surges along every track from its entrance to the hole, the hole
@@ -14,6 +17,33 @@ export const NOVA = 0.95;
 export const RESULT = 1.7;
 /** After this, nothing is left of the effect. */
 export const AFTERGLOW = 3.4;
+
+/**
+ * How a won level ends (v1.8.0): the supernova, then the result; a short
+ * burst, on to the next showcase of the training; or the supernova, then the
+ * young Colossus's promise (effects/Promise).
+ */
+export type VictoryStyle = Victory | 'supernova';
+
+/** The short burst plays the light this much faster, and bursts small. */
+export const SHORT_PACE = 1.6;
+
+/** Real seconds from the win to the end of the effect, when the game is over, by style. */
+export const OVER: Readonly<Record<VictoryStyle, number>> = {
+  supernova: RESULT,
+  short: NOVA / SHORT_PACE + 0.5,
+  promise: NOVA + PROMISE_AFTER + PROMISE_LENGTH + 0.3,
+};
+
+/** The effect's own clock, `elapsed` real seconds after the win. */
+export function effectTime(style: VictoryStyle, elapsed: number): number {
+  return style === 'short' ? elapsed * SHORT_PACE : elapsed;
+}
+
+/** Seconds into the promise, `elapsed` real seconds after the win (negative before it). */
+export function promiseTime(elapsed: number): number {
+  return elapsed - NOVA - PROMISE_AFTER;
+}
 
 const clamp = (t: number) => Math.min(1, Math.max(0, t));
 

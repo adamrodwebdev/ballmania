@@ -13,10 +13,12 @@ import { Destruction } from './effects/Destruction';
 import type { DistortionLayer } from './effects/DistortionLayer';
 import type { EffectProfile } from './effects/EffectProfile';
 import { FrameMonitor } from './effects/FrameMonitor';
-import { NOVA, RESULT } from './effects/Victory';
+import { GONE_AT, ROAR_AT } from './effects/Promise';
+import { effectTime, NOVA, OVER, promiseTime, type VictoryStyle } from './effects/Victory';
 import { TimeWarp } from './effects/TimeWarp';
 import { FrameCap } from './FrameCap';
 import { GameLoop } from './GameLoop';
+import { HandCoach } from './HandCoach';
 import type { Haptics } from './Haptics';
 import type { Palette } from './Palette';
 import type { Look } from './cosmetics/Look';
@@ -99,8 +101,6 @@ export interface SessionOptions {
   readonly root?: number;
   /** Ghost ball and group preview on the aim line (§ 3.9); on by default. */
   readonly aimAssist?: boolean;
-  /** The first level: a hand shows how to aim and shoot, until the first shot. */
-  readonly tutorial?: boolean;
   /** Most frames drawn a second (60 on a touch screen, v1.7.6); every frame by default. */
   readonly frameRate?: number;
 }
@@ -150,8 +150,13 @@ export class PlaySession {
   private powersSetOff = 0;
   private switchSerial = 0;
   private tugIn = 0;
-  /** After a win: the hole the light runs to, the seconds since, and whether it burst yet. */
-  private victory: { readonly at: Vec2; elapsed: number; burst: boolean } | null = null;
+  /** After a win: the hole the light runs to, how it ends, the seconds since, and whether it burst yet. */
+  private victory: {
+    readonly at: Vec2;
+    readonly style: VictoryStyle;
+    elapsed: number;
+    burst: boolean;
+  } | null = null;
   private size: { width: number; height: number; pixelRatio: number; insets: Insets } = {
     width: 1,
     height: 1,
@@ -173,8 +178,8 @@ export class PlaySession {
   private charging: number | null = null;
   private chargedOnce = false;
   private recoil = 0;
-  /** The first level's hand, shown until the player's first shot. */
-  private tutorial: boolean;
+  /** The hand that teaches the level's gesture (its `lesson`), or null. */
+  private coach: HandCoach | null = null;
   /** Puzzle hint: the ball circled, and until when (session time). */
   private hinted: { readonly at: Vec2; readonly until: number } | null = null;
   /** An ad is playing over the game: time stands still, without the pause menu. */
@@ -193,7 +198,6 @@ export class PlaySession {
     this.seed = options.seed ?? (() => `${options.level.id}:${Date.now()}`);
     this.root = options.root ?? 55;
     this.aimAssist = options.aimAssist ?? true;
-    this.tutorial = options.tutorial ?? false;
     this.game = this.createGame();
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.destruction = this.createDestruction();
@@ -448,6 +452,8 @@ export class PlaySession {
 
   private createGame(): Game {
     const game = new Game(toLevelSetup(this.level), SeededRandom.fromString(this.seed()));
+    const { lesson, nudge } = this.level;
+    this.coach = lesson ? new HandCoach(game, lesson, nudge ?? null) : null;
     const { sound, haptics } = this.feedback;
     game.events.on('inserted', ({ ball, from }) => {
       this.motion.land(ball, from);
@@ -482,7 +488,6 @@ export class PlaySession {
     });
     game.events.on('fired', ({ projectile }) => {
       if (projectile.by === 'rival') sound.rivalShoot();
-      else this.tutorial = false;
     });
     game.events.on('beat', ({ index }) => {
       if (game.tempo) sound.beat(index, game.tempo.beat, this.root);
@@ -583,12 +588,15 @@ export class PlaySession {
       this.overIn = RESULT_DELAY;
       if (outcome === 'won') {
         // Light surges along the tracks to the hole (or the black hole), which
-        // gathers what is left and bursts into a supernova (effects/Victory).
+        // gathers what is left and bursts into a supernova (effects/Victory);
+        // a showcase of the training bursts short, and its last one ends on
+        // the young Colossus's promise (effects/Promise).
         const hole = game.gravity?.centre ?? game.chains[0]?.path.end ?? game.shooter.position;
-        this.victory = { at: hole, elapsed: 0, burst: false };
-        this.overIn = RESULT;
+        const style = this.level.victory ?? 'supernova';
+        this.victory = { at: hole, style, elapsed: 0, burst: false };
+        this.overIn = OVER[style];
         this.destruction.vortex(hole, game.setup.board, [0, 1, 2, 3, 4, 5]);
-        if (this.profile.slowMotion) this.warp.trigger(0.35, 0.4, 0.5);
+        if (this.profile.slowMotion && style !== 'short') this.warp.trigger(0.35, 0.4, 0.5);
         sound.win();
         haptics.win();
       } else {
@@ -666,6 +674,7 @@ export class PlaySession {
       this.game.shooter.aim(this.game.shooter.angle + this.turning * 2.4 * realDt);
     }
     this.game.update(dt);
+    this.coach?.update(dt, this.coachable);
     if (this.game.state === 'lost') this.motion.drain(DRAIN_SPEED, dt);
     this.motion.update(this.game.chains, dt);
     this.destruction.update(dt);
@@ -694,16 +703,48 @@ export class PlaySession {
     this.render();
   }
 
-  /** After a win: the seconds of the effect, and the supernova when its time comes. */
+  /** After a win: the seconds of the effect, its burst when its time comes, and the promise's cues. */
   private updateVictory(realDt: number): void {
     const victory = this.victory;
     if (!victory) return;
+    const before = victory.elapsed;
     victory.elapsed += realDt;
-    if (victory.burst || victory.elapsed < NOVA) return;
-    victory.burst = true;
-    this.destruction.supernova(victory.at, [0, 1, 2, 3, 4, 5]);
-    this.feedback.sound.nova();
-    this.feedback.haptics.win();
+    const { style, at } = victory;
+    if (!victory.burst && effectTime(style, victory.elapsed) >= NOVA) {
+      victory.burst = true;
+      this.burst(style, at);
+    }
+    if (style !== 'promise') return;
+    const [from, to] = [promiseTime(before), promiseTime(victory.elapsed)];
+    const reached = (moment: number) => from < moment && to >= moment;
+    const { sound, haptics } = this.feedback;
+    // The hole stirs; the Colossus roars, and the board shakes; it dives back in.
+    if (reached(0)) sound.rumble();
+    if (reached(ROAR_AT)) {
+      sound.roar();
+      haptics.explosion(4);
+      this.destruction.impact(at, 0.8);
+    }
+    if (reached(GONE_AT)) {
+      sound.swallow();
+      this.destruction.swallow(at, 4);
+      this.destruction.impact(at, 0.25);
+    }
+  }
+
+  /** The hole bursts: a supernova, or the short burst of a showcase of the training. */
+  private burst(style: VictoryStyle, at: Vec2): void {
+    const { sound, haptics } = this.feedback;
+    const tones = [0, 1, 2, 3, 4, 5];
+    if (style === 'short') {
+      this.destruction.burst(at, tones);
+      sound.burst();
+      haptics.explosion(3);
+      return;
+    }
+    this.destruction.supernova(at, tones);
+    sound.nova();
+    haptics.win();
   }
 
   /** The frame rate dropped: one step less spectacle, for the rest of the game. */
@@ -760,13 +801,14 @@ export class PlaySession {
       victory: this.victory && {
         at: this.victory.at,
         elapsed: this.victory.elapsed,
+        style: this.victory.style,
         reducedMotion: this.profile.reducedMotion,
       },
       magnetArmed: this.hud.magnetArmed,
       time: this.time,
       colossusFlash: this.colossusFlash,
       hint: this.hinted && this.time < this.hinted.until ? this.hinted.at : null,
-      tutorial: this.tutorial && this.acceptsCommands ? this.tutorialPath() : null,
+      tutorial: this.coach?.gesture ?? null,
     });
     if (!this.distortion) return;
     const k = this.renderer.deviceScale;
@@ -780,18 +822,13 @@ export class PlaySession {
     );
   }
 
-  /** The tutorial hand's way: from the shooter to a ball in the middle of the visible chain. */
-  private tutorialPath(): { readonly from: Vec2; readonly to: Vec2; readonly time: number } | null {
-    const chain = this.game.chains[0];
-    if (!chain) return null;
-    const visible = chain.balls.filter((ball) => ball.s > chain.diameter * 2);
-    const ball = visible[Math.floor(visible.length * 0.4)];
-    if (!ball) return null;
-    return {
-      from: this.game.shooter.position,
-      to: this.motion.positionOf(chain, ball),
-      time: this.time,
-    };
+  /** Nothing hides the hand now: the game goes on, no shot is held or in flight. */
+  private get coachable(): boolean {
+    return (
+      this.acceptsCommands &&
+      this.charging === null &&
+      !this.game.projectiles.some((projectile) => projectile.by === 'player')
+    );
   }
 
   private syncTones(): void {

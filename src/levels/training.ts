@@ -13,6 +13,9 @@ export const TRAINING_STEPS: readonly TrainingStep[] = [1, 2, 3];
  */
 export const TRAINING_HALT = 0.86;
 
+/** Seconds without a shot after which the hand shows the gesture again. */
+export const TRAINING_NUDGE = 5;
+
 /**
  * A showcase of the training (v1.8.0): a short level of its world, made to
  * hook a new player, apart from the campaign (its own content and progress).
@@ -101,7 +104,15 @@ export function trainingLevel(step: TrainingStep): TrainingLevel {
   return TRAINING[step - 1]!;
 }
 
-/** A showcase on one board shape: its chain stops short of the hole, and its ending. */
+/**
+ * A showcase on one board shape: its chain stops short of the hole, its hand
+ * comes back to a player who waits, and its ending.
+ */
 export function trainingDefinition(level: TrainingLevel, frame: Frame): LevelDefinition {
-  return { ...resolveLevel(level, frame), halt: TRAINING_HALT, victory: level.victory };
+  return {
+    ...resolveLevel(level, frame),
+    halt: TRAINING_HALT,
+    nudge: TRAINING_NUDGE,
+    victory: level.victory,
+  };
 }

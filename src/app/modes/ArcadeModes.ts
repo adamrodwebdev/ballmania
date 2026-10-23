@@ -27,7 +27,6 @@ abstract class ArcadeMode implements PlayMode {
   readonly daily = null;
   readonly assisted = false;
   readonly rope: boolean = false;
-  readonly tutorial = false;
   readonly ranked = false;
   readonly swapLabel: Message = { key: 'game.swap' };
   readonly hintable: boolean = false;

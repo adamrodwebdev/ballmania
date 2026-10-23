@@ -88,6 +88,27 @@ describe('the shooting module', () => {
     expect(game.preview(false, line)).toEqual(game.preview());
   });
 
+  it('draws the line of any angle without turning the shooter, up to the edge of the board', () => {
+    const game = new Game(level([0, 0, 1, 2]), new FixedRandom(0));
+    game.aimAt(new Vec2(325, 100));
+    const angle = game.shooter.angle;
+    const down = game.aimLineAt(Math.PI / 2);
+    expect(game.shooter.angle).toBe(angle);
+    expect(down.target).toBeNull();
+    // A shot given up past the edge (plus a margin): the line stops there too.
+    expect(down.points.at(-1)!.y).toBeLessThan(1000 + PARAMS.ballRadius * 2 + 20);
+    expect(game.aimLineAt(angle)).toEqual(game.aimLine());
+  });
+
+  it('shows the chain reaction a shot would set off, when asked', () => {
+    // A red shot between the two reds: they burst, and the blues on either side meet.
+    const game = new Game(level([1, 0, 0, 1, 1]), new FixedRandom(0));
+    game.loadTone(0);
+    game.aimAt(new Vec2(345, 100));
+    expect(game.preview()?.reaction).toEqual([]);
+    expect(game.preview(false, game.aimLine(), true)?.reaction.length).toBeGreaterThan(0);
+  });
+
   it("loads a puzzle hint's colour without counting a swap of the player", () => {
     const game = new Game(level([0, 1, 2, 0, 1, 2]), new FixedRandom(0));
     const other = game.shooter.next;

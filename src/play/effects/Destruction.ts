@@ -265,6 +265,18 @@ export class Destruction {
     this.impact(at, 0.45);
   }
 
+  /** The short burst ending a showcase of the training: a spray of sparks and a light jolt. */
+  burst(at: Vec2, tones: readonly Tone[]): void {
+    this.attractor = null;
+    this.flashAmount = Math.max(this.flashAmount, 0.1);
+    this.flashColour = '#ffffff';
+    const count = Math.min(32, this.budget());
+    for (let i = 0; i < count; i++) {
+      this.addSpark(at.x, at.y, tones[i % Math.max(1, tones.length)] ?? 0, 1.1);
+    }
+    this.impact(at, 0.25);
+  }
+
   /** A shot falls into the black hole: a ring closing in, and a last glimmer. */
   swallow(at: Vec2, tone: Tone): void {
     this.rings.push({ x: at.x, y: at.y, life: 0.5, maxLife: 0.5, tone, size: 3, implode: true });

@@ -90,8 +90,6 @@ export interface PlayMode {
   readonly music: WorldId | null;
   /** The key of the mode's own song, in hertz (Rhythm), else null. */
   readonly root: number | null;
-  /** The very first level teaches by a gesture: a hand shows how to aim and shoot. */
-  readonly tutorial: boolean;
   /** The campaign difficulty applies to this game: its name shows under the level's. */
   readonly ranked: boolean;
   /** What the swap button says: in a puzzle, it shows the next colour. */

@@ -184,7 +184,7 @@ describe('what the game screen asks its mode (v1.7.6)', () => {
 
   it('a campaign level: ranked, assisted on request, taught by a gesture at 1-1', () => {
     const mode = createMode({ kind: 'campaign', level: first, assisted: true });
-    expect(mode.tutorial).toBe(first.lesson !== undefined);
+    expect(mode.definition(FRAMES.square, play(false, 'pilot')).lesson).toBe('shot');
     expect(mode.assisted).toBe(true);
     expect(mode.ranked).toBe(true);
     expect(mode.assistLevel).toBe(first.id);
@@ -236,7 +236,6 @@ describe('the training (v1.8.0)', () => {
     expect(mode.ranked).toBe(false);
     expect(mode.continuable).toBe(false);
     expect(mode.assistLevel).toBeNull();
-    expect(mode.tutorial).toBe(true);
     expect(mode.world).toBe('neon');
     // The same chain every time: each showcase is tuned to reach its moment.
     expect(mode.seed).toBe('training-2');

@@ -91,10 +91,6 @@ export class CampaignMode implements PlayMode {
     return this.request.assisted === true;
   }
 
-  get tutorial(): boolean {
-    return this.level.lesson !== undefined;
-  }
-
   get assistLevel(): string {
     return this.level.id;
   }
@@ -182,7 +178,6 @@ export class DailyMode implements PlayMode {
   readonly assisted = false;
   readonly rope = false;
   readonly root = null;
-  readonly tutorial = false;
   readonly ranked = false;
   readonly swapLabel: Message = { key: 'game.swap' };
   readonly hintable = false;
