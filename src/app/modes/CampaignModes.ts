@@ -65,6 +65,13 @@ export class CampaignMode implements PlayMode {
   readonly home = 'campaign';
   readonly continuable = true;
   readonly seed = null;
+  readonly daily = null;
+  readonly rope = false;
+  readonly root = null;
+  readonly ranked = true;
+  readonly swapLabel: Message = { key: 'game.swap' };
+  readonly hintable = false;
+  readonly par = null;
 
   constructor(
     readonly request: Extract<PlayRequest, { kind: 'campaign' }>,
@@ -73,6 +80,26 @@ export class CampaignMode implements PlayMode {
 
   get world() {
     return this.level.world;
+  }
+
+  get music() {
+    return this.level.world;
+  }
+
+  get assisted(): boolean {
+    return this.request.assisted === true;
+  }
+
+  get tutorial(): boolean {
+    return this.level.hint === 'aim';
+  }
+
+  get assistLevel(): string {
+    return this.level.id;
+  }
+
+  get finale(): boolean {
+    return this.level.id === CAMPAIGN[CAMPAIGN.length - 1]?.id;
   }
 
   get boss(): Message | null {
@@ -97,6 +124,10 @@ export class CampaignMode implements PlayMode {
 
   outcome(won: boolean): Message {
     return { key: won ? 'game.won' : 'game.lost' };
+  }
+
+  celebrates(won: boolean): boolean {
+    return won && this.finale;
   }
 
   definition(frame: Frame, { assisted, difficulty, upgrades }: PlayOptions): LevelDefinition {
@@ -147,6 +178,16 @@ export class DailyMode implements PlayMode {
   readonly home = 'home';
   readonly continuable = false;
   readonly hint = null;
+  readonly assisted = false;
+  readonly rope = false;
+  readonly root = null;
+  readonly tutorial = false;
+  readonly ranked = false;
+  readonly swapLabel: Message = { key: 'game.swap' };
+  readonly hintable = false;
+  readonly par = null;
+  readonly assistLevel = null;
+  readonly finale = false;
   private readonly challenge: DailyChallenge;
 
   constructor(readonly request: Extract<PlayRequest, { kind: 'daily' }>) {
@@ -155,6 +196,14 @@ export class DailyMode implements PlayMode {
 
   get world() {
     return this.challenge.level.world;
+  }
+
+  get music() {
+    return this.challenge.level.world;
+  }
+
+  get daily(): DailyChallenge {
+    return this.challenge;
   }
 
   get boss(): Message | null {
@@ -179,6 +228,10 @@ export class DailyMode implements PlayMode {
 
   outcome(won: boolean): Message {
     return { key: won ? 'game.won' : 'game.lost' };
+  }
+
+  celebrates(): boolean {
+    return false;
   }
 
   definition(frame: Frame): LevelDefinition {

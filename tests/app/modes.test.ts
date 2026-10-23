@@ -177,3 +177,51 @@ describe('play modes', () => {
     });
   });
 });
+
+describe('what the game screen asks its mode (v1.7.6)', () => {
+  const first = CAMPAIGN[0]!;
+  const last = CAMPAIGN[CAMPAIGN.length - 1]!;
+
+  it('a campaign level: ranked, assisted on request, taught by a gesture at 1-1', () => {
+    const mode = createMode({ kind: 'campaign', level: first, assisted: true });
+    expect(mode.tutorial).toBe(first.hint === 'aim');
+    expect(mode.assisted).toBe(true);
+    expect(mode.ranked).toBe(true);
+    expect(mode.assistLevel).toBe(first.id);
+    expect(mode.music).toBe(first.world);
+    expect(mode.daily).toBeNull();
+    expect(mode.finale).toBe(false);
+    expect(createMode({ kind: 'campaign', level: last }).finale).toBe(true);
+    expect(createMode({ kind: 'campaign', level: last }).assisted).toBe(false);
+  });
+
+  it('the daily challenge: its challenge, no assistance, no ranking', () => {
+    const challenge = DailyChallenge.of(new Date(2026, 9, 23));
+    const mode = createMode({ kind: 'daily', challenge });
+    expect(mode.daily).toBe(challenge);
+    expect(mode.assistLevel).toBeNull();
+    expect(mode.ranked).toBe(false);
+    expect(mode.music).toBe(challenge.level.world);
+  });
+
+  it('a puzzle: its par, a hint to have, the swap that shows the next colour', () => {
+    const puzzle = PUZZLES[0]!;
+    const mode = createMode({ kind: 'puzzle', puzzle });
+    expect(mode.par).toBe(puzzle.par);
+    expect(mode.hintable).toBe(true);
+    expect(mode.swapLabel).toEqual({ key: 'arcade.puzzle.nextColour' });
+  });
+
+  it('a song plays its own music in its own key; a duel shows its rope', () => {
+    const song = SONGS[0]!;
+    const rhythm = createMode({ kind: 'rhythm', song });
+    expect(rhythm.music).toBeNull();
+    expect(rhythm.root).toBe(song.root);
+    expect(createMode({ kind: 'duel', difficulty: 'normal' }).rope).toBe(true);
+    const endless = createMode({ kind: 'endless' });
+    expect(endless.rope).toBe(false);
+    expect(endless.swapLabel).toEqual({ key: 'game.swap' });
+    expect(endless.par).toBeNull();
+    expect(endless.root).toBeNull();
+  });
+});

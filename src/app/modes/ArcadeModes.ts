@@ -4,7 +4,7 @@ import { endlessLevel } from '@/levels/arcade/endless';
 import { findMode, type ArcadeModeId } from '@/levels/arcade/modes';
 import { PUZZLES, puzzleLevel, puzzleStars, type Puzzle } from '@/levels/arcade/puzzles';
 import { rhythmLevel, SONGS, type Song } from '@/levels/arcade/rhythm';
-import { CAMPAIGN } from '@/levels/campaign';
+import { CAMPAIGN, type WorldId } from '@/levels/campaign';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
 import { REWARDS } from '@/player/rewards';
@@ -24,6 +24,15 @@ abstract class ArcadeMode implements PlayMode {
   readonly stars = null;
   /** No Colossus in the Arcade. */
   readonly boss = null;
+  readonly daily = null;
+  readonly assisted = false;
+  readonly rope: boolean = false;
+  readonly tutorial = false;
+  readonly ranked = false;
+  readonly swapLabel: Message = { key: 'game.swap' };
+  readonly hintable: boolean = false;
+  readonly assistLevel = null;
+  readonly finale = false;
 
   protected constructor(
     readonly request: PlayRequest,
@@ -34,8 +43,24 @@ abstract class ArcadeMode implements PlayMode {
     return findMode(this.mode).world;
   }
 
+  get music(): WorldId | null {
+    return this.world;
+  }
+
+  get root(): number | null {
+    return null;
+  }
+
+  get par(): number | null {
+    return null;
+  }
+
   get hint() {
     return this.mode;
+  }
+
+  celebrates(_won: boolean, _settlement: Settlement): boolean {
+    return false;
   }
 
   abstract readonly label: Message;
@@ -79,6 +104,10 @@ export class EndlessMode extends ArcadeMode {
     return { key: 'arcade.endless.over' };
   }
 
+  override celebrates(_won: boolean, settlement: Settlement): boolean {
+    return settlement.record?.newBest === true;
+  }
+
   definition(frame: Frame): LevelDefinition {
     return endlessLevel(frame);
   }
@@ -100,10 +129,18 @@ export class EndlessMode extends ArcadeMode {
 /** A puzzle: stars for few shots; the next puzzle opens once it is solved. */
 export class PuzzleMode extends ArcadeMode {
   private readonly puzzle: Puzzle;
+  /** Swapping shows the next colour of the puzzle's dealt order. */
+  override readonly swapLabel: Message = { key: 'arcade.puzzle.nextColour' };
+  /** A hint, for a rewarded ad or shards, from the pause menu. */
+  override readonly hintable = true;
 
   constructor(override readonly request: Extract<PlayRequest, { kind: 'puzzle' }>) {
     super(request, 'puzzle');
     this.puzzle = request.puzzle;
+  }
+
+  override get par(): number {
+    return this.puzzle.par;
   }
 
   get label(): Message {
@@ -160,6 +197,15 @@ export class RhythmMode extends ArcadeMode {
     this.song = request.song;
   }
 
+  /** The song is the music: it plays beat by beat, in its own key. */
+  override get music(): null {
+    return null;
+  }
+
+  override get root(): number {
+    return this.song.root;
+  }
+
   get label(): Message {
     return { key: `arcade.rhythm.songs.${this.song.id}` };
   }
@@ -196,6 +242,8 @@ export class RhythmMode extends ArcadeMode {
 /** Duel: a tug of war against the computer; wins are counted by difficulty. */
 export class DuelMode extends ArcadeMode {
   private readonly difficulty: DuelDifficulty;
+  /** The tug of war's rope, under the top bar. */
+  override readonly rope = true;
 
   constructor(override readonly request: Extract<PlayRequest, { kind: 'duel' }>) {
     super(request, 'duel');

@@ -1,5 +1,5 @@
 import { ingredients, mix, PRIMARIES, SECONDARIES } from './chain/Alchemy';
-import { BallFactory, type BallView, type Tone } from './chain/Ball';
+import { BallFactory, MAX_TONES, type BallView, type Tone } from './chain/Ball';
 import { Chain, type ChainParams, type Explosion, type ExplosionCause } from './chain/Chain';
 import { ChainGenerator, type ChainRecipe } from './chain/ChainGenerator';
 import { Emitter } from './core/Emitter';
@@ -57,6 +57,18 @@ export interface ChainSetup {
   readonly tones?: readonly Tone[];
   /** The chain starts on the track with its tail at this arc length, instead of in the tunnel. */
   readonly tail?: number;
+}
+
+/** The aim line, the points where it bounces, and the ball it meets first. */
+export interface AimLine {
+  readonly points: Vec2[];
+  readonly rebounds: Vec2[];
+  /** The ball met, by its chain and index, and the side where the shot would land. */
+  readonly target: {
+    readonly chain: number;
+    readonly index: number;
+    readonly after: boolean;
+  } | null;
 }
 
 /** A switch of the board, as the interface needs it. */
@@ -585,12 +597,12 @@ export class Game {
   }
 
   /**
-   * The aim line and, apart, the points where it bounces off a mirror; for a
-   * charged shot, straight and fast whatever the gravity.
+   * The aim line and, apart, the points where it bounces off a mirror, with
+   * the ball it meets first; for a charged shot, straight and fast whatever
+   * the gravity. Followed once a frame (v1.7.6): the preview reuses it.
    */
-  aimLine(maxBounces = 2, power = false): { readonly points: Vec2[]; readonly rebounds: Vec2[] } {
-    const { points, rebounds } = this.trace(maxBounces, power);
-    return { points, rebounds };
+  aimLine(maxBounces = 2, power = false): AimLine {
+    return this.trace(maxBounces, power);
   }
 
   /**
@@ -599,12 +611,15 @@ export class Game {
    * would explode with it, if they are enough. Null without a target, or when
    * the shot would fuse instead (Jewel world).
    */
-  preview(power = false): {
+  preview(
+    power = false,
+    line: AimLine = this.aimLine(this.upgrades.aimBounces, power),
+  ): {
     readonly position: Vec2;
     readonly group: readonly Vec2[];
     readonly reaction: readonly Vec2[];
   } | null {
-    const target = this.trace(this.upgrades.aimBounces, power).target;
+    const target = line.target;
     if (!target) return null;
     const chain = this.chains[target.chain]!;
     const balls = chain.balls;
@@ -753,17 +768,7 @@ export class Game {
    * meets. Without gravity it walks the straight line in small steps; with
    * gravity it integrates exactly like a flying projectile does.
    */
-  private trace(
-    maxBounces: number,
-    power = false,
-    reach = 1800,
-    step = 12,
-    skip = 80,
-  ): {
-    points: Vec2[];
-    rebounds: Vec2[];
-    target: { chain: number; index: number; after: boolean } | null;
-  } {
+  private trace(maxBounces: number, power = false, reach = 1800, step = 12, skip = 80): AimLine {
     const radius = this.setup.chain.ballRadius;
     const gravity = power ? null : this.gravity;
     const wind = power ? null : this.windPull;
@@ -839,6 +844,17 @@ export class Game {
     if (this.stateValue !== 'playing') return;
     this.shooter.swap(this.shooterTones());
     this.swaps++;
+  }
+
+  /**
+   * Loads `tone`, as a puzzle hint does (v1.7.6): the swaps it takes are the
+   * game's, not the player's, so a win stays a win without a swap.
+   */
+  loadTone(tone: Tone): void {
+    if (this.stateValue !== 'playing') return;
+    for (let i = 0; i < MAX_TONES && this.shooter.current !== tone; i++) {
+      this.shooter.swap(this.shooterTones());
+    }
   }
 
   /**
