@@ -15,6 +15,17 @@
     "play": "Play",
     "next": "{world}\u00a0· Level\u00a0{number}"
   },
+  "reel": {
+    "boss": "Boss",
+    "nova": "The Nova bomb",
+    "bank": "Bounce your shots",
+    "magnet": "Pull a marble out",
+    "alchemy": "Mix the colours",
+    "switch": "Flip the switches",
+    "blackHole": "The black hole bends your shots",
+    "colossus": "Bring down the Colossus",
+    "duel": "Win the tug of war"
+  },
   "settings": {
     "language": "Language",
     "theme": "Theme",

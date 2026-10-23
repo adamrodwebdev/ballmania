@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { playerTrace, useServices } from '@/app/AppServices';
 import { startsTraining } from '@/app/landing';
 import { CAMPAIGN } from '@/levels/campaign';
-import { pixelRatioFor } from '@/play/canvas';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { GIFT_SHARDS } from '@/player/DailyGift';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
-import { frameRateCap } from '@/ui/frameRate';
-import { whenIdle } from '@/ui/idle';
+import TitleReel from '@/ui/title/TitleReel.vue';
 
+const props = defineProps<{
+  /** The studio intro still covers the screen (our site, once a visit). */
+  covered: boolean;
+}>();
 const { t, locale } = useI18n();
 const { player, progress, today } = useServices();
 const emit = defineEmits<{
@@ -81,60 +83,16 @@ const version = __APP_VERSION__;
 const gameName = __PLATFORM__ === 'playgama' ? 'Ball Mania' : t('app.name');
 
 const settingsDialog = ref<{ open: () => void } | null>(null);
-
-/**
- * The living backdrop is drawn from its own small module, once the page has
- * loaded and the browser is idle, and by a worker where the browser allows
- * (v1.7.6): it never weighs on the first screen.
- */
-const sceneCanvas = ref<HTMLCanvasElement | null>(null);
-/** The room the menu leaves the black hole on an upright screen. */
-const spacer = ref<HTMLElement | null>(null);
-let stopScene = () => {};
-const startScene = async () => {
-  const canvas = sceneCanvas.value;
-  if (!canvas) return;
-  const [{ openTitleBackdrop }, { Palette }] = await Promise.all([
-    import('@/ui/title/TitleBackdrop'),
-    import('@/play/Palette'),
-  ]);
-  if (!sceneCanvas.value) return;
-  const scene = await openTitleBackdrop(canvas, {
-    palette: Palette.fromStyle(getComputedStyle(document.documentElement)),
-    still: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    frameRate: frameRateCap(),
-  });
-  // Left the title screen while the scene was starting.
-  if (sceneCanvas.value !== canvas) {
-    scene.stop();
-    return;
-  }
-  // The hole's room changes with the screen, and as the gift card folds away.
-  const observer = new ResizeObserver(() => {
-    const box = canvas.getBoundingClientRect();
-    const room = spacer.value?.getBoundingClientRect();
-    scene.resize(
-      box.width,
-      box.height,
-      pixelRatioFor(box.width, box.height, window.devicePixelRatio),
-      room && { top: room.top - box.top, bottom: room.bottom - box.top },
-    );
-  });
-  observer.observe(canvas);
-  if (spacer.value) observer.observe(spacer.value);
-  stopScene = () => {
-    scene.stop();
-    observer.disconnect();
-  };
+/** The settings cover the screen: the reel waits behind them. */
+const settingsOpen = ref(false);
+const openSettings = () => {
+  settingsOpen.value = true;
+  settingsDialog.value?.open();
 };
-onMounted(() => whenIdle(() => void startScene()));
-onBeforeUnmount(() => stopScene());
 </script>
 
 <template>
   <section class="title-screen" aria-labelledby="home-title">
-    <canvas ref="sceneCanvas" class="scene" aria-hidden="true"></canvas>
-
     <div class="top">
       <div class="chips">
         <template v-if="returning">
@@ -196,7 +154,7 @@ onBeforeUnmount(() => stopScene());
           type="button"
           :aria-label="t('settings.open')"
           data-testid="open-settings"
-          @click="settingsDialog?.open()"
+          @click="openSettings"
         >
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <path
@@ -214,60 +172,63 @@ onBeforeUnmount(() => stopScene());
         <h1 id="home-title" class="game-title title">{{ gameName }}</h1>
         <p class="tagline">{{ t('home.tagline') }}</p>
       </div>
-      <div ref="spacer" class="spacer" aria-hidden="true"></div>
-      <section v-if="!gift.taken" class="gift" aria-labelledby="gift-title" data-testid="gift">
-        <div class="gift-head">
-          <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" class="gift-icon">
-            <path d="M5 14h22v13H5zM3 9.5h26V14H3zM16 9.5V27" />
-            <path
-              d="M16 9.5C14 4.5 8.5 4 8.5 7S12 9.5 16 9.5ZM16 9.5C18 4.5 23.5 4 23.5 7S20 9.5 16 9.5Z"
-            />
-          </svg>
-          <div class="gift-title">
-            <h2 id="gift-title" class="gift-name">{{ t('gift.title') }}</h2>
-            <span class="gift-day">{{ t('gift.day', { day: gift.day, days: GIFT_DAYS }) }}</span>
+      <!-- The reel and the gift: between the title and Play, or on the right of a wide screen. -->
+      <div class="side">
+        <TitleReel class="reel-room" :paused="settingsOpen || props.covered" />
+        <section v-if="!gift.taken" class="gift" aria-labelledby="gift-title" data-testid="gift">
+          <div class="gift-head">
+            <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" class="gift-icon">
+              <path d="M5 14h22v13H5zM3 9.5h26V14H3zM16 9.5V27" />
+              <path
+                d="M16 9.5C14 4.5 8.5 4 8.5 7S12 9.5 16 9.5ZM16 9.5C18 4.5 23.5 4 23.5 7S20 9.5 16 9.5Z"
+              />
+            </svg>
+            <div class="gift-title">
+              <h2 id="gift-title" class="gift-name">{{ t('gift.title') }}</h2>
+              <span class="gift-day">{{ t('gift.day', { day: gift.day, days: GIFT_DAYS }) }}</span>
+            </div>
+            <button class="collect" type="button" data-testid="gift-collect" @click="takeGift">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
+              </svg>
+              {{ t('gift.collect', { shards: number.format(gift.shards) }) }}
+            </button>
           </div>
-          <button class="collect" type="button" data-testid="gift-collect" @click="takeGift">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
-            </svg>
-            {{ t('gift.collect', { shards: number.format(gift.shards) }) }}
-          </button>
-        </div>
-        <ol class="streak" :aria-label="t('gift.streak')">
-          <li
-            v-for="(shards, index) in GIFT_SHARDS"
-            :key="index"
-            :class="dayState(index + 1)"
-            :aria-label="dayLabel(index + 1, shards)"
-          >
-            <svg v-if="index + 1 < gift.day" viewBox="0 0 24 24" aria-hidden="true" class="done">
-              <path d="M5 12.5l4.5 4.5L19 7.5" />
-            </svg>
-            <svg
-              v-else-if="index + 1 === GIFT_DAYS"
-              viewBox="0 0 32 24"
-              aria-hidden="true"
-              class="big"
+          <ol class="streak" :aria-label="t('gift.streak')">
+            <li
+              v-for="(shards, index) in GIFT_SHARDS"
+              :key="index"
+              :class="dayState(index + 1)"
+              :aria-label="dayLabel(index + 1, shards)"
             >
-              <path class="crystal" d="M16 1l5.5 6.5L16 22 10.5 7.5z" />
-              <path class="crystal cyan" d="M7 6l4 4.5L7 20l-4-9.5z" />
-              <path class="crystal gold" d="M25 6l4 4.5-4 9.5-4-9.5z" />
-            </svg>
-            <svg v-else viewBox="0 0 24 24" aria-hidden="true" class="shard">
-              <path d="M12 2l7 7-7 13L5 9z" />
-            </svg>
-            <span aria-hidden="true">{{ number.format(shards) }}</span>
-          </li>
-        </ol>
-        <p class="gift-note">{{ t('gift.note', { shards: number.format(gift.tomorrow) }) }}</p>
-      </section>
-      <p v-else class="gift-taken" data-testid="gift-taken">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-          <path d="M5 12.5l4.5 4.5L19 7.5" />
-        </svg>
-        {{ t('gift.taken', { day: gift.day, shards: number.format(gift.tomorrow) }) }}
-      </p>
+              <svg v-if="index + 1 < gift.day" viewBox="0 0 24 24" aria-hidden="true" class="done">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+              <svg
+                v-else-if="index + 1 === GIFT_DAYS"
+                viewBox="0 0 32 24"
+                aria-hidden="true"
+                class="big"
+              >
+                <path class="crystal" d="M16 1l5.5 6.5L16 22 10.5 7.5z" />
+                <path class="crystal cyan" d="M7 6l4 4.5L7 20l-4-9.5z" />
+                <path class="crystal gold" d="M25 6l4 4.5-4 9.5-4-9.5z" />
+              </svg>
+              <svg v-else viewBox="0 0 24 24" aria-hidden="true" class="shard">
+                <path d="M12 2l7 7-7 13L5 9z" />
+              </svg>
+              <span aria-hidden="true">{{ number.format(shards) }}</span>
+            </li>
+          </ol>
+          <p class="gift-note">{{ t('gift.note', { shards: number.format(gift.tomorrow) }) }}</p>
+        </section>
+        <p v-else class="gift-taken" data-testid="gift-taken">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+          </svg>
+          {{ t('gift.taken', { day: gift.day, shards: number.format(gift.tomorrow) }) }}
+        </p>
+      </div>
       <p class="sr-only" role="status">{{ giftMessage }}</p>
       <div class="actions">
         <button class="btn btn-primary play" type="button" data-testid="play" @click="emit('play')">
@@ -327,7 +288,7 @@ onBeforeUnmount(() => stopScene());
       </div>
       <p class="version">{{ t('app.version', { version }) }}</p>
     </div>
-    <SettingsDialog ref="settingsDialog" />
+    <SettingsDialog ref="settingsDialog" @close="settingsOpen = false" />
   </section>
 </template>
 
@@ -340,7 +301,12 @@ onBeforeUnmount(() => stopScene());
   min-height: 100dvh;
   overflow: hidden;
   color: var(--scene-text);
+  /* The night sky: still stars over the glows, as on the covers (in tiles that never line up). */
   background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='416' height='416'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='221' cy='138' r='0.77' opacity='0.89'/%3E%3Ccircle cx='284' cy='264' r='0.90' opacity='0.66'/%3E%3Ccircle cx='294' cy='290' r='0.30' opacity='0.86'/%3E%3Ccircle cx='382' cy='335' r='0.30' opacity='0.78'/%3E%3Ccircle cx='286' cy='267' r='0.51' opacity='0.96'/%3E%3Ccircle cx='125' cy='179' r='0.33' opacity='0.97'/%3E%3Ccircle cx='302' cy='364' r='0.30' opacity='0.67'/%3E%3Ccircle cx='153' cy='144' r='0.62' opacity='0.97'/%3E%3C/g%3E%3Cg fill='%23ffd9a8'%3E%3Ccircle cx='155' cy='140' r='0.95' opacity='0.70'/%3E%3Ccircle cx='212' cy='176' r='0.31' opacity='0.96'/%3E%3C/g%3E%3C/svg%3E")
+      0 0 / 26rem 26rem,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='592' height='592'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='242' cy='306' r='0.41' opacity='0.76'/%3E%3Ccircle cx='130' cy='422' r='0.30' opacity='0.72'/%3E%3Ccircle cx='488' cy='227' r='0.30' opacity='0.65'/%3E%3Ccircle cx='350' cy='328' r='0.42' opacity='0.66'/%3E%3Ccircle cx='470' cy='9' r='0.31' opacity='0.81'/%3E%3Ccircle cx='472' cy='559' r='0.73' opacity='1.00'/%3E%3Ccircle cx='256' cy='152' r='0.56' opacity='0.56'/%3E%3Ccircle cx='491' cy='209' r='1.03' opacity='0.55'/%3E%3Ccircle cx='561' cy='325' r='0.64' opacity='0.78'/%3E%3Ccircle cx='257' cy='547' r='1.39' opacity='0.74'/%3E%3Ccircle cx='301' cy='135' r='0.30' opacity='0.57'/%3E%3C/g%3E%3Cg fill='%23ffd9a8'%3E%3Ccircle cx='10' cy='228' r='1.07' opacity='0.78'/%3E%3Ccircle cx='361' cy='566' r='0.34' opacity='0.96'/%3E%3Ccircle cx='424' cy='477' r='1.24' opacity='0.68'/%3E%3C/g%3E%3C/svg%3E")
+      9rem 5rem / 37rem 37rem,
     radial-gradient(ellipse 50% 40% at 10% 8%, var(--scene-pink), transparent 70%),
     radial-gradient(ellipse 45% 40% at 92% 6%, var(--scene-cyan), transparent 70%),
     radial-gradient(
@@ -351,11 +317,14 @@ onBeforeUnmount(() => stopScene());
     );
 }
 
-.scene {
+/* Brighter stars that twinkle, behind the menu. */
+.title-screen::before {
+  content: '';
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='20' cy='44' r='0.84' opacity='0.94'/%3E%3Ccircle cx='419' cy='483' r='0.65' opacity='0.97'/%3E%3Ccircle cx='95' cy='224' r='0.65' opacity='0.97'/%3E%3Ccircle cx='308' cy='406' r='0.78' opacity='0.91'/%3E%3Ccircle cx='478' cy='272' r='0.65' opacity='0.86'/%3E%3Ccircle cx='281' cy='282' r='0.70' opacity='0.97'/%3E%3C/g%3E%3Cg fill='%23ffd9a8'%3E%3Ccircle cx='63' cy='61' r='0.65' opacity='0.94'/%3E%3C/g%3E%3C/svg%3E")
+    3rem 11rem / 32rem 32rem;
+  pointer-events: none;
 }
 
 .top,
@@ -448,9 +417,22 @@ onBeforeUnmount(() => stopScene());
   text-shadow: 0 2px 12px rgb(0 0 0 / 0.6);
 }
 
-/* Room for the black hole between the title and the gift above the buttons. */
-.spacer {
+/*
+ * Between the title and Play: the reel in the room the screen leaves (v1.8.0),
+ * the daily gift under it.
+ */
+.side {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  align-items: center;
+  align-self: stretch;
+}
+
+.reel-room {
   flex: 1 0 8vh;
+  align-self: stretch;
+  padding-top: var(--space-2);
 }
 
 .actions {
@@ -798,6 +780,18 @@ onBeforeUnmount(() => stopScene());
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .title-screen::before {
+    animation: twinkle 3.6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes twinkle {
+  to {
+    opacity: 0.25;
+  }
+}
+
 /* From 22.5rem (360 px): the card's sides widen. */
 @media (width >= 22.5rem) {
   .gift {
@@ -833,18 +827,31 @@ onBeforeUnmount(() => stopScene());
   }
 }
 
-/* Wide screens: the menu on the left, the black hole on the right, as on the cover. */
+/* Upright tablets: a larger window, the room is there. */
+@media (width >= 40rem) and (aspect-ratio < 5/4) {
+  .reel-room {
+    --reel-width: 36rem;
+  }
+}
+
+/*
+ * Wide screens: the menu on the left, centred on the height; on the right, the
+ * gift in the corner and the reel under it, clear of the menu whatever its width.
+ */
 @media (width >= 40rem) and (aspect-ratio >= 5/4) {
   .content {
-    align-items: flex-start;
-    justify-content: center;
-    padding: 0 max(clamp(var(--space-8), 5vw, 5rem), env(safe-area-inset-right))
+    display: grid;
+    grid-template-rows: 1fr auto auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: clamp(var(--space-6), 4vw, var(--space-12));
+    padding: 0 max(clamp(var(--space-4), 3vw, var(--space-8)), env(safe-area-inset-right))
       max(var(--space-6), env(safe-area-inset-bottom))
       max(clamp(var(--space-8), 5vw, 5rem), env(safe-area-inset-left));
     text-align: left;
   }
 
   .brand {
+    grid-area: 2 / 1;
     margin-top: 0;
   }
 
@@ -852,12 +859,25 @@ onBeforeUnmount(() => stopScene());
     transform-origin: left center;
   }
 
-  .spacer {
-    flex: 0 0 clamp(var(--space-6), 6vh, 4rem);
+  .actions {
+    grid-area: 3 / 1;
+    width: 30rem;
+    margin-top: clamp(var(--space-6), 6vh, 4rem);
   }
 
-  .actions {
-    width: min(100%, 30rem);
+  /* The gift on top (a narrow column lets it reach over the menu, above it). */
+  .side {
+    grid-area: 1 / 2 / -1;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+
+  .reel-room {
+    --reel-width: 48rem;
+    --reel-place: center end;
+    flex: 1 1 0;
+    min-height: 0;
+    padding-block: var(--space-6) var(--space-8);
   }
 
   .play {
@@ -873,10 +893,7 @@ onBeforeUnmount(() => stopScene());
 
   .gift,
   .gift-taken {
-    position: absolute;
-    top: var(--space-4);
-    right: max(clamp(var(--space-4), 3vw, var(--space-8)), env(safe-area-inset-right));
-    margin: 0;
+    margin: var(--space-4) 0 0;
   }
 
   .gift {
@@ -915,7 +932,7 @@ onBeforeUnmount(() => stopScene());
     font-size: clamp(0.95rem, 3.6vh, 1.4rem);
   }
 
-  .spacer {
+  .reel-room {
     flex-basis: clamp(var(--space-3), 4vh, var(--space-8));
   }
 
@@ -965,6 +982,22 @@ onBeforeUnmount(() => stopScene());
   .gift {
     width: min(30rem, 46vw);
   }
+
+  .actions {
+    margin-top: clamp(var(--space-3), 4vh, var(--space-8));
+  }
+
+  .reel-room {
+    padding-block: var(--space-3) var(--space-4);
+  }
+}
+
+/* Mid-height phones (360×800): the gift's note gives its room to the reel,
+   the streak still says what tomorrow brings. */
+@media (aspect-ratio <= 5/4) and (height <= 52rem) {
+  .gift-note {
+    display: none;
+  }
 }
 
 /* Short portrait screens (360×640 phones): tighter buttons and no version
@@ -986,7 +1019,6 @@ onBeforeUnmount(() => stopScene());
     min-height: 4.75rem;
   }
 
-  /* The gift keeps its streak, without the note. */
   .gift,
   .gift-taken {
     margin-bottom: var(--space-4);
@@ -994,10 +1026,6 @@ onBeforeUnmount(() => stopScene());
 
   .streak li {
     min-height: 2.9rem;
-  }
-
-  .gift-note {
-    display: none;
   }
 
   .version {

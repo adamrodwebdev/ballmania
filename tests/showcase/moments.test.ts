@@ -1,26 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { SeededRandom } from '@/engine/core/Random';
-import { Game } from '@/engine/Game';
-import { toLevelSetup } from '@/levels/LevelDefinition';
-import { FRAMES } from '@/levels/tracks';
+import { LINEUP } from '@/showcase/lineup';
 import { MOMENTS, type Moment } from '@/showcase/moments';
-import { MomentRun, REEL_FPS } from '@/showcase/MomentRun';
-import { GameStage } from '@/showcase/stage';
+import type { MomentRun } from '@/showcase/MomentRun';
+import { Take } from '@/showcase/Take';
+import { fakeCanvas, reelStyle } from './fakeCanvas';
 
-/** A moment played to its end on the reel's board shape, as the title's window plays it. */
+/**
+ * A moment played to its end as the title's reel plays it: the game's own
+ * play session, with its effects and slow motion, on the reel's board shape.
+ */
 function play(moment: Moment): MomentRun {
-  const game = new Game(
-    toLevelSetup(moment.level(FRAMES.wide)),
-    SeededRandom.fromString(moment.seed),
-  );
-  const run = new MomentRun(moment, new GameStage(game));
-  run.settle();
-  while (!run.over) run.advance(1 / REEL_FPS);
-  return run;
+  const take = new Take(moment, fakeCanvas(), reelStyle());
+  take.resize(510, 300, 1);
+  take.run.settle();
+  while (!take.run.over) take.run.step();
+  take.destroy();
+  return take.run;
 }
 
 describe('the moments of the title reel (v1.8.0)', () => {
-  it('are eight, of three to five seconds: a lap of about half a minute', () => {
+  it('are the lineup, eight of three to five seconds: a lap of about half a minute', () => {
+    expect(MOMENTS.map((moment) => moment.id)).toEqual(LINEUP.map((highlight) => highlight.id));
     expect(MOMENTS).toHaveLength(8);
     for (const moment of MOMENTS) {
       expect(moment.seconds, moment.id).toBeGreaterThanOrEqual(3);

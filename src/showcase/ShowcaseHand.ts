@@ -1,6 +1,6 @@
 import { mix } from '@/engine/chain/Alchemy';
 import type { BallView } from '@/engine/chain/Ball';
-import type { AimLine, Game } from '@/engine/Game';
+import { GIFT_BOMB_RADIUS, type AimLine, type Game } from '@/engine/Game';
 import { bend, bestWindow, keyOf, LESSON_BEND, type Candidate } from '@/play/HandCoach';
 import type { Stage } from './stage';
 
@@ -20,6 +20,8 @@ export interface Cue {
 
 /** Seconds the hand aims before it lets go: the aim line shows the shot coming. */
 export const AIM_LEAD = 0.35;
+/** Board units a bomb's landing keeps from the board's edges, so that its blast shows whole. */
+const BLAST_ROOM = GIFT_BOMB_RADIUS * 0.75;
 /** Angles the hand tries around the shooter. */
 const ANGLES = 360;
 
@@ -62,8 +64,15 @@ function run(
 
 const WORTH: Readonly<Record<Exclude<Act, 'flip'>, Worth>> = {
   shot: (game, line) => (line.target ? group(game, line) : null),
-  // The bomb takes every marble within its blast: the more, the better.
-  nova: (game, line) => (line.target ? (game.preview(false, line)?.group.length ?? 0) : null),
+  // The bomb takes every marble within its blast: the more, the better, its blast in the window.
+  nova: (game, line) => {
+    const preview = line.target ? game.preview(false, line) : null;
+    if (!preview) return null;
+    const { x, y } = preview.position;
+    const { width, height } = game.setup.board;
+    const room = Math.min(x, y, width - x, height - y);
+    return room >= BLAST_ROOM ? preview.group.length : Math.floor(preview.group.length / 4);
+  },
   bank: (game, line) => (line.target && line.rebounds.length > 0 ? group(game, line) : null),
   curve: (game, line) =>
     line.target && line.rebounds.length === 0 && bend(line.points) >= LESSON_BEND

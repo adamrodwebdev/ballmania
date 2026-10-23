@@ -228,11 +228,12 @@ export class PlaySession {
   }
 
   /**
-   * Moves the game on by `dt` real seconds and draws it, without a loop of
-   * its own: the title's reel and the trailer drive it frame by frame.
+   * Moves the game on by `dt` real seconds, without a loop of its own (the
+   * title's reel and the trailer drive it frame by frame), and draws it
+   * unless it is not `shown` (a moment of the reel settling unseen).
    */
-  advance(dt: number): void {
-    this.frame(dt);
+  advance(dt: number, shown = true): void {
+    this.frame(dt, shown);
   }
 
   /** The game played, for a scripted hand to plan its shots (the title's reel, the trailer). */
@@ -687,7 +688,7 @@ export class PlaySession {
     return room > 0 ? 1 - tail / room : 0.5;
   }
 
-  private frame(realDt: number): void {
+  private frame(realDt: number, shown = true): void {
     if (this.hud.paused || this.held) return;
     if (this.monitor.record(realDt)) this.lowerEffects();
     const dt = this.warp.update(realDt);
@@ -734,7 +735,7 @@ export class PlaySession {
         this.hud.over = this.game.state === 'won' ? 'won' : 'lost';
       }
     }
-    this.render();
+    if (shown) this.render();
   }
 
   /** After a win: the seconds of the effect, its burst when its time comes, and the promise's cues. */

@@ -1,28 +1,16 @@
 import type { Game, GameEvents } from '@/engine/Game';
 import { duelLevel } from '@/levels/arcade/duel';
-import { findLevel, type WorldId } from '@/levels/campaign';
+import { findLevel } from '@/levels/campaign';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { resolveLevel } from '@/levels/resolveLevel';
 import type { Frame } from '@/levels/tracks';
 import { trainingDefinition, trainingLevel } from '@/levels/training';
 import { LESSON_BEND } from '@/play/HandCoach';
+import { LINEUP, type Highlight, type MomentId } from './lineup';
 import type { Cue } from './ShowcaseHand';
 
-/** The reel's moments, in the order they play (roadmap 1.8.0, step 3). */
-export type MomentId =
-  'nova' | 'bank' | 'magnet' | 'alchemy' | 'switch' | 'blackHole' | 'colossus' | 'duel';
-
-/**
- * One moment of the title's reel (v1.8.0): a real game of the game's own
- * engine, its chain already on the board, a hand that plays it, and the
- * peak it reaches within its first seconds.
- */
-export interface Moment {
-  readonly id: MomentId;
-  /** The world it shows: its look, and the first word of its caption (or `where`). */
-  readonly world: WorldId;
-  /** Its caption's first word when it is not the world's name: "Boss", "Arcade". */
-  readonly where?: 'boss' | 'arcade';
+/** How a moment of the reel plays. */
+interface Script {
   /** Seconds it plays. */
   readonly seconds: number;
   /** Seconds by which its peak comes (all under 3: the window opens on the action). */
@@ -34,6 +22,13 @@ export interface Moment {
   /** Watches a game for the moment's peak: the function says whether it has come. */
   peak(game: Game): () => boolean;
 }
+
+/**
+ * One moment of the title's reel (v1.8.0): a real game of the game's own
+ * engine, its chain already on the board, a hand that plays it, and the
+ * peak it reaches within its first seconds.
+ */
+export interface Moment extends Highlight, Script {}
 
 /** The chain rushes in over this share of its track: the moment opens with it in place. */
 const READY = 0.45;
@@ -89,11 +84,9 @@ function then(game: Game, first: () => boolean): () => boolean {
 /** Pairs nested around a pair, head first: a shot of the middle's colour sets a cascade off. */
 const nested = (a: number, b: number, c: number) => [a, a, b, b, c, c, b, b, a, a];
 
-export const MOMENTS: readonly Moment[] = [
+const SCRIPTS: Readonly<Record<MomentId, Script>> = {
   // The Nova of the training's first showcase, then the cascade behind it.
-  {
-    id: 'nova',
-    world: 'nebula',
+  nova: {
     seconds: 4.5,
     peakBy: 1.5,
     level: (frame) => ready(trainingDefinition(trainingLevel(1), frame)),
@@ -105,9 +98,7 @@ export const MOMENTS: readonly Moment[] = [
     peak: (game) => seen(game, 'bomb'),
   },
   // A bank shot off the neon mirrors into the middle of a cascade.
-  {
-    id: 'bank',
-    world: 'neon',
+  bank: {
     seconds: 4,
     peakBy: 2.5,
     level: (frame) => ready(trainingDefinition(trainingLevel(2), frame)),
@@ -119,9 +110,7 @@ export const MOMENTS: readonly Moment[] = [
     peak: (game) => seen(game, 'exploded', ({ by, bounces }) => by === 'player' && bounces > 0),
   },
   // A marble pulled out from between two pairs of one colour, which meet and burst.
-  {
-    id: 'magnet',
-    world: 'abyss',
+  magnet: {
     seconds: 4,
     peakBy: 2,
     level: (frame) =>
@@ -144,9 +133,7 @@ export const MOMENTS: readonly Moment[] = [
     peak: (game) => then(game, seen(game, 'pulled')),
   },
   // Lime shot onto ruby beside two ambers: the ruby turns amber, and three burst.
-  {
-    id: 'alchemy',
-    world: 'jewel',
+  alchemy: {
     seconds: 4,
     peakBy: 2,
     level: (frame) =>
@@ -167,9 +154,7 @@ export const MOMENTS: readonly Moment[] = [
     peak: (game) => then(game, seen(game, 'fused')),
   },
   // The lava sent down the detour, then a shot.
-  {
-    id: 'switch',
-    world: 'volcano',
+  switch: {
     seconds: 4,
     peakBy: 1,
     level: (frame) => ready(resolveLevel(findLevel('volcano-02')!, frame)),
@@ -182,9 +167,7 @@ export const MOMENTS: readonly Moment[] = [
     peak: (game) => seen(game, 'switched'),
   },
   // A shot the black hole bends onto a cascade, the launcher gliding round its ring.
-  {
-    id: 'blackHole',
-    world: 'singularity',
+  blackHole: {
     seconds: 4.5,
     peakBy: 2.2,
     level: (frame) =>
@@ -211,10 +194,7 @@ export const MOMENTS: readonly Moment[] = [
     },
   },
   // The Stellar Colossus's last blow, and its fall: the supernova.
-  {
-    id: 'colossus',
-    world: 'nebula',
-    where: 'boss',
+  colossus: {
     seconds: 4.5,
     peakBy: 2,
     level: (frame) => {
@@ -230,10 +210,7 @@ export const MOMENTS: readonly Moment[] = [
     peak: (game) => seen(game, 'ended', ({ outcome }) => outcome === 'won'),
   },
   // The Duel: a cascade pushes the chain back toward the rival's hole.
-  {
-    id: 'duel',
-    world: 'volcano',
-    where: 'arcade',
+  duel: {
     seconds: 4,
     peakBy: 2.2,
     level: (frame) => {
@@ -256,4 +233,10 @@ export const MOMENTS: readonly Moment[] = [
     ],
     peak: (game) => seen(game, 'exploded', ({ by, depth }) => by === 'player' && depth >= 2),
   },
-];
+};
+
+/** The reel's moments, in the order of its lineup. */
+export const MOMENTS: readonly Moment[] = LINEUP.map((highlight) => ({
+  ...highlight,
+  ...SCRIPTS[highlight.id],
+}));
