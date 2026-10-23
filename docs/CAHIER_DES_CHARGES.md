@@ -1657,7 +1657,14 @@ le moteur de tracés.
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,
   combos, graine) et des modes.
-- Tests de bout en bout Playwright en 390 × 844 et 1280 × 800.
+- Tests de bout en bout Playwright : les parcours en 390 × 844 et 1280 × 800, et une matrice
+  (v1.7.6) dont chaque projet est une taille : 320 × 568, 360 × 800, 393 × 659 (iPhone, barres
+  de Safari visibles), 844 × 390 (téléphone couché), 768 × 1024 (tablette), 1920 × 1080,
+  2560 × 1440, et le zoom du navigateur à 200 % et 400 % (1280 × 800 vu en 640 × 400 et
+  320 × 200 pixels CSS). Sur chacune, chaque écran (menus, réglages, partie, pause, résultat)
+  garde la page immobile, ne défile pas de côté et passe l'audit axe WCAG 2.0, 2.1 et 2.2 A et
+  AA, taille des cibles comprise, la bulle de l'Observatoire avec la carte. Un balayage
+  vérifie aussi chaque écran de 320 à 2560 px de large, en fenêtre haute et basse.
 - Script Lighthouse local ; `npm run verify` (lint, format, types, tests, build) avant chaque
   commit.
 

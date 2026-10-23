@@ -33,12 +33,12 @@ const prepare = async (page: Page, scheme: 'light' | 'dark', locale: Audited) =>
   await page.goto('./');
 };
 
-/** WCAG 2.1 A and AA rules, on the whole page. */
+/** WCAG 2.0, 2.1 and 2.2 A and AA rules on the whole page, target sizes included (v1.7.6). */
 const audit = async (page: Page, name: string) => {
   // Let entrance animations end, so colours are measured at rest.
   await page.waitForTimeout(300);
   const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze();
   const problems = results.violations.map(
     (violation) =>
@@ -55,6 +55,8 @@ for (const locale of Object.keys(NAMES) as Audited[]) {
         await prepare(page, scheme, locale);
         await audit(page, 'home');
         await page.getByTestId('play').click();
+        // A player with fragments sees the Observatory bubble on this visit: audited with the map.
+        await expect(page.getByTestId('observatory-tip')).toBeVisible();
         await audit(page, 'campaign');
         await page.getByTestId('observatory').click();
         await audit(page, 'observatory');
