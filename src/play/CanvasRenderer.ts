@@ -4,6 +4,8 @@ import { mix } from '@/engine/chain/Alchemy';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import { BlackHole } from './BlackHole';
+import { ColossusPainter } from './ColossusPainter';
+import { GESTURE_LOOP, type Gesture } from './HandCoach';
 import { COUNTDOWN_REACH, LASER_GLOW, PowerPainter } from './PowerPainter';
 import {
   contentBounds,
@@ -18,16 +20,20 @@ import { Ambience } from './themes/Ambience';
 import { WeatherLayer } from './WeatherLayer';
 import {
   afterglow,
+  effectTime,
   gathering,
   moteAt,
   novaAge,
   novaCore,
+  promiseTime,
   shockRings,
   stardust,
   surge,
   SURGE,
   type Mote,
+  type VictoryStyle,
 } from './effects/Victory';
+import { PROMISE_SIZE, promisePose, type PromisePose } from './effects/Promise';
 import type { BallMotion } from './BallMotion';
 import type { Destruction } from './effects/Destruction';
 import type { Palette } from './Palette';
@@ -54,6 +60,8 @@ export interface Renderer {
   readonly deviceScale: number;
   /** The surface drawn on, which post-processing reads. */
   readonly surface: HTMLCanvasElement;
+  /** Board units from a point to the nearest edge of the screen. */
+  room(point: Vec2): number;
   draw(scene: Scene): void;
 }
 
@@ -75,11 +83,13 @@ export interface Scene {
   readonly reducedMotion: boolean;
   /**
    * After a win (effects/Victory): the hole the light runs to, real seconds
-   * since the win, and whether to keep it still (reduced motion).
+   * since the win, how the victory plays, and whether to keep it still
+   * (reduced motion).
    */
   readonly victory: {
     readonly at: Vec2;
     readonly elapsed: number;
+    readonly style: VictoryStyle;
     readonly reducedMotion: boolean;
   } | null;
   /** The magnet is armed: the next "shot" pulls the aimed ball instead. */
@@ -90,22 +100,12 @@ export interface Scene {
   readonly colossusFlash: number;
   /** Puzzle hint (§ 3.7): the ball to shoot at, circled; null without. */
   readonly hint?: Vec2 | null;
-  /** First level: a hand drags from the shooter to the chain and lets go; null without. */
-  readonly tutorial?: { readonly from: Vec2; readonly to: Vec2; readonly time: number } | null;
+  /** The hand's gesture (the first level, the training): it shows a shot; null without. */
+  readonly tutorial?: Gesture | null;
 }
 
 /** Length of the aim guide without aim assistance, in board units. */
 const GUIDE = 160;
-
-/**
- * How each form of the Colossus is drawn, in body radii: its orbiting runes,
- * the size of its eye and how far ahead it sits. The young one (v1.7.4) has
- * fewer, bigger runes and a wide eye.
- */
-const COLOSSUS_LOOKS = {
-  adult: { runes: 6, rune: 0.09, eye: 1, gaze: 0.38 },
-  young: { runes: 3, rune: 0.14, eye: 1.45, gaze: 0.3 },
-} as const;
 
 /** Where the loaded ball would land, and the balls that would explode with it. */
 export interface AimPreview {
@@ -156,6 +156,8 @@ export class CanvasRenderer implements Renderer {
   private readonly glows = new Map<string, HTMLCanvasElement>();
   /** The powers' balls and effects (v1.7). */
   private readonly powers = new PowerPainter();
+  /** The Colossus, in a fight or in the training's promise. */
+  private readonly colossus = new ColossusPainter();
   private trackPaths: readonly unknown[] = [];
   /** After a win: the tracks full of light, painted once for the afterglow. */
   private litLayer: HTMLCanvasElement | null = null;
@@ -372,13 +374,20 @@ export class CanvasRenderer implements Renderer {
     this.drawFragments(radius, scene.time);
     // Entrances and holes cover the balls coming out of and going into them.
     for (const chain of game.chains) this.drawEnds(chain, radius, scene.time);
-    this.blackHole?.draw(ctx, palette, scene.time, this.danger());
+    const { victory } = scene;
+    // The end of the training: the young Colossus's promise, out of the black hole.
+    const promise =
+      victory?.style === 'promise'
+        ? promisePose(promiseTime(victory.elapsed), victory.reducedMotion)
+        : null;
+    this.blackHole?.draw(ctx, palette, scene.time, Math.max(this.danger(), promise?.stir ?? 0));
     this.drawTempo(radius);
     this.drawRival(radius);
     this.drawShooter(radius, scene);
     scene.destruction.draw(ctx, palette, this.sprites);
     if (scene.tutorial) this.drawTutorial(scene.tutorial, scene.reducedMotion);
-    if (scene.victory) this.drawNova(scene.victory, radius);
+    if (victory) this.drawNova(victory, radius);
+    if (victory && promise) this.drawPromise(victory.at, promise, victory.elapsed, scene.time);
     const flash = scene.destruction.flash;
     if (flash.amount > 0) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -398,10 +407,11 @@ export class CanvasRenderer implements Renderer {
   private drawSurge(victory: NonNullable<Scene['victory']>, radius: number): void {
     const { ctx, palette } = this;
     const still = victory.reducedMotion;
-    const glow = afterglow(victory.elapsed) * (still ? Math.min(1, victory.elapsed / SURGE) : 1);
+    const elapsed = effectTime(victory.style, victory.elapsed);
+    const glow = afterglow(elapsed) * (still ? Math.min(1, elapsed / SURGE) : 1);
     if (glow <= 0.01) return;
     const lighten = palette.dark ? 'lighter' : 'source-over';
-    if (still || victory.elapsed >= SURGE) {
+    if (still || elapsed >= SURGE) {
       const layer = this.litTracks(radius);
       if (!layer) return;
       ctx.save();
@@ -412,7 +422,7 @@ export class CanvasRenderer implements Renderer {
       ctx.restore();
       return;
     }
-    const progress = surge(victory.elapsed);
+    const progress = surge(elapsed);
     ctx.save();
     ctx.globalCompositeOperation = lighten;
     ctx.lineCap = 'round';
@@ -473,21 +483,25 @@ export class CanvasRenderer implements Renderer {
 
   /**
    * After a win: the hole gathers the light, then bursts: a white-hot core,
-   * shock rings running off the screen, stardust drifting up. With reduced
-   * motion, a glow that swells and fades in place.
+   * shock rings running off the screen, stardust drifting up. A showcase of
+   * the training bursts short: a smaller core and one ring, no stardust. With
+   * reduced motion, a glow that swells and fades in place.
    */
   private drawNova(victory: NonNullable<Scene['victory']>, radius: number): void {
     const { ctx, palette } = this;
     const { at } = victory;
     const bright = palette.dark ? '#ffffff' : palette.accent;
+    const elapsed = effectTime(victory.style, victory.elapsed);
     ctx.save();
     ctx.globalCompositeOperation = palette.dark ? 'lighter' : 'source-over';
-    const gather = gathering(victory.elapsed);
+    const gather = gathering(elapsed);
     if (gather > 0) this.drawGlow(at, radius * (1.5 + 3 * gather), gather);
-    const age = novaAge(victory.elapsed);
+    const age = novaAge(elapsed);
     if (age !== null) {
       if (victory.reducedMotion) {
         this.drawGlow(at, radius * 6, Math.max(0, 1 - age / 0.9));
+      } else if (victory.style === 'short') {
+        this.drawBurst(at, radius, age, bright);
       } else {
         const core = novaCore(age);
         if (core) this.drawGlow(at, radius * core.size, core.alpha);
@@ -540,6 +554,15 @@ export class CanvasRenderer implements Renderer {
     ctx.arc(at.x, at.y, size, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
+  }
+
+  room(point: Vec2): number {
+    const corner = this.toBoard(
+      this.canvas.width / this.pixelRatio,
+      this.canvas.height / this.pixelRatio,
+    );
+    const origin = this.toBoard(0, 0);
+    return Math.min(point.x - origin.x, corner.x - point.x, point.y - origin.y, corner.y - point.y);
   }
 
   /** Board units from a point to the farthest corner of the screen. */
@@ -747,101 +770,77 @@ export class CanvasRenderer implements Renderer {
     }
   }
 
-  /** The Colossus: a dark star with a burning rim, orbiting runes and one eye on the chain. */
+  /** The Colossus pushing a chain: its eye looks along the track, at the chain it pushes. */
   private drawColossus(chain: Chain, scene: Scene): void {
     const arc = chain.pusherArc;
     const setup = this.game.setup.colossus;
     if (arc === null || !setup || arc < -setup.radius) return;
-    const { ctx, palette } = this;
-    const at = chain.path.pointAt(arc);
-    const ahead = chain.path.tangentAt(arc);
-    const r = setup.radius;
-    const pulse = 0.5 + 0.5 * Math.sin(scene.time * 4);
-
-    ctx.save();
-    ctx.translate(at.x, at.y);
-    const halo = ctx.createRadialGradient(0, 0, r * 0.6, 0, 0, r * 1.6);
-    halo.addColorStop(0, palette.danger);
-    halo.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.globalAlpha = 0.35 + 0.25 * pulse;
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(0, 0, r * 1.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    const body = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.1, 0, 0, r);
-    body.addColorStop(0, palette.accent);
-    body.addColorStop(0.55, palette.hole);
-    body.addColorStop(1, palette.hole);
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = palette.danger;
-    ctx.stroke();
-
-    // Runes orbiting the body.
-    const look = setup.young ? COLOSSUS_LOOKS.young : COLOSSUS_LOOKS.adult;
-    ctx.fillStyle = palette.accent;
-    for (let i = 0; i < look.runes; i++) {
-      const angle = scene.time * 0.8 + (i / look.runes) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.arc(
-        Math.cos(angle) * r * 1.22,
-        Math.sin(angle) * r * 1.22,
-        r * look.rune,
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
-    }
-
-    // The eye looks along the track, at the chain it pushes.
-    const eye = ahead.scale(r * look.gaze);
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(
-      eye.x,
-      eye.y,
-      r * 0.3 * look.eye,
-      r * 0.2 * look.eye,
-      ahead.angle(),
-      0,
-      Math.PI * 2,
-    );
-    ctx.fill();
-    ctx.fillStyle = palette.danger;
-    ctx.beginPath();
-    ctx.arc(
-      eye.x + ahead.x * r * 0.08,
-      eye.y + ahead.y * r * 0.08,
-      r * 0.11 * look.eye,
-      0,
-      Math.PI * 2,
-    );
-    ctx.fill();
-
-    if (scene.colossusFlash > 0) {
-      ctx.globalAlpha = scene.colossusFlash * 0.8;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
+    this.colossus.draw(this.ctx, this.palette, {
+      at: chain.path.pointAt(arc),
+      radius: setup.radius,
+      young: setup.young === true,
+      gaze: chain.path.tangentAt(arc),
+      time: scene.time,
+      turn: scene.time * 0.8,
+      flash: scene.colossusFlash,
+    });
   }
 
   /**
-   * The tutorial gesture, a picture rather than a sentence: a hand presses on
-   * the shooter, drags to the chain drawing the aim, and lets go (a ripple).
-   * With reduced motion, the hand rests on the chain, the path dotted.
+   * The training's promise (effects/Promise): the young Colossus rises out of
+   * the black hole, looking up; roars, trembling; stares at the player; and
+   * dives back into the hole.
    */
-  private drawTutorial(tutorial: NonNullable<Scene['tutorial']>, still: boolean): void {
+  private drawPromise(hole: Vec2, pose: PromisePose, elapsed: number, time: number): void {
+    const gravity = this.game.gravity;
+    if (!gravity || pose.alpha <= 0) return;
+    const size = gravity.setup.horizon * PROMISE_SIZE;
+    const tremble = pose.rage * size * 0.02;
+    this.colossus.draw(this.ctx, this.palette, {
+      at: new Vec2(
+        hole.x + Math.sin(elapsed * 97) * tremble,
+        hole.y - pose.lift * size + Math.cos(elapsed * 83) * tremble,
+      ),
+      radius: size * pose.scale,
+      young: true,
+      gaze: new Vec2(0, -pose.ahead),
+      time,
+      turn: pose.turn,
+      open: pose.open,
+      spread: pose.spread,
+      rage: pose.rage,
+      alpha: pose.alpha,
+    });
+  }
+
+  /** A showcase's short burst: a white core and one ring, out to half the screen. */
+  private drawBurst(at: Vec2, radius: number, age: number, bright: string): void {
+    const { ctx } = this;
+    const core = novaCore(age);
+    if (core) this.drawGlow(at, radius * core.size * 0.6, core.alpha);
+    const ring = shockRings(age, this.reachFrom(at) * 0.5).find(
+      (candidate) => candidate.layer === 0,
+    );
+    if (!ring) return;
+    ctx.globalAlpha = ring.alpha * 0.9;
+    ctx.strokeStyle = bright;
+    ctx.lineWidth = ring.width;
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, ring.radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  /**
+   * The hand's gesture, a picture rather than a sentence: a hand presses on
+   * the shooter, drags to where it lets go, drawing the way the shot will go
+   * (its rebounds, its curve), and lets go: a ripple there, and one where the
+   * shot lands. With reduced motion, the hand rests where it lets go, the
+   * whole way dotted.
+   */
+  private drawTutorial(gesture: Gesture, still: boolean): void {
     const { ctx, palette } = this;
-    const { from, to } = tutorial;
-    const t = still ? 0.75 : (tutorial.time % 2.6) / 2.6;
+    const { from, to, path } = gesture;
+    const t = still ? 0.75 : (gesture.time % GESTURE_LOOP) / GESTURE_LOOP;
     const ease = (x: number) => x * x * (3 - 2 * x);
     const drag = ease(Math.min(1, Math.max(0, (t - 0.18) / 0.5)));
     const at = from.lerp(to, drag);
@@ -849,16 +848,13 @@ export class CanvasRenderer implements Renderer {
     const pressed = t > 0.1 && t < 0.72;
     ctx.save();
     ctx.globalAlpha = fade;
-    // The aim being drawn behind the finger.
+    // The way the shot will go, drawn as the finger drags.
     ctx.strokeStyle = palette.text;
     ctx.lineWidth = 4;
     ctx.setLineDash([4, 14]);
     ctx.lineCap = 'round';
     ctx.globalAlpha = fade * 0.7;
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(at.x, at.y);
-    ctx.stroke();
+    this.strokeAlong(path, still ? 1 : drag);
     ctx.setLineDash([]);
     // Ripples: the press at the start, the release at the end.
     const ripple = (centre: Vec2, progress: number) => {
@@ -872,7 +868,10 @@ export class CanvasRenderer implements Renderer {
     };
     ripple(from, (t - 0.08) / 0.22);
     ripple(to, (t - 0.72) / 0.22);
-    if (still) ripple(to, 0.4);
+    const landing = path[path.length - 1] ?? to;
+    // A rebound or a curve: the shot lands elsewhere than the finger points.
+    if (landing.distanceTo(to) > 1) ripple(landing, (t - 0.76) / 0.22);
+    if (still) ripple(landing, 0.4);
     ctx.globalAlpha = fade;
     ctx.translate(at.x, at.y);
     ctx.rotate(-0.35);
@@ -898,6 +897,27 @@ export class CanvasRenderer implements Renderer {
     ctx.stroke(hand);
     ctx.fill(hand);
     ctx.restore();
+  }
+
+  /** Strokes the first `share` of a line (by its length), in the current style. */
+  private strokeAlong(points: readonly Vec2[], share: number): void {
+    const { ctx } = this;
+    const first = points[0];
+    if (!first) return;
+    let total = 0;
+    for (let i = 1; i < points.length; i++) total += points[i]!.distanceTo(points[i - 1]!);
+    let left = total * share;
+    ctx.beginPath();
+    ctx.moveTo(first.x, first.y);
+    for (let i = 1; i < points.length && left > 0; i++) {
+      const a = points[i - 1]!;
+      const b = points[i]!;
+      const length = a.distanceTo(b);
+      const end = length <= left ? b : a.lerp(b, left / length);
+      ctx.lineTo(end.x, end.y);
+      left -= length;
+    }
+    ctx.stroke();
   }
 
   /** The hint's ball: two rings, the outer one breathing (still with reduced motion). */

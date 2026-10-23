@@ -186,8 +186,6 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
       ...(seed === null ? {} : { seed: () => seed }),
       ...(mode.root === null ? {} : { root: mode.root }),
       aimAssist: settings.current.aimAssist,
-      // The very first level teaches by a gesture, not a sentence.
-      tutorial: mode.tutorial,
       ...(frameRate === null ? {} : { frameRate }),
     });
     session.value = play;

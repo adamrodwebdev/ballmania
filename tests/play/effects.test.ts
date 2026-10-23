@@ -117,6 +117,16 @@ describe('Destruction', () => {
     expect(shallow.flash.amount).toBe(0);
   });
 
+  it('keeps the ring of a Nova on the screen, wherever it goes off', () => {
+    const open = create();
+    open.blast(new Vec2(500, 500), 170);
+    // In the open, the ring runs a little past the blast.
+    expect(open.ringReach).toBeGreaterThan(170);
+    const edge = create();
+    edge.blast(new Vec2(500, 500), 170, 120);
+    expect(edge.ringReach).toBeLessThanOrEqual(120);
+  });
+
   it('respects the particle budget of the profile', () => {
     const destruction = create('subtle');
     for (let i = 0; i < 30; i++) destruction.explode(burst(5));

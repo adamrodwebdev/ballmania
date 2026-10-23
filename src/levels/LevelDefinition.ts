@@ -62,6 +62,18 @@ export interface ChainDefinition {
 }
 
 /**
+ * What a level's hand gesture teaches, shown until it is done (§ 3.13): a
+ * shot at the chain, a bank shot off a mirror, a shot the black hole bends.
+ */
+export type Lesson = 'shot' | 'bank' | 'curve';
+
+/**
+ * How a won level of the training ends (§ 3.13): a short burst, on to the
+ * next showcase; or the supernova, then the young Colossus's promise.
+ */
+export type Victory = 'short' | 'promise';
+
+/**
  * A level as data (specification § 3.2): the campaign files will follow this
  * shape. Optional fields fall back to `LEVEL_DEFAULTS`.
  */
@@ -105,6 +117,14 @@ export interface LevelDefinition {
   };
   /** Every gap of the chain closes (Duel). */
   readonly compact?: boolean;
+  /** The chains stop this far along their track, as a share of it (training: no defeat). */
+  readonly halt?: number;
+  /** The hand's gesture, shown until its lesson is done (the first level, the training). */
+  readonly lesson?: Lesson;
+  /** Seconds without a shot after which the hand comes back, its lesson done (training). */
+  readonly nudge?: number;
+  /** How a win ends (the training, see `Victory`); the full victory without. */
+  readonly victory?: Victory;
   /** Falling balls, arrhythmia and weather (§ 3.9). */
   readonly hazards?: HazardSetup;
   /** Factor of the points (campaign difficulty). */
@@ -157,6 +177,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     retreatSpeed: level.retreatSpeed ?? LEVEL_DEFAULTS.retreatSpeed,
     minMatch: LEVEL_DEFAULTS.minMatch,
     ...(level.compact ? { compact: true } : {}),
+    ...(level.halt === undefined ? {} : { halt: level.halt }),
   };
   return {
     board: level.board,

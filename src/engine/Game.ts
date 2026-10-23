@@ -270,11 +270,21 @@ export const MAX_BOUNCES = 6;
 /** Share of its track a chain is pushed back by when the player continues after a defeat. */
 export const REVIVE_SHARE = 0.35;
 
-/** Radius of a gift bomb (level 1-1): wider than the Nova at its best, for a first wow. */
+/** Share of its track a chain that stops short of the hole is pushed back by if it gets in. */
+export const HALT_PUSHBACK = 0.2;
+
+/** Radius of a gift bomb (the training's first showcase): wider than the Nova at its best. */
 export const GIFT_BOMB_RADIUS = 170;
 
 /** Seconds a shot may fly before it is given up (one circling the black hole). */
 export const MAX_FLIGHT = 4;
+/**
+ * The aim line: how far it is followed, its step without gravity or wind, and
+ * the stretch at the barrel where it meets no ball.
+ */
+const TRACE_REACH = 1800;
+const TRACE_STEP = 12;
+const TRACE_SKIP = 80;
 /** A charged shot flies this much faster (§ 3.9, module de tir). */
 export const POWER_SPEED = 2;
 /** Biting cold: how much slower shots fly, and the share of balls frosted, at strength 1. */
@@ -328,8 +338,10 @@ export class Game {
   private secondChanceUsed = false;
   /** A bomb is going off: its balls do not charge the next one. */
   private bombing = false;
-  /** The first shot is a gift bomb, until it is fired. */
+  /** The first shot is a gift bomb, until it goes off. */
   private gift: boolean;
+  /** The gift bomb on its way: if it misses the chain, it comes back (v1.8.0). */
+  private giftShot: Projectile | null = null;
   /** The powers at work: rewind, slow-down, a loaded rainbow or laser shot. */
   private readonly powers: PowerEffects;
   /** Balls fed since the last power ball (Endless, a Colossus), and the next power's turn. */
@@ -578,6 +590,11 @@ export class Game {
     return this.scoring.bestDepth;
   }
 
+  /** Shots that exploded balls after the black hole bent them hard enough (`CURVE_ANGLE`). */
+  get curvedShots(): number {
+    return this.curves;
+  }
+
   /** Seconds of play simulated so far. */
   get elapsed(): number {
     return this.elapsedValue;
@@ -606,14 +623,25 @@ export class Game {
   }
 
   /**
+   * The aim line the shooter would draw at `angle`, without turning it: the
+   * training's hand looks for the shot its lesson teaches (v1.8.0).
+   */
+  aimLineAt(angle: number, maxBounces = 2): AimLine {
+    return this.trace(maxBounces, false, angle);
+  }
+
+  /**
    * Where the loaded ball would land and the group it would make (aim
    * assistance, § 3.9): the slot it takes, and the balls of its colour that
-   * would explode with it, if they are enough. Null without a target, or when
-   * the shot would fuse instead (Jewel world).
+   * would explode with it, if they are enough; with `reactions`, the chain
+   * reaction that would follow (Œil stellaire, rank 3, and the training's
+   * hand). Null without a target, or when the shot would fuse instead (Jewel
+   * world).
    */
   preview(
     power = false,
     line: AimLine = this.aimLine(this.upgrades.aimBounces, power),
+    reactions = this.upgrades.reactionPreview,
   ): {
     readonly position: Vec2;
     readonly group: readonly Vec2[];
@@ -661,7 +689,7 @@ export class Game {
     const group = indexes.map((i) => chain.positionOf(balls[i]!));
     // Œil stellaire, rank 3: the two sides that meet next, if they explode in turn.
     let reaction: Vec2[] = [];
-    if (this.upgrades.reactionPreview) {
+    if (reactions) {
       const low = Math.min(...indexes, target.after ? target.index + 1 : target.index) - 1;
       const high = Math.max(...indexes, target.after ? target.index : target.index - 1) + 1;
       const left = balls[low];
@@ -765,21 +793,22 @@ export class Game {
 
   /**
    * Follows the aim, rebounds and gravity included, up to the first ball it
-   * meets. Without gravity it walks the straight line in small steps; with
-   * gravity it integrates exactly like a flying projectile does.
+   * meets or the edge of the board. Without gravity it walks the straight
+   * line in small steps; with gravity it integrates exactly like a flying
+   * projectile does.
    */
-  private trace(maxBounces: number, power = false, reach = 1800, step = 12, skip = 80): AimLine {
+  private trace(maxBounces: number, power = false, angle = this.shooter.angle): AimLine {
     const radius = this.setup.chain.ballRadius;
     const gravity = power ? null : this.gravity;
     const wind = power ? null : this.windPull;
     const speed = this.setup.projectileSpeed * (power ? POWER_SPEED : 1) * this.shotSpeedFactor;
-    const dt = gravity || wind ? STEP : step / speed;
+    const dt = gravity || wind ? STEP : TRACE_STEP / speed;
     let position = this.shooter.position;
-    let velocity = Vec2.fromAngle(this.shooter.angle, speed);
+    let velocity = Vec2.fromAngle(angle, speed);
     const points = [position];
     const rebounds: Vec2[] = [];
     let travelled = 0;
-    for (let k = 0; travelled < reach && k * dt < MAX_FLIGHT; k++) {
+    for (let k = 0; travelled < TRACE_REACH && k * dt < MAX_FLIGHT; k++) {
       if (gravity) velocity = velocity.add(gravity.acceleration(position).scale(dt));
       if (wind) velocity = velocity.add(wind.scale(dt));
       const move = velocity.scale(dt);
@@ -795,11 +824,12 @@ export class Game {
       } else if ((gravity || wind) && k % 4 === 3) {
         points.push(position);
       }
-      if (gravity?.swallows(position)) {
+      // Swallowed by the black hole, or off the board: the shot would be lost there.
+      if (gravity?.swallows(position) || this.outside(position)) {
         points.push(position);
         return { points, rebounds, target: null };
       }
-      if (travelled <= skip) continue;
+      if (travelled <= TRACE_SKIP) continue;
       for (let chain = 0; chain < this.chains.length; chain++) {
         const hit = this.chains[chain]!.hitTest(position);
         if (!hit) continue;
@@ -875,6 +905,7 @@ export class Game {
     if (!projectile) return false;
     if (special === 'bomb') {
       this.novaCharge = 0;
+      if (this.gift) this.giftShot = projectile;
       this.gift = false;
     } else if (special !== null && special === this.powers.loaded) this.powers.spend();
     this.shotsFired++;
@@ -1074,8 +1105,7 @@ export class Game {
         this.events.emit('bounced', { projectile, position: bounce.position });
         if (projectile.bounces > MAX_BOUNCES) {
           this.flying.splice(i, 1);
-          this.scoringOf(projectile.by).miss();
-          this.events.emit('missed', { projectile });
+          this.missed(projectile);
           continue;
         }
       }
@@ -1092,6 +1122,7 @@ export class Game {
       const hit = chain.hitTest(projectile.position);
       if (!hit) continue;
       if (projectile.special === 'bomb') {
+        if (projectile === this.giftShot) this.giftShot = null;
         this.explodeBomb(projectile.position);
         return true;
       }
@@ -1178,6 +1209,13 @@ export class Game {
     if (this.gravity && projectile.deflection >= CURVE_ANGLE) this.curves++;
   }
 
+  /** True for a point off the board, plus a margin: a shot there is given up. */
+  private outside({ x, y }: Vec2): boolean {
+    const margin = this.setup.chain.ballRadius * 2;
+    const { width, height } = this.setup.board;
+    return x <= -margin || y <= -margin || x >= width + margin || y >= height + margin;
+  }
+
   /**
    * Singularity world: true if the shot fell into the black hole or circled
    * it for too long. Either way it is a miss.
@@ -1186,9 +1224,8 @@ export class Game {
     if (!this.gravity) return false;
     const swallowed = this.gravity.swallows(projectile.position);
     if (!swallowed && projectile.age < MAX_FLIGHT) return false;
-    this.scoringOf(projectile.by).miss();
     if (swallowed) this.events.emit('swallowed', { projectile });
-    this.events.emit('missed', { projectile });
+    this.missed(projectile);
     return true;
   }
 
@@ -1213,14 +1250,22 @@ export class Game {
 
   /** True once the projectile has left the board (plus a margin): a miss, unless a laser hit. */
   private leave(projectile: Projectile): boolean {
-    const margin = this.setup.chain.ballRadius * 2;
-    const { x, y } = projectile.position;
-    const { width, height } = this.setup.board;
-    if (x > -margin && y > -margin && x < width + margin && y < height + margin) return false;
+    if (!this.outside(projectile.position)) return false;
     if (projectile.pierced > 0) return true;
+    this.missed(projectile);
+    return true;
+  }
+
+  /**
+   * A shot that found no ball: it breaks the streak, and the gift bomb of a
+   * first level comes back to the launcher, so its burst is never lost.
+   */
+  private missed(projectile: Projectile): void {
     this.scoringOf(projectile.by).miss();
     this.events.emit('missed', { projectile });
-    return true;
+    if (projectile !== this.giftShot) return;
+    this.giftShot = null;
+    this.gift = true;
   }
 
   private scoringOf(side: Side): Scoring {
@@ -1292,6 +1337,13 @@ export class Game {
   private checkEnd(): void {
     const reached = this.chains.findIndex((chain) => chain.reachedHole);
     if (reached >= 0 && this.useSecondChance(reached)) return;
+    // A chain that stops short of the hole (the training) never loses: should
+    // shots push it in after all, it is pushed back instead.
+    if (reached >= 0 && this.setup.chain.halt !== undefined) {
+      const chain = this.chains[reached]!;
+      chain.shift(-chain.path.length * HALT_PUSHBACK);
+      return;
+    }
     if (reached >= 0) this.end('lost');
     else if (this.objective.isComplete(this.context)) this.end('won');
     else if (this.objective.isFailed?.(this.context)) this.end('lost');

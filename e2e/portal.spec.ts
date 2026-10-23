@@ -10,7 +10,10 @@ test.use({ baseURL: `http://localhost:${process.env.E2E_PORTAL_PORT ?? 4175}/` }
 const log = (page: Page) =>
   page.evaluate(() => (window as unknown as { platformLog: string[] }).platformLog);
 
-const english = async (page: Page, player: object = {}) => {
+/** The training (v1.8.0) is over: these journeys are about what comes after it. */
+const TRAINED = { training: { step: 1, done: true } };
+
+const english = async (page: Page, player: object = TRAINED) => {
   await page.addInitScript((saved) => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
@@ -92,7 +95,7 @@ test.describe('portal build', () => {
     await expect(page.getByTestId('shard-hint')).toHaveCount(0);
   });
 
-  test('lands a new player straight in the first level, without the intro or the title', async ({
+  test('lands a new player straight in the first level after the training, without the intro or the title', async ({
     page,
   }) => {
     await english(page);

@@ -27,7 +27,12 @@ test.describe('the bubble pointing at the Observatory', () => {
       if (sessionStorage.getItem('seeded')) return;
       sessionStorage.setItem('seeded', '1');
       localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
-      localStorage.setItem('ballmania:player', JSON.stringify({ version: 1, fragments: 5 }));
+      // The training (v1.8.0) is over: "Play" leads to the map.
+      const training = { step: 1, done: true };
+      localStorage.setItem(
+        'ballmania:player',
+        JSON.stringify({ version: 1, fragments: 5, training }),
+      );
     });
     await page.goto('./');
     await page.getByTestId('play').click();

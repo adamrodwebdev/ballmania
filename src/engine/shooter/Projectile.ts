@@ -22,6 +22,8 @@ export interface ProjectileView {
   readonly special: ProjectileSpecial;
   /** Laser: balls it has pierced so far. */
   readonly pierced: number;
+  /** Angle between the direction it was fired in and its direction now, in radians. */
+  readonly deflection: number;
 }
 
 export type ProjectileSpecial = 'wild' | 'bomb' | 'laser' | null;

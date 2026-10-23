@@ -22,12 +22,18 @@ const [i18n] = await Promise.all([
 ]);
 
 /**
- * A new player on a portal starts in the first level. Its code is fetched
- * before the first paint, so the first frame they see is the game itself.
+ * A new player on a portal starts in the training (v1.8.0), at the showcase
+ * it stopped at, or in the first level once it is over. The game's code is
+ * fetched before the first paint, so the first frame they see is the game.
  */
 async function opening(): Promise<PlayRequest | null> {
-  const where = landing(platform.id, playerTrace(services.player, services.progress));
+  const { player, progress } = services;
+  const where = landing(platform.id, playerTrace(player, progress), player.training.done);
   if (where === 'title') return null;
+  if (where === 'training') {
+    await Promise.all([import('./levels/training'), import('./ui/screens/GameScreen.vue')]);
+    return { kind: 'training', step: player.training.step };
+  }
   const [{ CAMPAIGN }] = await Promise.all([
     import('./levels/campaign'),
     import('./ui/screens/GameScreen.vue'),

@@ -128,6 +128,7 @@ export function resolveLevel(
     ...(orbit ? { orbit } : {}),
     ...(hazards ? { hazards } : {}),
     ...(rule.score === 1 ? {} : { scoreFactor: rule.score }),
+    ...(level.lesson ? { lesson: level.lesson } : {}),
   };
 }
 

@@ -138,12 +138,14 @@
   },
   "hints": {
     "aim": "Votre première bille est une bombe Nova\u00a0: visez la chaîne et relâchez\u00a0!",
+    "match": "Visez la chaîne et relâchez\u00a0: dès trois billes de la même couleur, le groupe explose.",
     "swap": "Échangez la bille chargée avec la suivante\u00a0: touchez le lanceur ou appuyez sur X.",
     "reaction": "Quand deux groupes de même couleur se rejoignent, ils explosent à leur tour\u00a0: c’est la réaction en chaîne.",
     "twin": "Deux chaînes à la fois\u00a0: surveillez les deux trous.",
     "colossus": "Le Colosse pousse la chaîne\u00a0: faites exploser des billes tout près de lui pour le blesser.",
     "ricochet": "Les murs renvoient vos tirs. Une bille touchée après un rebond vaut ×2, après deux rebonds ×3.",
     "prism": "Les prismes renvoient aussi les tirs\u00a0: suivez la ligne de visée, elle montre chaque rebond.",
+    "bank": "Les murs de néon renvoient vos tirs\u00a0: un rebond double les points.",
     "spin": "Ces prismes tournent\u00a0: attendez le bon angle avant de tirer.",
     "magnet": "Touchez «\u00a0Aimant\u00a0» (ou M), puis visez une bille\u00a0: elle quitte la chaîne et rejoint votre lanceur.",
     "magnetCombo": "Aspirez la bille qui sépare deux groupes de même couleur\u00a0: ils se rejoignent et explosent.",
@@ -153,6 +155,7 @@
     "hot": "Sur le raccourci, la lave est en fusion\u00a0: les billes qui y explosent valent double. À vous de choisir entre points et temps.",
     "gravity": "Le trou noir attire vos tirs\u00a0: la ligne de visée montre la courbe qu’ils suivront. Un tir qui passe trop près est avalé.",
     "orbit": "Votre lanceur glisse autour du trou noir\u00a0: attendez d’être bien placé avant de tirer.",
+    "curve": "Le trou noir courbe vos tirs\u00a0: suivez la ligne.",
     "endless": "La chaîne ne s’arrête jamais\u00a0: chaque palier l’accélère et peut ajouter une couleur. Tenez le plus longtemps possible.",
     "puzzle": "La chaîne est immobile et vos tirs sont comptés. «\u00a0Couleur suivante\u00a0» (ou X) choisit la couleur\u00a0: pensez aux réactions en chaîne.",
     "rhythm": "La chaîne avance au rythme de la musique. Tirez quand l’anneau se referme sur le lanceur\u00a0: le groove multiplie vos points jusqu’à ×4.",
@@ -166,6 +169,36 @@
     "powerSlow": "Le sablier ralentit la chaîne pendant 8 secondes.",
     "powerRainbow": "La bille arc-en-ciel transforme votre prochain tir en bille qui va avec toutes les couleurs.",
     "powerLaser": "La bille éclair transforme votre prochain tir en laser qui traverse 4 billes."
+  },
+  "training": {
+    "step": "Étape {step} sur {of}",
+    "home": "Entraînement",
+    "skip": "Passer",
+    "skipAll": "Passer l’entraînement",
+    "restart": "Recommencer l’étape",
+    "steps": {
+      "1": {
+        "name": "La Nova",
+        "recap": "La Nova et sa cascade"
+      },
+      "2": {
+        "name": "Les miroirs",
+        "line": "Faites rebondir vos tirs sur le néon",
+        "recap": "Le rebond sur les miroirs"
+      },
+      "3": {
+        "name": "Le trou noir",
+        "line": "Laissez le trou noir courber vos tirs",
+        "recap": "Le tir courbé par le trou noir"
+      }
+    },
+    "end": {
+      "title": "Entraînement réussi",
+      "ready": "En route pour la campagne\u00a0!",
+      "promise": "Le jeune Colosse stellaire vous attend au niveau\u00a0{level}.",
+      "continue": "Continuer",
+      "level": "Niveau\u00a0{level}\u00a0· {world}"
+    }
   },
   "colossus": {
     "nebula": "Colosse stellaire",

@@ -138,12 +138,14 @@
   },
   "hints": {
     "aim": "Your first marble is a Nova bomb: aim at the chain and release!",
+    "match": "Aim at the chain and release: three or more marbles of the same colour explode.",
     "swap": "Swap the loaded marble with the next one: tap the launcher or press X.",
     "reaction": "When two groups of the same colour meet, they explode in turn: that’s a chain reaction.",
     "twin": "Two chains at once: watch both holes.",
     "colossus": "The Colossus pushes the chain: blow up marbles right next to it to damage it.",
     "ricochet": "Walls bounce your shots back. A marble hit after one rebound is worth ×2; after two, ×3.",
     "prism": "Prisms bounce shots too: follow the aim line, it shows every rebound.",
+    "bank": "Neon walls bounce your shots back: one rebound doubles the points.",
     "spin": "These prisms turn: wait for the right angle before you shoot.",
     "magnet": "Tap “Magnet” (or press M), then aim at a marble: it leaves the chain and loads into your launcher.",
     "magnetCombo": "Pull out the marble that separates two groups of the same colour: they meet and explode.",
@@ -153,6 +155,7 @@
     "hot": "On the shortcut, the lava is molten: marbles blown up there are worth double. Points or time: your call.",
     "gravity": "The black hole pulls your shots: the aim line shows the curve they will follow. A shot passing too close is swallowed.",
     "orbit": "Your launcher glides around the black hole: wait for a good angle before you fire.",
+    "curve": "The black hole bends your shots: follow the line.",
     "endless": "The chain never stops: each stage speeds it up and may add a colour. Hold on as long as you can.",
     "puzzle": "The chain stands still and your shots are limited. “Next colour” (or X) picks your colour: think chain reactions.",
     "rhythm": "The chain moves to the music. Fire as the ring closes on the launcher: the groove multiplies your points up to ×4.",
@@ -166,6 +169,36 @@
     "powerSlow": "The hourglass slows the chain down for 8 seconds.",
     "powerRainbow": "The rainbow marble turns your next shot into a marble that matches every colour.",
     "powerLaser": "The lightning marble turns your next shot into a laser that pierces 4 marbles."
+  },
+  "training": {
+    "step": "Step {step} of {of}",
+    "home": "Training",
+    "skip": "Skip",
+    "skipAll": "Skip the training",
+    "restart": "Restart this step",
+    "steps": {
+      "1": {
+        "name": "The Nova",
+        "recap": "The Nova and its cascade"
+      },
+      "2": {
+        "name": "The mirrors",
+        "line": "Bounce your shots off the neon",
+        "recap": "The bounce off the mirrors"
+      },
+      "3": {
+        "name": "The black hole",
+        "line": "Let the black hole bend your shots",
+        "recap": "The shot bent by the black hole"
+      }
+    },
+    "end": {
+      "title": "Training complete",
+      "ready": "On to the campaign!",
+      "promise": "The young Stellar Colossus awaits you at level\u00a0{level}.",
+      "continue": "Continue",
+      "level": "Level\u00a0{level}\u00a0· {world}"
+    }
   },
   "colossus": {
     "nebula": "Stellar Colossus",

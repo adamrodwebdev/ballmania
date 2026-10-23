@@ -1,6 +1,7 @@
 import { reactive, readonly, shallowRef } from 'vue';
 import type { GameReport } from '@/engine/Game';
 import type { WorldId } from '@/levels/campaign';
+import type { TrainingStep } from '@/levels/training';
 import { readJson, type KeyValueStorage } from '@/services/KeyValueStorage';
 import { EMPTY_STATS, newlyReached, type Achievement, type PlayerStats } from './achievements';
 import {
@@ -83,6 +84,8 @@ interface State {
   gift: GiftRecord;
   /** The one-time tips already shown. */
   tips: TipId[];
+  /** The training (v1.8.0): the showcase it resumes at, and whether it is over. */
+  training: { step: TrainingStep; done: boolean };
 }
 
 /**
@@ -175,6 +178,25 @@ export class PlayerProfile {
   markTipSeen(id: TipId): void {
     if (this.state.tips.includes(id)) return;
     this.state.tips.push(id);
+    this.save();
+  }
+
+  /** Where the training stands (v1.8.0): the showcase to play next, and whether it is over. */
+  get training(): { readonly step: TrainingStep; readonly done: boolean } {
+    return this.state.training;
+  }
+
+  /** A showcase was won: an interrupted training resumes at the next one. */
+  reachTraining(step: TrainingStep): void {
+    if (this.state.training.done || step <= this.state.training.step) return;
+    this.state.training = { step, done: false };
+    this.save();
+  }
+
+  /** The training is over, finished or skipped: it never comes back. */
+  finishTraining(): void {
+    if (this.state.training.done) return;
+    this.state.training = { ...this.state.training, done: true };
     this.save();
   }
 
@@ -335,6 +357,7 @@ export class PlayerProfile {
       upgrades: {},
       gift: { last: null, streak: 0 },
       tips: [],
+      training: { step: 1, done: false },
     };
     if (typeof value !== 'object' || value === null) return fresh;
     const saved = value as Partial<Record<keyof State | 'version', unknown>>;
@@ -389,6 +412,12 @@ export class PlayerProfile {
       if (rank > 0) fresh.upgrades[id] = rank;
     }
     fresh.tips = TIP_IDS.filter((id) => strings(saved.tips).includes(id));
+    const training = record(saved.training);
+    const step = count(training.step);
+    fresh.training = {
+      step: step === 2 || step === 3 ? step : 1,
+      done: training.done === true,
+    };
     return fresh;
   }
 }

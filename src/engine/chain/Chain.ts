@@ -19,6 +19,11 @@ export interface ChainParams {
    * towards each other (Duel: a still chain must stay in one piece).
    */
   readonly compact?: boolean;
+  /**
+   * The chain stops pushing once its head is this far along the track, as a
+   * share of its length (the training, v1.8.0: no defeat, the danger shows).
+   */
+  readonly halt?: number;
 }
 
 /** Why balls exploded: a shot inserted into a group, or two segments joining. */
@@ -345,7 +350,10 @@ export class Chain {
     const head = this.items[this.items.length - 1];
     const front = head?.s ?? this.pusher?.s ?? 0;
     if (front >= this.params.rushDistance) this.rushed = true;
-    const speed = this.cruise(front) * this.speedFactor * this.paceValue * this.powerFactor;
+    const halted = this.params.halt !== undefined && front >= this.params.halt * this.path.length;
+    const speed = halted
+      ? 0
+      : this.cruise(front) * this.speedFactor * this.paceValue * this.powerFactor;
     if (this.pusher) this.pusher.s += speed * dt;
     if (this.isEmpty) return [];
     const wasTouching = this.items.slice(0, -1).map((_, i) => this.touching(i));

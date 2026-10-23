@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useServices } from '@/app/AppServices';
+import { playerTrace, useServices } from '@/app/AppServices';
+import { startsTraining } from '@/app/landing';
 import { CAMPAIGN } from '@/levels/campaign';
 import { pixelRatioFor } from '@/play/canvas';
 import { DailyChallenge } from '@/player/DailyChallenge';
@@ -36,6 +37,10 @@ const nextLevel = computed(() => {
   return open.find((level) => !progress.levels[level.id]?.stars) ?? open[open.length - 1];
 });
 const nextLabel = computed(() => {
+  // A newcomer's first "Play" opens the training (v1.8.0).
+  if (startsTraining(playerTrace(player, progress), player.training.done)) {
+    return t('training.home');
+  }
   const level = nextLevel.value;
   if (!level) return '';
   return t('home.next', { world: t(`worlds.${level.world}.name`), number: level.number });

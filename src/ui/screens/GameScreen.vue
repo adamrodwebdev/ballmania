@@ -3,9 +3,11 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { EndOfGame } from '@/app/EndOfGame';
-import { createMode, type Settlement } from '@/app/modes';
+import { createMode, type Message, type Settlement } from '@/app/modes';
+import { shortName } from '@/app/modes/CampaignModes';
 import type { PlayRequest } from '@/app/PlayRequest';
 import { puzzleHint } from '@/levels/arcade/hint';
+import { CAMPAIGN } from '@/levels/campaign';
 import { resolveLook } from '@/play/cosmetics/Look';
 import type { PlaySession } from '@/play/PlaySession';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
@@ -13,6 +15,8 @@ import GameControls from '@/ui/game/GameControls.vue';
 import GameHud from '@/ui/game/GameHud.vue';
 import PausePanel from '@/ui/game/PausePanel.vue';
 import ResultPanel from '@/ui/game/ResultPanel.vue';
+import TrainingCard from '@/ui/game/TrainingCard.vue';
+import TrainingEndPanel from '@/ui/game/TrainingEndPanel.vue';
 import { useAnnouncements } from '@/ui/game/useAnnouncements';
 import { useGameSession } from '@/ui/game/useGameSession';
 import { useMessage } from '@/ui/game/useMessage';
@@ -35,7 +39,18 @@ const look = resolveLook(player.takeLook(), mode.world);
 /** A night world's board keeps the cosmos colours in both themes (§ 3.5). */
 const night = look.theme.night;
 const assisted = ref(mode.assisted);
-const hintVisible = ref(mode.hint !== null);
+/**
+ * The training (v1.8.0, § 3.13): its showcases follow one another, a card
+ * naming each from the second while the board waits; its hint stays until
+ * the hand's gesture is done.
+ */
+const training = mode.training;
+const card = ref(training !== null && training.step > 1);
+/** Milliseconds the card shows, the board still behind it. */
+const CARD_TIME = 1800;
+/** Where the young Colossus of the promise waits: its level, "1-3". */
+const promised: Message = shortName(CAMPAIGN.find((level) => level.colossus?.young)!);
+const hintVisible = ref(mode.hint !== null && !card.value);
 /**
  * A boss's health, the alchemy recipes or the duel's rope: a second line of
  * the HUD, whose room is kept from the start so that the board never moves.
@@ -80,8 +95,27 @@ const { session, hud, feedback, reducedMotion, silence, newGame, focusBoard } = 
 const { announcement, cheer } = useAnnouncements(hud);
 const ending = computed(() => hud.value?.over ?? null);
 onMounted(() => {
-  if (hintVisible.value) window.setTimeout(() => (hintVisible.value = false), 6000);
+  if (card.value) {
+    // The board waits under the card; the next world's music has already begun.
+    session.value?.hold(false);
+    window.setTimeout(() => {
+      card.value = false;
+      session.value?.release();
+      hintVisible.value = mode.hint !== null;
+      focusBoard();
+    }, CARD_TIME);
+  }
+  if (!training && hintVisible.value) {
+    window.setTimeout(() => (hintVisible.value = false), 6000);
+  }
 });
+// The training's hint goes once the hand's gesture is done.
+watch(
+  () => hud.value?.taught,
+  (taught) => {
+    if (training && taught) hintVisible.value = false;
+  },
+);
 
 watch(
   () => hud.value?.paused,
@@ -97,9 +131,20 @@ watch(
   ending,
   (over) => {
     if (over) announcement.value = say(mode.outcome(over === 'won'));
+    // A showcase won: on to the next one at once, without a result or an ad.
+    if (over === 'won' && training && training.step < training.of) {
+      const next = mode.next(services);
+      if (next) emit('play', next.request);
+    }
   },
   { flush: 'post' },
 );
+/** What follows the training's last showcase, once it is won. */
+const trainingNext = computed(() => (ending.value === 'won' ? mode.next(services) : null));
+/** "Skip": the training is over for good, and the campaign begins. */
+const skipTraining = () => {
+  if (training) emit('play', training.skip(services));
+};
 
 /** Saves the finished game: its result, and the portal hears of it. */
 const settle = () => {
@@ -238,7 +283,7 @@ const leaveToMenu = () => {
   <section
     ref="root"
     class="game"
-    :class="{ night, gauged: mode.stars !== null }"
+    :class="{ night, gauged: mode.stars !== null, training: training !== null }"
     :aria-label="t('game.board')"
   >
     <!-- The level fills the screen; the HUD and the buttons float over its edges. -->
@@ -255,9 +300,21 @@ const leaveToMenu = () => {
       ></canvas>
       <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
       <p v-if="cheer" :key="cheer.serial" class="cheer" aria-hidden="true">{{ cheer.word }}</p>
-      <p v-if="hintVisible && mode.hint" class="hint" role="status" data-testid="hint">
+      <p
+        v-if="hintVisible && mode.hint"
+        class="hint"
+        :class="{ lasting: training }"
+        role="status"
+        data-testid="hint"
+      >
         {{ t(`hints.${mode.hint}`) }}
       </p>
+      <TrainingCard
+        v-if="card && training"
+        :step="training.step"
+        :of="training.of"
+        :name="mode.label"
+      />
     </div>
 
     <GameHud
@@ -268,6 +325,7 @@ const leaveToMenu = () => {
       :extra-row="extraRow"
       @pause="session?.pause()"
       @reached="starReached"
+      @skip="skipTraining"
     />
     <GameControls
       ref="controlsPart"
@@ -284,15 +342,25 @@ const leaveToMenu = () => {
     <PausePanel
       ref="pausePanel"
       :offer-hint="offerHint"
+      :training="training !== null"
       @resume="session?.resume()"
       @restart="restart"
       @settings="settingsDialog?.open()"
       @quit="emit('quit')"
       @ad-hint="showHint"
       @shard-hint="hintForShards"
+      @skip="skipTraining"
     />
     <SettingsDialog ref="settingsDialog" />
+    <TrainingEndPanel
+      v-if="training"
+      :over="ending === 'won' && training.step === training.of"
+      :next="trainingNext"
+      :promised="promised"
+      @continue="(next) => emit('play', next)"
+    />
     <ResultPanel
+      v-else
       ref="resultPanel"
       :mode="mode"
       :hud="hud"
@@ -351,6 +419,11 @@ const leaveToMenu = () => {
 
 .game.gauged {
   --gauge-row: 1.75rem;
+}
+
+/* The training's rails (v1.8.0) hold little, but "Skip" in its longest language. */
+.game.training {
+  --rail: 6.5rem;
 }
 
 /* A night board (§ 3.5) stays a night sky under the light theme: the scrims stay as dark as the sky. */
@@ -414,6 +487,18 @@ const leaveToMenu = () => {
   text-align: center;
   pointer-events: none;
   animation: hint 6s ease forwards;
+}
+
+/* The training's hint stays until the hand's gesture is done (§ 3.13). */
+.hint.lasting {
+  animation: hint-in 0.4s ease both;
+}
+
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
 }
 
 @keyframes hint {
@@ -499,6 +584,7 @@ const leaveToMenu = () => {
  */
 @media (prefers-reduced-motion: reduce) {
   .hint,
+  .hint.lasting,
   .cheer {
     animation: none;
   }

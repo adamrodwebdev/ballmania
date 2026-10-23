@@ -138,12 +138,14 @@
   },
   "hints": {
     "aim": "Bola pertamamu adalah bom Nova: bidik rantai lalu lepaskan!",
+    "match": "Bidik rantai lalu lepaskan: tiga bola atau lebih yang berwarna sama akan meledak.",
     "swap": "Tukar bola yang siap dengan bola berikutnya: sentuh penembak atau tekan X.",
     "reaction": "Saat dua bagian berwarna sama bertemu, keduanya ikut meledak: itulah reaksi berantai.",
     "twin": "Dua rantai sekaligus: awasi kedua lubang.",
     "colossus": "Kolosus mendorong rantai: ledakkan bola tepat di dekatnya untuk melukainya.",
     "ricochet": "Dinding memantulkan tembakanmu. Bola yang kena setelah satu pantulan bernilai ×2, setelah dua pantulan ×3.",
     "prism": "Prisma juga memantulkan tembakan: ikuti garis bidik, garis itu menunjukkan setiap pantulan.",
+    "bank": "Dinding neon memantulkan tembakanmu: satu pantulan menggandakan poin.",
     "spin": "Prisma ini berputar: tunggu sudut yang tepat sebelum menembak.",
     "magnet": "Sentuh “Magnet” (atau M), lalu bidik sebuah bola: bola itu keluar dari rantai dan masuk ke penembakmu.",
     "magnetCombo": "Sedot bola yang memisahkan dua warna sama: keduanya bertemu dan meledak.",
@@ -153,6 +155,7 @@
     "hot": "Di jalan pintas lava sedang membara: bola yang meledak di sana bernilai dua kali lipat. Poin atau waktu, kamu yang pilih.",
     "gravity": "Lubang hitam menarik tembakanmu: garis bidik menunjukkan lengkungan yang akan diikutinya. Tembakan yang lewat terlalu dekat akan ditelan.",
     "orbit": "Penembakmu meluncur mengelilingi lubang hitam: tunggu posisi yang tepat sebelum menembak.",
+    "curve": "Lubang hitam membelokkan tembakanmu: ikuti garisnya.",
     "endless": "Rantai tak pernah berhenti: setiap tahap mempercepatnya dan bisa menambah warna. Bertahanlah selama mungkin.",
     "puzzle": "Rantai diam dan tembakanmu terbatas. “Warna berikutnya” (atau X) memilih warna: manfaatkan reaksi berantai.",
     "rhythm": "Rantai bergerak mengikuti musik. Tembak saat cincin menutup pada penembak: groove melipatgandakan poin hingga ×4.",
@@ -166,6 +169,36 @@
     "powerSlow": "Jam pasir memperlambat rantai selama 8 detik.",
     "powerRainbow": "Bola pelangi mengubah tembakan berikutnya menjadi bola semua warna.",
     "powerLaser": "Bola petir mengubah tembakan berikutnya menjadi laser yang menembus 4 bola."
+  },
+  "training": {
+    "step": "Tahap {step} dari {of}",
+    "home": "Latihan",
+    "skip": "Lewati",
+    "skipAll": "Lewati latihan",
+    "restart": "Ulangi tahap ini",
+    "steps": {
+      "1": {
+        "name": "Nova",
+        "recap": "Nova dan reaksi berantainya"
+      },
+      "2": {
+        "name": "Cermin",
+        "line": "Pantulkan tembakanmu di dinding neon",
+        "recap": "Pantulan di cermin"
+      },
+      "3": {
+        "name": "Lubang hitam",
+        "line": "Biarkan lubang hitam membelokkan tembakanmu",
+        "recap": "Tembakan yang dibelokkan lubang hitam"
+      }
+    },
+    "end": {
+      "title": "Latihan selesai",
+      "ready": "Saatnya kampanye!",
+      "promise": "Kolosus Bintang Muda menantimu di level\u00a0{level}.",
+      "continue": "Lanjutkan",
+      "level": "Level\u00a0{level}\u00a0· {world}"
+    }
   },
   "colossus": {
     "nebula": "Kolosus Bintang",

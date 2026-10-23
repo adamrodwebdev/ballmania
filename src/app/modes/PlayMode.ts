@@ -4,10 +4,19 @@ import type { UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
+import type { TrainingStep } from '@/levels/training';
 import type { DailyChallenge } from '@/player/DailyChallenge';
 import type { Rewards } from '@/player/PlayerProfile';
 import type { AppServices } from '../AppServices';
 import type { PlayRequest } from '../PlayRequest';
+
+/** A showcase of the training (v1.8.0): its place among them, for the dots, and the way out. */
+export interface TrainingStepView {
+  readonly step: TrainingStep;
+  readonly of: number;
+  /** "Skip": the training is over for good; the game to play instead, the campaign's first. */
+  skip(services: AppServices): PlayRequest;
+}
 
 /** A text of the interface, as an i18n key and its parameters: modes never translate. */
 export interface Message {
@@ -89,8 +98,6 @@ export interface PlayMode {
   readonly music: WorldId | null;
   /** The key of the mode's own song, in hertz (Rhythm), else null. */
   readonly root: number | null;
-  /** The very first level teaches by a gesture: a hand shows how to aim and shoot. */
-  readonly tutorial: boolean;
   /** The campaign difficulty applies to this game: its name shows under the level's. */
   readonly ranked: boolean;
   /** What the swap button says: in a puzzle, it shows the next colour. */
@@ -103,6 +110,8 @@ export interface PlayMode {
   readonly assistLevel: string | null;
   /** A win of this game finishes the campaign. */
   readonly finale: boolean;
+  /** A showcase of the training (v1.8.0): its place among them, and the way out; else null. */
+  readonly training: TrainingStepView | null;
   /**
    * A result worth a portal's celebration besides the items it unlocked: the
    * campaign's last level won, a new Endless record.

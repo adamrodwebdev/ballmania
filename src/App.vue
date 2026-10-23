@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { defineAsyncComponent, ref, shallowRef, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useServices } from '@/app/AppServices';
+import { playerTrace, useServices } from '@/app/AppServices';
+import { startsTraining } from '@/app/landing';
 import type { SoundEngine } from '@/audio/SoundEngine';
 import { loadMessages } from '@/i18n';
 import type { PlayRequest } from '@/app/PlayRequest';
@@ -34,7 +35,7 @@ const props = defineProps<{ opening?: PlayRequest | null }>();
 
 const i18n = useI18n();
 const { t, locale } = i18n;
-const { settings, theme, platform, progress } = useServices();
+const { settings, theme, platform, progress, player } = useServices();
 
 let games = 0;
 const screen = shallowRef<Screen>(
@@ -134,10 +135,15 @@ const arcade = () => show({ kind: 'arcade' });
 const play = (request: PlayRequest) => show({ kind: 'game', request, id: ++games });
 const playLevel = (level: CampaignLevel) => play({ kind: 'campaign', level });
 /**
- * "Play": the campaign map, except for a new player on a portal, who lands
- * straight in the first level (portals ask for one click to play).
+ * "Play": a newcomer's first one opens the training (v1.8.0), on a portal as
+ * on our site; then the campaign map, except for a new player on a portal,
+ * who lands straight in the first level (portals ask for one click to play).
  */
 const startCampaign = async () => {
+  if (startsTraining(playerTrace(player, progress), player.training.done)) {
+    play({ kind: 'training', step: player.training.step });
+    return;
+  }
   if (platform.id === 'standalone') {
     campaign();
     return;
@@ -147,10 +153,13 @@ const startCampaign = async () => {
   if (first && !progress.get(first.id)) playLevel(first);
   else campaign();
 };
-/** After a game: the map for the campaign, home for the daily challenge, else the Arcade. */
+/**
+ * After a game: the map for the campaign, home for the daily challenge and
+ * the training, else the Arcade.
+ */
 const leave = (request: PlayRequest) => {
   if (request.kind === 'campaign') campaign();
-  else if (request.kind === 'daily') home();
+  else if (request.kind === 'daily' || request.kind === 'training') home();
   else arcade();
 };
 

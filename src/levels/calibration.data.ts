@@ -6,7 +6,7 @@
  * time bonus, in seconds, then the points of its second and third stars.
  */
 export const CALIBRATION: Readonly<Record<string, readonly [number, number, number]>> = {
-  'nebula-01': [17, 1450, 2050],
+  'nebula-01': [30, 1100, 1550],
   'nebula-02': [28, 1150, 1550],
   'nebula-03': [39, 1100, 1550],
   'nebula-04': [44, 1650, 2000],

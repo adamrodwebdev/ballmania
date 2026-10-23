@@ -282,6 +282,21 @@ describe('PlayerProfile', () => {
     expect(new PlayerProfile(storage).shards).toBe(0);
   });
 
+  it('keeps where the training stands, forward only, until it is over (v1.8.0)', () => {
+    const storage = new MemoryStorage();
+    const profile = new PlayerProfile(storage);
+    expect(profile.training).toEqual({ step: 1, done: false });
+    profile.reachTraining(3);
+    profile.reachTraining(2);
+    expect(new PlayerProfile(storage).training).toEqual({ step: 3, done: false });
+    profile.finishTraining();
+    profile.reachTraining(3);
+    expect(new PlayerProfile(storage).training).toEqual({ step: 3, done: true });
+
+    storage.set(PLAYER_KEY, JSON.stringify({ version: 2, training: { step: 9, done: 'yes' } }));
+    expect(new PlayerProfile(storage).training).toEqual({ step: 1, done: false });
+  });
+
   it('gives the Star heart to players who wore the first launcher by default', () => {
     const storage = new MemoryStorage();
     const equipped = { shooter: 'shooter-orbit', trail: 'trail-none', burst: 'burst-glass' };
