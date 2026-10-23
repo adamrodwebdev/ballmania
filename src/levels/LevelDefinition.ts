@@ -105,6 +105,8 @@ export interface LevelDefinition {
   };
   /** Every gap of the chain closes (Duel). */
   readonly compact?: boolean;
+  /** The chains stop this far along their track, as a share of it (training: no defeat). */
+  readonly halt?: number;
   /** Falling balls, arrhythmia and weather (§ 3.9). */
   readonly hazards?: HazardSetup;
   /** Factor of the points (campaign difficulty). */
@@ -157,6 +159,7 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     retreatSpeed: level.retreatSpeed ?? LEVEL_DEFAULTS.retreatSpeed,
     minMatch: LEVEL_DEFAULTS.minMatch,
     ...(level.compact ? { compact: true } : {}),
+    ...(level.halt === undefined ? {} : { halt: level.halt }),
   };
   return {
     board: level.board,

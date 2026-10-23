@@ -270,6 +270,9 @@ export const MAX_BOUNCES = 6;
 /** Share of its track a chain is pushed back by when the player continues after a defeat. */
 export const REVIVE_SHARE = 0.35;
 
+/** Share of its track a chain that stops short of the hole is pushed back by if it gets in. */
+export const HALT_PUSHBACK = 0.2;
+
 /** Radius of a gift bomb (level 1-1): wider than the Nova at its best, for a first wow. */
 export const GIFT_BOMB_RADIUS = 170;
 
@@ -328,8 +331,10 @@ export class Game {
   private secondChanceUsed = false;
   /** A bomb is going off: its balls do not charge the next one. */
   private bombing = false;
-  /** The first shot is a gift bomb, until it is fired. */
+  /** The first shot is a gift bomb, until it goes off. */
   private gift: boolean;
+  /** The gift bomb on its way: if it misses the chain, it comes back (v1.8.0). */
+  private giftShot: Projectile | null = null;
   /** The powers at work: rewind, slow-down, a loaded rainbow or laser shot. */
   private readonly powers: PowerEffects;
   /** Balls fed since the last power ball (Endless, a Colossus), and the next power's turn. */
@@ -875,6 +880,7 @@ export class Game {
     if (!projectile) return false;
     if (special === 'bomb') {
       this.novaCharge = 0;
+      if (this.gift) this.giftShot = projectile;
       this.gift = false;
     } else if (special !== null && special === this.powers.loaded) this.powers.spend();
     this.shotsFired++;
@@ -1074,8 +1080,7 @@ export class Game {
         this.events.emit('bounced', { projectile, position: bounce.position });
         if (projectile.bounces > MAX_BOUNCES) {
           this.flying.splice(i, 1);
-          this.scoringOf(projectile.by).miss();
-          this.events.emit('missed', { projectile });
+          this.missed(projectile);
           continue;
         }
       }
@@ -1092,6 +1097,7 @@ export class Game {
       const hit = chain.hitTest(projectile.position);
       if (!hit) continue;
       if (projectile.special === 'bomb') {
+        if (projectile === this.giftShot) this.giftShot = null;
         this.explodeBomb(projectile.position);
         return true;
       }
@@ -1186,9 +1192,8 @@ export class Game {
     if (!this.gravity) return false;
     const swallowed = this.gravity.swallows(projectile.position);
     if (!swallowed && projectile.age < MAX_FLIGHT) return false;
-    this.scoringOf(projectile.by).miss();
     if (swallowed) this.events.emit('swallowed', { projectile });
-    this.events.emit('missed', { projectile });
+    this.missed(projectile);
     return true;
   }
 
@@ -1218,9 +1223,20 @@ export class Game {
     const { width, height } = this.setup.board;
     if (x > -margin && y > -margin && x < width + margin && y < height + margin) return false;
     if (projectile.pierced > 0) return true;
+    this.missed(projectile);
+    return true;
+  }
+
+  /**
+   * A shot that found no ball: it breaks the streak, and the gift bomb of a
+   * first level comes back to the launcher, so its burst is never lost.
+   */
+  private missed(projectile: Projectile): void {
     this.scoringOf(projectile.by).miss();
     this.events.emit('missed', { projectile });
-    return true;
+    if (projectile !== this.giftShot) return;
+    this.giftShot = null;
+    this.gift = true;
   }
 
   private scoringOf(side: Side): Scoring {
@@ -1292,6 +1308,13 @@ export class Game {
   private checkEnd(): void {
     const reached = this.chains.findIndex((chain) => chain.reachedHole);
     if (reached >= 0 && this.useSecondChance(reached)) return;
+    // A chain that stops short of the hole (the training) never loses: should
+    // shots push it in after all, it is pushed back instead.
+    if (reached >= 0 && this.setup.chain.halt !== undefined) {
+      const chain = this.chains[reached]!;
+      chain.shift(-chain.path.length * HALT_PUSHBACK);
+      return;
+    }
     if (reached >= 0) this.end('lost');
     else if (this.objective.isComplete(this.context)) this.end('won');
     else if (this.objective.isFailed?.(this.context)) this.end('lost');

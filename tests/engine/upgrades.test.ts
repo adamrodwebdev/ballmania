@@ -132,7 +132,45 @@ describe('the gift bomb of the first level', () => {
     expect(game.chains[0]!.balls.length).toBeLessThan(10);
   });
 
+  it('comes back to the launcher when it misses the chain (v1.8.0), and goes off on it', () => {
+    const setup = { ...level([0, 1, 2, 0, 1, 2, 0, 1, 2, 0], {}), gift: 'bomb' as const };
+    const game = new Game(setup, new FixedRandom(0));
+    const bombs: number[] = [];
+    game.events.on('bomb', ({ radius }) => bombs.push(radius));
+    // Up and to the right, past the head of the chain: off the board.
+    game.aimAt(new Vec2(900, 0));
+    expect(game.fire()).toBe(true);
+    expect(game.loadedSpecial).toBeNull();
+    run(game, 1.5);
+    expect(bombs).toEqual([]);
+    expect(game.loadedSpecial).toBe('bomb');
+    game.aimAt(new Vec2(400, 100));
+    expect(game.fire()).toBe(true);
+    run(game, 1);
+    expect(bombs).toEqual([GIFT_BOMB_RADIUS]);
+    expect(game.loadedSpecial).toBeNull();
+  });
+
   it('is not given on other levels', () => {
     expect(new Game(level([0, 1, 2], {}), new FixedRandom(0)).loadedSpecial).toBeNull();
+  });
+});
+
+describe('a chain that stops short of the hole (the training, v1.8.0)', () => {
+  it('is pushed back instead of losing, should shots push it in', () => {
+    // Four balls whose head is already past the end of the 1000-unit track.
+    const setup = level(
+      [0, 1, 2, 0],
+      {},
+      { chain: { ...PARAMS, speed: 0, rushSpeed: 0, halt: 0.8 } },
+    );
+    const game = new Game(
+      { ...setup, chains: [{ ...setup.chains[0]!, tail: 960 }] },
+      new FixedRandom(0),
+    );
+    game.update(1 / 60);
+    expect(game.state).toBe('playing');
+    const chain = game.chains[0]!;
+    expect(chain.balls[chain.balls.length - 1]!.s).toBeLessThan(chain.path.length);
   });
 });

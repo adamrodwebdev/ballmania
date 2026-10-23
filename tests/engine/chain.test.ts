@@ -102,6 +102,16 @@ describe('Chain movement', () => {
     chain.advance(0.1);
     expect(chain.reachedHole).toBe(true);
   });
+
+  it('stops pushing once its head is as far as it may go (the training, v1.8.0)', () => {
+    const chain = chainOf('abc', 400, { ...PARAMS, speed: 200, halt: 0.6 });
+    run(chain, 5);
+    const head = chain.balls[chain.balls.length - 1]!.s;
+    // It stops at the first step past 600 along the 1000-unit track: never at the hole.
+    expect(head).toBeGreaterThanOrEqual(600);
+    expect(head).toBeLessThan(600 + 200 / 60);
+    expect(chain.reachedHole).toBe(false);
+  });
 });
 
 describe('Chain insertion and explosions', () => {
