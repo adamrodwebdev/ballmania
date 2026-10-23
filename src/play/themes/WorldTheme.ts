@@ -1,5 +1,6 @@
 import type { AmbienceStyle } from './Ambience';
 import type { Palette } from '../Palette';
+import type { Context2D } from '../canvas';
 
 /**
  * The look of a world (specification § 3.5): for now, the backdrop of the
@@ -13,12 +14,7 @@ export interface WorldTheme {
    * interface around it follows the theme.
    */
   readonly night: boolean;
-  paintBackground(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    palette: Palette,
-  ): void;
+  paintBackground(ctx: Context2D, width: number, height: number, palette: Palette): void;
 }
 
 /** `#rrggbb` with an alpha channel; other colour syntaxes are returned unchanged. */

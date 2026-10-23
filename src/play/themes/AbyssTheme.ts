@@ -2,6 +2,7 @@ import type { AmbienceStyle } from './Ambience';
 import { SeededRandom } from '@/engine/core/Random';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
+import type { Context2D } from '../canvas';
 
 /**
  * World 3's backdrop, unlocked by finishing Neon: deep water lit by rays
@@ -11,12 +12,7 @@ export class AbyssTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'bubbles';
   readonly night = false;
 
-  paintBackground(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    palette: Palette,
-  ): void {
+  paintBackground(ctx: Context2D, width: number, height: number, palette: Palette): void {
     const random = new SeededRandom(303);
     const dark = palette.dark;
     const teal = palette.tone(3);

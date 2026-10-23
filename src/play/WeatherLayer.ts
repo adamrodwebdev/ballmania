@@ -3,6 +3,7 @@ import type { Chain } from '@/engine/chain/Chain';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import type { Palette } from './Palette';
 import { withAlpha } from './themes/WorldTheme';
+import type { Context2D } from './canvas';
 
 /** Height balls fall from, in board units above where they land. */
 const FALL_HEIGHT = 700;
@@ -25,12 +26,7 @@ export class WeatherLayer {
   constructor(private readonly game: Game) {}
 
   /** Under the chains: the tracks' throb and the shadows of falling balls. */
-  drawUnder(
-    ctx: CanvasRenderingContext2D,
-    palette: Palette,
-    tracks: Path2D[],
-    radius: number,
-  ): void {
+  drawUnder(ctx: Context2D, palette: Palette, tracks: Path2D[], radius: number): void {
     const pace = this.game.arrhythmiaPace;
     if (pace !== null && Math.abs(pace - 1) > 0.05) {
       ctx.save();
@@ -56,7 +52,7 @@ export class WeatherLayer {
 
   /** Over the chains: falling balls, frost and fire on the balls, and the weather's light. */
   drawOver(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     positionOf: (chain: Chain, index: number) => Vec2,
     radius: number,
@@ -134,7 +130,7 @@ export class WeatherLayer {
     ctx.restore();
   }
 
-  private frost(ctx: CanvasRenderingContext2D, at: Vec2, radius: number): void {
+  private frost(ctx: Context2D, at: Vec2, radius: number): void {
     ctx.save();
     ctx.globalAlpha = 0.55;
     ctx.fillStyle = '#e8f6ff';
@@ -156,13 +152,7 @@ export class WeatherLayer {
     ctx.restore();
   }
 
-  private burn(
-    ctx: CanvasRenderingContext2D,
-    palette: Palette,
-    at: Vec2,
-    radius: number,
-    time: number,
-  ): void {
+  private burn(ctx: Context2D, palette: Palette, at: Vec2, radius: number, time: number): void {
     ctx.save();
     ctx.globalAlpha = 0.7 + 0.3 * Math.sin(time * 9);
     ctx.strokeStyle = palette.tone(1);

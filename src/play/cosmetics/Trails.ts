@@ -1,6 +1,7 @@
 import type { Tone } from '@/engine/chain/Ball';
 import type { Vec2 } from '@/engine/geometry/Vec2';
 import type { Palette } from '../Palette';
+import type { Context2D } from '../canvas';
 
 /** Positions kept per ball in flight, oldest first. */
 export const TRAIL_LENGTH = 10;
@@ -8,7 +9,7 @@ export const TRAIL_LENGTH = 10;
 /** What a ball in flight leaves behind (specification § 3.6). */
 export interface TrailStyle {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     tone: Tone,
     history: readonly Vec2[],
@@ -23,7 +24,7 @@ export class NoTrail implements TrailStyle {
 /** A tapering streak of the ball's colour. */
 export class CometTrail implements TrailStyle {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     tone: Tone,
     history: readonly Vec2[],
@@ -47,7 +48,7 @@ export class CometTrail implements TrailStyle {
 /** Sparkling specks scattered along the way. */
 export class StardustTrail implements TrailStyle {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     tone: Tone,
     history: readonly Vec2[],
@@ -72,7 +73,7 @@ export class StardustTrail implements TrailStyle {
 /** A ribbon cycling through every ball colour. */
 export class PrismTrail implements TrailStyle {
   draw(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     _tone: Tone,
     history: readonly Vec2[],

@@ -1,6 +1,6 @@
 import { MAX_TONES } from '@/engine/chain/Ball';
 import { BallSprites } from '@/play/BallSprites';
-import type { Context2D, SpriteCanvas } from '@/play/canvas';
+import { context2d, type Context2D, type SpriteCanvas } from '@/play/canvas';
 import { SHOOTER_RADIUS, StarHeartSkin } from '@/play/cosmetics/ShooterSkins';
 import type { Palette } from '@/play/Palette';
 
@@ -106,7 +106,7 @@ export class TitleScene {
     private readonly still: boolean,
     private readonly host: SceneHost,
   ) {
-    const ctx = canvas.getContext('2d');
+    const ctx = context2d(canvas);
     if (!ctx) throw new Error('No 2D canvas');
     this.ctx = ctx;
     this.sprites = new BallSprites(() => host.createCanvas());

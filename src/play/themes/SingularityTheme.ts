@@ -2,6 +2,7 @@ import type { AmbienceStyle } from './Ambience';
 import { SeededRandom } from '@/engine/core/Random';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
+import type { Context2D } from '../canvas';
 
 /**
  * World 6's backdrop, unlocked by finishing the Volcano: a starfield whose
@@ -12,12 +13,7 @@ export class SingularityTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'twinkle';
   readonly night = false;
 
-  paintBackground(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    palette: Palette,
-  ): void {
+  paintBackground(ctx: Context2D, width: number, height: number, palette: Palette): void {
     const random = new SeededRandom(606);
     const dark = palette.dark;
     const cx = width / 2;

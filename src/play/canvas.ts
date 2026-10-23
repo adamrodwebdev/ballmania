@@ -7,6 +7,31 @@ export type SpriteCanvas = HTMLCanvasElement | OffscreenCanvas;
 /** The 2D context of either kind of canvas. */
 export type Context2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
+/**
+ * The 2D context of a canvas of either kind, typed as such: TypeScript does
+ * not resolve a call on the union of both reliably (it depends on the order
+ * in which it met them).
+ */
+export function context2d(
+  canvas: SpriteCanvas,
+  settings?: CanvasRenderingContext2DSettings,
+): Context2D | null {
+  return 'ownerDocument' in canvas
+    ? canvas.getContext('2d', settings)
+    : canvas.getContext('2d', settings);
+}
+
+/**
+ * A new blank canvas of the same kind as `like`: in the page for a page's
+ * canvas, offscreen for a worker's (v1.8.0: the title's reel draws the game
+ * in a worker).
+ */
+export function blankCanvas(like: SpriteCanvas): SpriteCanvas {
+  return 'ownerDocument' in like
+    ? like.ownerDocument.createElement('canvas')
+    : new OffscreenCanvas(1, 1);
+}
+
 /** Most device pixels per CSS pixel a canvas gets: beyond 2, nobody sees the difference. */
 export const MAX_PIXEL_RATIO = 2;
 /** Most pixels a canvas filling the screen gets: about 4 megapixels. */

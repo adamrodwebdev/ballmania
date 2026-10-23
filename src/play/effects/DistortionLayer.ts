@@ -1,3 +1,5 @@
+import type { SpriteCanvas } from '../canvas';
+
 /** A shock wave in device pixels of the canvas (y downwards). */
 export interface PixelWave {
   readonly x: number;
@@ -109,7 +111,7 @@ export class DistortionLayer {
   }
 
   /** Draws the distorted board, or hides the layer when there is no wave. */
-  present(source: HTMLCanvasElement, waves: readonly PixelWave[], bandWidth: number): void {
+  present(source: SpriteCanvas, waves: readonly PixelWave[], bandWidth: number): void {
     if (this.lost || waves.length === 0) {
       this.hide();
       return;

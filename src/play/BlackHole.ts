@@ -2,6 +2,7 @@ import type { Gravity } from '@/engine/orbit/Gravity';
 import type { OrbitSetup } from '@/engine/orbit/Orbit';
 import type { Palette } from './Palette';
 import { withAlpha } from './themes/WorldTheme';
+import type { Context2D } from './canvas';
 
 /**
  * The Singularity world drawn on the board: the shooter's ring, and the
@@ -16,7 +17,7 @@ export class BlackHole {
   ) {}
 
   /** Under the tracks: the dashed ring the shooter glides along. */
-  drawRing(ctx: CanvasRenderingContext2D, palette: Palette, time: number): void {
+  drawRing(ctx: Context2D, palette: Palette, time: number): void {
     if (!this.ring) return;
     const { centre, radiusX, radiusY, speed } = this.ring;
     ctx.save();
@@ -34,7 +35,7 @@ export class BlackHole {
   }
 
   /** Over the chains: the disk hides the balls falling in. */
-  draw(ctx: CanvasRenderingContext2D, palette: Palette, time: number, danger: number): void {
+  draw(ctx: Context2D, palette: Palette, time: number, danger: number): void {
     const { x, y } = this.gravity.centre;
     const horizon = this.gravity.setup.horizon;
     const disk = horizon * 2.3;
