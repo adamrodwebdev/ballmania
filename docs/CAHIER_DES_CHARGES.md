@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                               |
-| ------- | ---------- | ------------------------------------ |
-| 1.7     | 23/10/2026 | Entraînement (v1.8.0, étape 2 sur 8) |
+| Version | Date       | Statut                                          |
+| ------- | ---------- | ----------------------------------------------- |
+| 1.8     | 23/10/2026 | Boucle de l'écran titre (v1.8.0, étape 3 sur 8) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -584,11 +584,11 @@ Décisions :
 - **Identité « cosmos »** par défaut : violets profonds, lumière dorée, comme les
   couvertures ; le thème clair reste un réglage. Polices du jeu servies avec lui : Lilita
   One (titres, chiffres) et Fredoka (interface), sans requête externe.
-- **Écran titre de jeu** (maquette validée) : logo en lettres d'or, scène vivante dessinée
-  sur un canvas chargé après le premier affichage, par un worker depuis la 1.7.6 (image
-  fixe en mouvement réduit), un
-  seul grand bouton Jouer qui mène au prochain niveau, quatre tuiles, trois icônes
-  (musique, objectifs, réglages). Étoiles et éclats seulement pour un joueur qui revient.
+- **Écran titre de jeu** (maquette validée) : logo en lettres d'or sur un ciel étoilé
+  peint par la feuille de style, la boucle des moments forts du jeu entre le titre et le
+  bouton (§ 3.14, à la place de la spirale décorative depuis la 1.8.0), un seul grand bouton
+  Jouer qui mène au prochain niveau, quatre tuiles, trois icônes (musique, objectifs,
+  réglages). Étoiles et éclats seulement pour un joueur qui revient.
 - **Plateau lumineux** : couches fixes du tracé peintes une fois (appareils modestes),
   filet de lumière qui coule vers le trou, trou en petit trou noir, portail d'entrée,
   halo de la couleur chargée sous le lanceur ; l'aide passe au pied du plateau.
@@ -1310,6 +1310,66 @@ courbé 45 fois ; le robot tire toutes les 1 à 1,5 s, d'où des durées médian
 que le tableau (E1 21 à 27 s, E2 28 à 32 s, E3 21 à 61 s) : les vraies se mesurent sur des
 inconnus à l'étape 4.
 
+### 3.14 Boucle de l'écran titre (v1.8.0)
+
+Entre le titre et « Jouer », une fenêtre joue seule les moments forts du jeu, ce qu'aucun
+autre jeu de billes n'a, avec le vrai moteur et le vrai rendu, sans fichier vidéo (feuille de
+route de la 1.8.0, étape 3, comme dans Lumirift ; maquettes « 1.8.0 boucle » du canevas).
+
+**Les huit moments** (`src/showcase/lineup.ts`, `moments.ts`) : chacun est une vraie partie,
+sa chaîne déjà en place (posée à la main pour la plupart) et ses premières couleurs données,
+jouée par une main scriptée (`ShowcaseHand`) qui cherche à chaque repère le tir de son geste
+avec la ligne de visée et l'aperçu du jeu, au milieu de la plus large fenêtre d'angles, vise
+0,35 s pour que la ligne se voie, puis tire. Elle échange sa bille si l'autre a le tir et pose
+la Nova loin des bords, pour que son souffle tienne dans la fenêtre.
+
+| Moment              | Partie                                                | Durée | Sommet (mesuré) | Légende                                    |
+| ------------------- | ----------------------------------------------------- | ----- | --------------- | ------------------------------------------ |
+| La Nova             | Vitrine E1 de l'entraînement                          | 4,5 s | 1,20 s          | Nébuleuse · La bombe Nova                  |
+| Le tir en bande     | Vitrine E2                                            | 4 s   | 1,93 s          | Néon · Faites rebondir vos tirs            |
+| L'aimant            | Abysses 2, deux paires de part et d'autre d'une bille | 4 s   | 0,93 s          | Abysses · Aspirez une bille                |
+| Le mélange          | Joaillerie 2, une bille qui change de couleur         | 4 s   | 1,33 s          | Joaillerie · Mélangez les couleurs         |
+| L'aiguillage        | Volcan 2                                              | 4 s   | 0,63 s          | Volcan · Basculez les aiguillages          |
+| Le trou noir        | Singularité 2, cascade de paires                      | 4,5 s | 1,37 s          | Singularité · Le trou noir courbe vos tirs |
+| La chute du Colosse | Nébuleuse 12, Colosse à 3 points de vie               | 4,5 s | 1,20 s          | Boss · Terrassez le Colosse                |
+| Le Duel             | Duel de l'Arcade, cascade de paires                   | 4 s   | 1,43 s          | Duel · Gagnez le tir à la corde            |
+
+**Déroulé** (`Reel`, `Take`, `MomentRun`) : chaque moment est une séance de jeu sur sa propre
+toile, muette, menée image par image à 30 images par seconde (elle joue donc la même chose à
+chaque fois), sur la forme du plateau large ; il se joue d'abord 0,6 s sans être vu (la chaîne
+entre et se pose), puis 3 à 5 s. Le suivant se pose pendant la fin du précédent et s'y fond en
+0,4 s, sa légende aussi ; huit repères disent où en est la boucle, un tour dure environ 30 s.
+Chaque moment porte le lanceur, la traîne et l'éclat du joueur, dans le décor de son monde ;
+un plateau de jour suit le thème, la Nébuleuse garde ses couleurs de nuit, comme en jeu.
+
+**Sobriété** : aucun code de la boucle avant le premier affichage. Elle se charge quand la page
+est chargée et le navigateur au repos, l'intro du studio finie et la fenêtre à l'écran, puis
+joue dans un worker à qui la page passe la toile (dans la page si le navigateur ne le permet
+pas ; le worker charge lui-même la police des acclamations). Elle s'arrête hors de l'écran,
+dans un onglet caché et derrière les réglages, et reprend où elle en était. En mouvement
+réduit, une seule image fixe : la Nova 0,3 s après son sommet. Worker de 197 Ko (61 Ko
+compressés) ; le ciel étoilé de l'écran titre est peint par la feuille de style (deux pavés
+fixes, un troisième qui scintille), sans toile ni calcul image par image.
+
+**Place** : la fenêtre a la forme du plateau (17 × 10) et prend la place que l'écran laisse
+entre le titre et le cadeau du jour, ou, sur un écran large, sous le cadeau, dans la colonne
+de droite d'une grille qui la garde à l'écart du menu. Elle s'élargit jusqu'à 26 rem sur un
+téléphone, 36 rem sur une tablette en hauteur, 48 rem sur un écran large, et disparaît sous
+7,5 rem de haut ou 12 rem de large, sans charger son code. Sur les téléphones de moins de
+52 rem de haut, la note du cadeau lui cède sa place (la série dit toujours ce que donne
+demain). Mesuré : 261 × 153 à 390 × 844, 574 × 338 à 1280 × 800, 768 × 452 à 1920 × 1080 ;
+visible dès 360 × 780 (216 × 127) ; à 360 × 640 et 393 × 659, une fois le cadeau pris ;
+jamais à 320 × 568.
+
+**Tests** : chaque moment atteint son sommet en moins de 3 s sur la vraie séance de jeu,
+ralentis compris (`tests/showcase/moments.test.ts`, sur une toile factice), toujours au même
+instant ; la boucle passe les moments dans l'ordre, les fond l'un dans l'autre, s'arrête et
+reprend, et ne demande aucune image en mouvement réduit (`Reel.test.ts`). De bout en bout
+(`e2e/reel.spec.ts`, `first-paint.spec.ts`) : légendes qui se suivent, arrêt dans un onglet
+caché et derrière les réglages, image fixe, aucun code chargé sur un écran trop court ni
+avant la fin de l'intro, rien demandé avant le premier affichage, et toutes les légendes,
+dans les quatre langues, tenues dans la fenêtre à 360 × 780 et à 1280 × 800.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -1909,3 +1969,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                             |
 | 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).               |
 | 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                  |
+| 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                              |

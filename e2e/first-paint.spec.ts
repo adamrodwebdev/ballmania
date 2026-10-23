@@ -29,9 +29,19 @@ test.describe('first paint', () => {
     expect(errors).toEqual([]);
   });
 
-  test('draws the title scene in a worker, off the page main thread', async ({ page }) => {
+  test('plays the title reel in a worker, loaded after the first paint', async ({ page }) => {
     const worker = page.waitForEvent('worker');
     await page.goto('./');
     expect((await worker).url()).toMatch(/\/assets\/worker-[\w-]+\.js$/);
+    // No code of the reel before the page has painted (roadmap 1.8.0, step 3).
+    const timing = await page.evaluate(() => ({
+      paint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? Infinity,
+      reel: performance
+        .getEntriesByType('resource')
+        .filter((entry) => /ReelPlayer|worker-/.test(entry.name))
+        .map((entry) => entry.startTime),
+    }));
+    expect(timing.reel.length).toBeGreaterThan(0);
+    for (const start of timing.reel) expect(start).toBeGreaterThan(timing.paint);
   });
 });
