@@ -1,11 +1,19 @@
 import { expect, overflowOf, test, type Page } from './fixtures';
 
-/** Acceptance criterion (specification § 8): no horizontal scroll from 320 to 1,920 pixels. */
-const WIDTHS = [320, 375, 768, 1024, 1280, 1920];
+/**
+ * Acceptance criterion (specification § 8, widened by v1.7.6): no horizontal
+ * scroll from 320 to 2,560 pixels, on every screen, in a tall window and in a
+ * short one (the compact layouts take over below 800 and 460 px).
+ */
+const WIDTHS = [
+  320, 360, 375, 390, 414, 480, 540, 600, 640, 720, 768, 800, 834, 900, 1024, 1180, 1280, 1366,
+  1440, 1600, 1920, 2240, 2560,
+];
+const HEIGHTS = [900, 450];
 
-/** Nothing scrolls sideways: neither the page nor the screen's own frame (v1.7.6). */
-const noOverflow = async (page: Page, name: string) => {
-  const overflow = await page.evaluate(() => {
+/** How far the page, or the screen's own frame, scrolls sideways (v1.7.6). */
+const sideways = (page: Page) =>
+  page.evaluate(() => {
     const root = document.documentElement;
     const screen = document.querySelector('main');
     return Math.max(
@@ -13,15 +21,63 @@ const noOverflow = async (page: Page, name: string) => {
       screen ? screen.scrollWidth - screen.clientWidth : 0,
     );
   });
-  expect(overflow, name).toBe(0);
+
+/** Every size of the sweep where the screen shown scrolls sideways. */
+const sweep = async (page: Page) => {
+  const found: string[] = [];
+  for (const height of HEIGHTS) {
+    for (const width of WIDTHS) {
+      await page.setViewportSize({ width, height });
+      // Let the layout and the resize observers (the world deck, the board) follow.
+      await page.evaluate(
+        () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+      );
+      const overflow = await sideways(page);
+      if (overflow > 0) found.push(`${width}×${height}: ${overflow} px`);
+    }
+  }
+  return found;
+};
+
+/** How to reach each screen from the title screen. */
+const SCREENS: Record<string, (page: Page) => Promise<void>> = {
+  title: async () => {},
+  campaign: async (page) => {
+    await page.getByTestId('play').click();
+    await expect(page.getByTestId('level-nebula-12')).toBeAttached();
+  },
+  observatory: async (page) => {
+    await page.getByTestId('observatory').click();
+  },
+  arcade: async (page) => {
+    await page.getByTestId('arcade').click();
+  },
+  workshop: async (page) => {
+    await page.getByTestId('shop').click();
+  },
+  achievements: async (page) => {
+    await page.getByTestId('achievements').click();
+  },
+  settings: async (page) => {
+    await page.getByTestId('open-settings').click();
+  },
+  game: async (page) => {
+    await page.getByTestId('arcade').click();
+    await page.getByTestId('duel-normal').click();
+    await expect(page.getByTestId('board')).toBeVisible();
+  },
+  pause: async (page) => {
+    await page.getByTestId('arcade').click();
+    await page.getByTestId('duel-normal').click();
+    await page.getByTestId('pause').click();
+  },
 };
 
 test.describe('layout', () => {
-  for (const width of WIDTHS) {
-    test(`never scrolls sideways at ${width} px`, async ({ page }) => {
-      // The viewport is set per width: one project is enough.
+  for (const [name, open] of Object.entries(SCREENS)) {
+    test(`never scrolls sideways on the ${name} screen, from 320 to 2560 px`, async ({ page }) => {
+      // The viewport is swept: one project is enough.
       test.skip(test.info().project.name !== 'desktop', 'desktop project only');
-      await page.setViewportSize({ width, height: 800 });
       await page.addInitScript(() => {
         localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'id' }));
         localStorage.setItem(
@@ -34,20 +90,8 @@ test.describe('layout', () => {
         );
       });
       await page.goto('./');
-      await noOverflow(page, 'home');
-      await page.getByTestId('play').click();
-      await noOverflow(page, 'campaign');
-      await page.getByTestId('observatory').click();
-      await noOverflow(page, 'observatory');
-      await page.getByTestId('back').click();
-      await page.getByTestId('home').click();
-      await page.getByTestId('arcade').click();
-      await noOverflow(page, 'arcade');
-      await page.getByTestId('duel-normal').click();
-      await expect(page.getByTestId('board')).toBeVisible();
-      await noOverflow(page, 'duel');
-      await page.getByTestId('pause').click();
-      await noOverflow(page, 'pause');
+      await open(page);
+      expect(await sweep(page)).toEqual([]);
     });
   }
 

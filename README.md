@@ -54,7 +54,8 @@ indonésien et russe**, thèmes clair et sombre, sur mobile comme sur ordinateur
 - Tout se joue au clavier ; focus visible partout ; libellés ARIA et annonces des
   événements importants aux lecteurs d'écran (réactions, météo, danger, fin de partie).
 - Chaque couleur de bille porte un **symbole gravé** (daltonisme).
-- Contrastes WCAG AA dans les deux thèmes, vérifiés par axe-core sur chaque écran.
+- Contrastes WCAG AA dans les deux thèmes et cibles d'au moins 24 px (WCAG 2.2), vérifiés par
+  axe-core sur chaque écran, à chaque taille de la matrice de tests.
 - `prefers-reduced-motion` respecté : ni secousses, ni ralentis, ni distorsions, ni fonds
   animés ; trois niveaux d'intensité des effets dans les réglages.
 
@@ -86,7 +87,7 @@ npm run dev
 | `npm run build`      | Vérification des types puis build de production (`dist/`)         |
 | `npm run verify`     | Lint, format, types, tests unitaires et build (avant commit)      |
 | `npm test`           | Tests unitaires (Vitest)                                          |
-| `npm run test:e2e`   | Parcours Playwright, mobile et ordinateur, audits axe-core        |
+| `npm run test:e2e`   | Parcours Playwright, matrice de tailles, audits axe-core          |
 | `npm run lighthouse` | Audit Lighthouse mobile du build (`-- --desktop`, `-- --lang=ru`) |
 
 Les parcours servent le build du site sur le port 4174 et celui du portail simulé sur le
@@ -150,8 +151,10 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   gagne (billes bonus comprises) et calibre ses étoiles et son temps de référence (profils
   pressé, posé et appliqué), et un test qui fait résoudre chaque énigme par le vrai moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
-  d'accessibilité en anglais et en russe dans les deux thèmes, absence de défilement
-  horizontal de 320 à 1 920 px, et chaque écran en russe, en indonésien et en français à
+  d'accessibilité en anglais et en russe dans les deux thèmes ; une matrice de tailles
+  (téléphones, téléphone couché, tablette, grands écrans, zoom à 200 et 400 %) où chaque écran
+  garde la page immobile et passe l'audit WCAG 2.2 ; un balayage de 320 à 2 560 px sans
+  défilement horizontal ; et chaque écran en russe, en indonésien et en français à
   320 × 568, 360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
 - Lighthouse (v1.7.5), en anglais comme en russe : sur ordinateur, 100 dans les quatre
   catégories ; sur mobile, 100 en accessibilité, bonnes pratiques et SEO, 98 en performance
