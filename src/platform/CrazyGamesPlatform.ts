@@ -64,6 +64,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   readonly hasAds: boolean;
   readonly isPortal = true;
   readonly stopsOnAutoPause = false;
+  readonly allowsSharing = true;
   private sdk: CrazyGamesSdk | null = null;
   private adblock = false;
   private storage: KeyValueStorage | null = null;

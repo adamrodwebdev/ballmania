@@ -120,8 +120,10 @@ const campaignDone = computed(() => props.hud?.over === 'won' && props.mode.fina
 const dailyRecord = computed(() =>
   daily && props.settlement ? player.daily(daily.day) : undefined,
 );
+/** A daily challenge offers to share its result, where the platform allows it. */
+const sharing = Boolean(daily) && platform.allowsSharing;
 const primaryReplay = computed(
-  () => !following.value && !props.offerAssist && !props.offerContinue && !daily,
+  () => !following.value && !props.offerAssist && !props.offerContinue && !sharing,
 );
 /** A portal with ads, but none can be offered: an ad blocker. Said, never punished. */
 const adsBlocked = computed(() => platform.hasAds && !ads.rewardsOffered);
@@ -397,7 +399,7 @@ defineExpose({
         </small>
       </button>
       <button
-        v-if="daily && dailyRecord"
+        v-if="sharing && dailyRecord"
         class="btn btn-primary"
         type="button"
         autofocus

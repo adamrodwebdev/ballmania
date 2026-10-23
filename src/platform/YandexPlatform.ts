@@ -105,6 +105,7 @@ export class YandexPlatform implements PlatformAdapter {
   readonly hasAds = true;
   readonly isPortal = true;
   readonly stopsOnAutoPause = true;
+  readonly allowsSharing = false;
   private sdk: YandexSdk | null = null;
   private player: YandexPlayer | null = null;
   private readonly cache = new Map<string, string>();
@@ -216,7 +217,7 @@ export class YandexPlatform implements PlatformAdapter {
     );
   }
 
-  /** Links lead outside the platform: not allowed on Yandex Games. */
+  /** Never asked: the game offers no share on Yandex Games (`allowsSharing`). */
   shareLink(): Promise<null> {
     return Promise.resolve(null);
   }

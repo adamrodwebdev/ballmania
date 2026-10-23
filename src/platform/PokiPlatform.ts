@@ -27,6 +27,7 @@ export class PokiPlatform implements PlatformAdapter {
   readonly hasAds = true;
   readonly isPortal = true;
   readonly stopsOnAutoPause = false;
+  readonly allowsSharing = true;
   private sdk: PokiSdk | null = null;
   /** `init` fails with an ad blocker: the game runs, without rewarded ads. */
   private adsBlocked = false;
