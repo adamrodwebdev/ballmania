@@ -44,6 +44,27 @@ const SHOWCASE = [
 /** Marbles ahead of the Laser, from the head: the Nova zone and the first cascade. */
 const SHOWCASE_LEAD = 16;
 
+/**
+ * Pairs in turn, head first: a shot of a pair's colour into it makes a
+ * group; neighbours of another colour meet, so a chain reaction comes only
+ * from two pairs cleared side by side.
+ */
+const pairs = (count: number, first: number): number[] =>
+  Array.from({ length: count * 2 }, (_, i) => (first + Math.floor(i / 2)) % 3);
+
+/**
+ * E2, the mirrors, head first: pairs nested around a middle pair, so that a
+ * bank shot of the colour dealt first sets a three-step cascade off; then
+ * pairs in turn, to bank again.
+ */
+const MIRRORS = [...[1, 1, 0, 0, 2, 2, 0, 0, 1, 1], ...pairs(12, 2)];
+
+/**
+ * E3, the black hole, head first: a cascade for the first curved shot, then
+ * pairs in turn, each won by a shot the black hole bends.
+ */
+const BLACK_HOLE = [...[0, 0, 1, 1, 2, 2, 1, 1, 0, 0], ...pairs(7, 2)];
+
 export const TRAINING: readonly TrainingLevel[] = [
   {
     id: 'training-1',
@@ -65,7 +86,7 @@ export const TRAINING: readonly TrainingLevel[] = [
     powers: { kinds: ['laser'], every: 99, first: 'laser', lead: SHOWCASE_LEAD },
   },
   // E2, the mirrors (Neon): a short spiral within the corner walls, three
-  // colours, a slow chain; the hand shows a bank shot that completes a group.
+  // colours, a slow chain; the hand shows a bank shot that makes a group.
   {
     id: 'training-2',
     world: 'neon',
@@ -73,13 +94,15 @@ export const TRAINING: readonly TrainingLevel[] = [
     step: 2,
     track: spiral(1.25, 0.25, false),
     mirrors: CORNER_WALLS,
-    length: 30,
+    length: MIRRORS.length,
     tones: 3,
     repeatChance: 0.5,
-    speed: 28,
+    speed: 26,
     hint: 'bank',
     lesson: 'bank',
     victory: 'short',
+    sequence: [...MIRRORS].reverse(),
+    opening: [2, 0, 1],
   },
   // E3, the black hole (Singularity): weak gravity and a still launcher, as at
   // 6-1, so that the curve reads at once; the supernova, then the promise.
@@ -88,15 +111,18 @@ export const TRAINING: readonly TrainingLevel[] = [
     world: 'singularity',
     number: 3,
     step: 3,
-    track: orbital(1.5, 0.75, true),
+    // The spiral ends well outside the disk: a head that waits at the halt can be hit.
+    track: orbital(1.5, 0.75, true, { inner: 0.32 }),
     gravity: 0.45,
-    length: 28,
+    length: BLACK_HOLE.length,
     tones: 3,
     repeatChance: 0.5,
-    speed: 26,
+    speed: 22,
     hint: 'curve',
     lesson: 'curve',
     victory: 'promise',
+    sequence: [...BLACK_HOLE].reverse(),
+    opening: [2, 1, 0],
   },
 ];
 

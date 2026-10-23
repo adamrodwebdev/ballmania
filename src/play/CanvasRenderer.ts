@@ -60,6 +60,8 @@ export interface Renderer {
   readonly deviceScale: number;
   /** The surface drawn on, which post-processing reads. */
   readonly surface: HTMLCanvasElement;
+  /** Board units from a point to the nearest edge of the screen. */
+  room(point: Vec2): number;
   draw(scene: Scene): void;
 }
 
@@ -552,6 +554,15 @@ export class CanvasRenderer implements Renderer {
     ctx.arc(at.x, at.y, size, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
+  }
+
+  room(point: Vec2): number {
+    const corner = this.toBoard(
+      this.canvas.width / this.pixelRatio,
+      this.canvas.height / this.pixelRatio,
+    );
+    const origin = this.toBoard(0, 0);
+    return Math.min(point.x - origin.x, corner.x - point.x, point.y - origin.y, corner.y - point.y);
   }
 
   /** Board units from a point to the farthest corner of the screen. */

@@ -375,19 +375,30 @@ export class Destruction {
     });
   }
 
-  /** A Nova bomb: a blinding ring as wide as its blast, a shock wave and a shake. */
-  blast(at: Vec2, radius: number): void {
+  /**
+   * A Nova bomb: a blinding ring as wide as its blast, a shock wave and a
+   * shake. The ring stays within `room` of its centre (board units to the
+   * screen's nearest edge): the explosion shows whole wherever it goes off.
+   */
+  blast(at: Vec2, radius: number, room = Infinity): void {
     this.flashAmount = Math.max(this.flashAmount, 0.3);
     this.flashColour = '#ffffff';
+    // The ring spreads out to 0.9 + 0.7 × size ball radii (see draw).
+    const fits = (room / this.ballRadius - 0.9) / 0.7;
     this.rings.push({
       x: at.x,
       y: at.y,
       life: 0.6,
       maxLife: 0.6,
       tone: 0,
-      size: (radius / this.ballRadius) * 1.4,
+      size: Math.max(1, Math.min((radius / this.ballRadius) * 1.4, fits)),
     });
     this.impact(at, 0.7);
+  }
+
+  /** How far the widest ring reaches from its centre, in board units (for the tests). */
+  get ringReach(): number {
+    return Math.max(0, ...this.rings.map((ring) => this.ballRadius * (0.9 + ring.size * 0.7)));
   }
 
   /** A blow on something big (the Colossus): shake and a shock wave. */

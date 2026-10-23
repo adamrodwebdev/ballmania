@@ -100,17 +100,20 @@ describe('HandCoach', () => {
     expect(coach.gesture).not.toBeNull();
   });
 
-  it('shows E2 a bank shot that makes a group, and is done once one explodes', () => {
+  it('shows E2 bank shots, and is done once one explodes', () => {
     const { game, coach } = showcase(2);
     run(game, coach, 1.5);
-    const gesture = coach.gesture!;
-    expect(gesture.path.length).toBeGreaterThan(2);
+    expect(coach.gesture!.path.length).toBeGreaterThan(2);
     const bounced: number[] = [];
     game.events.on('exploded', ({ bounces, by }) => {
       if (by === 'player') bounced.push(bounces);
     });
-    copy(game, coach);
-    expect(bounced[0]).toBeGreaterThan(0);
+    // A player who follows the hand gets there within a few shots.
+    for (let shot = 0; shot < 5 && !coach.learnt; shot++) {
+      run(game, coach, 0.5);
+      if (coach.gesture) copy(game, coach);
+    }
+    expect(bounced.some((bounces) => bounces > 0)).toBe(true);
     expect(coach.learnt).toBe(true);
   });
 

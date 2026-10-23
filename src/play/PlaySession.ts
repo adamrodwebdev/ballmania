@@ -526,7 +526,7 @@ export class PlaySession {
     });
     game.events.on('bomb', ({ position, radius }) => {
       this.hud.bombs++;
-      this.destruction.blast(position, radius);
+      this.destruction.blast(position, radius, this.renderer.room(position));
       sound.bomb();
       haptics.explosion(4);
     });

@@ -41,4 +41,28 @@ describe('the training (v1.8.0)', () => {
       tailFirst.length - 1 - 16,
     );
   });
+  it('lays out E2 and E3 with a cascade at the head, then pairs in turn', () => {
+    for (const step of [2, 3] as const) {
+      const level = trainingLevel(step);
+      const tailFirst = level.sequence!;
+      expect(tailFirst).toHaveLength(level.length);
+      // No run of three: nothing bursts before a shot.
+      expect(
+        tailFirst.some((tone, i) => tone === tailFirst[i + 1] && tone === tailFirst[i + 2]),
+      ).toBe(false);
+      // The colour dealt first fits the middle pair, 4 and 5 balls from the head:
+      // a shot of it there sets off a three-step cascade.
+      const colour = level.opening![0]!;
+      const middle = tailFirst.length - 1 - 5;
+      expect(tailFirst[middle]).toBe(colour);
+      const chain = chainOf(tailFirst.map((tone) => String.fromCharCode(97 + tone)).join(''));
+      const depths = [
+        chain.insert(new Ball(999, colour, 0), { index: middle, after: true })!.depth,
+      ];
+      for (let t = 0; t < 3; t += 1 / 120) {
+        depths.push(...chain.advance(1 / 120).map((explosion) => explosion.depth));
+      }
+      expect(depths, `E${step}`).toEqual([1, 2, 3]);
+    }
+  });
 });

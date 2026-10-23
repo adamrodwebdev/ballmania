@@ -179,7 +179,7 @@ export const orbital = (
   turns: number,
   start: number,
   clockwise: boolean,
-  extra: { squareness?: number; arms?: number } = {},
+  extra: { squareness?: number; arms?: number; inner?: number } = {},
 ): TrackRecipe =>
   spiral(turns, start, clockwise, { outer: 0.6, inner: 0.2, portal: true, ...extra });
 

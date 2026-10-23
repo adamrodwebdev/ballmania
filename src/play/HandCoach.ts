@@ -22,6 +22,8 @@ const ORDER = Array.from(
 );
 /** Seconds of a sweep, so that a hand coming back has a fresh shot to show. */
 const SWEEP_TIME = ANGLES / PER_FRAME / 60;
+/** Shots in a row that made no group, after which the training's hand comes back. */
+export const STRUGGLE = 3;
 /** Rebounds the hand's shots may take: the aim line shows as many. */
 const BOUNCES = 2;
 /** Where the finger lets go on a curved shot: this far along its first direction at most. */
@@ -58,8 +60,6 @@ interface LessonRule {
   shows(line: AimLine): boolean;
   /** What such a shot is worth on top of the group it makes. */
   bonus(line: AimLine): number;
-  /** Where the finger lets go, for a shot along `line`. */
-  release(line: AimLine): Vec2;
   /** True if a shot that reached the chain is the lesson done. */
   readonly landing: boolean;
   /** True if this shot of the player, which set off an explosion, is the lesson done. */
@@ -78,14 +78,26 @@ export function bend(points: readonly Vec2[]): number {
   return Math.acos(Math.min(1, Math.max(-1, first.dot(last))));
 }
 
-const end = (line: AimLine) => line.points[line.points.length - 1]!;
+/**
+ * Where the finger lets go for a shot along `line`: on the ball for a
+ * straight shot; before the mirror for a bank shot; along its first
+ * direction for a shot the black hole bends, which lands elsewhere.
+ */
+function releaseOf(line: AimLine): Vec2 {
+  const [from, next] = line.points as [Vec2, Vec2];
+  const end = line.points[line.points.length - 1]!;
+  const rebound = line.rebounds[0];
+  if (rebound) return from.lerp(rebound, BANK_RELEASE);
+  if (bend(line.points) < LESSON_BEND) return end;
+  const reach = Math.min(CURVE_RELEASE, from.distanceTo(end) / 2);
+  return from.add(next.sub(from).normalize().scale(reach));
+}
 
 const LESSONS: Readonly<Record<Lesson, LessonRule>> = {
   // A shot straight at the chain; a Nova lands wherever it touches it.
   shot: {
     shows: (line) => line.rebounds.length === 0,
     bonus: () => 0,
-    release: end,
     landing: true,
     learnt: () => false,
   },
@@ -93,7 +105,6 @@ const LESSONS: Readonly<Record<Lesson, LessonRule>> = {
   bank: {
     shows: (line) => line.rebounds.length > 0,
     bonus: (line) => line.rebounds.length,
-    release: (line) => line.points[0]!.lerp(line.rebounds[0]!, BANK_RELEASE),
     landing: false,
     learnt: (_, bounces) => bounces > 0,
   },
@@ -101,11 +112,6 @@ const LESSONS: Readonly<Record<Lesson, LessonRule>> = {
   curve: {
     shows: (line) => line.rebounds.length === 0 && bend(line.points) >= LESSON_BEND,
     bonus: (line) => Math.round(4 * bend(line.points)),
-    release: (line) => {
-      const [from, next] = line.points as [Vec2, Vec2];
-      const reach = Math.min(CURVE_RELEASE, from.distanceTo(end(line)) / 2);
-      return from.add(next.sub(from).normalize().scale(reach));
-    },
     landing: false,
     learnt: (shot) => shot.deflection >= LESSON_BEND,
   },
@@ -151,8 +157,9 @@ export function bestWindow(results: readonly (Candidate | null)[]): Candidate | 
  * shows its lesson, a few angles a frame, preferring the biggest group and
  * the chain reaction behind it (else any such shot that reaches the chain);
  * shows it until the player has done it; and, in the training, shows it
- * again after a few seconds without a shot. It hides while the player holds
- * a shot or one is in flight.
+ * again after a few seconds without a shot, or after a few shots in a row
+ * that made no group. It hides while the player holds a shot or one is in
+ * flight.
  */
 export class HandCoach {
   private readonly rule: LessonRule;
@@ -163,6 +170,8 @@ export class HandCoach {
   private shot: ProjectileView | null = null;
   /** Seconds since the player's last shot, or since the start. */
   private idle = 0;
+  /** The player's shots in a row that made no group. */
+  private astray = 0;
   /** Seconds into the gesture shown; it starts again each time the hand comes back. */
   private phase = 0;
   /** This sweep's verdict on each angle tried so far, and the next angle to try. */
@@ -194,6 +203,7 @@ export class HandCoach {
       // The gesture waits, and the next one is looked for with the next ball.
       this.shot = projectile;
       this.idle = 0;
+      this.astray++;
       this.forget();
     });
     const landed = () => {
@@ -203,6 +213,7 @@ export class HandCoach {
     game.events.on('bomb', landed);
     game.events.on('exploded', ({ by, cause, bounces }) => {
       if (by !== 'player' || cause !== 'shot' || !this.shot) return;
+      this.astray = 0;
       if (rule.learnt(this.shot, bounces)) this.learntValue = true;
     });
   }
@@ -216,9 +227,13 @@ export class HandCoach {
     return this.shown && { ...this.shown.stroke, time: this.phase };
   }
 
-  /** The hand is wanted: its lesson is not done yet, or the player has waited too long. */
+  /**
+   * The hand is wanted: its lesson is not done yet; or, in the training, the
+   * player has waited too long, or keeps missing.
+   */
   private get wanted(): boolean {
-    return !this.learntValue || (this.nudge !== null && this.idle >= this.nudge);
+    if (!this.learntValue) return true;
+    return this.nudge !== null && (this.idle >= this.nudge || this.astray >= STRUGGLE);
   }
 
   /**
@@ -234,7 +249,9 @@ export class HandCoach {
       this.tone = game.shooter.current;
       this.forget();
     }
-    const soon = this.nudge !== null && this.idle >= this.nudge - SWEEP_TIME;
+    // Soon wanted: a sweep ahead, so that the hand comes back with a shot to show.
+    const soon =
+      this.nudge !== null && (this.idle >= this.nudge - SWEEP_TIME || this.astray >= STRUGGLE - 1);
     if (!this.learntValue || soon) this.scan();
     if (!active || !this.wanted) {
       // Hidden: the next gesture starts from the press.
@@ -270,7 +287,7 @@ export class HandCoach {
     const line = this.game.aimLineAt(candidate.angle, BOUNCES);
     const now = this.score(line);
     if (now === null || now < Math.min(candidate.score, 1)) return null;
-    return { from: this.game.shooter.position, to: this.rule.release(line), path: line.points };
+    return { from: this.game.shooter.position, to: releaseOf(line), path: line.points };
   }
 
   /**
@@ -297,16 +314,20 @@ export class HandCoach {
   }
 
   /**
-   * What a shot along `line` is worth to the lesson: null if it does not show
-   * it or meets no ball; 0 if it makes no group; else the group, the chain
-   * reaction behind it and the lesson's bonus.
+   * What a shot along `line` is worth: the group it makes, the chain reaction
+   * behind it, and the lesson's bonus if it shows the lesson; null if it meets
+   * no ball. Until the lesson is done, only the shots that show it count (0
+   * for one that makes no group, so the gesture still shows); once it is
+   * done, the hand comes back to help: any shot that makes a group.
    */
   private score(line: AimLine): number | null {
-    if (!line.target || !this.rule.shows(line)) return null;
+    if (!line.target) return null;
+    const shows = this.rule.shows(line);
+    if (!shows && !this.learntValue) return null;
     const preview = this.game.preview(false, line, true);
     const group = preview?.group.length ?? 0;
-    if (group === 0) return 0;
-    return group + (preview?.reaction.length ?? 0) + this.rule.bonus(line);
+    if (group === 0) return this.learntValue ? null : 0;
+    return group + (preview?.reaction.length ?? 0) + (shows ? this.rule.bonus(line) : 0);
   }
 
   private forget(): void {
