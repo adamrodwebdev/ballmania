@@ -7,6 +7,7 @@ import type { PowerKind, PowerShot } from '@/engine/powers/Powers';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
+import type { SpriteCanvas } from './canvas';
 import { leverReach, NO_INSETS, type Insets } from './BoardView';
 import { CanvasRenderer, SWITCH_RADIUS, type Renderer } from './CanvasRenderer';
 import { Destruction } from './effects/Destruction';
@@ -90,7 +91,8 @@ export interface HudState {
 }
 
 export interface SessionOptions {
-  readonly canvas: HTMLCanvasElement;
+  /** The page's canvas, or an OffscreenCanvas in a worker (the title's reel, v1.8.0). */
+  readonly canvas: SpriteCanvas;
   readonly distortion: DistortionLayer | null;
   readonly level: LevelDefinition;
   readonly palette: Palette;
@@ -142,7 +144,9 @@ export class PlaySession {
   private destruction: Destruction;
   private readonly warp = new TimeWarp();
   private readonly monitor = new FrameMonitor();
-  private readonly loop: GameLoop;
+  /** Its own frames, once started: the reel and the trailer drive it with `advance`. */
+  private loop: GameLoop | null = null;
+  private readonly frameRate: number | undefined;
   private time = 0;
   private overIn: number | null = null;
   private heartIn = 0;
@@ -166,7 +170,7 @@ export class PlaySession {
     insets: NO_INSETS,
   };
   private colossusFlash = 0;
-  private readonly canvas: HTMLCanvasElement;
+  private readonly canvas: SpriteCanvas;
   private readonly distortion: DistortionLayer | null;
   private level: LevelDefinition;
   private palette: Palette;
@@ -204,21 +208,41 @@ export class PlaySession {
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
     this.destruction = this.createDestruction();
     this.hud = shallowReactive(this.initialHud());
-    this.loop = new GameLoop(
-      (dt) => this.frame(dt),
-      window,
-      options.frameRate ? new FrameCap(options.frameRate) : FrameCap.none(),
-    );
+    this.frameRate = options.frameRate;
   }
 
+  /** Plays on the screen's frames (never in a worker: it needs the page's window). */
   start(): void {
+    this.loop ??= new GameLoop(
+      (dt) => this.frame(dt),
+      window,
+      this.frameRate ? new FrameCap(this.frameRate) : FrameCap.none(),
+    );
     this.loop.start();
   }
 
   destroy(): void {
-    this.loop.stop();
+    this.loop?.stop();
     this.game.events.clear();
     this.distortion?.hide();
+  }
+
+  /**
+   * Moves the game on by `dt` real seconds and draws it, without a loop of
+   * its own: the title's reel and the trailer drive it frame by frame.
+   */
+  advance(dt: number): void {
+    this.frame(dt);
+  }
+
+  /** The game played, for a scripted hand to plan its shots (the title's reel, the trailer). */
+  get playing(): Game {
+    return this.game;
+  }
+
+  /** Aims at an angle (radians), as a scripted hand does. */
+  aimAngle(angle: number): void {
+    if (this.acceptsCommands) this.game.shooter.aim(angle);
   }
 
   /** Stops the game behind the pause menu; `auto` when the game pauses itself. */
