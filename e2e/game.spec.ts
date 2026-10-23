@@ -75,6 +75,8 @@ test.describe('game', () => {
       getComputedStyle(canvas).getPropertyValue('--board-bg').trim(),
     );
     expect(sky).toBe('#0a0520');
+    // What floats over the night sky without a pill of its own gets one, the score first.
+    await expect(page.locator('.score')).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   });
 
   test('keeps touch targets large enough', async ({ page }) => {

@@ -4,6 +4,7 @@ import type { UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
+import type { DailyChallenge } from '@/player/DailyChallenge';
 import type { Rewards } from '@/player/PlayerProfile';
 import type { AppServices } from '../AppServices';
 import type { PlayRequest } from '../PlayRequest';
@@ -78,6 +79,35 @@ export interface PlayMode {
   readonly continuable: boolean;
   /** Where leaving the game leads. */
   readonly home: 'campaign' | 'home' | 'arcade';
+  /** The daily challenge this game is (its date heads the result, its record is shared), or null. */
+  readonly daily: DailyChallenge | null;
+  /** The game starts assisted: a campaign level the player chose to retry with help. */
+  readonly assisted: boolean;
+  /** The duel's rope, on the second line of the HUD. */
+  readonly rope: boolean;
+  /** The world whose music plays, or null when the mode plays its own song (Rhythm). */
+  readonly music: WorldId | null;
+  /** The key of the mode's own song, in hertz (Rhythm), else null. */
+  readonly root: number | null;
+  /** The very first level teaches by a gesture: a hand shows how to aim and shoot. */
+  readonly tutorial: boolean;
+  /** The campaign difficulty applies to this game: its name shows under the level's. */
+  readonly ranked: boolean;
+  /** What the swap button says: in a puzzle, it shows the next colour. */
+  readonly swapLabel: Message;
+  /** A hint can be had from the pause menu, on a portal (puzzles). */
+  readonly hintable: boolean;
+  /** The par of a puzzle, for its result, else null. */
+  readonly par: number | null;
+  /** The level whose defeats count toward the assistance, or null where there is none. */
+  readonly assistLevel: string | null;
+  /** A win of this game finishes the campaign. */
+  readonly finale: boolean;
+  /**
+   * A result worth a portal's celebration besides the items it unlocked: the
+   * campaign's last level won, a new Endless record.
+   */
+  celebrates(won: boolean, settlement: Settlement): boolean;
   /** Title of the end dialog. */
   outcome(won: boolean): Message;
   /**

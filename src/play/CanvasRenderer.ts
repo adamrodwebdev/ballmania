@@ -119,6 +119,8 @@ export interface AimPreview {
 export interface AimLine {
   readonly points: readonly Vec2[];
   readonly rebounds: readonly Vec2[];
+  /** The ball the line meets first, by its chain and index. */
+  readonly target: { readonly chain: number; readonly index: number } | null;
 }
 
 /** Canvas 2D renderer: tracks, hole, chains, shots, shooter and effects. */
@@ -962,8 +964,8 @@ export class CanvasRenderer implements Renderer {
     // Jewel world: the touched ball would turn into the mix; show its colour.
     const end = aim.points[aim.points.length - 1];
     if (!magnet && end && this.game.setup.alchemy) {
-      const target = this.game.aimTarget();
-      const mixed = target ? mix(this.game.shooter.current, target.ball.tone) : null;
+      const target = aim.target && this.game.chains[aim.target.chain]?.balls[aim.target.index];
+      const mixed = target ? mix(this.game.shooter.current, target.tone) : null;
       if (mixed !== null) {
         ctx.setLineDash([]);
         ctx.globalAlpha = 0.95;

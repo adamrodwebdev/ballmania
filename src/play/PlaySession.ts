@@ -283,7 +283,7 @@ export class PlaySession {
     if (!this.acceptsCommands) return false;
     const hint = find(this.game);
     if (!hint) return false;
-    for (let i = 0; i < 6 && this.game.shooter.current !== hint.tone; i++) this.game.swap();
+    this.game.loadTone(hint.tone);
     this.game.aimAt(hint.target);
     this.hinted = { at: hint.target, until: this.time + HINT_TIME };
     this.syncTones();
@@ -739,17 +739,19 @@ export class PlaySession {
   }
 
   private render(): void {
+    // Followed once a frame (v1.7.6): the line, its target and the preview share one trace.
+    const aim =
+      this.game.state === 'playing'
+        ? this.game.aimLine(this.game.upgrades.aimBounces, this.powered)
+        : null;
     this.renderer.draw({
       game: this.game,
       motion: this.motion,
       destruction: this.destruction,
-      aim:
-        this.game.state === 'playing'
-          ? this.game.aimLine(this.game.upgrades.aimBounces, this.powered)
-          : null,
+      aim,
       preview:
-        this.aimAssist && this.game.state === 'playing' && !this.hud.magnetArmed
-          ? this.game.preview(this.powered)
+        aim && this.aimAssist && !this.hud.magnetArmed
+          ? this.game.preview(this.powered, aim)
           : null,
       assist: this.aimAssist,
       charge: this.charging === null ? 0 : Math.min(1, this.charging / CHARGE_TIME),

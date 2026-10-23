@@ -1653,6 +1653,23 @@ le moteur de tracés.
 | `PlayMode.continuable`                                                          | Les modes où l'on peut continuer                                                             |
 | `PlayerProfile.tryOn`, `.takeLook`, `.grantShards`                              | Cosmétique prêté pour une partie, éclats doublés                                             |
 
+### 5.15 Écran de jeu (v1.7.6)
+
+L'écran de jeu assemble des parties qui ont chacune une seule raison de changer ; il ne prend
+plus aucune décision de jeu (son script passe de 727 à 235 lignes).
+
+| Élément                                                                                 | Responsabilité                                                                                                                                                                                                                    |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GameScreen` (`src/ui/screens`)                                                         | Assemble les parties ; enregistre la partie finie ; publicités récompensées et pauses naturelles entre deux parties                                                                                                               |
+| `useGameSession` (`src/ui/game`)                                                        | La session, créée une fois l'écran posé ; la forme du plateau ; pointeur, clavier, taille et visibilité ; son et réglages ; ce que le portail en apprend (ses pauses, les publicités qui couvrent la partie, début et fin de jeu) |
+| `useAnnouncements`                                                                      | Annonces du lecteur d'écran et mot d'éloge au-dessus du plateau                                                                                                                                                                   |
+| `GameHud`, `GameControls`                                                               | Barre du haut (rail de gauche sur écran large), pastilles et seconde ligne ; boutons du bas (rail de droite)                                                                                                                      |
+| `PausePanel`, `ResultPanel`, `game-dialog.css`                                          | Menu de pause ; résultat (score qui défile, étoiles qui sonnent, partage du défi du jour) ; styles communs aux deux                                                                                                               |
+| `EndOfGame` (`src/app`)                                                                 | Règles de fin de partie : aide après trois défaites, continuer une fois, éclats doublés une fois, une minute entre deux indices, une seule offre de publicité par pause, célébration du portail                                   |
+| `PlayMode` (`daily`, `ranked`, `swapLabel`, `hintable`, `par`, `finale`, `celebrates`…) | Ce que l'écran demande à son mode, au lieu de tester le type de partie                                                                                                                                                            |
+| `Game.aimLine`, `Game.preview(power, line)`                                             | Ligne de visée tracée une fois par image, reprise par l'aperçu des groupes                                                                                                                                                        |
+| `Game.loadTone`                                                                         | L'indice d'énigme charge sa couleur sans compter d'échange                                                                                                                                                                        |
+
 ## 6. Qualité et tests
 
 - Tests unitaires du moteur (géométrie du chemin, insertion, correspondances, recul,

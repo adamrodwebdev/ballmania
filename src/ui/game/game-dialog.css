@@ -1,0 +1,67 @@
+/*
+ * What the game's two dialogs share, the pause menu and the result (imported
+ * scoped by each): a card over the board, its title, its column of choices.
+ */
+.detail {
+  color: var(--text-muted);
+}
+
+.ad-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dialog {
+  width: min(100% - 2rem, 24rem);
+  max-height: calc(100% - 2rem);
+  /* A dialog taller than a small phone scrolls inside itself, and only itself. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+.dialog h2 {
+  margin-bottom: var(--space-3);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.2rem + 0.8vw, 1.75rem);
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+/* Short windows (portal frames): every choice stays in view without scrolling. */
+@container game (height <= 47.5rem) {
+  .actions {
+    margin-top: var(--space-4);
+  }
+}
+
+/* Phones of 640 px: the fullest result (two goals, an ad, a launcher, a novelty) still fits. */
+@container game (height <= 42.5rem) {
+  .dialog {
+    padding: var(--space-4);
+  }
+
+  .dialog h2 {
+    margin-bottom: var(--space-2);
+  }
+
+  .actions {
+    margin-top: var(--space-3);
+  }
+}

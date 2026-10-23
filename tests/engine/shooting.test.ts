@@ -78,4 +78,23 @@ describe('the shooting module', () => {
     game.aimAt(new Vec2(500, 900));
     expect(game.preview()).toBeNull();
   });
+
+  it('follows the aim once: the line knows its target, and the preview reuses it', () => {
+    const game = new Game(level([0, 0, 1, 2]), new FixedRandom(0));
+    game.aimAt(new Vec2(325, 100));
+    const line = game.aimLine();
+    expect(line.target).toEqual({ chain: 0, index: 1, after: true });
+    expect(game.aimTarget()?.index).toBe(line.target?.index);
+    expect(game.preview(false, line)).toEqual(game.preview());
+  });
+
+  it("loads a puzzle hint's colour without counting a swap of the player", () => {
+    const game = new Game(level([0, 1, 2, 0, 1, 2]), new FixedRandom(0));
+    const other = game.shooter.next;
+    game.loadTone(other);
+    expect(game.shooter.current).toBe(other);
+    expect(game.summary().swaps).toBe(0);
+    game.swap();
+    expect(game.summary().swaps).toBe(1);
+  });
 });

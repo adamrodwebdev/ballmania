@@ -135,9 +135,9 @@ ni juste après sa défaite. Détails : § 3.7 du
 | `src/player`   | Profil, objectifs, cosmétiques, défi du jour                                        |
 | `src/services` | Réglages, sauvegardes, partage, thème                                               |
 | `src/i18n`     | Langues (un fichier chacune, chargé à la demande), pluriels, détection              |
-| `src/app`      | Services injectés et modes de jeu (stratégies)                                      |
+| `src/app`      | Services injectés, modes de jeu (stratégies) et règles de fin de partie             |
 | `src/platform` | Notre site et les portails (publicités, sauvegarde, signaux), choisis au build      |
-| `src/ui`       | Écrans et composants Vue 3                                                          |
+| `src/ui`       | Écrans et composants Vue 3 ; l'écran de jeu en parties (`src/ui/game`)              |
 
 Programmation orientée objet, TypeScript strict, Vue 3 (Composition API), vue-i18n
 précompilé, aucune bibliothèque de jeu. Politique de sécurité du contenu stricte (aucun
