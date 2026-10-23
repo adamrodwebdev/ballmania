@@ -1185,9 +1185,22 @@ fait éclater son nom au-dessus du plateau.
 
 ### 4.2 Responsive
 
-- Mobile d'abord (≈ 360 px), puis points de rupture 640 / 768 / 1024 / 1280 px.
+- Mobile d'abord (≈ 360 px), puis points de rupture en `rem`, en syntaxe d'intervalle
+  (v1.7.6 : `width >= 40rem`, soit 640 px avec la police par défaut) : ils suivent la taille
+  de police choisie par le joueur, et sont placés là où le contenu casse ; la hauteur et les
+  proportions comptent aussi (carte compacte, écran titre, rails du jeu).
+- **Requêtes de conteneur** (v1.7.6) : l'écran de jeu est un conteneur (`container: game /
+size`) ; ses bandes de HUD, ses rails, le cadre 2:1 et ses fenêtres (pause, résultat)
+  suivent sa taille, plus celle de la fenêtre. Les cartes des mondes gardent les requêtes de
+  la page : leur forme compacte suit la hauteur de la fenêtre (le squelette de la page à
+  deux colonnes), et les largeurs de carte compacte et normale se recouvrent (340 à 900 px
+  contre 330 à 736 px), si bien qu'aucune requête de conteneur ne garderait l'affichage à
+  l'identique. Refonte vérifiée à l'identique : géométrie de chaque élément visible et
+  captures, avant et après, sur 20 tailles et 8 écrans, deux thèmes, fenêtre de défaite
+  comprise (196 paires identiques).
 - Aucun défilement horizontal de 320 à 1920 px ; aire de jeu mise à l'échelle en conservant
-  ses proportions, portrait et paysage.
+  ses proportions, portrait et paysage. Plus aucun `overflow-x: hidden` ne masque un
+  débordement (v1.7.6) : le test de débordement mesure la page et le cadre de chaque écran.
 - **Carte de campagne sur un écran large et bas** (v1.7, jusqu'à 800 px de haut : cadres de
   portail 907 × 510 et 821 × 462, téléphone couché, 1280 × 720) : le menu en colonne à
   gauche (retour, titre, étoiles, difficulté, Observatoire en bas), le paquet des mondes à

@@ -60,7 +60,6 @@ body {
     sans-serif;
   font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
   line-height: 1.5;
-  overflow-x: hidden;
 }
 
 #app {

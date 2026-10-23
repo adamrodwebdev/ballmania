@@ -582,7 +582,7 @@ h2 {
   color: var(--text-muted);
 }
 
-@media (min-width: 640px) {
+@media (width >= 40rem) {
   .option small {
     display: block;
   }
@@ -593,7 +593,7 @@ h2 {
  * side): the menu in a column on the left and the world deck on the right, so
  * the twelve levels show without scrolling the page.
  */
-@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 800px) {
+@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height <= 50rem) {
   .campaign {
     grid-template-columns: 15rem minmax(0, 1fr);
     grid-template-rows: repeat(4, auto) 1fr auto;
@@ -749,7 +749,7 @@ h2 {
  * above the button instead, over the last difficulties, until it is touched;
  * reaching the difficulties from the keyboard hides it too.
  */
-@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 600px) {
+@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height <= 37.5rem) {
   .observatory-group {
     position: relative;
   }
@@ -769,7 +769,7 @@ h2 {
  * a tighter column, so the map still fits with the Observatory's badge on its
  * own line (Playgama's 915 × 412).
  */
-@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 480px) {
+@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height <= 30rem) {
   .campaign {
     padding-block: var(--space-3);
     row-gap: var(--space-1);
@@ -793,7 +793,7 @@ h2 {
  * arrows and a swipe still move it), so the whole map fits with tiles still
  * 44 px wide.
  */
-@media (min-width: 640px) and (min-aspect-ratio: 5/4) and (max-height: 460px) {
+@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height <= 28.75rem) {
   .campaign {
     grid-template-columns: 14rem minmax(0, 1fr);
     column-gap: var(--space-4);
