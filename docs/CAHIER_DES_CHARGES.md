@@ -1361,6 +1361,14 @@ demain). Mesuré : 261 × 153 à 390 × 844, 574 × 338 à 1280 × 800, 768 × 4
 visible dès 360 × 780 (216 × 127) ; à 360 × 640 et 393 × 659, une fois le cadeau pris ;
 jamais à 320 × 568.
 
+**Vidéos des portails** (`marketing/crazygames/cuts.ts`, `trailer.ts`) : elles jouent les mêmes
+scènes. Après la couverture fixe (1 s), six des moments (la Nova, le tir en bande, l'aimant, le
+trou noir, le Duel et la chute du Colosse, la lumière filant sur le tracé) se fondent l'un dans
+l'autre en 0,3 s, 16,8 s en tout, sous les 20 s de CrazyGames : le plateau large en paysage, le
+plateau haut d'un téléphone en portrait (le mélange des couleurs n'y atteint pas son sommet et
+reste dans la boucle, avec l'aiguillage). Un test vérifie chaque sommet sur les deux plateaux
+avant le fondu suivant, et la durée.
+
 **Tests** : chaque moment atteint son sommet en moins de 3 s sur la vraie séance de jeu,
 ralentis compris (`tests/showcase/moments.test.ts`, sur une toile factice), toujours au même
 instant ; la boucle passe les moments dans l'ordre, les fond l'un dans l'autre, s'arrête et

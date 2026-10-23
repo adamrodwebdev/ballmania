@@ -10,7 +10,7 @@ import { fakeCanvas, reelStyle } from './fakeCanvas';
  * play session, with its effects and slow motion, on the reel's board shape.
  */
 function play(moment: Moment): MomentRun {
-  const take = new Take(moment, fakeCanvas(), reelStyle());
+  const take = new Take({ moment, canvas: fakeCanvas(), style: reelStyle() });
   take.resize(510, 300, 1);
   take.run.settle();
   while (!take.run.over) take.run.step();

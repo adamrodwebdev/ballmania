@@ -154,7 +154,11 @@ export class Reel {
 
   /** A moment of the lineup, on a canvas of its own the size of the window. */
   private take(index: number): Take {
-    const take = new Take(MOMENTS[index]!, blankCanvas(this.canvas), this.style);
+    const take = new Take({
+      moment: MOMENTS[index]!,
+      canvas: blankCanvas(this.canvas),
+      style: this.style,
+    });
     take.resize(this.size.width, this.size.height, this.size.ratio);
     return take;
   }

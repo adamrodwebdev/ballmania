@@ -1,24 +1,12 @@
 import { Palette } from '@/play/Palette';
 import { drawCover, TITLE_FONT } from './cover';
-import { Recorder, Trailer, type Shot } from './trailer';
+import { CUTS } from './cuts';
+import { Recorder, Trailer } from './trailer';
 
 /**
  * The CrazyGames kit, rendered in the browser and driven by `render.mjs`:
  * covers as PNG, trailers as MP4. Nothing here ships with the game.
  */
-
-/**
- * The cuts of the trailer: four worlds, opening on the Nebula and its four
- * power-up marbles (v1.7), ending on a win and its supernova.
- */
-const SHOTS: readonly Shot[] = [
-  { level: 'nebula-10', seed: 'trailer-1', seconds: 4.6, moment: 'action' },
-  { level: 'volcano-05', seed: 'trailer-3', seconds: 4.6, moment: 'action' },
-  { level: 'singularity-02', seed: 'trailer-4', seconds: 4.6, moment: 'action' },
-  { level: 'neon-07', seed: 'trailer-2', seconds: 4.6, moment: 'win' },
-];
-/** The opening still: the cover, so the thumbnail flows into the video. */
-const COVER_SECONDS = 1;
 
 const palette = () => Palette.fromStyle(getComputedStyle(document.documentElement));
 
@@ -54,15 +42,11 @@ const kit = {
     return toDataUrl(blob!);
   },
 
+  /** The trailer: the cover, then the title reel's moments (see `CUTS`). */
   async trailer(width: number, height: number): Promise<string> {
     const recorder = await Recorder.create(width, height);
-    await recorder.hold(await cover(width, height), COVER_SECONDS);
     const trailer = new Trailer(width, height, palette());
-    for (const shot of SHOTS) {
-      const start = trailer.plan(shot);
-      console.log(`${shot.level}: from ${(start / 30).toFixed(1)} s`);
-      await trailer.shoot(shot, start, (frame) => recorder.add(frame));
-    }
+    await trailer.shoot(await cover(width, height), CUTS, (frame) => recorder.add(frame));
     return toDataUrl(new Blob([await recorder.finish()], { type: 'video/mp4' }));
   },
 };

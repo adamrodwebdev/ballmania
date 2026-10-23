@@ -1,7 +1,8 @@
 import { SoundEngine } from '@/audio/SoundEngine';
-import { FRAMES } from '@/levels/tracks';
+import { FRAMES, type Frame } from '@/levels/tracks';
 import type { SpriteCanvas } from '@/play/canvas';
 import { resolveLook } from '@/play/cosmetics/Look';
+import type { DistortionLayer } from '@/play/effects/DistortionLayer';
 import { EffectProfile } from '@/play/effects/EffectProfile';
 import { Haptics } from '@/play/Haptics';
 import type { Palette } from '@/play/Palette';
@@ -29,27 +30,38 @@ export interface ReelStyle {
   readonly still: boolean;
 }
 
+/** A moment to play, where, and how it looks. */
+export interface TakeOptions {
+  readonly moment: Moment;
+  readonly canvas: SpriteCanvas;
+  readonly style: ReelStyle;
+  /** The board's shape: the title's window has the wide one. */
+  readonly frame?: Frame;
+  /** Shock waves that bend the picture (a trailer's WebGL layer); none in the reel. */
+  readonly distortion?: DistortionLayer | null;
+}
+
 /**
  * A moment of the reel being played (v1.8.0): the game's own play session,
- * on a canvas of its own, silent, driven frame by frame by its run.
+ * on a canvas of its own, silent, driven frame by frame by its run. The
+ * portal trailers film the same moments.
  */
 export class Take {
+  readonly moment: Moment;
+  readonly canvas: SpriteCanvas;
   readonly run: MomentRun;
   private readonly session: PlaySession;
   private readonly night: boolean;
 
-  constructor(
-    readonly moment: Moment,
-    readonly canvas: SpriteCanvas,
-    style: ReelStyle,
-  ) {
+  constructor({ moment, canvas, style, frame = FRAMES.wide, distortion = null }: TakeOptions) {
+    this.moment = moment;
+    this.canvas = canvas;
     const look = resolveLook({ ...style.equipped, board: 'board-world' }, moment.world);
     this.night = look.theme.night;
     this.session = new PlaySession({
       canvas,
-      distortion: null,
-      // The window has the wide board's shape.
-      level: moment.level(FRAMES.wide),
+      distortion,
+      level: moment.level(frame),
       palette: this.paletteOf(style.palettes),
       profile: EffectProfile.for(style.effects, style.still),
       feedback: { sound: new SoundEngine(0, () => null), haptics: new Haptics(false, null) },
