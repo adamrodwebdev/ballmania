@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                |
-| ------- | ---------- | --------------------- |
-| 1.6     | 23/10/2026 | Socle solide (v1.7.6) |
+| Version | Date       | Statut                               |
+| ------- | ---------- | ------------------------------------ |
+| 1.7     | 23/10/2026 | Entraînement (v1.8.0, étape 2 sur 8) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1178,20 +1178,32 @@ contenu et leur progression sont à part. Maquettes : rangées « 1.8.0 » du ca
 
 - **À l'écran** : la pause, le son, « Passer » et trois points d'avancée, à la place du nom
   du niveau. Ni score, ni jauge d'étoiles, ni éclats, ni objectifs : les points et les
-  multiplicateurs jaillissent sur le plateau comme ailleurs. Le bouton Échanger reste.
+  multiplicateurs jaillissent sur le plateau comme ailleurs. Le bouton Échanger reste. Sur un
+  écran large, « Passer » se tient dans le rail de gauche au-dessus du son, son signe sur son
+  mot comme les boutons de l'autre rail (rails de 6,5rem pendant l'entraînement : « Пропустить »
+  y tient).
 - **Aucune défaite** : la chaîne s'arrête au seuil du trou, où les signaux de danger jouent ;
   le joueur l'en éloigne en faisant exploser des groupes. Un tir manqué, avalé ou perdu ne
   coûte rien.
 - **On apprend en faisant** : le geste de la main montre l'action du moment fort et reste
-  jusqu'à ce qu'elle soit faite ; il revient après 5 s sans tir. Une seule phrase par
-  vitrine, au-dessus des boutons.
-- **Fin d'une vitrine** : quand sa chaîne est détruite, un éclat de victoire court (1 s
-  environ) pour E1 et E2 ; la supernova entière est gardée pour la fin d'E3.
-- **Entre deux vitrines** : une carte de 2 s au plus, sans bouton (« Étape 2 sur 3 · Les
-  miroirs », une ligne sous le titre), annoncée aux lecteurs d'écran ; la musique passe au
-  thème du monde suivant.
+  jusqu'à ce qu'elle soit faite ; il revient après 5 s sans tir, ou après trois tirs de suite
+  sans groupe, et montre alors le meilleur tir qui fait un groupe, de quelque sorte qu'il
+  soit. La main cherche elle-même ce tir sur le plateau (quelques angles par image) : le plus
+  gros groupe et la réaction qui le suit, visé au milieu de la plus large fenêtre d'angles,
+  pour qu'un geste copié à peu près le réussisse ; le doigt se lève sur la bille, avant le
+  miroir, ou dans la direction d'une courbe, et la ligne pointillée suit le trajet du tir
+  jusqu'à la bille. Elle se cache pendant qu'un tir est tenu ou en vol. Une seule phrase par
+  vitrine, au-dessus des boutons, qui reste jusqu'à ce que le geste soit fait.
+- **Fin d'une vitrine** : quand sa chaîne est détruite, un éclat de victoire court (la
+  lumière file plus vite, un cœur blanc et un seul anneau, 1,1 s) pour E1 et E2 ; la
+  supernova entière est gardée pour la fin d'E3.
+- **Entre deux vitrines** : une carte de 1,8 s, sans bouton : « Étape 2 sur 3 », le nom de la
+  vitrine en grand, et une ligne sur son geste (« Faites rebondir vos tirs sur le néon »,
+  « Laissez le trou noir courber vos tirs »), annoncée aux lecteurs d'écran ; le plateau
+  attend dessous, la musique du monde suivant déjà lancée.
 - **« Passer »** mène au 1-1 et marque l'entraînement comme fait. La pause propose
-  « Reprendre », « Recommencer la vitrine » et « Passer l'entraînement », sans autre menu.
+  « Reprendre », « Recommencer l'étape » et « Passer l'entraînement », sans autre menu (le mot
+  « étape » est celui de la carte).
 - **Portails** : `gameplayStart` dès la première image d'E1, aucune publicité pendant
   l'entraînement, et sa fin est fêtée auprès du portail (le « happy time » de CrazyGames).
 
@@ -1205,8 +1217,9 @@ contenu et leur progression sont à part. Maquettes : rangées « 1.8.0 » du ca
   emboîtées pour une cascade à trois étages, une bille Laser, une seconde cascade, une
   queue.
 - **Si le premier tir rate** : la Nova offerte n'est dépensée qu'en explosant ; un tir qui
-  manque la chaîne la rend au lanceur. Où qu'elle touche, son explosion (rayon 170) tient
-  entière à l'écran sur les trois cadres.
+  manque la chaîne la rend au lanceur. Où qu'elle touche, son explosion tient entière à
+  l'écran : les billes qu'elle emporte (rayon 170) sont sur la piste, et son anneau se tient
+  dans la place que l'écran laisse autour de l'impact (près d'un bord, il s'élargit moins).
 - **Phrase** : « Votre première bille est une bombe Nova : visez la chaîne et relâchez ! »
 
 **E2 — Les miroirs (Néon), 50 à 70 s**
@@ -1215,10 +1228,12 @@ contenu et leur progression sont à part. Maquettes : rangées « 1.8.0 » du ca
   deux), et la ligne de visée montre le rebond avant le tir.
 - **Émotion** : découverte (le premier rebond), fierté (le premier groupe touché en bande,
   avec son « × 2 » et son ping), envie de recommencer (le × 3).
-- **Déroulé** : une spirale courte, de grands murs d'angle, trois couleurs, une chaîne
-  lente. L'ouverture place la paire de la couleur servie hors de la ligne directe du
-  lanceur, à portée d'un mur : le tir direct touche d'autres billes, le tir en bande
-  complète le groupe et lance une cascade. Le geste de la main trace ce trajet.
+- **Déroulé** : une spirale courte (1,25 tour), quatre murs d'angle, 34 billes de trois
+  couleurs posées à la main, vitesse 26. En tête, des paires emboîtées autour d'une paire de
+  la couleur servie en premier : un tir en bande qui la complète lance une cascade à trois
+  étages ; ensuite, des paires à tour de rôle, qu'on gagne une à une (deux voisines vidées
+  côte à côte se rejoignent et explosent à leur tour). Le geste de la main trace le trajet
+  du tir en bande, rebond compris.
 - **Si le premier tir rate** : les murs entourent assez la chaîne pour qu'un tir manqué y
   revienne souvent ; tout tir en bande qui fait exploser un groupe donne le moment fort.
 - **Phrase** : « Les murs de néon renvoient vos tirs : un rebond double les points. »
@@ -1229,18 +1244,28 @@ contenu et leur progression sont à part. Maquettes : rangées « 1.8.0 » du ca
 - **Émotion** : étonnement (la courbe), maîtrise (les tirs courbés qui touchent), triomphe
   (la supernova), puis frisson : le boss qui vous attend.
 - **Déroulé** : trou noir au centre, gravité faible (0,45, comme au 6-1), lanceur immobile,
-  spirale courte, trois couleurs ; une ouverture posée pour qu'un tir courbé déclenche une
-  cascade. Pas de combat : la chaîne détruite, la supernova.
-- **La promesse** (comme dans Lumirift, décidé le 23/10/2026) : après la supernova, le jeune
-  Colosse stellaire surgit du trou noir, rugit (secousse), regarde le joueur, puis replonge,
-  hors d'atteinte : environ 4 s. Son combat reste au 1-3.
+  spirale de 1,5 tour qui s'arrête à 0,32 du demi-plateau, loin du disque (une tête arrêtée
+  au seuil s'y laisse encore toucher), 24 billes de trois couleurs posées à la main comme
+  dans E2 (une cascade en tête pour le premier tir courbé, puis des paires à tour de rôle),
+  vitesse 22. Un tir compte pour courbé dès que le trou noir l'a dévié de 15°. Pas de
+  combat : la chaîne détruite, la supernova.
+- **La promesse** (comme dans Lumirift, décidé le 23/10/2026) : 0,75 s après la supernova, le
+  trou noir s'agite (son anneau rougit, un grondement) ; le jeune Colosse stellaire en sort,
+  plus grand qu'au combat, regard levé ; il inspire, puis rugit (il enfle, ses runes
+  s'envolent, le plateau tremble) ; il se tourne vers le joueur et le fixe, un battement de
+  paupière ; il se soulève une dernière fois et replonge, ses runes aspirées derrière lui, le
+  trou se refermant : 4,2 s en tout, sans rien qui saute d'une image à l'autre. Avec le
+  mouvement réduit, il paraît et disparaît en fondu, sans enfler ni trembler. Son combat
+  reste au 1-3.
 - **Si le premier tir rate** : un tir avalé ne coûte rien ; la ligne courbe naturelle du
   lanceur tombe sur un groupe.
 - **Phrase** : « Le trou noir courbe vos tirs : suivez la ligne. »
 
-**Écran de fin** : un seul panneau, une fois le Colosse replongé : « Entraînement réussi » et
-« Prêt pour la campagne ! », les trois vitrines rappelées en une ligne chacune, « Le jeune
-Colosse stellaire vous attend au niveau 1-3 », et le seul bouton « Continuer » (« Niveau 1-1
+**Écran de fin** : un seul panneau de verre, celui des victoires, une fois le Colosse
+replongé : « Entraînement réussi » et « En route pour la campagne ! » (épicène, là où « Prêt »
+supposait un joueur), les trois vitrines rappelées en une ligne chacune (« La Nova et sa
+cascade », « Le rebond sur les miroirs », « Le tir courbé par le trou noir »), « Le jeune
+Colosse stellaire vous attend au niveau 1-3. », et le seul bouton « Continuer » (« Niveau 1-1
 · Nébuleuse »).
 
 **Le nouveau 1-1 (campagne), 60 à 90 s**
@@ -1248,10 +1273,13 @@ Colosse stellaire vous attend au niveau 1-3 », et le seul bouton « Continuer �
 - **Idée** : viser et grouper trois billes, sans artifice : le premier vrai niveau.
 - **Émotion** : calme au départ, une petite montée au milieu, et la première victoire de la
   campagne, sans défaite possible pour un nouveau venu.
-- **Déroulé** : spirale d'environ 1,25 tour, trois couleurs, chaîne lente ; une ouverture
-  posée pour une première cascade à deux étages. Ni Nova offerte ni vitrine : elles sont
-  dans E1. Nombre de billes et vitesse réglés aux étapes 4 et 5.
-- **Pour qui a passé l'entraînement** : le geste de la main reste jusqu'au premier tir.
+- **Déroulé** : spirale de 1,25 tour, 30 billes de trois couleurs posées à la main, vitesse
+  30 ; la couleur servie en premier complète une paire entre deux paires d'une autre couleur,
+  pour une première cascade à deux étages. Ni Nova offerte ni vitrine : elles sont dans E1.
+  Nombre de billes et vitesse réglés aux étapes 4 et 5.
+- **La main** montre le tir qui fait le premier groupe (la cascade posée) et reste jusqu'au
+  premier tir qui touche la chaîne ; elle ne revient pas. **Phrase** : « Visez la chaîne et
+  relâchez : dès trois billes de la même couleur, le groupe explose. »
 - Étoiles, éclats et objectifs comme ailleurs ; c'est la victoire qui donne « Premier pas ».
 
 **Tableau de l'entraînement**
@@ -1259,16 +1287,28 @@ Colosse stellaire vous attend au niveau 1-3 », et le seul bouton « Continuer �
 | Moment          | Durée   | Intensité (1 à 10) | Nouveauté                                  | Moment fort                            | Sortie                 |
 | --------------- | ------- | ------------------ | ------------------------------------------ | -------------------------------------- | ---------------------- |
 | E1 La Nova      | 45–60 s | 6 → 8 → 3          | Nova offerte, cascade, avant-goût du Laser | Nova, puis cascade à trois étages      | Éclat court            |
-| Carte           | ≤ 2 s   | 2                  | —                                          | « Étape 2 sur 3 · Les miroirs »        | —                      |
+| Carte           | 1,8 s   | 2                  | —                                          | « Étape 2 sur 3 · Les miroirs »        | —                      |
 | E2 Les miroirs  | 50–70 s | 4 → 7 → 3          | Rebond sur le néon, × 2 et × 3             | Premier groupe touché en bande         | Éclat court            |
-| Carte           | ≤ 2 s   | 2                  | —                                          | « Étape 3 sur 3 · Le trou noir »       | —                      |
-| E3 Le trou noir | 60–80 s | 5 → 8 → 10         | Gravité, tir courbé                        | Supernova, puis la promesse du Colosse | Promesse (4 s)         |
+| Carte           | 1,8 s   | 2                  | —                                          | « Étape 3 sur 3 · Le trou noir »       | —                      |
+| E3 Le trou noir | 60–80 s | 5 → 8 → 10         | Gravité, tir courbé                        | Supernova, puis la promesse du Colosse | Promesse (4,2 s)       |
 | Écran de fin    | —       | 3                  | —                                          | « Il vous attend au niveau 1-3 »       | « Continuer » vers 1-1 |
 | 1-1             | 60–90 s | 3 → 5 → 3          | —                                          | Première cascade, préparée             | Panneau de victoire    |
 
 En tout, environ trois minutes avant le 1-1 (2 min 45 à 3 min 40 avec les cartes et la
 promesse). La courbe monte en dents de scie, chaque vitrine plus haut que la précédente, et la
 seule respiration longue est l'écran de fin, avant le calme du 1-1.
+
+**Simulations** (`tests/levels/showcases.test.ts`) : un nouveau venu simulé tire son premier
+coup n'importe où sur la chaîne, puis recopie la main à peu près (il ajuste sa visée jusqu'à
+ce que l'aperçu allume un groupe), sinon prend le plus gros groupe que l'aperçu lui montre,
+ou met sa couleur à côté de la sienne. Dix nouveaux venus par cadre (carré, haut, large) :
+le moment fort de chaque vitrine (la cascade d'E1, un tir en bande d'E2 qui explose, un tir
+courbé d'E3 qui explose) est atteint dans au moins 90 % des parties, et chacune se termine.
+Mesuré le 23/10/2026 sur seize nouveaux venus par cadre : E1 gagnée 48 fois sur 48 avec une
+cascade (à trois étages 44 fois), E2 48 sur 48 avec un tir en bande, E3 48 sur 48 avec un tir
+courbé 45 fois ; le robot tire toutes les 1 à 1,5 s, d'où des durées médianes plus courtes
+que le tableau (E1 21 à 27 s, E2 28 à 32 s, E3 21 à 61 s) : les vraies se mesurent sur des
+inconnus à l'étape 4.
 
 ## 4. Exigences non fonctionnelles
 
@@ -1868,3 +1908,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                         |
 | 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                             |
 | 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).               |
+| 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                  |
