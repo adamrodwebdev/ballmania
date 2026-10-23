@@ -66,7 +66,7 @@ describe('play modes', () => {
     expect(mode.label).toEqual({ key: 'campaign.levelShort', params: { world: 1, number: 1 } });
     expect(mode.stars).toEqual(starThresholds(level));
     expect(mode.home).toBe('campaign');
-    expect(mode.hint).toBe('aim');
+    expect(mode.hint).toBe('match');
     expect(mode.next(app)).toBeNull();
     const settled = mode.settle(report(), app);
     expect(settled.stars).toBeGreaterThan(0);
@@ -184,7 +184,7 @@ describe('what the game screen asks its mode (v1.7.6)', () => {
 
   it('a campaign level: ranked, assisted on request, taught by a gesture at 1-1', () => {
     const mode = createMode({ kind: 'campaign', level: first, assisted: true });
-    expect(mode.tutorial).toBe(first.hint === 'aim');
+    expect(mode.tutorial).toBe(first.lesson !== undefined);
     expect(mode.assisted).toBe(true);
     expect(mode.ranked).toBe(true);
     expect(mode.assistLevel).toBe(first.id);
@@ -223,5 +223,62 @@ describe('what the game screen asks its mode (v1.7.6)', () => {
     expect(endless.swapLabel).toEqual({ key: 'game.swap' });
     expect(endless.par).toBeNull();
     expect(endless.root).toBeNull();
+  });
+});
+
+describe('the training (v1.8.0)', () => {
+  const options = play(false, 'pilot');
+
+  it('shows its place among the showcases, and nothing of the campaign', () => {
+    const mode = createMode({ kind: 'training', step: 2 });
+    expect(mode.training).toEqual({ step: 2, of: 3 });
+    expect(mode.stars).toBeNull();
+    expect(mode.ranked).toBe(false);
+    expect(mode.continuable).toBe(false);
+    expect(mode.assistLevel).toBeNull();
+    expect(mode.tutorial).toBe(true);
+    expect(mode.world).toBe('neon');
+    // The same chain every time: each showcase is tuned to reach its moment.
+    expect(mode.seed).toBe('training-2');
+    expect(createMode({ kind: 'campaign', level: CAMPAIGN[0]! }).training).toBeNull();
+  });
+
+  it('stops its chains short of the hole, and ends on a burst or on the promise', () => {
+    const e1 = createMode({ kind: 'training', step: 1 }).definition(FRAMES.square, options);
+    expect(e1.halt).toBeGreaterThan(0.8);
+    expect(e1.halt).toBeLessThan(1);
+    expect(e1.victory).toBe('short');
+    expect(e1.gift).toBe('bomb');
+    expect(e1.lesson).toBe('shot');
+    const e3 = createMode({ kind: 'training', step: 3 }).definition(FRAMES.square, options);
+    expect(e3.victory).toBe('promise');
+    expect(e3.lesson).toBe('curve');
+    expect(e3.gravity).toBeDefined();
+  });
+
+  it('pays nothing, resumes at the next showcase, and ends on the first level', () => {
+    const shared = services();
+    const first = createMode({ kind: 'training', step: 1 });
+    const settled = first.settle(report(), shared);
+    expect(settled.rewards.shards).toBe(0);
+    expect(shared.player.training).toEqual({ step: 2, done: false });
+    // Not a game of the campaign: a training left halfway resumes where it stopped.
+    expect(shared.player.view.stats.gamesPlayed).toBe(0);
+    expect(first.next(shared)).toEqual({
+      request: { kind: 'training', step: 2 },
+      label: { key: 'training.step', params: { step: 2, of: 3 } },
+    });
+    expect(first.outcome(true).key).toBe('game.won');
+    expect(first.celebrates(true, settled)).toBe(false);
+    const last = createMode({ kind: 'training', step: 3 });
+    last.settle(report(), shared);
+    expect(shared.player.training.done).toBe(true);
+    expect(last.next(shared)?.request).toEqual({ kind: 'campaign', level: CAMPAIGN[0] });
+    expect(last.next(shared)?.detail?.params?.level).toEqual({
+      key: 'campaign.levelShort',
+      params: { world: 1, number: 1 },
+    });
+    expect(last.outcome(true).key).toBe('training.end.title');
+    expect(last.celebrates(true, settled)).toBe(true);
   });
 });

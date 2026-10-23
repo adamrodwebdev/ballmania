@@ -4,6 +4,7 @@ import type { UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import type { Frame } from '@/levels/tracks';
+import type { TrainingStep } from '@/levels/training';
 import type { DailyChallenge } from '@/player/DailyChallenge';
 import type { Rewards } from '@/player/PlayerProfile';
 import type { AppServices } from '../AppServices';
@@ -103,6 +104,11 @@ export interface PlayMode {
   readonly assistLevel: string | null;
   /** A win of this game finishes the campaign. */
   readonly finale: boolean;
+  /**
+   * A showcase of the training (v1.8.0): its place among them, for the dots
+   * of the top bar, « Passer » and the chained flow; null for every other game.
+   */
+  readonly training: { readonly step: TrainingStep; readonly of: number } | null;
   /**
    * A result worth a portal's celebration besides the items it unlocked: the
    * campaign's last level won, a new Endless record.

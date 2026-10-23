@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Ball } from '@/engine/chain/Ball';
 import { Game } from '@/engine/Game';
-import { placePowers } from '@/engine/powers/Powers';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Prism } from '@/engine/reflectors/Reflectors';
 import { SeededRandom } from '@/engine/core/Random';
@@ -16,6 +15,7 @@ import {
 import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup } from '@/levels/LevelDefinition';
 import { FRAMES } from '@/levels/tracks';
+import { TRAINING } from '@/levels/training';
 import { chainOf } from '../engine/helpers';
 
 const SHOOTER_RADIUS = 58;
@@ -79,22 +79,26 @@ describe('campaign', () => {
     expect(findLevel('nope')).toBeUndefined();
   });
 
-  it('lays out level 1-1 as a showcase: a cascade behind the Nova, a Laser behind it', () => {
+  it('lays out level 1-1 for a first cascade, without the Nova of the training (v1.8.0)', () => {
     const first = findLevel('nebula-01')!;
+    expect(first.gift).toBeUndefined();
+    expect(first.lesson).toBe('shot');
     const tailFirst = first.sequence!;
     const chain = chainOf(tailFirst.map((tone) => String.fromCharCode(97 + tone)).join(''));
-    // Head first, six balls for the Nova, then a cascade whose middle pair, at
-    // 10 and 11, has the colour the launcher deals after the Nova.
-    const colour = first.opening![1]!;
-    const middle = tailFirst.length - 1 - 11;
-    expect(tailFirst[middle]).toBe(colour);
-    const depths = [chain.insert(new Ball(999, colour, 0), { index: middle, after: true })!.depth];
+    // Head first: the colour dealt first has a pair at 3 and 4, between two pairs of
+    // another colour, which meet and burst once it does.
+    const colour = first.opening![0]!;
+    const pair = tailFirst.length - 1 - 4;
+    expect(tailFirst[pair]).toBe(colour);
+    const depths = [chain.insert(new Ball(999, colour, 0), { index: pair, after: true })!.depth];
     for (let t = 0; t < 3; t += 1 / 120) {
       depths.push(...chain.advance(1 / 120).map((explosion) => explosion.depth));
     }
-    expect(depths).toEqual([1, 2, 3]);
-    // The Laser rides in the pair right behind the cascade, 16 balls from the head.
-    expect(placePowers(tailFirst, first.powers!).indexOf('laser')).toBe(tailFirst.length - 1 - 16);
+    expect(depths).toEqual([1, 2]);
+    // No run of three anywhere: nothing bursts before a shot.
+    expect(
+      tailFirst.some((tone, i) => tone === tailFirst[i + 1] && tone === tailFirst[i + 2]),
+    ).toBe(false);
   });
 
   it('gets harder in a saw-tooth curve', () => {
@@ -126,119 +130,122 @@ describe('campaign', () => {
 });
 
 describe.each(Object.values(FRAMES))('geometry on the $kind board', (frame) => {
-  it.each(CAMPAIGN.map((level) => [level.id, level] as const))('%s is playable', (_, level) => {
-    const setup = toLevelSetup(resolveLevel(level, frame));
-    const radius = setup.chain.ballRadius;
-    // With switches, the detours must be as clean as the shortcuts.
-    const variants = setup.chains.map(({ path, route }) => {
-      const paths = [path];
-      if (route) {
-        paths.push(route.build(Array.from({ length: route.forkCount }, () => 'long')).path);
-      }
-      return paths.map((candidate) => candidate.sample(10));
-    });
-    const samples = variants.flat();
-
-    for (const points of samples) {
-      for (const [i, point] of points.entries()) {
-        // The visible track stays on the board (the entrance tunnel crosses its edge)…
-        if (i >= 16) {
-          expect(point.x).toBeGreaterThanOrEqual(radius);
-          expect(point.x).toBeLessThanOrEqual(frame.width - radius);
-          expect(point.y).toBeGreaterThanOrEqual(radius);
-          expect(point.y).toBeLessThanOrEqual(frame.height - radius);
+  it.each([...CAMPAIGN, ...TRAINING].map((level) => [level.id, level] as const))(
+    '%s is playable',
+    (_, level) => {
+      const setup = toLevelSetup(resolveLevel(level, frame));
+      const radius = setup.chain.ballRadius;
+      // With switches, the detours must be as clean as the shortcuts.
+      const variants = setup.chains.map(({ path, route }) => {
+        const paths = [path];
+        if (route) {
+          paths.push(route.build(Array.from({ length: route.forkCount }, () => 'long')).path);
         }
-        // …and away from the shooter.
-        expect(point.distanceTo(setup.shooter)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
-      }
-    }
+        return paths.map((candidate) => candidate.sample(10));
+      });
+      const samples = variants.flat();
 
-    // No two parts of a track overlap (beyond neighbouring samples), whichever way the
-    // switches are set, and no two chains overlap.
-    const overlap = (
-      first: readonly Vec2[],
-      second: readonly Vec2[],
-      same: boolean,
-      label: string,
-    ) => {
-      first.forEach((a, i) => {
-        second.forEach((b, j) => {
-          if (same && j <= i + 11) return;
-          expect(a.distanceTo(b), `${label} ${i}/${j}`).toBeGreaterThan(radius * 2 + 10);
+      for (const points of samples) {
+        for (const [i, point] of points.entries()) {
+          // The visible track stays on the board (the entrance tunnel crosses its edge)…
+          if (i >= 16) {
+            expect(point.x).toBeGreaterThanOrEqual(radius);
+            expect(point.x).toBeLessThanOrEqual(frame.width - radius);
+            expect(point.y).toBeGreaterThanOrEqual(radius);
+            expect(point.y).toBeLessThanOrEqual(frame.height - radius);
+          }
+          // …and away from the shooter.
+          expect(point.distanceTo(setup.shooter)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
+        }
+      }
+
+      // No two parts of a track overlap (beyond neighbouring samples), whichever way the
+      // switches are set, and no two chains overlap.
+      const overlap = (
+        first: readonly Vec2[],
+        second: readonly Vec2[],
+        same: boolean,
+        label: string,
+      ) => {
+        first.forEach((a, i) => {
+          second.forEach((b, j) => {
+            if (same && j <= i + 11) return;
+            expect(a.distanceTo(b), `${label} ${i}/${j}`).toBeGreaterThan(radius * 2 + 10);
+          });
+        });
+      };
+      variants.forEach((chainVariants, chain) => {
+        chainVariants.forEach((points, variant) =>
+          overlap(points, points, true, `${chain}.${variant}`),
+        );
+        variants.slice(chain + 1).forEach((others, offset) => {
+          for (const points of chainVariants) {
+            for (const other of others)
+              overlap(points, other, false, `${chain}/${chain + offset + 1}`);
+          }
         });
       });
-    };
-    variants.forEach((chainVariants, chain) => {
-      chainVariants.forEach((points, variant) =>
-        overlap(points, points, true, `${chain}.${variant}`),
-      );
-      variants.slice(chain + 1).forEach((others, offset) => {
-        for (const points of chainVariants) {
-          for (const other of others)
-            overlap(points, other, false, `${chain}/${chain + offset + 1}`);
-        }
-      });
-    });
 
-    // Mirrors stay on the board, clear of the tracks and of the shooter.
-    const game = new Game(setup, SeededRandom.fromString('mirrors'));
-    for (const reflector of game.reflectors.items) {
-      for (const segment of reflector.segments) {
-        for (const end of [segment.a, segment.b]) {
-          expect(end.x).toBeGreaterThanOrEqual(0);
-          expect(end.x).toBeLessThanOrEqual(frame.width);
-          expect(end.y).toBeGreaterThanOrEqual(0);
-          expect(end.y).toBeLessThanOrEqual(frame.height);
+      // Mirrors stay on the board, clear of the tracks and of the shooter.
+      const game = new Game(setup, SeededRandom.fromString('mirrors'));
+      for (const reflector of game.reflectors.items) {
+        for (const segment of reflector.segments) {
+          for (const end of [segment.a, segment.b]) {
+            expect(end.x).toBeGreaterThanOrEqual(0);
+            expect(end.x).toBeLessThanOrEqual(frame.width);
+            expect(end.y).toBeGreaterThanOrEqual(0);
+            expect(end.y).toBeLessThanOrEqual(frame.height);
+          }
+          expect(segment.distanceTo(setup.shooter)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
+          for (const points of samples) {
+            for (const point of points.slice(16)) {
+              expect(segment.distanceTo(point), reflector.kind).toBeGreaterThan(radius * 2 + 10);
+            }
+          }
         }
-        expect(segment.distanceTo(setup.shooter)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
+      }
+      // A turning prism sweeps a disc: keep that disc clear too.
+      for (const reflector of game.reflectors.items) {
+        if (!(reflector instanceof Prism) || reflector.spin === 0) continue;
         for (const points of samples) {
           for (const point of points.slice(16)) {
-            expect(segment.distanceTo(point), reflector.kind).toBeGreaterThan(radius * 2 + 10);
+            expect(point.distanceTo(reflector.centre)).toBeGreaterThan(
+              reflector.radius + radius + 10,
+            );
           }
         }
       }
-    }
-    // A turning prism sweeps a disc: keep that disc clear too.
-    for (const reflector of game.reflectors.items) {
-      if (!(reflector instanceof Prism) || reflector.spin === 0) continue;
-      for (const points of samples) {
-        for (const point of points.slice(16)) {
-          expect(point.distanceTo(reflector.centre)).toBeGreaterThan(
-            reflector.radius + radius + 10,
-          );
-        }
-      }
-    }
 
-    // The shooter's ring stays clear of the tracks and of the mirrors, all the way round.
-    if (setup.orbit) {
-      const { centre, radiusX, radiusY } = setup.orbit;
-      const ring = Array.from({ length: 96 }, (_, i) => {
-        const angle = (i / 96) * Math.PI * 2;
-        return centre.add(new Vec2(Math.cos(angle) * radiusX, Math.sin(angle) * radiusY));
-      });
-      for (const at of ring) {
-        expect(at.x).toBeGreaterThanOrEqual(SHOOTER_RADIUS);
-        expect(at.x).toBeLessThanOrEqual(frame.width - SHOOTER_RADIUS);
-        for (const points of samples) {
-          for (const point of points) {
-            expect(point.distanceTo(at)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
+      // The shooter's ring stays clear of the tracks and of the mirrors, all the way round.
+      if (setup.orbit) {
+        const { centre, radiusX, radiusY } = setup.orbit;
+        const ring = Array.from({ length: 96 }, (_, i) => {
+          const angle = (i / 96) * Math.PI * 2;
+          return centre.add(new Vec2(Math.cos(angle) * radiusX, Math.sin(angle) * radiusY));
+        });
+        for (const at of ring) {
+          expect(at.x).toBeGreaterThanOrEqual(SHOOTER_RADIUS);
+          expect(at.x).toBeLessThanOrEqual(frame.width - SHOOTER_RADIUS);
+          for (const points of samples) {
+            for (const point of points) {
+              expect(point.distanceTo(at)).toBeGreaterThan(SHOOTER_RADIUS + radius * 2);
+            }
           }
-        }
-        for (const reflector of game.reflectors.items) {
-          for (const segment of reflector.segments) {
-            expect(segment.distanceTo(at)).toBeGreaterThan(SHOOTER_RADIUS + radius);
+          for (const reflector of game.reflectors.items) {
+            for (const segment of reflector.segments) {
+              expect(segment.distanceTo(at)).toBeGreaterThan(SHOOTER_RADIUS + radius);
+            }
           }
         }
       }
-    }
 
-    // There is room for the chain, and a reference time to beat for the time bonus.
-    for (const { path } of setup.chains) {
-      expect(path.length).toBeGreaterThan(level.length * radius * 2 * 1.2);
-    }
-    expect(setup.parTime).toBeGreaterThan(5);
-  });
+      // There is room for the chain, and a reference time to beat for the time bonus.
+      for (const { path } of setup.chains) {
+        expect(path.length).toBeGreaterThan(level.length * radius * 2 * 1.2);
+      }
+      expect(setup.parTime).toBeGreaterThan(5);
+    },
+  );
 
   it.each(CAMPAIGN.map((level) => [level.id, level] as const))('%s starts a game', (_, level) => {
     const game = new Game(toLevelSetup(resolveLevel(level, frame)), SeededRandom.fromString('x'));

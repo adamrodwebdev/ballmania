@@ -33,6 +33,7 @@ abstract class ArcadeMode implements PlayMode {
   readonly hintable: boolean = false;
   readonly assistLevel = null;
   readonly finale = false;
+  readonly training = null;
 
   protected constructor(
     readonly request: PlayRequest,

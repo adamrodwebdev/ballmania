@@ -26,7 +26,7 @@ const worldNumber = (level: CampaignLevel) =>
   WORLDS.findIndex((world) => world.id === level.world) + 1;
 
 /** "1-3": the short name of a level. */
-const shortName = (level: CampaignLevel): Message => ({
+export const shortName = (level: CampaignLevel): Message => ({
   key: 'campaign.levelShort',
   params: { world: worldNumber(level), number: level.number },
 });
@@ -72,6 +72,7 @@ export class CampaignMode implements PlayMode {
   readonly swapLabel: Message = { key: 'game.swap' };
   readonly hintable = false;
   readonly par = null;
+  readonly training = null;
 
   constructor(
     readonly request: Extract<PlayRequest, { kind: 'campaign' }>,
@@ -91,7 +92,7 @@ export class CampaignMode implements PlayMode {
   }
 
   get tutorial(): boolean {
-    return this.level.hint === 'aim';
+    return this.level.lesson !== undefined;
   }
 
   get assistLevel(): string {
@@ -188,6 +189,7 @@ export class DailyMode implements PlayMode {
   readonly par = null;
   readonly assistLevel = null;
   readonly finale = false;
+  readonly training = null;
   private readonly challenge: DailyChallenge;
 
   constructor(readonly request: Extract<PlayRequest, { kind: 'daily' }>) {

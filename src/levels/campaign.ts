@@ -2,6 +2,7 @@ import { calibratedStars } from './calibration';
 import { DEMO, DEMO_WORLDS } from './edition';
 import type { WeatherKind } from '@/engine/hazards/Hazards';
 import { POWER_KINDS, type PowerSetup } from '@/engine/powers/Powers';
+import type { Lesson } from './LevelDefinition';
 import type { TrackRecipe } from './tracks';
 
 export type WorldId = 'nebula' | 'neon' | 'abyss' | 'jewel' | 'volcano' | 'singularity';
@@ -9,6 +10,9 @@ export type WorldId = 'nebula' | 'neon' | 'abyss' | 'jewel' | 'volcano' | 'singu
 /** Hints shown at the start of the level that introduces something (i18n keys). */
 export type HintId =
   | 'aim'
+  | 'match'
+  | 'bank'
+  | 'curve'
   | 'swap'
   | 'reaction'
   | 'power'
@@ -71,11 +75,13 @@ export interface CampaignLevel {
   readonly repeatChance: number;
   readonly speed: number;
   readonly hint?: HintId;
-  /** The first shot is a Nova bomb (level 1-1: the first seconds show what the game holds). */
+  /** The hand's gesture, shown until its lesson is done (level 1-1, the training). */
+  readonly lesson?: Lesson;
+  /** The first shot is a Nova bomb (the training's first showcase). */
   readonly gift?: 'bomb';
-  /** The chain's exact colours, tail first, laid out by hand (level 1-1's showcase). */
+  /** The chain's exact colours, tail first, laid out by hand (1-1, the training). */
   readonly sequence?: readonly number[];
-  /** The first colours the launcher deals (level 1-1: the colour its showcase needs). */
+  /** The first colours the launcher deals (the colour a hand-laid chain waits for). */
   readonly opening?: readonly number[];
   /**
    * A boss pushes the chain. `young`: the Colossus of world 1 met early, at
@@ -120,7 +126,7 @@ export interface World {
   readonly levels: readonly CampaignLevel[];
 }
 
-const spiral = (
+export const spiral = (
   turns: number,
   start: number,
   clockwise: boolean,
@@ -169,7 +175,7 @@ const singularity = levelOf('singularity', ALL_POWERS);
  * A spiral around the black hole, inside the shooter's ring: balls come out
  * of a portal and fall into the centre.
  */
-const orbital = (
+export const orbital = (
   turns: number,
   start: number,
   clockwise: boolean,
@@ -193,7 +199,7 @@ const magnet = (charges: number, rechargeEvery: number) =>
   ({ charges, max: 3, rechargeEvery }) as const;
 
 /** Diagonal mirrors across the four corners, outside spiral tracks. */
-const CORNER_WALLS: readonly MirrorRecipe[] = [
+export const CORNER_WALLS: readonly MirrorRecipe[] = [
   { kind: 'wall', from: [0.02, 0.2], to: [0.2, 0.02] },
   { kind: 'wall', from: [0.8, 0.02], to: [0.98, 0.2] },
   { kind: 'wall', from: [0.98, 0.8], to: [0.8, 0.98] },
@@ -228,22 +234,16 @@ const lowerPrisms = (spin: number): MirrorRecipe[] => [
 ];
 
 /**
- * Level 1-1, the showcase (v1.7): every new player on a portal starts here, so
- * its first minute shows what the game holds. The chain is laid out by hand,
- * head first: the gift Nova clears the head; behind it, pairs nested around a
- * pair of the launcher's next colour, so one shot sets off a three-step
- * cascade; a Laser rides in the pair behind; then a second cascade, and a tail
- * to finish on the supernova a minute in.
+ * Level 1-1 (v1.8.0): the first real level, without tricks. The showcase it
+ * used to be opens the training (`training.ts`). Its chain is laid by hand,
+ * head first, so that the colour the launcher deals first can set off a
+ * two-step cascade: three of it burst, the pairs around them meet and burst.
  */
-const SHOWCASE = [
-  ...[2, 2, 1, 1, 0, 0], // the head, for the Nova
-  ...[1, 1, 0, 0, 2, 2, 0, 0, 1, 1], // a 2 bursts the 2s, the 0s meet and burst, then the 1s
-  ...[2, 2], // the Laser's pair
-  ...[0, 0, 1, 1, 2, 2, 1, 1, 0, 0], // the second cascade
-  ...[2, 1, 1, 0, 0, 2, 2, 1], // the tail
+const FIRST_LEVEL = [
+  ...[1, 0, 0, 2, 2, 0, 0, 1], // the head: a 2 bursts the 2s, then the 0s meet and burst
+  ...[2, 1, 1, 0, 2, 2, 1, 0, 0, 1, 2, 2],
+  ...[0, 1, 1, 2, 0, 0, 2, 1, 1, 0], // the tail
 ];
-/** Marbles ahead of the Laser, from the head: the Nova zone and the first cascade. */
-const SHOWCASE_LEAD = 16;
 
 /**
  * World 1, Nebula: the basic rules, then their combinations, in a saw-tooth
@@ -251,22 +251,20 @@ const SHOWCASE_LEAD = 16;
  * Its young form comes at 1-3 (v1.7.4), so a boss shows within minutes, and
  * 1-4 breathes after it with three colours; the fourth comes at 1-5. The
  * powers arrive one at a time (v1.7): Rewind at 1-4, Slow-down at 1-6,
- * Rainbow shot at 1-8, Laser at 1-10; one lesson a level. Level 1-1 shows a
- * Laser first, as a glimpse.
+ * Rainbow shot at 1-8, Laser at 1-10; one lesson a level. The training shows
+ * a Laser first, as a glimpse (v1.8.0).
  */
 const NEBULA: readonly CampaignLevel[] = [
   level(1, {
     track: spiral(1.25, 0.75, true),
-    length: SHOWCASE.length,
+    length: FIRST_LEVEL.length,
     tones: 3,
     repeatChance: 0.55,
     speed: 30,
-    hint: 'aim',
-    gift: 'bomb',
-    sequence: [...SHOWCASE].reverse(),
-    // The Nova's own colour, then two of the cascade's middle colour.
-    opening: [1, 2, 2],
-    powers: { kinds: ['laser'], every: 99, first: 'laser', lead: SHOWCASE_LEAD },
+    hint: 'match',
+    lesson: 'shot',
+    sequence: [...FIRST_LEVEL].reverse(),
+    opening: [2],
   }),
   level(2, {
     track: spiral(1.35, 0.25, false),
