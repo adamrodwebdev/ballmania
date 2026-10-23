@@ -10,6 +10,14 @@ import type { Rewards } from '@/player/PlayerProfile';
 import type { AppServices } from '../AppServices';
 import type { PlayRequest } from '../PlayRequest';
 
+/** A showcase of the training (v1.8.0): its place among them, for the dots, and the way out. */
+export interface TrainingStepView {
+  readonly step: TrainingStep;
+  readonly of: number;
+  /** "Skip": the training is over for good; the game to play instead, the campaign's first. */
+  skip(services: AppServices): PlayRequest;
+}
+
 /** A text of the interface, as an i18n key and its parameters: modes never translate. */
 export interface Message {
   readonly key: string;
@@ -102,11 +110,8 @@ export interface PlayMode {
   readonly assistLevel: string | null;
   /** A win of this game finishes the campaign. */
   readonly finale: boolean;
-  /**
-   * A showcase of the training (v1.8.0): its place among them, for the dots
-   * of the top bar, « Passer » and the chained flow; null for every other game.
-   */
-  readonly training: { readonly step: TrainingStep; readonly of: number } | null;
+  /** A showcase of the training (v1.8.0): its place among them, and the way out; else null. */
+  readonly training: TrainingStepView | null;
   /**
    * A result worth a portal's celebration besides the items it unlocked: the
    * campaign's last level won, a new Endless record.

@@ -292,7 +292,12 @@ test('offers help after three failures in a row on a level', async ({ page }) =>
     localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
     localStorage.setItem(
       'ballmania:player',
-      JSON.stringify({ version: 1, shards: 0, failures: { 'nebula-01': 2 } }),
+      JSON.stringify({
+        version: 1,
+        shards: 0,
+        failures: { 'nebula-01': 2 },
+        training: { step: 1, done: true },
+      }),
     );
   });
   await page.clock.install();

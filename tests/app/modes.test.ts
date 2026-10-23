@@ -231,7 +231,7 @@ describe('the training (v1.8.0)', () => {
 
   it('shows its place among the showcases, and nothing of the campaign', () => {
     const mode = createMode({ kind: 'training', step: 2 });
-    expect(mode.training).toEqual({ step: 2, of: 3 });
+    expect(mode.training).toMatchObject({ step: 2, of: 3 });
     expect(mode.stars).toBeNull();
     expect(mode.ranked).toBe(false);
     expect(mode.continuable).toBe(false);
@@ -253,6 +253,13 @@ describe('the training (v1.8.0)', () => {
     expect(e3.victory).toBe('promise');
     expect(e3.lesson).toBe('curve');
     expect(e3.gravity).toBeDefined();
+  });
+
+  it('can be skipped for good, from any showcase, for the first level', () => {
+    const shared = services();
+    const skipped = createMode({ kind: 'training', step: 2 }).training!.skip(shared);
+    expect(skipped).toEqual({ kind: 'campaign', level: CAMPAIGN[0] });
+    expect(shared.player.training.done).toBe(true);
   });
 
   it('pays nothing, resumes at the next showcase, and ends on the first level', () => {

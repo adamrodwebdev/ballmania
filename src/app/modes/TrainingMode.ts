@@ -11,7 +11,10 @@ import {
 import type { AppServices } from '../AppServices';
 import type { PlayRequest } from '../PlayRequest';
 import { shortName } from './CampaignModes';
-import type { Message, NextGame, PlayMode, Settlement } from './PlayMode';
+import type { Message, NextGame, PlayMode, Settlement, TrainingStepView } from './PlayMode';
+
+/** Where the training leads, once over or skipped: the campaign's first level. */
+const FIRST_LEVEL: PlayRequest = { kind: 'campaign', level: CAMPAIGN[0]! };
 
 /** A showcase pays nothing and records nothing: its progress is apart from the campaign. */
 const NOTHING: Settlement = {
@@ -42,14 +45,19 @@ export class TrainingMode implements PlayMode {
   readonly par = null;
   readonly assistLevel = null;
   readonly finale = false;
+  readonly training: TrainingStepView;
   private readonly level: TrainingLevel;
 
   constructor(readonly request: Extract<PlayRequest, { kind: 'training' }>) {
     this.level = trainingLevel(request.step);
-  }
-
-  get training() {
-    return { step: this.request.step, of: TRAINING_STEPS.length };
+    this.training = {
+      step: request.step,
+      of: TRAINING_STEPS.length,
+      skip: ({ player }) => {
+        player.finishTraining();
+        return FIRST_LEVEL;
+      },
+    };
   }
 
   get world() {
@@ -107,16 +115,14 @@ export class TrainingMode implements PlayMode {
         label: { key: 'training.step', params: { step, of: TRAINING_STEPS.length } },
       };
     }
-    const first = CAMPAIGN[0];
-    return first
-      ? {
-          request: { kind: 'campaign', level: first },
-          label: { key: 'training.end.continue' },
-          detail: {
-            key: 'training.end.level',
-            params: { level: shortName(first), world: { key: `worlds.${first.world}.name` } },
-          },
-        }
-      : null;
+    const first = CAMPAIGN[0]!;
+    return {
+      request: FIRST_LEVEL,
+      label: { key: 'training.end.continue' },
+      detail: {
+        key: 'training.end.level',
+        params: { level: shortName(first), world: { key: `worlds.${first.world}.name` } },
+      },
+    };
   }
 }

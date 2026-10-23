@@ -9,9 +9,10 @@ import { useShardPrice } from './useShardPrice';
 /**
  * The pause menu (v1.7.6, from the game screen): resume, a puzzle hint (for a
  * rewarded ad or for shards, never on the board while playing), restart, the
- * settings, quit.
+ * settings, quit. In the training (v1.8.0), no other menu: resume, restart
+ * the showcase, skip the training.
  */
-defineProps<{ offerHint: boolean }>();
+defineProps<{ offerHint: boolean; training: boolean }>();
 const emit = defineEmits<{
   resume: [];
   restart: [];
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   quit: [];
   adHint: [];
   shardHint: [];
+  skip: [];
 }>();
 
 const { t } = useI18n();
@@ -63,12 +65,23 @@ defineExpose({
         </button>
       </template>
       <button class="btn" type="button" data-testid="restart" @click="emit('restart')">
-        {{ t('game.restart') }}
+        {{ t(training ? 'training.restart' : 'game.restart') }}
       </button>
-      <button class="btn" type="button" data-testid="open-settings" @click="emit('settings')">
-        {{ t('game.settings') }}
+      <button
+        v-if="training"
+        class="btn"
+        type="button"
+        data-testid="pause-skip"
+        @click="emit('skip')"
+      >
+        {{ t('training.skipAll') }}
       </button>
-      <button class="btn" type="button" @click="emit('quit')">{{ t('game.quit') }}</button>
+      <template v-else>
+        <button class="btn" type="button" data-testid="open-settings" @click="emit('settings')">
+          {{ t('game.settings') }}
+        </button>
+        <button class="btn" type="button" @click="emit('quit')">{{ t('game.quit') }}</button>
+      </template>
     </div>
   </dialog>
 </template>

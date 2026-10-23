@@ -93,6 +93,27 @@ test.describe('test matrix', () => {
     await check(page, 'settings');
   });
 
+  test('the training, its card and its pause hold still and pass the audit', async ({ page }) => {
+    // A newcomer back at the second showcase (v1.8.0): its card, then its game.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+      const training = { step: 2, done: false };
+      localStorage.setItem('ballmania:player', JSON.stringify({ version: 2, training }));
+    });
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    const card = page.getByTestId('training-card');
+    await expect(card).toBeVisible();
+    await holdsStill(page, 'training card');
+    await expect(card).toBeHidden({ timeout: 4000 });
+    await check(page, 'training');
+    await page.getByTestId('pause').click();
+    await check(page, 'training pause');
+  });
+
   test('the game, its pause and its result hold still and pass the audit', async ({ page }) => {
     await prepare(page);
     await page.getByTestId('play').click();

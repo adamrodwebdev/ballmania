@@ -85,6 +85,8 @@ export interface HudState {
    * rival's hole: won) to 1 (in the player's: lost); null elsewhere.
    */
   tug: number | null;
+  /** The hand's lesson is done (the first level, the training); null without a lesson. */
+  taught: boolean | null;
 }
 
 export interface SessionOptions {
@@ -235,12 +237,16 @@ export class PlaySession {
     this.feedback.sound.resume();
   }
 
-  /** Stops time and sound while something covers the game (an ad), without the pause menu. */
-  hold(): void {
+  /**
+   * Stops time while something covers the game, without the pause menu: an
+   * ad, in silence; the training's card between two showcases, the music
+   * playing on (`silent` false).
+   */
+  hold(silent = true): void {
     this.held = true;
     this.turning = 0;
     this.charging = null;
-    this.feedback.sound.suspend();
+    if (silent) this.feedback.sound.suspend();
   }
 
   release(): void {
@@ -644,6 +650,7 @@ export class PlaySession {
       power: null,
       slow: null,
       powerShot: null,
+      taught: this.coach ? this.coach.learnt : null,
     };
   }
 
@@ -674,7 +681,10 @@ export class PlaySession {
       this.game.shooter.aim(this.game.shooter.angle + this.turning * 2.4 * realDt);
     }
     this.game.update(dt);
-    this.coach?.update(dt, this.coachable);
+    if (this.coach) {
+      this.coach.update(dt, this.coachable);
+      if (this.hud.taught !== this.coach.learnt) this.hud.taught = this.coach.learnt;
+    }
     if (this.game.state === 'lost') this.motion.drain(DRAIN_SPEED, dt);
     this.motion.update(this.game.chains, dt);
     this.destruction.update(dt);

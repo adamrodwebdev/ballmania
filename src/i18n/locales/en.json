@@ -172,19 +172,30 @@
   },
   "training": {
     "step": "Step {step} of {of}",
+    "home": "Training",
+    "skip": "Skip",
+    "skipAll": "Skip the training",
+    "restart": "Restart this step",
     "steps": {
       "1": {
-        "name": "The Nova"
+        "name": "The Nova",
+        "recap": "The Nova and its cascade"
       },
       "2": {
-        "name": "The mirrors"
+        "name": "The mirrors",
+        "line": "Bounce your shots off the neon",
+        "recap": "The bounce off the mirrors"
       },
       "3": {
-        "name": "The black hole"
+        "name": "The black hole",
+        "line": "Let the black hole bend your shots",
+        "recap": "The shot bent by the black hole"
       }
     },
     "end": {
-      "title": "Training complete!",
+      "title": "Training complete",
+      "ready": "On to the campaign!",
+      "promise": "The young Stellar Colossus awaits you at level\u00a0{level}.",
       "continue": "Continue",
       "level": "Level\u00a0{level}\u00a0· {world}"
     }

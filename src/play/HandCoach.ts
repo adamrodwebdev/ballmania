@@ -256,8 +256,13 @@ export class HandCoach {
       return;
     }
     const stroke = this.next && this.strokeOf(this.next);
-    if (this.next && stroke) this.shown = { candidate: this.next, stroke };
-    else this.phase = 0;
+    if (this.next && stroke) {
+      this.shown = { candidate: this.next, stroke };
+      return;
+    }
+    // The shot found has gone (the chain moved): the sweep finds another one.
+    this.next = null;
+    this.phase = 0;
   }
 
   /** The stroke of a shot found earlier, if its angle still shows as much (the chain moves). */
@@ -269,8 +274,9 @@ export class HandCoach {
   }
 
   /**
-   * A few more angles of the sweep. Until a shot is found, the best one tried
-   * so far will do; at the end of the sweep, its best window is the next one.
+   * A few more angles of the sweep. While no shot is found, the best one
+   * tried so far will do; at the end of the sweep, its best window is the
+   * next one.
    */
   private scan(): void {
     for (let k = 0; k < PER_FRAME; k++) {
@@ -281,11 +287,12 @@ export class HandCoach {
       const score = key === null ? null : this.score(line);
       const found = key !== null && score !== null ? { angle, score, key } : null;
       this.sweep[index] = found;
-      if (!this.swept && found && (!this.next || found.score > this.next.score)) this.next = found;
+      const provisional = !this.swept || this.next === null;
+      if (provisional && found && (!this.next || found.score > this.next.score)) this.next = found;
       this.cursor = (this.cursor + 1) % ANGLES;
       if (this.cursor > 0) continue;
       this.swept = true;
-      this.next = bestWindow(this.sweep);
+      this.next = bestWindow(this.sweep) ?? this.next;
     }
   }
 

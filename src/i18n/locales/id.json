@@ -172,19 +172,30 @@
   },
   "training": {
     "step": "Tahap {step} dari {of}",
+    "home": "Latihan",
+    "skip": "Lewati",
+    "skipAll": "Lewati latihan",
+    "restart": "Ulangi tahap ini",
     "steps": {
       "1": {
-        "name": "Nova"
+        "name": "Nova",
+        "recap": "Nova dan reaksi berantainya"
       },
       "2": {
-        "name": "Cermin"
+        "name": "Cermin",
+        "line": "Pantulkan tembakanmu di dinding neon",
+        "recap": "Pantulan di cermin"
       },
       "3": {
-        "name": "Lubang hitam"
+        "name": "Lubang hitam",
+        "line": "Biarkan lubang hitam membelokkan tembakanmu",
+        "recap": "Tembakan yang dibelokkan lubang hitam"
       }
     },
     "end": {
-      "title": "Latihan selesai!",
+      "title": "Latihan selesai",
+      "ready": "Saatnya kampanye!",
+      "promise": "Kolosus Bintang Muda menantimu di level\u00a0{level}.",
       "continue": "Lanjutkan",
       "level": "Level\u00a0{level}\u00a0· {world}"
     }

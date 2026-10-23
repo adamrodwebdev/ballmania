@@ -13,7 +13,8 @@ import { useMessage } from './useMessage';
  * The game's top bar (v1.7.6, from the game screen): pause, the level, the
  * score and its star gauge, the badges; what comes and goes floats beside it
  * (the chips), and a boss's health, the recipes or the rope get a second line.
- * On a wide screen, the bar becomes the left rail.
+ * On a wide screen, the bar becomes the left rail. In the training (v1.8.0),
+ * only pause, the dots of its three showcases, "Skip" and the sound.
  */
 const props = defineProps<{
   mode: PlayMode;
@@ -22,7 +23,7 @@ const props = defineProps<{
   /** The second line is kept from the start, so that the board never moves. */
   extraRow: boolean;
 }>();
-const emit = defineEmits<{ pause: []; reached: [stars: number] }>();
+const emit = defineEmits<{ pause: []; reached: [stars: number]; skip: [] }>();
 
 const { t, locale } = useI18n();
 const { settings } = useServices();
@@ -56,13 +57,29 @@ defineExpose({ bar, extra });
         <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" />
       </svg>
     </button>
-    <p class="level">
+    <p
+      v-if="props.mode.training"
+      class="steps"
+      role="img"
+      :aria-label="
+        t('training.step', { step: props.mode.training.step, of: props.mode.training.of })
+      "
+      data-testid="training-steps"
+    >
+      <span
+        v-for="step in props.mode.training.of"
+        :key="step"
+        class="step-dot"
+        :class="{ done: step <= props.mode.training.step }"
+      ></span>
+    </p>
+    <p v-else class="level">
       <span class="level-name" data-testid="level">{{ say(props.mode.label) }}</span>
       <span v-if="props.mode.ranked" class="level-detail" data-testid="difficulty">
         {{ t(`difficulty.${settings.current.difficulty}.name`) }}
       </span>
     </p>
-    <p class="score">
+    <p v-if="!props.mode.training" class="score">
       <span class="label">{{ t('game.score') }}</span>
       <span class="value" data-testid="score">{{ number.format(hud?.score ?? 0) }}</span>
       <StarGauge
@@ -90,6 +107,26 @@ defineExpose({ bar, extra });
       <p v-if="hud && hud.stage !== null" class="badge" data-testid="stage">
         {{ t('arcade.endless.stage', { stage: hud.stage + 1 }) }}
       </p>
+      <button
+        v-if="props.mode.training"
+        class="btn hud-skip"
+        type="button"
+        :aria-label="t('training.skipAll')"
+        data-testid="skip-training"
+        @click="emit('skip')"
+      >
+        {{ t('training.skip') }}
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path
+            d="m9 5 7 7-7 7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
       <SoundToggle class="btn hud-sound" />
     </div>
   </div>
@@ -233,6 +270,42 @@ defineExpose({ bar, extra });
   border-radius: 50%;
   background: var(--surface);
   color: var(--text);
+}
+
+/* The training's three showcases: one dot each, lit up to the one being played. */
+.steps {
+  display: flex;
+  flex: none;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.7rem var(--space-3);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+}
+
+.step-dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+
+.step-dot.done {
+  background: var(--accent);
+}
+
+.hud-skip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--touch);
+  padding: 0 var(--space-3) 0 var(--space-4);
+  border-color: var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 800;
 }
 
 .level {
@@ -583,6 +656,19 @@ defineExpose({ bar, extra });
   .hud-end {
     flex-direction: column;
     margin: auto 0 0;
+  }
+
+  /* In the rail, "Skip" stands like the buttons of the other rail: its sign above its word. */
+  .hud-skip {
+    flex-direction: column-reverse;
+    gap: 0;
+    width: 100%;
+    padding: var(--space-1);
+    border-radius: var(--radius);
+    font-size: var(--hud-small);
+    line-height: 1.15;
+    white-space: normal;
+    text-align: center;
   }
 
   .chips {

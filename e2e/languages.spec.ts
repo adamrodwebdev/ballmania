@@ -174,6 +174,30 @@ test.describe('languages', () => {
       }
     });
 
+    test(`keeps the training's text in place in ${locale} at every size`, async ({ page }) => {
+      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      // A newcomer (v1.8.0): no level played yet, "Play" opens the training.
+      await page.setViewportSize({ width: SIZES[0][0], height: SIZES[0][1] });
+      await page.addInitScript((code) => {
+        if (sessionStorage.getItem('seeded')) return;
+        sessionStorage.setItem('seeded', '1');
+        localStorage.setItem('ballmania:settings', JSON.stringify({ locale: code }));
+        localStorage.setItem('ballmania:player', JSON.stringify({ version: 2 }));
+      }, locale);
+      await page.goto('./');
+      await page.getByTestId('play').click();
+      await expect(page.getByTestId('skip-training')).toBeVisible();
+      for (const [width, height] of SIZES) {
+        await page.setViewportSize({ width, height });
+        await check(page, `${locale} ${width}×${height} training`);
+      }
+      await page.getByTestId('pause').click();
+      for (const [width, height] of SIZES) {
+        await page.setViewportSize({ width, height });
+        await check(page, `${locale} ${width}×${height} training pause`);
+      }
+    });
+
     test(`keeps the game's text in place in ${locale} at every size`, async ({ page }) => {
       test.skip(test.info().project.name !== 'desktop', 'desktop project only');
       // A level simulated frame by frame until the chain reaches the hole takes a while: one

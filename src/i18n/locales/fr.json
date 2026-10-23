@@ -172,19 +172,30 @@
   },
   "training": {
     "step": "Étape {step} sur {of}",
+    "home": "Entraînement",
+    "skip": "Passer",
+    "skipAll": "Passer l’entraînement",
+    "restart": "Recommencer l’étape",
     "steps": {
       "1": {
-        "name": "La Nova"
+        "name": "La Nova",
+        "recap": "La Nova et sa cascade"
       },
       "2": {
-        "name": "Les miroirs"
+        "name": "Les miroirs",
+        "line": "Faites rebondir vos tirs sur le néon",
+        "recap": "Le rebond sur les miroirs"
       },
       "3": {
-        "name": "Le trou noir"
+        "name": "Le trou noir",
+        "line": "Laissez le trou noir courber vos tirs",
+        "recap": "Le tir courbé par le trou noir"
       }
     },
     "end": {
-      "title": "Entraînement réussi\u00a0!",
+      "title": "Entraînement réussi",
+      "ready": "En route pour la campagne\u00a0!",
+      "promise": "Le jeune Colosse stellaire vous attend au niveau\u00a0{level}.",
       "continue": "Continuer",
       "level": "Niveau\u00a0{level}\u00a0· {world}"
     }
