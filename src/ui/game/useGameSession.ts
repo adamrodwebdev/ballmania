@@ -100,10 +100,13 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
     },
   });
   // The portal is told when the player really plays: not paused by the player, not
-  // over, no ad. A pause of the game's own (hidden tab) is the portal's business.
+  // over, no ad. A pause of the game's own (hidden tab) is the portal's business,
+  // unless it wants every stop told (Yandex).
   watchEffect(() => {
     const state = hud.value;
-    const playing = state?.state === 'playing' && (!state.paused || state.pausedBy === 'auto');
+    const playing =
+      state?.state === 'playing' &&
+      (!state.paused || (state.pausedBy === 'auto' && !platform.stopsOnAutoPause));
     if (playing && !adPlaying.value) gameplay.start();
     else gameplay.stop();
   });

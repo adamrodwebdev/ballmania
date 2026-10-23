@@ -22,6 +22,16 @@ import { PlaygamaPlatform, type PlaygamaBridge } from '@/platform/PlaygamaPlatfo
 import { POKI_SDK, PokiPlatform, type PokiSdk } from '@/platform/PokiPlatform';
 import { SimulatedPlatform } from '@/platform/SimulatedPlatform';
 import { StandalonePlatform } from '@/platform/StandalonePlatform';
+import {
+  AD_OPEN_TIMEOUT,
+  SAVE_INTERVAL,
+  YANDEX_SDK,
+  YandexPlatform,
+  type YandexAdCallbacks,
+  type YandexHost,
+  type YandexPlayer,
+  type YandexSdk,
+} from '@/platform/YandexPlatform';
 import { MemoryStorage } from '@/services/KeyValueStorage';
 
 const silence = () => ({ start: vi.fn(), end: vi.fn() });
@@ -666,5 +676,283 @@ describe('PlaygamaPlatform', () => {
     portal.saves().set('k', 'v');
     expect(portal.saves().get('k')).toBe('v');
     portal.loaded();
+  });
+});
+
+describe('YandexPlatform', () => {
+  interface FakeYandexOptions {
+    /** False: the page lacks the SDK, which the adapter must load. */
+    inPage?: boolean;
+    /** What Yandex does with an ad request; by default the ad plays to its end. */
+    ad?: 'shown' | 'skipped' | 'error' | 'stall';
+    /** False: the player closes the rewarded video before its end. */
+    watched?: boolean;
+    /** False: the player's data cannot be read. */
+    player?: boolean;
+  }
+
+  /** A Yandex SDK and page, recording what the adapter asks of them. */
+  const fakeYandex = (options: FakeYandexOptions = {}) => {
+    const calls: string[] = [];
+    const saved: Readonly<Record<string, string>>[] = [];
+    const listeners = new Map<string, () => void>();
+    const play = (callbacks: YandexAdCallbacks, rewarded: boolean) => {
+      const outcome = options.ad ?? 'shown';
+      if (outcome === 'error') callbacks.onError?.(new Error('no ad'));
+      if (outcome === 'skipped') callbacks.onClose?.(false);
+      if (outcome !== 'shown') return;
+      callbacks.onOpen?.();
+      if (rewarded && (options.watched ?? true)) callbacks.onRewarded?.();
+      callbacks.onClose?.(true);
+    };
+    const player: YandexPlayer = {
+      getData: () => {
+        calls.push('getData');
+        return Promise.resolve({ 'ballmania:player': '{"version":1}', 'ballmania:legacy': 3 });
+      },
+      setData: (data, flush) => {
+        expect(flush).toBe(true);
+        saved.push(data);
+        return Promise.resolve();
+      },
+    };
+    const sdk: YandexSdk = {
+      features: {
+        LoadingAPI: { ready: () => calls.push('ready') },
+        GameplayAPI: { start: () => calls.push('start'), stop: () => calls.push('stop') },
+      },
+      environment: { i18n: { lang: 'ru' } },
+      adv: {
+        showFullscreenAdv: ({ callbacks }) => {
+          calls.push('fullscreen');
+          play(callbacks, false);
+        },
+        showRewardedVideo: ({ callbacks }) => {
+          calls.push('rewarded');
+          play(callbacks, true);
+        },
+      },
+      getPlayer: () =>
+        options.player === false ? Promise.reject(new Error('no player')) : Promise.resolve(player),
+      on: (event, listener) => void listeners.set(event, listener),
+    };
+    const yaGames = { init: () => Promise.resolve(sdk) };
+    const page = {
+      visibilityState: 'visible',
+      addEventListener: (type: 'visibilitychange', listener: () => void) =>
+        void listeners.set(type, listener),
+    };
+    const host: YandexHost = {
+      addEventListener: (type, listener) => void listeners.set(type, listener),
+      document: page,
+    };
+    if (options.inPage ?? true) host.YaGames = yaGames;
+    /** Fires a window, page or SDK event the adapter listens to. */
+    const fire = (event: string) => {
+      listeners.get(event)!();
+    };
+    return { host, yaGames, page, calls, saved, fire };
+  };
+
+  /** The adapter on a page that has the SDK already (the build puts it in the head). */
+  const yandexPortal = async (options: FakeYandexOptions = {}) => {
+    const fake = fakeYandex(options);
+    const load = vi.fn(() => Promise.resolve(true));
+    const browser = new MemoryStorage();
+    const portal = new YandexPlatform(fake.host, load, browser);
+    await portal.init();
+    return { ...fake, portal, load, browser };
+  };
+
+  it('loads the SDK from /sdk.js, then the language and every save in one request', async () => {
+    const { host, yaGames, calls } = fakeYandex({ inPage: false });
+    const load = vi.fn((src: string) => {
+      expect(src).toBe(YANDEX_SDK);
+      host.YaGames = yaGames;
+      return Promise.resolve(true);
+    });
+    const browser = new MemoryStorage();
+    const portal = new YandexPlatform(host, load, browser);
+    await portal.init();
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(portal.locale()).toBe('ru');
+    expect(portal.saves().get('ballmania:player')).toBe('{"version":1}');
+    expect(portal.saves().get('ballmania:legacy')).toBeNull();
+    expect(portal.saves()).not.toBe(browser);
+    expect(portal.preferences()).toBe(browser);
+    expect(calls).toEqual(['getData']);
+  });
+
+  it('sends the saves of one moment together, then one request per interval at most', async () => {
+    vi.useFakeTimers();
+    try {
+      const { portal, saved } = await yandexPortal();
+      const saves = portal.saves();
+      saves.set('ballmania:progress', '{"level":2}');
+      saves.set('ballmania:player', '{"version":1,"shards":5}');
+      expect(saved).toEqual([]);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(saved).toEqual([
+        { 'ballmania:player': '{"version":1,"shards":5}', 'ballmania:progress': '{"level":2}' },
+      ]);
+      saves.set('ballmania:arcade', '{"best":10}');
+      saves.set('ballmania:arcade', '{"best":12}');
+      await vi.advanceTimersByTimeAsync(SAVE_INTERVAL - 1);
+      expect(saved).toHaveLength(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(saved).toHaveLength(2);
+      expect(saved[1]).toEqual({
+        'ballmania:player': '{"version":1,"shards":5}',
+        'ballmania:progress': '{"level":2}',
+        'ballmania:arcade': '{"best":12}',
+      });
+      await vi.advanceTimersByTimeAsync(SAVE_INTERVAL);
+      saves.set('ballmania:arcade', '{"best":15}');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(saved).toHaveLength(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('sends what waits at once when the page hides or closes', async () => {
+    vi.useFakeTimers();
+    try {
+      const { portal, saved, page, fire } = await yandexPortal();
+      portal.saves().set('ballmania:progress', '{"level":2}');
+      await vi.advanceTimersByTimeAsync(0);
+      portal.saves().set('ballmania:progress', '{"level":3}');
+      page.visibilityState = 'hidden';
+      fire('visibilitychange');
+      expect(saved).toHaveLength(2);
+      expect(saved[1]).toMatchObject({ 'ballmania:progress': '{"level":3}' });
+      portal.saves().set('ballmania:progress', '{"level":4}');
+      fire('pagehide');
+      fire('pagehide');
+      expect(saved).toHaveLength(3);
+      expect(saved[2]).toMatchObject({ 'ballmania:progress': '{"level":4}' });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps the saves in the browser when the player data cannot be read', async () => {
+    const { portal, browser, saved } = await yandexPortal({ player: false });
+    expect(portal.saves()).toBe(browser);
+    portal.saves().set('k', 'v');
+    expect(browser.get('k')).toBe('v');
+    expect(saved).toEqual([]);
+  });
+
+  it('tells Yandex once that the game is ready, then each start and stop of play', async () => {
+    const { portal, calls, load } = await yandexPortal();
+    expect(load).not.toHaveBeenCalled();
+    portal.loaded();
+    portal.loaded();
+    portal.gameplayStart();
+    portal.gameplayStart();
+    portal.gameplayStop();
+    portal.levelEnded(true);
+    portal.celebrate();
+    expect(calls).toEqual(['getData', 'ready', 'start', 'stop']);
+    expect(portal.stopsOnAutoPause).toBe(true);
+    expect(portal.muted()).toBe(false);
+    expect(await portal.shareLink()).toBeNull();
+  });
+
+  it('stops play and sound while Yandex pauses the game, it loses the focus or its tab hides', async () => {
+    const { portal, calls, page, fire } = await yandexPortal();
+    const paused = vi.fn();
+    portal.onPausedChange(paused);
+    portal.gameplayStart();
+    fire('game_api_pause');
+    fire('blur');
+    fire('game_api_resume');
+    expect(paused.mock.calls).toEqual([[true]]);
+    fire('focus');
+    page.visibilityState = 'hidden';
+    fire('visibilitychange');
+    page.visibilityState = 'visible';
+    fire('visibilitychange');
+    expect(paused.mock.calls).toEqual([[true], [false], [true], [false]]);
+    expect(calls).toEqual(['getData', 'start', 'stop', 'start', 'stop', 'start']);
+
+    // Over a menu, a pause and resume restart nothing.
+    portal.gameplayStop();
+    fire('game_api_pause');
+    fire('game_api_resume');
+    expect(calls.slice(6)).toEqual(['stop']);
+
+    fire('blur');
+    const late = vi.fn();
+    portal.onPausedChange(late);
+    expect(late).toHaveBeenCalledWith(true);
+  });
+
+  it('silences the game during its ads and rewards only a video watched to the end', async () => {
+    const { portal, calls } = await yandexPortal();
+    const paused = vi.fn();
+    portal.onPausedChange(paused);
+    const started = vi.fn();
+    await portal.interstitial(started);
+    expect(await portal.rewarded(started)).toBe(true);
+    expect(started).toHaveBeenCalledTimes(2);
+    expect(paused.mock.calls).toEqual([[true], [false], [true], [false]]);
+    expect(calls).toEqual(['getData', 'fullscreen', 'rewarded']);
+
+    const early = await yandexPortal({ watched: false });
+    expect(await early.portal.rewarded(() => {})).toBe(false);
+    expect(early.portal.rewardedAvailable()).toBe(true);
+
+    const skipped = await yandexPortal({ ad: 'skipped' });
+    const notStarted = vi.fn();
+    await skipped.portal.interstitial(notStarted);
+    expect(notStarted).not.toHaveBeenCalled();
+  });
+
+  it('gives up on an ad that fails or never opens, then offers no reward again', async () => {
+    const failing = await yandexPortal({ ad: 'error' });
+    expect(await failing.portal.rewarded(() => {})).toBe(false);
+    expect(failing.portal.rewardedAvailable()).toBe(false);
+    expect(await failing.portal.rewarded(() => {})).toBe(false);
+    expect(failing.calls.filter((call) => call === 'rewarded')).toHaveLength(1);
+
+    vi.useFakeTimers();
+    try {
+      const { portal } = await yandexPortal({ ad: 'stall' });
+      const started = vi.fn();
+      const outcome = portal.rewarded(started);
+      let settled = false;
+      void outcome.then(() => (settled = true));
+      await vi.advanceTimersByTimeAsync(AD_OPEN_TIMEOUT - 1);
+      expect(settled).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await outcome).toBe(false);
+      expect(started).not.toHaveBeenCalled();
+      expect(portal.rewardedAvailable()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('runs without the SDK (blocked script or failed init), its saves in the browser', async () => {
+    const { host } = fakeYandex({ inPage: false });
+    const browser = new MemoryStorage();
+    const portal = new YandexPlatform(host, () => Promise.resolve(false), browser);
+    await portal.init();
+    expect(portal.locale()).toBeNull();
+    expect(portal.rewardedAvailable()).toBe(false);
+    expect(await portal.rewarded(() => {})).toBe(false);
+    await portal.interstitial(() => {});
+    expect(portal.saves()).toBe(browser);
+    portal.loaded();
+    portal.gameplayStart();
+
+    const broken = fakeYandex();
+    broken.host.YaGames = { init: () => Promise.reject(new Error('blocked')) };
+    const offline = new YandexPlatform(broken.host, () => Promise.resolve(true), browser);
+    await offline.init();
+    expect(offline.rewardedAvailable()).toBe(false);
+    expect(offline.saves()).toBe(browser);
   });
 });
