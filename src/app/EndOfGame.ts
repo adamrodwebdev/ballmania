@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import type { GameReport } from '@/engine/Game';
 import { ASSIST_AFTER, CONTINUE_PRICE, HINT_COOLDOWN, HINT_PRICE } from '@/player/rewards';
 import type { PlayMode, Settlement } from './modes';
 
@@ -112,9 +113,16 @@ export class EndOfGame {
     return !(this.offersContinue(ending) && this.context.ads.reviveOffered);
   }
 
-  /** A result worth the portal's celebration: an item unlocked, or the mode's own reason. */
-  celebrates(won: boolean, settlement: Settlement): boolean {
-    return settlement.rewards.unlocked.length > 0 || this.mode.celebrates(won, settlement);
+  /**
+   * A result worth the portal's celebration: an item unlocked, or the mode's
+   * own reason (the campaign's last level won, an Endless record). Read from
+   * the game's report: the game is saved before its result is on screen.
+   */
+  celebrates(report: Pick<GameReport, 'outcome'>, settlement: Settlement): boolean {
+    return (
+      settlement.rewards.unlocked.length > 0 ||
+      this.mode.celebrates(report.outcome === 'won', settlement)
+    );
   }
 
   /** Another game on the same screen: its offers start afresh. */

@@ -118,17 +118,25 @@ describe('EndOfGame', () => {
 
   it('celebrates an item unlocked, the end of the campaign and a new Endless record', () => {
     const plain = settlement();
-    expect(new EndOfGame(campaign(), context()).celebrates(true, plain)).toBe(false);
+    const won = { outcome: 'won' } as const;
+    const lost = { outcome: 'lost' } as const;
+    expect(new EndOfGame(campaign(), context()).celebrates(won, plain)).toBe(false);
     expect(
       new EndOfGame(campaign(), context()).celebrates(
-        true,
+        won,
         settlement({ unlocked: [{ id: 'x' } as never] }),
       ),
     ).toBe(true);
-    expect(new EndOfGame(campaign(LAST), context()).celebrates(true, plain)).toBe(true);
-    expect(new EndOfGame(campaign(LAST), context()).celebrates(false, plain)).toBe(false);
+    expect(new EndOfGame(campaign(LAST), context()).celebrates(lost, plain)).toBe(false);
     const endless = createMode({ kind: 'endless' });
     const record = { value: 9000, newBest: true, unit: 'score' as const };
-    expect(new EndOfGame(endless, context()).celebrates(false, settlement({}, record))).toBe(true);
+    expect(new EndOfGame(endless, context()).celebrates(lost, settlement({}, record))).toBe(true);
+  });
+
+  it('celebrates the last level of the campaign won, read from the report, with nothing unlocked', () => {
+    // The game is saved as soon as it ends, a moment before its result is on
+    // screen: the win is the report's, never the screen's (fixed in 1.7.6).
+    const rules = new EndOfGame(campaign(LAST), context());
+    expect(rules.celebrates({ outcome: 'won' }, settlement())).toBe(true);
   });
 });

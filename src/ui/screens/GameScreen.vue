@@ -109,7 +109,7 @@ const settle = () => {
   const result = mode.settle(report, services);
   platform.levelEnded(report.outcome === 'won');
   settlement.value = result;
-  if (endOfGame.celebrates(ending.value === 'won', result)) platform.celebrate();
+  if (endOfGame.celebrates(report, result)) platform.celebrate();
 };
 /** Saves a defeat the player chose not to continue. */
 const settleNow = () => {
