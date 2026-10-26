@@ -97,6 +97,9 @@ texte promotionnel ni de logo.
 
 ## Formulaire : réponses à préparer
 
+- **Nom** : « Ballmania: Cosmic Marble Shooter » (32 caractères ; décidé le 26/10/2026).
+  « Ballmania » reste à la fiche refusée, et le genre dans le nom aide la recherche et le
+  clic ; les couvertures gardent le logo « Ballmania ».
 - **Build** : `npm run build:crazygames` (version Basic Launch, **sans aucune publicité** :
   CrazyGames les coupe pendant le Basic Launch ; la version avec publicités se construit
   avec `CRAZYGAMES_LAUNCH=full npm run build:crazygames`, seulement sur invitation au Full

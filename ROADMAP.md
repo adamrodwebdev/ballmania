@@ -41,13 +41,16 @@ monde 1 ; l'écran titre joue une boucle des moments forts du jeu, comme dans Lu
 **Porte de dépôt CrazyGames, après la 1.8.0** : un test sur inconnus (10 à 20 premières
 sessions enregistrées, sans explication, sur ordinateur et téléphone ; la 1.7.1 d'abord, comme
 référence) où au moins 25 % des parties dépassent 3 minutes ; une revue de modérateur complète
-avec la grille de qualité de CrazyGames ; couvertures et vidéos refaites sur plusieurs mondes ;
-la fiche (« cosmic marble shooter », balises Bubble Shooter, Match 3 et Ball, jamais de nom de
-jeu existant) ; la case Progress Save cochée. Un seul jeu déposé, en nouveau brouillon par
-« Submit a game ».
+avec la grille de qualité de CrazyGames ; couvertures et vidéos refaites sur plusieurs mondes
+(couvertures validées le 26/10/2026 : le jeune Colosse sort du trou noir au bout d'une route de
+billes sur la grille du Néon ; les vidéos, qui s'ouvrent sur la couverture, se rendent de
+nouveau au dépôt) ; la fiche (« cosmic marble shooter », balises Bubble Shooter, Match 3 et
+Ball, jamais de nom de jeu existant) ; la case Progress Save cochée. Un seul jeu déposé, en
+nouveau brouillon par « Submit a game ».
 
-**Question ouverte** : le nom du nouveau brouillon CrazyGames (« Ballmania » est pris par la
-fiche refusée).
+**Décidé le 26/10/2026** : le nouveau brouillon CrazyGames s'appelle « Ballmania: Cosmic Marble
+Shooter » (« Ballmania » reste à la fiche refusée, et le genre dans le nom aide la recherche et
+le clic) ; les couvertures gardent le logo « Ballmania ».
 
 **Laissé pour plus tard** : version Full Launch avec publicités (sur invitation) ; carte de
 campagne et Atelier en écrans de jeu ; points pour les tirs dans les trous et le nettoyage de
