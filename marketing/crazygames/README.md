@@ -29,18 +29,18 @@ d'icône ni de logo, une illustration plutôt qu'une capture d'écran, une polic
 qui plonge dans le trou noir, un groupe qui éclate, et le Cœur d'étoile, lanceur et mascotte
 du jeu (v1.7), qui vient de tirer la bille, placé à la main sur chaque format.
 
-Ce que respectent les vidéos : elles s'ouvrent sur la couverture fixe (1 s), puis montrent
-le vrai jeu en plein écran (rendu image par image par le moteur du jeu, sans accélération),
-quatre mondes : la nébuleuse du niveau 1-10 et ses quatre billes bonus, puis jusqu'à une
-victoire et sa supernova. Pas de son, pas de curseur, pas de bandes noires, pas de texte
-promotionnel ni de logo. Les moments filmés sont choisis automatiquement : un robot joue
-avec le Cœur d'étoile, les cosmétiques les plus voyants et toutes les améliorations sauf
-l'Onde de choc et Chronos (elles retiennent la chaîne : le plateau restait presque vide et
-le niveau ne finissait pas) ; il préfère les groupes qui portent une bille bonus. On garde
-les secondes où le plus de billes explosent sur un plateau bien rempli, un pouvoir
-déclenché comptant comme une grosse explosion. Dans les plans d'action, la chaîne entre plus
-loin au début (la moitié du tracé au lieu de 30 %) et le robot la laisse entrer avant de
-tirer ; le plan de la victoire joue le niveau tel quel, du premier tir à la supernova.
+Ce que respectent les vidéos : elles s'ouvrent sur la couverture fixe (1 s), puis jouent les
+mêmes scènes que la boucle de l'écran titre (v1.8.0, `cuts.ts`) : six de ses moments, la Nova,
+le tir en bande, l'aimant, le trou noir, le Duel et la chute du Colosse, la lumière filant sur
+le tracé, chacun fondu dans le suivant en 0,3 s, en 16,8 s en tout. Le vrai jeu en plein écran,
+rendu image par image par le moteur du jeu à 30 images par seconde, sans accélération : le
+plateau large de la boucle pour la vidéo paysage, le plateau haut d'un téléphone pour la vidéo
+portrait. Un test vérifie que chaque moment atteint son sommet sur les deux plateaux avant le
+fondu suivant, et que la vidéo dure de 15 à 20 s. Le mélange des couleurs et l'aiguillage
+restent dans la boucle : le mélange n'atteint pas son sommet sur le plateau haut, et un
+aiguillage se lit moins bien qu'une explosion. La main de la boucle joue avec le Cœur d'étoile,
+la traîne prisme et l'éclat en étoiles. Pas de son, pas de curseur, pas de bandes noires, pas de
+texte promotionnel ni de logo.
 
 ## Description (à coller, en anglais)
 

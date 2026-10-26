@@ -205,6 +205,7 @@ watchEffect(() => {
     <a class="skip" href="#main">{{ t('nav.skip') }}</a>
     <main id="main" class="home" tabindex="-1" :class="{ enter: navigated }">
       <HomeScreen
+        :covered="showIntro"
         @play="startCampaign"
         @arcade="arcade"
         @observatory="show({ kind: 'observatory', from: 'home' })"

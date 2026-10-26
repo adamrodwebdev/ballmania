@@ -118,7 +118,7 @@ const LESSONS: Readonly<Record<Lesson, LessonRule>> = {
 };
 
 /** The key of a line's landing: the ball it meets and the side of it; null if none. */
-function keyOf(line: AimLine, game: Game): number | null {
+export function keyOf(line: AimLine, game: Game): number | null {
   const target = line.target;
   const ball = target && game.chains[target.chain]?.balls[target.index];
   return target && ball ? ball.id * 2 + (target.after ? 1 : 0) : null;

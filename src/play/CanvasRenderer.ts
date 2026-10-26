@@ -44,6 +44,7 @@ import type { Path } from '@/engine/path/Path';
 /** Radius of a switch lever, in board units (also the size of its tap target). */
 export const SWITCH_RADIUS = 30;
 import { TRAIL_LENGTH } from './cosmetics/Trails';
+import { blankCanvas, context2d, type Context2D, type SpriteCanvas } from './canvas';
 
 /** What every renderer offers the play session. */
 export interface Renderer {
@@ -59,7 +60,7 @@ export interface Renderer {
   toDevice(point: Vec2): Vec2;
   readonly deviceScale: number;
   /** The surface drawn on, which post-processing reads. */
-  readonly surface: HTMLCanvasElement;
+  readonly surface: SpriteCanvas;
   /** Board units from a point to the nearest edge of the screen. */
   room(point: Vec2): number;
   draw(scene: Scene): void;
@@ -125,7 +126,7 @@ export interface AimLine {
 
 /** Canvas 2D renderer: tracks, hole, chains, shots, shooter and effects. */
 export class CanvasRenderer implements Renderer {
-  private readonly ctx: CanvasRenderingContext2D;
+  private readonly ctx: Context2D;
   private readonly sprites: BallSprites;
   private palette: Palette;
   private scale = 1;
@@ -138,7 +139,7 @@ export class CanvasRenderer implements Renderer {
   private view: BoardView | null = null;
   /** Track shapes, per path: flipping a switch gives the chain a new path. */
   private readonly tracks = new Map<Path, Path2D>();
-  private background: HTMLCanvasElement | null = null;
+  private background: SpriteCanvas | null = null;
   private readonly trails = new Map<number, Vec2[]>();
   private time = 0;
   /** Singularity world: the black hole and the shooter's ring. */
@@ -151,32 +152,32 @@ export class CanvasRenderer implements Renderer {
    * per route: wide strokes along a whole track are costly every frame on a
    * modest device. Only the flowing thread is drawn live.
    */
-  private trackLayer: HTMLCanvasElement | null = null;
+  private trackLayer: SpriteCanvas | null = null;
   /** Glows by colour (holes, the shooter's aura), painted once. */
-  private readonly glows = new Map<string, HTMLCanvasElement>();
+  private readonly glows = new Map<string, SpriteCanvas>();
   /** The powers' balls and effects (v1.7). */
   private readonly powers = new PowerPainter();
   /** The Colossus, in a fight or in the training's promise. */
   private readonly colossus = new ColossusPainter();
   private trackPaths: readonly unknown[] = [];
   /** After a win: the tracks full of light, painted once for the afterglow. */
-  private litLayer: HTMLCanvasElement | null = null;
+  private litLayer: SpriteCanvas | null = null;
   /** Device pixels of a ball's radius the sprites are built for. */
   private spriteRadius = 0;
   /** After a win: the stardust of the supernova. */
   private dust: Mote[] | null = null;
 
   constructor(
-    private readonly canvas: HTMLCanvasElement,
+    private readonly canvas: SpriteCanvas,
     private readonly game: Game,
     palette: Palette,
     private readonly look: Look,
   ) {
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = context2d(canvas, { alpha: false });
     if (!ctx) throw new Error('Canvas 2D is not available');
     this.ctx = ctx;
     this.palette = palette;
-    this.sprites = new BallSprites(() => document.createElement('canvas'));
+    this.sprites = new BallSprites(() => blankCanvas(canvas));
     this.blackHole = game.gravity ? new BlackHole(game.gravity, game.ring) : null;
     this.weather = new WeatherLayer(game);
     this.ambience = new Ambience(look.theme.ambience);
@@ -197,16 +198,21 @@ export class CanvasRenderer implements Renderer {
     this.offsetX = this.view.offsetX;
     this.offsetY = this.view.offsetY;
     // Read by the end-to-end tests, which aim at board points and check what the level covers.
-    Object.assign(this.canvas.dataset, {
-      scale: String(this.scale),
-      offsetX: String(this.offsetX),
-      offsetY: String(this.offsetY),
-      boardWidth: String(this.game.setup.board.width),
-      boardHeight: String(this.game.setup.board.height),
-      content: [this.content.left, this.content.top, this.content.right, this.content.bottom].join(
-        ' ',
-      ),
-    });
+    if ('dataset' in this.canvas) {
+      Object.assign(this.canvas.dataset, {
+        scale: String(this.scale),
+        offsetX: String(this.offsetX),
+        offsetY: String(this.offsetY),
+        boardWidth: String(this.game.setup.board.width),
+        boardHeight: String(this.game.setup.board.height),
+        content: [
+          this.content.left,
+          this.content.top,
+          this.content.right,
+          this.content.bottom,
+        ].join(' '),
+      });
+    }
     this.rebuildSprites();
     if (resized || !this.background) this.repaintBackground();
     // The tracks' layers follow the board: painted again when it moved.
@@ -225,17 +231,17 @@ export class CanvasRenderer implements Renderer {
   }
 
   /** The tracks' fixed layers, repainted when the size, the colours or a route (switch) change. */
-  private tracksLayer(): HTMLCanvasElement | null {
+  private tracksLayer(): SpriteCanvas | null {
     const paths = this.game.chains.map((chain) => chain.path);
     const same =
       this.trackLayer !== null &&
       paths.length === this.trackPaths.length &&
       paths.every((path, i) => path === this.trackPaths[i]);
     if (same) return this.trackLayer;
-    const layer = this.trackLayer ?? document.createElement('canvas');
+    const layer = this.trackLayer ?? blankCanvas(this.canvas);
     layer.width = this.canvas.width;
     layer.height = this.canvas.height;
-    const ctx = layer.getContext('2d');
+    const ctx = context2d(layer);
     if (!ctx) return null;
     ctx.clearRect(0, 0, layer.width, layer.height);
     const k = this.scale * this.pixelRatio;
@@ -262,10 +268,10 @@ export class CanvasRenderer implements Renderer {
   }
 
   private repaintBackground(): void {
-    const background = this.background ?? document.createElement('canvas');
+    const background = this.background ?? blankCanvas(this.canvas);
     background.width = this.canvas.width;
     background.height = this.canvas.height;
-    const ctx = background.getContext('2d');
+    const ctx = context2d(background);
     if (!ctx) return;
     this.look.theme.paintBackground(ctx, background.width, background.height, this.palette);
     this.background = background;
@@ -286,7 +292,7 @@ export class CanvasRenderer implements Renderer {
     return this.scale * this.pixelRatio;
   }
 
-  get surface(): HTMLCanvasElement {
+  get surface(): SpriteCanvas {
     return this.canvas;
   }
 
@@ -453,7 +459,7 @@ export class CanvasRenderer implements Renderer {
   }
 
   /** A lit groove: a wide soft glow and a bright thread. */
-  private strokeLit(ctx: CanvasRenderingContext2D, track: Path2D, radius: number): void {
+  private strokeLit(ctx: Context2D, track: Path2D, radius: number): void {
     ctx.strokeStyle = this.palette.accent;
     ctx.globalAlpha = 0.28;
     ctx.lineWidth = radius * 2 + 16;
@@ -465,12 +471,12 @@ export class CanvasRenderer implements Renderer {
   }
 
   /** Every track full of light, painted once (device pixels, the whole canvas). */
-  private litTracks(radius: number): HTMLCanvasElement | null {
+  private litTracks(radius: number): SpriteCanvas | null {
     if (this.litLayer) return this.litLayer;
-    const layer = document.createElement('canvas');
+    const layer = blankCanvas(this.canvas);
     layer.width = this.canvas.width;
     layer.height = this.canvas.height;
-    const ctx = layer.getContext('2d');
+    const ctx = context2d(layer);
     if (!ctx) return null;
     const k = this.scale * this.pixelRatio;
     ctx.setTransform(k, 0, 0, k, this.offsetX * this.pixelRatio, this.offsetY * this.pixelRatio);
@@ -621,12 +627,12 @@ export class CanvasRenderer implements Renderer {
   }
 
   /** A soft round glow of `colour`, painted once and reused (gradients cost every frame). */
-  private glowOf(colour: string): HTMLCanvasElement {
+  private glowOf(colour: string): SpriteCanvas {
     let glow = this.glows.get(colour);
     if (!glow) {
-      glow = document.createElement('canvas');
+      glow = blankCanvas(this.canvas);
       glow.width = glow.height = 128;
-      const ctx = glow.getContext('2d');
+      const ctx = context2d(glow);
       if (ctx) {
         const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
         gradient.addColorStop(0, colour);
@@ -1374,7 +1380,7 @@ function seededRandom(seed: number): () => number {
  * Gives a canvas this size in device pixels, and says if it changed: setting
  * a canvas's size, even to the same value, clears it and allocates it anew.
  */
-function fit(canvas: HTMLCanvasElement, width: number, height: number): boolean {
+function fit(canvas: SpriteCanvas, width: number, height: number): boolean {
   if (canvas.width === width && canvas.height === height) return false;
   canvas.width = width;
   canvas.height = height;

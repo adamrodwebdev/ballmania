@@ -2,8 +2,9 @@ import type { Chain } from '@/engine/chain/Chain';
 import type { Vec2 } from '@/engine/geometry/Vec2';
 import { SLOW_SECONDS, type PowerKind } from '@/engine/powers/Powers';
 import type { BallMotion } from './BallMotion';
+import type { Context2D, SpriteCanvas } from './canvas';
 
-type Context = CanvasRenderingContext2D;
+type Context = Context2D;
 
 const TAU = Math.PI * 2;
 const ICE = 'rgba(205, 246, 255, 0.24)';
@@ -228,7 +229,7 @@ export class PowerPainter {
     at: Vec2,
     radius: number,
     velocity: Vec2 | null,
-    glow: HTMLCanvasElement,
+    glow: SpriteCanvas,
   ): void {
     ctx.save();
     if (velocity && velocity.length() > 0) {

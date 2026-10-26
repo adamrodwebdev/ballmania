@@ -1,5 +1,6 @@
 import type { Vec2 } from '@/engine/geometry/Vec2';
 import type { Palette } from './Palette';
+import type { Context2D } from './canvas';
 
 /**
  * How each form of the Colossus is drawn, in body radii: its orbiting runes,
@@ -45,7 +46,7 @@ export interface ColossusPose {
  * end of the training (effects/Promise).
  */
 export class ColossusPainter {
-  draw(ctx: CanvasRenderingContext2D, palette: Palette, pose: ColossusPose): void {
+  draw(ctx: Context2D, palette: Palette, pose: ColossusPose): void {
     const { at, radius: r } = pose;
     const look = pose.young ? LOOKS.young : LOOKS.adult;
     const rage = pose.rage ?? 0;
@@ -106,7 +107,7 @@ export class ColossusPainter {
    * stays inside it when it blinks.
    */
   private drawEye(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     pose: ColossusPose,
     look: (typeof LOOKS)[keyof typeof LOOKS],

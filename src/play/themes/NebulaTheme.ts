@@ -2,6 +2,7 @@ import { SeededRandom } from '@/engine/core/Random';
 import type { AmbienceStyle } from './Ambience';
 import { fractalNoise } from './noise';
 import type { WorldTheme } from './WorldTheme';
+import { blankCanvas, context2d, type Context2D } from '../canvas';
 
 type Rgb = readonly [number, number, number];
 
@@ -223,7 +224,7 @@ export class NebulaTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'drift';
   readonly night = true;
 
-  paintBackground(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+  paintBackground(ctx: Context2D, width: number, height: number): void {
     const layout = width >= height ? WIDE : UPRIGHT;
     const short = Math.min(width, height);
     const unit = Math.max(1, short / 600);
@@ -260,7 +261,7 @@ export class NebulaTheme implements WorldTheme {
   }
 
   private stars(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     random: SeededRandom,
     width: number,
     height: number,
@@ -285,7 +286,7 @@ export class NebulaTheme implements WorldTheme {
 
   /** The nearest stars that stay put: a halo and a glint each. */
   private brightStars(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     random: SeededRandom,
     width: number,
     height: number,
@@ -312,7 +313,7 @@ export class NebulaTheme implements WorldTheme {
     }
   }
 
-  private cloud(ctx: CanvasRenderingContext2D, cloud: Cloud, width: number, height: number): void {
+  private cloud(ctx: Context2D, cloud: Cloud, width: number, height: number): void {
     ctx.save();
     ctx.translate(cloud.x * width, cloud.y * height);
     ctx.scale(cloud.rx * width, cloud.ry * height);
@@ -326,14 +327,14 @@ export class NebulaTheme implements WorldTheme {
   }
 
   /** Wisps: noise on a small grid, stretched smoothly over the screen. */
-  private wisp(ctx: CanvasRenderingContext2D, wisp: Wisp, width: number, height: number): void {
+  private wisp(ctx: Context2D, wisp: Wisp, width: number, height: number): void {
     const long = Math.max(width, height);
     const columns = Math.max(8, Math.round((192 * width) / long));
     const rows = Math.max(8, Math.round((192 * height) / long));
-    const grid = document.createElement('canvas');
+    const grid = blankCanvas(ctx.canvas);
     grid.width = columns;
     grid.height = rows;
-    const small = grid.getContext('2d');
+    const small = context2d(grid);
     if (!small) return;
     const noise = fractalNoise(columns, rows, {
       cells: 4,
@@ -362,13 +363,7 @@ export class NebulaTheme implements WorldTheme {
   }
 
   /** A far spiral galaxy, tilted: a disc, two faint arms and a warm core. */
-  private galaxy(
-    ctx: CanvasRenderingContext2D,
-    galaxy: Body,
-    width: number,
-    height: number,
-    short: number,
-  ): void {
+  private galaxy(ctx: Context2D, galaxy: Body, width: number, height: number, short: number): void {
     const k = (galaxy.size * short) / 66;
     ctx.save();
     ctx.translate(galaxy.x * width, galaxy.y * height);
@@ -409,13 +404,7 @@ export class NebulaTheme implements WorldTheme {
   }
 
   /** A gas giant rising from a corner: banded, lit on one side, with a thin atmosphere. */
-  private giant(
-    ctx: CanvasRenderingContext2D,
-    giant: Giant,
-    width: number,
-    height: number,
-    short: number,
-  ): void {
+  private giant(ctx: Context2D, giant: Giant, width: number, height: number, short: number): void {
     const cx = giant.x * width;
     const cy = giant.y * height;
     const r = giant.size * short;
@@ -482,13 +471,7 @@ export class NebulaTheme implements WorldTheme {
   }
 
   /** A small ringed planet, warm against the cool clouds. */
-  private moon(
-    ctx: CanvasRenderingContext2D,
-    moon: Body,
-    width: number,
-    height: number,
-    short: number,
-  ): void {
+  private moon(ctx: Context2D, moon: Body, width: number, height: number, short: number): void {
     const cx = moon.x * width;
     const cy = moon.y * height;
     const r = moon.size * short;
@@ -521,7 +504,7 @@ export class NebulaTheme implements WorldTheme {
   }
 
   /** Darker edges: the eye stays on the board. */
-  private vignette(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+  private vignette(ctx: Context2D, width: number, height: number): void {
     ctx.save();
     ctx.translate(width / 2, height / 2);
     ctx.scale(width, height);

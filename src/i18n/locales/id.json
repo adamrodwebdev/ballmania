@@ -15,6 +15,17 @@
     "play": "Main",
     "next": "{world}\u00a0· Level\u00a0{number}"
   },
+  "reel": {
+    "boss": "Bos",
+    "nova": "Bom Nova",
+    "bank": "Pantulkan tembakanmu",
+    "magnet": "Sedot satu bola",
+    "alchemy": "Campur warna",
+    "switch": "Ubah persimpangan",
+    "blackHole": "Lubang hitam membelokkan tembakanmu",
+    "colossus": "Tumbangkan Kolosus",
+    "duel": "Menangkan tarik tambang"
+  },
   "settings": {
     "language": "Bahasa",
     "theme": "Tema",

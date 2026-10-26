@@ -1,4 +1,5 @@
 import type { Palette } from '../Palette';
+import type { Context2D } from '../canvas';
 
 /** How a world's backdrop lives (specification § 3.9): one light, cheap motion per world. */
 export type AmbienceStyle = 'twinkle' | 'drift' | 'scan' | 'bubbles' | 'glints' | 'embers';
@@ -21,13 +22,7 @@ const hash = (index: number, salt: number) => {
 export class Ambience {
   constructor(private readonly style: AmbienceStyle) {}
 
-  draw(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    palette: Palette,
-    time: number,
-  ): void {
+  draw(ctx: Context2D, width: number, height: number, palette: Palette, time: number): void {
     const scale = Math.max(1, Math.min(width, height) / 600);
     ctx.save();
     if (this.style === 'scan') this.scan(ctx, width, height, palette, time, scale);
@@ -66,7 +61,7 @@ export class Ambience {
   }
 
   private twinkle(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     x: number,
     y: number,
     palette: Palette,
@@ -86,7 +81,7 @@ export class Ambience {
    * painted ones (a depth of their own), twinkling; the brightest glint.
    */
   private drift(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     index: number,
     width: number,
     y: number,
@@ -110,7 +105,7 @@ export class Ambience {
   }
 
   private glint(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     x: number,
     y: number,
     palette: Palette,
@@ -131,7 +126,7 @@ export class Ambience {
   }
 
   private bubble(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     x: number,
     height: number,
     palette: Palette,
@@ -157,7 +152,7 @@ export class Ambience {
   }
 
   private ember(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     x: number,
     height: number,
     palette: Palette,
@@ -179,7 +174,7 @@ export class Ambience {
 
   /** Neon: a soft line of light sweeping down the screen, like an old monitor. */
   private scan(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     width: number,
     height: number,
     palette: Palette,

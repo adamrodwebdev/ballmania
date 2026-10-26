@@ -5,6 +5,7 @@ import { GlassShards, type ShardShape } from '../cosmetics/ShardShapes';
 import type { Palette } from '../Palette';
 import type { EffectProfile } from './EffectProfile';
 import { Shake } from './Shake';
+import type { Context2D } from '../canvas';
 
 /** An explosion as the effects need it. */
 export interface Burst {
@@ -488,7 +489,7 @@ export class Destruction {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, palette: Palette, sprites: BallSprites): void {
+  draw(ctx: Context2D, palette: Palette, sprites: BallSprites): void {
     const base = ctx.getTransform();
     const additive = palette.dark ? 'lighter' : 'source-over';
     const r = this.ballRadius;
@@ -587,11 +588,7 @@ export class Destruction {
     ctx.globalAlpha = 1;
   }
 
-  private drawTractors(
-    ctx: CanvasRenderingContext2D,
-    palette: Palette,
-    sprites: BallSprites,
-  ): void {
+  private drawTractors(ctx: Context2D, palette: Palette, sprites: BallSprites): void {
     const r = this.ballRadius;
     for (const tractor of this.tractors) {
       const t = Math.min(1, tractor.age / TRACTOR_TIME);
@@ -621,7 +618,7 @@ export class Destruction {
   }
 
   /** A circular arrow: the sign of a bank shot, drawn rather than typed. */
-  private drawReboundArrow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+  private drawReboundArrow(ctx: Context2D, x: number, y: number, r: number): void {
     ctx.save();
     ctx.lineWidth = r * 0.45;
     ctx.strokeStyle = ctx.fillStyle;
@@ -642,7 +639,7 @@ export class Destruction {
 
   /** Swelling balls with white cracks, bound by flickering arcs. */
   private drawCracking(
-    ctx: CanvasRenderingContext2D,
+    ctx: Context2D,
     palette: Palette,
     sprites: BallSprites,
     additive: GlobalCompositeOperation,

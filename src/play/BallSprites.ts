@@ -1,5 +1,5 @@
 import { MAX_TONES, type Tone } from '@/engine/chain/Ball';
-import type { Context2D, SpriteCanvas } from './canvas';
+import { context2d, type Context2D, type SpriteCanvas } from './canvas';
 import type { Palette } from './Palette';
 
 type Context = Context2D;
@@ -89,7 +89,7 @@ export class BallSprites {
     const canvas = this.createCanvas();
     canvas.width = size;
     canvas.height = size;
-    const ctx = canvas.getContext('2d');
+    const ctx = context2d(canvas);
     if (!ctx) return canvas;
     const r = size / 2;
     const gradient = ctx.createRadialGradient(r, r, 0, r, r, r);
@@ -107,7 +107,7 @@ export class BallSprites {
     const canvas = this.createCanvas();
     canvas.width = size;
     canvas.height = size;
-    const ctx = canvas.getContext('2d');
+    const ctx = context2d(canvas);
     if (!ctx) return canvas;
     const r = size / 2;
     ctx.translate(r, r);

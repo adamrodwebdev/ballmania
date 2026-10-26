@@ -1,6 +1,7 @@
 import type { AmbienceStyle } from './Ambience';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
+import type { Context2D } from '../canvas';
 
 /**
  * World 2's backdrop, unlocked by finishing the Nebula: a striped sun over a
@@ -10,12 +11,7 @@ export class NeonTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'scan';
   readonly night = false;
 
-  paintBackground(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    palette: Palette,
-  ): void {
+  paintBackground(ctx: Context2D, width: number, height: number, palette: Palette): void {
     const dark = palette.dark;
     const pink = palette.tone(5);
     const cyan = palette.tone(3);

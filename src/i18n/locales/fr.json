@@ -15,6 +15,17 @@
     "play": "Jouer",
     "next": "{world}\u00a0· niveau\u00a0{number}"
   },
+  "reel": {
+    "boss": "Boss",
+    "nova": "La bombe Nova",
+    "bank": "Faites rebondir vos tirs",
+    "magnet": "Aspirez une bille",
+    "alchemy": "Mélangez les couleurs",
+    "switch": "Basculez les aiguillages",
+    "blackHole": "Le trou noir courbe vos tirs",
+    "colossus": "Terrassez le Colosse",
+    "duel": "Gagnez le tir à la corde"
+  },
   "settings": {
     "language": "Langue",
     "theme": "Thème",

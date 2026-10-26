@@ -2,6 +2,7 @@ import type { AmbienceStyle } from './Ambience';
 import { SeededRandom } from '@/engine/core/Random';
 import type { Palette } from '../Palette';
 import { withAlpha, type WorldTheme } from './WorldTheme';
+import type { Context2D } from '../canvas';
 
 /**
  * World 5's backdrop, unlocked by finishing the Jewels: cooled basalt split
@@ -11,12 +12,7 @@ export class VolcanoTheme implements WorldTheme {
   readonly ambience: AmbienceStyle = 'embers';
   readonly night = false;
 
-  paintBackground(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    palette: Palette,
-  ): void {
+  paintBackground(ctx: Context2D, width: number, height: number, palette: Palette): void {
     const random = new SeededRandom(505);
     const dark = palette.dark;
     const magma = palette.tone(1);
