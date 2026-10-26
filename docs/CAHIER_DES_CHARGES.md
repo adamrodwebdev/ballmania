@@ -1446,7 +1446,7 @@ quasi-défaite avant 1-9. Il n'y a aucun temps mort : on a toujours de quoi vise
 0:30 à 1:38, sont celles d'un robot plus rapide que les gens. Le test de couloir donne le
 rapport entre les deux, par la durée réelle du 1-1 face à celle du robot.
 
-**Tableau proposé** (26/10/2026, à valider avant tout réglage) : la tension monte en dents de
+**Tableau du monde 1** (validé le 26/10/2026, avant tout réglage) : la tension monte en dents de
 scie, chaque frisson plus haut que le précédent (1-3, puis 1-7, 1-11 et le Colosse), avec une
 respiration après chacun des deux premiers. Les pointes et les quasi-défaites visées sont
 celles du robot nouveau venu, sur 24 parties ; les durées, celles de vrais joueurs.
@@ -1466,16 +1466,15 @@ celles du robot nouveau venu, sur 24 parties ; les durées, celles de vrais joue
 | 1-11   | Frisson     | La cinquième couleur                       | 2:00–2:30   | 61 % → 65–70 %               | 4 à 6                 | Longueur                        |
 | 1-12   | Colosse     | Le Colosse stellaire                       | 2:30–3:30   | 69 % → 65–75 %               | 5 à 8                 | Endurance du boss               |
 
-**Trois choix à trancher avec le tableau** :
+**Trois choix tranchés avec le tableau** (26/10/2026) :
 
 1. **Le calendrier des couleurs** (trois jusqu'à 1-4, quatre dès 1-5, cinq en 1-11) est déjà
-   une montée, liée aux nouveautés. Proposé : le garder, et régler chaque niveau par la
-   vitesse, puis la longueur, plutôt que par le nombre de couleurs que la feuille de route
-   place en premier levier.
+   une montée, liée aux nouveautés : il reste tel quel, et chaque niveau se règle par la
+   vitesse, puis la longueur, plutôt que par le nombre de couleurs.
 2. **Les respirations** (1-4, 1-8) visent zéro ou une quasi-défaite, en exception à la règle
    de l'étape 6 (« au moins une quasi-défaite par niveau dès 1-3 »).
-3. **1-9 n'a pas de nouveauté** dans les données : proposé comme niveau où les acquis se
-   mêlent, sur le plus long tracé du monde, plutôt que d'y avancer la cinquième couleur.
+3. **1-9 n'a pas de nouveauté** dans les données : c'est le niveau où les acquis se mêlent,
+   sur le plus long tracé du monde ; la cinquième couleur reste en 1-11.
 
 ## 4. Exigences non fonctionnelles
 
@@ -2077,4 +2076,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).               |
 | 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                  |
 | 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                              |
-| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et le tableau proposé (§ 3.15).                                            |
+| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                           |
