@@ -25,9 +25,13 @@ notre site et du README (`public/og.jpg`, 1200 × 630) d'après la couverture pa
 
 Ce que respectent les couvertures : pas de bordure, aucun texte hormis le titre, pas
 d'icône ni de logo, une illustration plutôt qu'une capture d'écran, une police stylisée
-(Lilita One, licence SIL OFL), la même composition aux trois formats : la spirale de billes
-qui plonge dans le trou noir, un groupe qui éclate, et le Cœur d'étoile, lanceur et mascotte
-du jeu (v1.7), qui vient de tirer la bille, placé à la main sur chaque format.
+(Lilita One, licence SIL OFL), la même composition aux trois formats, faite de ce que montre
+la première partie : sur la grille du monde Néon, une chaîne de billes roule vers le trou noir
+posé à l'horizon ; le jeune Colosse stellaire en sort en rugissant et fixe le joueur, comme à
+la fin de l'entraînement ; au premier plan, le Cœur d'étoile, lanceur et mascotte du jeu, vient
+de tirer, et un groupe éclate. Le Colosse est celui du jeu, dessiné par son peintre et agrandi ;
+chaque format place ses éléments à la main, et chacun se lit à 200 px de large, la taille des
+vignettes des portails.
 
 Ce que respectent les vidéos : elles s'ouvrent sur la couverture fixe (1 s), puis jouent les
 mêmes scènes que la boucle de l'écran titre (v1.8.0, `cuts.ts`) : six de ses moments, la Nova,
@@ -93,6 +97,9 @@ texte promotionnel ni de logo.
 
 ## Formulaire : réponses à préparer
 
+- **Nom** : « Ballmania: Cosmic Marble Shooter » (32 caractères ; décidé le 26/10/2026).
+  « Ballmania » reste à la fiche refusée, et le genre dans le nom aide la recherche et le
+  clic ; les couvertures gardent le logo « Ballmania ».
 - **Build** : `npm run build:crazygames` (version Basic Launch, **sans aucune publicité** :
   CrazyGames les coupe pendant le Basic Launch ; la version avec publicités se construit
   avec `CRAZYGAMES_LAUNCH=full npm run build:crazygames`, seulement sur invitation au Full
