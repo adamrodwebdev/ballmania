@@ -14,7 +14,8 @@ import { PLAYERS, playLevel, type BotResult } from './bot';
  * tables of a world in the terminal, as Markdown; `TENSION=1` prints world 1.
  */
 const FRAME_KINDS: readonly FrameKind[] = ['square', 'tall', 'wide'];
-const SEEDS = Array.from({ length: 8 }, (_, i) => `tension-${i}`);
+/** 24 seeds on each board, 72 games a level: eight left the near misses too noisy (v1.8.0). */
+const SEEDS = Array.from({ length: 24 }, (_, i) => `tension-${i}`);
 /** Past this share of its track, the head of a chain makes a near miss. */
 const NEAR_MISS = 0.8;
 

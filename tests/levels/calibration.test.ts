@@ -10,7 +10,8 @@ import { PLAYERS, playLevel, type BotResult } from './bot';
 /**
  * The stars and the time bonus of each campaign level (specification § 3.2),
  * calibrated on a human-like bot (it decides every 1.5 s, shoots true and
- * sets up chain reactions): the reference time is 1.2 × its median time, the
+ * sets up chain reactions), 24 games on each of the three boards (72 games
+ * since v1.8.0; 36 before): the reference time is 1.2 × its median time, the
  * third star is reached by about 30 % of its wins, the second by about 80 %,
  * and stays at most 85 % of the third so that the gauge keeps them apart.
  * Thresholds are rounded down to 50 points.
@@ -20,7 +21,9 @@ import { PLAYERS, playLevel, type BotResult } from './bot';
  * `CALIBRATE=nebula-01,neon-02` recalibrates only the levels it lists.
  */
 const FRAME_KINDS: readonly FrameKind[] = ['square', 'tall', 'wide'];
-const SEEDS = Array.from({ length: 12 }, (_, i) => `star-${i}`);
+const SEEDS = Array.from({ length: 24 }, (_, i) => `star-${i}`);
+/** Games the calibration never saw: the guard checks what new players will meet (v1.8.0). */
+const FRESH = Array.from({ length: 8 }, (_, i) => `guard-${i}`);
 const MARGIN = 1.2;
 const THIRD_STAR = 0.7;
 const SECOND_STAR = 0.2;
@@ -107,7 +110,7 @@ describe('calibration of the stars and the time bonus', () => {
     }
   });
 
-  // A guard on world 1, the one newcomers play, on a third of the calibration games.
+  // A guard on world 1, the one newcomers play, on games the calibration never saw.
   it('keeps world 1 on target: three stars for some careful games, two for most', () => {
     let careful = 0;
     let third = 0;
@@ -116,14 +119,12 @@ describe('calibration of the stars and the time bonus', () => {
       const reference = referenceTime(level);
       const reaching = (played: readonly BotResult[], points: number) =>
         played.filter((game) => rescored(game, reference) >= points).length;
-      const human = games(level, 'human', SEEDS.slice(0, 4));
+      const human = games(level, 'human', FRESH);
       careful += human.length;
       third += reaching(human, three);
       expect(reaching(human, two) / human.length, level.id).toBeGreaterThan(0.5);
       // Within reach: an applied player gets the third star now and then on every level.
-      expect(reaching(games(level, 'applied', SEEDS.slice(0, 4)), three), level.id).toBeGreaterThan(
-        0,
-      );
+      expect(reaching(games(level, 'applied', FRESH), three), level.id).toBeGreaterThan(0);
     }
     expect(third / careful).toBeGreaterThan(0.15);
     expect(third / careful).toBeLessThan(0.45);
