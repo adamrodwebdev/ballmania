@@ -157,15 +157,15 @@ test.describe('campaign', () => {
     page,
   }) => {
     // Simulating a whole level frame by frame takes a while.
-    test.setTimeout(90_000);
+    test.setTimeout(150_000);
     await page.clock.install();
     await page.goto('./');
     await page.getByTestId('play').click();
     await page.getByTestId('level-nebula-01').click();
     await expect(page.getByTestId('board')).toBeVisible();
     await expect(page.getByTestId('level')).toHaveText('1-1');
-    // Nobody shoots: the chain reaches the hole.
-    await page.clock.runFor(100_000);
+    // Nobody shoots: the chain reaches the hole, slowed down in its last fifth (v1.8.0).
+    await page.clock.runFor(150_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
     await expect(dialog).toBeVisible();
     await dialog.getByTestId('map').click();
@@ -298,7 +298,7 @@ test.describe('progression', () => {
 });
 
 test('offers help after three failures in a row on a level', async ({ page }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(150_000);
   await page.addInitScript(() => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
@@ -318,7 +318,7 @@ test('offers help after three failures in a row on a level', async ({ page }) =>
   await page.getByTestId('play').click();
   await page.getByTestId('level-nebula-01').click();
   await expect(page.getByTestId('board')).toBeVisible();
-  await page.clock.runFor(100_000);
+  await page.clock.runFor(150_000);
   const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
   await expect(dialog).toBeVisible();
   // The first choice has the focus: Enter takes it, not "Play again".

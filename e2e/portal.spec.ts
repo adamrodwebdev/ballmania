@@ -119,14 +119,14 @@ test.describe('portal build', () => {
   test('continues once after a defeat, and spares a new player any ad after it', async ({
     page,
   }) => {
-    // Six and a half minutes of play, simulated frame by frame.
-    test.setTimeout(300_000);
+    // Seven and a half minutes of play, simulated frame by frame.
+    test.setTimeout(360_000);
     await english(page);
     await page.clock.install();
     // A new player: the visit opens in the first level.
     await page.goto('./');
     await expect(page.getByTestId('board')).toBeVisible();
-    await page.clock.runFor(100_000);
+    await page.clock.runFor(150_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('ad-continue')).toContainText('Watch an ad');
@@ -206,7 +206,7 @@ test.describe('portal build', () => {
     await page.clock.install();
     await page.goto('./?ads=off');
     await expect(page.getByTestId('board')).toBeVisible();
-    await page.clock.runFor(100_000);
+    await page.clock.runFor(150_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
     await expect(dialog).toBeVisible();
     // Continuing is still offered, for shards only, and says why it can't be taken yet.
