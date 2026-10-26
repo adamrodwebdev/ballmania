@@ -24,6 +24,18 @@ export interface ChainParams {
    * share of its length (the training, v1.8.0: no defeat, the danger shows).
    */
   readonly halt?: number;
+  /** Near the hole, the chain slows down (the grace zone, v1.8.0); never if absent. */
+  readonly grace?: Grace;
+}
+
+/**
+ * The grace zone (v1.8.0): once its front is `from` along the track, as a
+ * share of its length, the chain pushes at `factor` of its speed, eased in
+ * over a twentieth of the track, while the danger cues play.
+ */
+export interface Grace {
+  readonly from: number;
+  readonly factor: number;
 }
 
 /** Why balls exploded: a shot inserted into a group, or two segments joining. */
@@ -52,6 +64,8 @@ const EPSILON = 1e-6;
 const CATCH_UP_BALLS = 8;
 /** …only while its head is in this first share of the track, far from the hole. */
 const CATCH_UP_REACH = 0.4;
+/** Share of the track over which the grace zone eases in: the chain never jolts. */
+const GRACE_EASE = 0.05;
 
 /** Something big behind the tail that pushes the chain instead of the tail itself (the Colossus). */
 interface Pusher {
@@ -128,6 +142,12 @@ export class Chain {
 
   get path(): Path {
     return this.pathValue;
+  }
+
+  /** The share of its track the head has covered: 0 at the entrance, 1 in the hole (0 if empty). */
+  get progress(): number {
+    const head = this.items[this.items.length - 1];
+    return head ? head.s / this.pathValue.length : 0;
   }
 
   /**
@@ -353,7 +373,11 @@ export class Chain {
     const halted = this.params.halt !== undefined && front >= this.params.halt * this.path.length;
     const speed = halted
       ? 0
-      : this.cruise(front) * this.speedFactor * this.paceValue * this.powerFactor;
+      : this.cruise(front) *
+        this.graceAt(front) *
+        this.speedFactor *
+        this.paceValue *
+        this.powerFactor;
     if (this.pusher) this.pusher.s += speed * dt;
     if (this.isEmpty) return [];
     const wasTouching = this.items.slice(0, -1).map((_, i) => this.touching(i));
@@ -407,6 +431,14 @@ export class Chain {
     const onBoard = this.items.reduce((count, ball) => count + (ball.s >= 0 ? 1 : 0), 0);
     const shortage = Math.min(1, Math.max(0, (CATCH_UP_BALLS - onBoard) / (CATCH_UP_BALLS / 2)));
     return speed + (rushSpeed - speed) * shortage;
+  }
+
+  /** The grace zone's factor where the front stands: 1 before it, easing down to its own. */
+  private graceAt(front: number): number {
+    const grace = this.params.grace;
+    if (!grace) return 1;
+    const into = (front / this.pathValue.length - grace.from) / GRACE_EASE;
+    return 1 - (1 - grace.factor) * Math.max(0, Math.min(1, into));
   }
 
   /**

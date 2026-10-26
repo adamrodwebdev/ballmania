@@ -1071,10 +1071,7 @@ export class Game {
       for (const explosion of chain.advance(dt)) this.report(index, chain, explosion);
     });
     this.objective.update(this.context, dt);
-    for (const chain of this.chains) {
-      const head = chain.balls[chain.balls.length - 1];
-      if (head) this.danger = Math.max(this.danger, head.s / chain.path.length);
-    }
+    for (const chain of this.chains) this.danger = Math.max(this.danger, chain.progress);
     this.shooter.refresh(this.shooterTones());
     this.checkEnd();
   }
