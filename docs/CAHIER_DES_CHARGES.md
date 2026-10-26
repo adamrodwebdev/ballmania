@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                          |
-| ------- | ---------- | ----------------------------------------------- |
-| 1.8     | 23/10/2026 | Boucle de l'écran titre (v1.8.0, étape 3 sur 8) |
+| Version | Date       | Statut                                     |
+| ------- | ---------- | ------------------------------------------ |
+| 1.9     | 26/10/2026 | Tension du monde 1 (v1.8.0, étape 5 sur 8) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1378,6 +1378,104 @@ caché et derrière les réglages, image fixe, aucun code chargé sur un écran 
 avant la fin de l'intro, rien demandé avant le premier affichage, et toutes les légendes,
 dans les quatre langues, tenues dans la fenêtre à 360 × 780 et à 1280 × 800.
 
+### 3.15 Tension du monde 1 (v1.8.0)
+
+**But** : donner au monde 1 l'émotion du genre, la bille qui frôle le trou, sans défaite en 1-1
+ni en 1-2 et sans attente pour allonger un niveau. Le tableau ci-dessous fixe le rôle de chaque
+niveau avant tout réglage (étape 6).
+
+**Mesures** (`tests/levels/tension.test.ts` ; `TENSION=nebula npx vitest run
+tests/levels/tension.test.ts` imprime les tables d'un monde) : chaque niveau joué par deux
+robots sur les trois plateaux (carré, haut, large), huit graines chacun.
+
+- **Le nouveau venu** : un tir toutes les 1,6 s, une erreur de visée de 32 unités, sans plan
+  (profil de l'étude du 21/10/2026, à recaler sur le test de couloir).
+- **L'occasionnel** : un tir toutes les 1,2 s, une erreur de 24 unités.
+
+Pour chaque partie :
+
+- la **pointe** : la plus grande avancée de la tête de chaîne, en part du tracé ; la ruée du
+  départ la pose à 30 % au plus ;
+- le **temps sous pression** : la tête au-delà de la moitié du tracé, en part de la partie ;
+- les **quasi-défaites** : une pointe au-delà des quatre cinquièmes, là où jouera la zone de
+  grâce ;
+- le **temps mort** : aucune bille à l'écran pendant que d'autres attendent dans le tunnel
+  (« maigre » : moins de trois).
+
+**Tables de départ** (26/10/2026, version 1.8.0 en cours ; durée : médiane des victoires ;
+pointe et pression : médianes des 24 parties) :
+
+Robot nouveau venu :
+
+| Niveau | Victoires | Durée | Pointe | Pointe max | Sous pression | Quasi-défaites | Temps mort | Maigre |
+| ------ | --------- | ----- | ------ | ---------- | ------------- | -------------- | ---------- | ------ |
+| 1-1    | 24/24     | 0:30  | 29 %   | 34 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-2    | 24/24     | 0:32  | 29 %   | 37 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-3    | 24/24     | 0:36  | 36 %   | 40 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-4    | 24/24     | 0:41  | 26 %   | 36 %       | 0 %           | 0/24           | 0,0 s      | 0,8 s  |
+| 1-5    | 24/24     | 1:02  | 30 %   | 50 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-6    | 24/24     | 0:47  | 36 %   | 60 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-7    | 24/24     | 0:51  | 51 %   | 84 %       | 1 %           | 1/24           | 0,0 s      | 0,1 s  |
+| 1-8    | 24/24     | 1:03  | 43 %   | 63 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-9    | 23/24     | 1:16  | 32 %   | 101 %      | 0 %           | 1/24           | 0,0 s      | 0,3 s  |
+| 1-10   | 24/24     | 0:52  | 29 %   | 44 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-11   | 23/24     | 1:22  | 61 %   | 100 %      | 13 %          | 2/24           | 0,0 s      | 0,3 s  |
+| 1-12   | 24/24     | 1:38  | 69 %   | 93 %       | 20 %          | 6/24           | 0,0 s      | 0,3 s  |
+
+Robot occasionnel :
+
+| Niveau | Victoires | Durée | Pointe | Pointe max | Sous pression | Quasi-défaites | Temps mort | Maigre |
+| ------ | --------- | ----- | ------ | ---------- | ------------- | -------------- | ---------- | ------ |
+| 1-1    | 24/24     | 0:26  | 28 %   | 35 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-2    | 24/24     | 0:24  | 28 %   | 37 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-3    | 24/24     | 0:32  | 33 %   | 39 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-4    | 24/24     | 0:33  | 25 %   | 33 %       | 0 %           | 0/24           | 0,1 s      | 0,9 s  |
+| 1-5    | 24/24     | 0:46  | 27 %   | 36 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-6    | 24/24     | 0:39  | 34 %   | 50 %       | 0 %           | 0/24           | 0,0 s      | 0,6 s  |
+| 1-7    | 24/24     | 0:41  | 40 %   | 60 %       | 0 %           | 0/24           | 0,0 s      | 0,1 s  |
+| 1-8    | 24/24     | 0:51  | 29 %   | 47 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-9    | 24/24     | 1:01  | 31 %   | 44 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-10   | 24/24     | 0:47  | 27 %   | 32 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-11   | 24/24     | 1:03  | 41 %   | 64 %       | 0 %           | 0/24           | 0,0 s      | 0,3 s  |
+| 1-12   | 24/24     | 1:16  | 53 %   | 70 %       | 6 %           | 0/24           | 0,0 s      | 0,3 s  |
+
+**Lecture** : le monde 1 est plat et sûr. Pour le nouveau venu, la pointe médiane reste entre
+26 et 51 % du tracé de 1-1 à 1-10 : la tête dépasse à peine la ruée du départ. La pression
+ne compte vraiment qu'en 1-11 (13 % du temps) et contre le Colosse (20 %), et il n'y a qu'une
+quasi-défaite avant 1-9. Il n'y a aucun temps mort : on a toujours de quoi viser. Les durées, de
+0:30 à 1:38, sont celles d'un robot plus rapide que les gens. Le test de couloir donne le
+rapport entre les deux, par la durée réelle du 1-1 face à celle du robot.
+
+**Tableau du monde 1** (validé le 26/10/2026, avant tout réglage) : la tension monte en dents de
+scie, chaque frisson plus haut que le précédent (1-3, puis 1-7, 1-11 et le Colosse), avec une
+respiration après chacun des deux premiers. Les pointes et les quasi-défaites visées sont
+celles du robot nouveau venu, sur 24 parties ; les durées, celles de vrais joueurs.
+
+| Niveau | Rôle        | Nouveauté                                  | Durée visée | Pointe : aujourd'hui → visée | Quasi-défaites visées | Leviers proposés                |
+| ------ | ----------- | ------------------------------------------ | ----------- | ---------------------------- | --------------------- | ------------------------------- |
+| 1-1    | Calme       | Viser et grouper                           | 60–90 s     | 29 % → 40 % au plus          | 0                     | Aucun (chaîne posée à la main)  |
+| 1-2    | Montée      | Échanger                                   | 60–90 s     | 29 % → 40–50 %               | 0                     | Vitesse                         |
+| 1-3    | Frisson     | Le jeune Colosse                           | 90–150 s    | 36 % → 55–65 %               | 2 à 4                 | Vitesse, puis endurance du boss |
+| 1-4    | Respiration | Le Recul, première bille bonus             | 90–120 s    | 26 % → 40–50 %               | 0 à 1                 | Longueur, à vitesse égale       |
+| 1-5    | Montée      | Les réactions, la quatrième couleur        | 90–150 s    | 30 % → 50–60 %               | 1 à 2                 | Vitesse                         |
+| 1-6    | Montée      | Le Ralenti                                 | 90–150 s    | 36 % → 55–65 %               | 2 à 3                 | Vitesse, puis longueur          |
+| 1-7    | Frisson     | Deux chaînes                               | 90–150 s    | 51 % → 60–70 %               | 3 à 5                 | Longueur                        |
+| 1-8    | Respiration | Le Tir arc-en-ciel                         | 90–150 s    | 43 % → 45–55 %               | 0 à 1                 | Aucun, ou un peu de vitesse     |
+| 1-9    | Montée      | Les acquis mêlés, serpentin à quatre rangs | 2:00–2:30   | 32 % → 55–65 %               | 2 à 3                 | Vitesse, puis longueur          |
+| 1-10   | Montée      | Le Laser                                   | 2:00–2:30   | 29 % → 55–65 %               | 2 à 3                 | Vitesse, puis longueur          |
+| 1-11   | Frisson     | La cinquième couleur                       | 2:00–2:30   | 61 % → 65–70 %               | 4 à 6                 | Longueur                        |
+| 1-12   | Colosse     | Le Colosse stellaire                       | 2:30–3:30   | 69 % → 65–75 %               | 5 à 8                 | Endurance du boss               |
+
+**Trois choix tranchés avec le tableau** (26/10/2026) :
+
+1. **Le calendrier des couleurs** (trois jusqu'à 1-4, quatre dès 1-5, cinq en 1-11) est déjà
+   une montée, liée aux nouveautés : il reste tel quel, et chaque niveau se règle par la
+   vitesse, puis la longueur, plutôt que par le nombre de couleurs.
+2. **Les respirations** (1-4, 1-8) visent zéro ou une quasi-défaite, en exception à la règle
+   de l'étape 6 (« au moins une quasi-défaite par niveau dès 1-3 »).
+3. **1-9 n'a pas de nouveauté** dans les données : c'est le niveau où les acquis se mêlent,
+   sur le plus long tracé du monde ; la cinquième couleur reste en 1-11.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -1978,3 +2076,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).               |
 | 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                  |
 | 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                              |
+| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                           |
