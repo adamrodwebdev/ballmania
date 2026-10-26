@@ -13,14 +13,21 @@ indonésien et russe**, thèmes clair et sombre, sur mobile comme sur ordinateur
 
 ## Contenu
 
+- **Entraînement** : trois courtes vitrines enchaînées, à part de la campagne, montrent le
+  meilleur du jeu dès le premier geste (la Nova et sa cascade, un tir en bande sur le néon,
+  des tirs courbés par un trou noir jusqu'à la supernova), puis le jeune Colosse stellaire
+  surgit du trou noir et donne rendez-vous au 1-3. Une main montre le geste de chaque
+  vitrine, et aucune défaite n'y est possible.
 - **Campagne** de 6 mondes × 12 niveaux, chacun avec sa mécanique et son Colosse :
   Nébuleuse (règles de base, sous un ciel de nébuleuse peint en couches), Néon (miroirs et
   ricochets), Abysses (aimant), Joaillerie (alchimie des couleurs), Volcan (aiguillages),
   Singularité (gravité d'un trou noir, lanceur en orbite) ; un premier boss dès le niveau
-  1-3, le jeune Colosse stellaire. Trois difficultés : Explorateur,
-  Pilote, Légende. Une jauge sous le score montre la 2ᵉ et la 3ᵉ étoile, et un bonus de temps
-  récompense la vitesse ; à la victoire, le panneau annonce la nouveauté du niveau suivant et
-  le prochain lanceur à gagner.
+  1-3, le jeune Colosse stellaire. Trois difficultés : Explorateur, Pilote, Légende. Une
+  jauge sous le score montre la 2ᵉ et la 3ᵉ étoile, et un bonus de temps récompense la
+  vitesse. Quand la chaîne approche du trou, la musique se tend, le trou rougit et le cœur
+  bat, puis la chaîne ralentit dans le dernier cinquième du tracé (sauf en Légende). À la
+  victoire, le panneau annonce la nouveauté du niveau suivant et le prochain lanceur, qu'un
+  geste équipe dès que les éclats suffisent.
 - **Billes bonus** cachées dans la chaîne : **Recul**, **Ralenti**, **Tir arc-en-ciel**
   et **Laser**, une nouveauté par niveau dans le monde 1, puis mêlées aux mondes suivants.
 - **Aléas** : billes qui tombent du ciel, arythmie, tempête solaire, froid mordant, vents
@@ -28,8 +35,13 @@ indonésien et russe**, thèmes clair et sombre, sur mobile comme sur ordinateur
 - **Arcade**, ouverte monde après monde : Infini, Énigmes (30 énigmes calculées par un
   solveur, plus une énigme du jour), Rythme (musique synthétisée), Duel contre un rival.
 - **Défi du jour** partageable, **cadeau du jour** (une série de 7 jours en éclats),
-  **objectifs**, **Atelier** de cosmétiques (éclats), **Observatoire** de dix
-  améliorations (fragments d'étoiles).
+  **objectifs**, **Atelier** de cosmétiques en quatre rayons, avec une cabine d'essayage où
+  l'objet joue sur le vrai moteur (éclats), **Observatoire** de dix améliorations en trois
+  portées, Tir, Chaîne et Météo (fragments d'étoiles) ; le porte-monnaie reste en vue sur
+  chaque menu.
+- **Écran titre vivant** : une fenêtre joue en boucle huit moments forts du jeu, de vraies
+  parties menées par une main (la Nova, le tir en bande, l'aimant, le mélange des couleurs,
+  l'aiguillage, le trou noir, la chute d'un Colosse, le Duel).
 - **Le Cœur d'étoile**, lanceur par défaut et mascotte : pétales de cristal aux pointes
   de la couleur chargée, berceau d'or. Quatre autres lanceurs de la même finition
   attendent à l'Atelier : l'Orbite (offerte), puis la Couronne, le Halo et l'Œil (en
@@ -112,8 +124,10 @@ publicité ni SDK.
 | `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités, `?ads=off`)                                |
 | `npm run couloir`                | Le portail simulé servi au réseau de la maison, port 4190 ([test de couloir](docs/TEST_DE_COULOIR.md)) |
 
-Sur un portail, un nouveau joueur arrive directement dans le niveau 1-1, sans intro ni
-écran titre ; la page est en anglais, le jeu suit ensuite la langue du joueur. On envoie
+Sur un portail, un nouveau joueur arrive directement dans l'entraînement, sans logo, intro
+ni écran titre, et les menus de base n'apparaissent qu'ensuite ; sur notre site,
+l'entraînement s'ouvre au premier « Jouer ». La page est en anglais, le jeu suit ensuite la
+langue du joueur. On envoie
 ensuite au portail une archive zip du dossier. Pour CrazyGames, le
 [kit de soumission](marketing/crazygames/README.md) réunit description, commandes,
 couvertures et vidéos (`npm run kit:crazygames`). Son build de dépôt est sans publicité,
@@ -132,6 +146,7 @@ ni juste après sa défaite. Détails : § 3.7 du
 | `src/engine`   | Moteur en TypeScript pur, sans DOM : chaînes, tirs, objectifs, aléas, améliorations |
 | `src/levels`   | Niveaux en données (recettes de tracés), campagne, modes Arcade, solveur d'énigmes  |
 | `src/play`     | Session de jeu, rendu Canvas 2D, effets, thèmes, commandes                          |
+| `src/showcase` | Boucle de l'écran titre et cabine d'essayage : de vraies parties, dans un worker    |
 | `src/audio`    | Sons et musique synthétisés (Web Audio, aucun fichier)                              |
 | `src/player`   | Profil, objectifs, cosmétiques, défi du jour                                        |
 | `src/services` | Réglages, sauvegardes, partage, thème                                               |
@@ -148,9 +163,11 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 
 ## Qualité
 
-- Plus de 1 300 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
+- Plus de 1 400 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
   gagne (billes bonus comprises) et calibre ses étoiles et son temps de référence (profils
-  pressé, posé et appliqué), et un test qui fait résoudre chaque énigme par le vrai moteur.
+  pressé, posé et appliqué), un nouveau venu qui mesure la tension de chaque niveau (temps
+  sous pression, quasi-défaites), et un test qui fait résoudre chaque énigme par le vrai
+  moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
   d'accessibilité en anglais et en russe dans les deux thèmes ; une matrice de tailles
   (téléphones, téléphone couché, tablette, grands écrans, zoom à 200 et 400 %) où chaque écran
