@@ -91,8 +91,14 @@
     "nextLevelNamed": "Дальше: уровень {level}",
     "reward": {
       "launcher": "{name} · пушка",
-      "progress": "Осколки: {have} / {price}",
-      "ready": "Доступна в Мастерской!"
+      "progress": "Пушка · осколки: {have} / {price}",
+      "price": "Пушка · {price} осколков | Пушка · {price} осколок | Пушка · {price} осколка | Пушка · {price} осколков",
+      "next": "{name} · осколки: {have} / {price}",
+      "equipped": {
+        "shooter-crown": "Корона выбрана",
+        "shooter-halo": "Нимб выбран",
+        "shooter-eye": "Око выбрано"
+      }
     },
     "gaugeReached": "Можно взять {count} звёзд | Можно взять {count} звезду | Можно взять {count} звезды | Можно взять {count} звёзд"
   },

@@ -8,6 +8,8 @@ export const PATTERNS = {
   powerShot: [18, 20, 30],
   win: [30, 40, 30, 40, 140],
   lose: [90, 60, 220],
+  /** A launcher bought and worn (v1.8.0): the tap, then the ring. */
+  equip: [12, 300, 30],
 } as const;
 
 /**
@@ -46,6 +48,10 @@ export class Haptics {
 
   lose(): void {
     this.play([...PATTERNS.lose]);
+  }
+
+  equip(): void {
+    this.play([...PATTERNS.equip]);
   }
 
   private play(pattern: number[]): void {

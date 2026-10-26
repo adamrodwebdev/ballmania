@@ -91,8 +91,14 @@
     "nextLevelNamed": "Suivant\u00a0: niveau {level}",
     "reward": {
       "launcher": "{name} · lanceur",
-      "progress": "{have} / {price} éclats",
-      "ready": "Disponible à l’Atelier\u00a0!"
+      "progress": "Lanceur · {have} / {price} éclats",
+      "price": "Lanceur · {price} éclat | Lanceur · {price} éclat | Lanceur · {price} éclats",
+      "next": "{name} · {have} / {price} éclats",
+      "equipped": {
+        "shooter-crown": "Couronne équipée",
+        "shooter-halo": "Halo équipé",
+        "shooter-eye": "Œil équipé"
+      }
     },
     "gaugeReached": "{count} étoile à portée | {count} étoile à portée | {count} étoiles à portée"
   },
