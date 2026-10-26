@@ -234,9 +234,12 @@ body::before {
     animation: drift 40s ease-in-out infinite alternate;
   }
 
-  /* A new screen slides in (not the first one: the home page paints at once). */
+  /*
+   * A new screen slides in (not the first one: the home page paints at once);
+   * once in, the animation lets go of the frame, no last frame held on it.
+   */
   main.enter {
-    animation: screen-in 0.4s ease-out both;
+    animation: screen-in 0.4s ease-out backwards;
   }
 
   .btn:hover:not(:disabled) {
