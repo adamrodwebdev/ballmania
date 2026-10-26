@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { GameReport } from '@/engine/Game';
 import { ACHIEVEMENTS, EMPTY_STATS, newlyReached, progressOf } from '@/player/achievements';
-import { COSMETICS, DEFAULT_LOOK, nextLauncher, STARTER_ITEMS } from '@/player/catalog';
+import {
+  cheapestForSale,
+  COSMETICS,
+  DEFAULT_LOOK,
+  nextLauncher,
+  STARTER_ITEMS,
+} from '@/player/catalog';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { PLAYER_KEY, PlayerProfile, type GameContext } from '@/player/PlayerProfile';
 import { REWARDS } from '@/player/rewards';
@@ -55,6 +61,13 @@ describe('catalog', () => {
     expect(nextLauncher(owns)?.id).toBe('shooter-halo');
     owned.add('shooter-halo').add('shooter-eye');
     expect(nextLauncher(owns)).toBeNull();
+  });
+
+  it('finds the cheapest thing on sale in each slot, never one a world unlocks', () => {
+    const owns = (id: string) => STARTER_ITEMS.includes(id);
+    expect(cheapestForSale('trail', owns)?.id).toBe('trail-comet');
+    expect(cheapestForSale('burst', owns)?.id).toBe('burst-stars');
+    expect(cheapestForSale('board', owns)).toBeNull();
   });
 });
 
