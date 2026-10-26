@@ -45,6 +45,7 @@ import type { Path } from '@/engine/path/Path';
 export const SWITCH_RADIUS = 30;
 import { TRAIL_LENGTH } from './cosmetics/Trails';
 import { blankCanvas, context2d, type Context2D, type SpriteCanvas } from './canvas';
+import { ALARM_FROM, rise } from './dangerCues';
 
 /** What every renderer offers the play session. */
 export interface Renderer {
@@ -646,15 +647,9 @@ export class CanvasRenderer implements Renderer {
     return glow;
   }
 
-  /** How close the nearest chain head is to its hole, from 0 (far) to 1 (in). */
+  /** How far the alarm has risen for the chain nearest its hole: 0 before it, 1 in the hole. */
   private danger(): number {
-    return Math.max(
-      0,
-      ...this.game.chains.map((chain) => {
-        const head = chain.balls[chain.balls.length - 1];
-        return head ? Math.max(0, (head.s / chain.path.length - 0.75) / 0.25) : 0;
-      }),
-    );
+    return Math.max(0, ...this.game.chains.map((chain) => rise(chain.progress, ALARM_FROM)));
   }
 
   private drawEnds(chain: Chain, radius: number, time: number): void {
@@ -684,10 +679,8 @@ export class CanvasRenderer implements Renderer {
       return;
     }
 
-    // The hole glows red as the head of the chain gets close.
-    const head = chain.balls[chain.balls.length - 1];
-    const danger = head ? Math.max(0, (head.s / chain.path.length - 0.75) / 0.25) : 0;
-    this.drawHole(chain.path.end, radius, time, danger, palette.danger);
+    // The hole glows red as the head of the chain gets close (from the alarm on).
+    this.drawHole(chain.path.end, radius, time, rise(chain.progress, ALARM_FROM), palette.danger);
     if (this.game.rival) {
       // Duel: the start is the rival's hole; it glows as the tail is pushed towards it.
       const tail = chain.tail ?? chain.path.length;

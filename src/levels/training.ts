@@ -9,7 +9,7 @@ export const TRAINING_STEPS: readonly TrainingStep[] = [1, 2, 3];
 
 /**
  * The chains stop here, as a share of their track: past the start of the
- * danger cues (80 %), short of the hole. Nobody loses the training.
+ * alarm (two thirds), short of the hole. Nobody loses the training.
  */
 export const TRAINING_HALT = 0.86;
 

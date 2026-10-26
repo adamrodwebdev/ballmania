@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                              |
-| ------- | ---------- | --------------------------------------------------- |
-| 1.11    | 26/10/2026 | L'Atelier et l'Observatoire (v1.8.0, étape 8 sur 9) |
+| Version | Date       | Statut                                                     |
+| ------- | ---------- | ---------------------------------------------------------- |
+| 1.12    | 26/10/2026 | Signaux de danger et zone de grâce (v1.8.0, étape 6 sur 9) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1478,6 +1478,23 @@ celles du robot nouveau venu, sur 24 parties ; les durées, celles de vrais joue
 3. **1-9 n'a pas de nouveauté** dans les données : c'est le niveau où les acquis se mêlent,
    sur le plus long tracé du monde ; la cinquième couleur reste en 1-11.
 
+**Signaux de danger et zone de grâce** (étape 6, première partie, livrée le 26/10/2026, avant
+le réglage des niveaux, qui attend le test de couloir) :
+
+- **Les signaux montent plus tôt** (`src/play/dangerCues.ts`), là où va vraiment la chaîne d'un
+  nouveau venu : la musique se tend dès la moitié du tracé (au lieu de 65 %) ; dès les deux
+  tiers, le trou rougit (au lieu de 75 %), le cœur bat et le danger est annoncé aux lecteurs
+  d'écran (au lieu de 80 %).
+- **La zone de grâce** (`src/levels/grace.ts`) : dans le dernier cinquième du tracé, pendant que
+  les signaux jouent, la chaîne de la campagne ralentit, en douceur sur un vingtième du tracé :
+  à la moitié de sa vitesse dans les mondes 1 à 3, aux 70 % dans les mondes 4 à 6, et sans
+  répit en Légende. La quasi-défaite reste plus souvent une quasi-défaite. L'entraînement n'en a
+  pas : sa chaîne s'arrête avant le trou.
+- **Mesure sur le monde 1 tel qu'il est** (robot nouveau venu, 24 parties par niveau) : ses deux
+  seules défaites deviennent des quasi-défaites, en 1-9 (pointe max 101 % → 95 %) et en 1-11
+  (100 % → 92 %) ; rien d'autre ne change, aucune autre chaîne n'atteignant le dernier
+  cinquième. Elle servira de filet au réglage, qui rapprochera les chaînes du trou.
+
 ### 3.16 Atelier, Observatoire et porte-monnaie (v1.8.0)
 
 **Demandé le 26/10/2026**, maquette validée le même jour : les deux écrans tiennent sur un
@@ -2167,3 +2184,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                           |
 | 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                           |
 | 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).   |
+| 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                       |

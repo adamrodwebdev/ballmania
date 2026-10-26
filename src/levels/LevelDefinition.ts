@@ -1,4 +1,4 @@
-import type { ChainParams } from '@/engine/chain/Chain';
+import type { ChainParams, Grace } from '@/engine/chain/Chain';
 import { SECONDARIES } from '@/engine/chain/Alchemy';
 import type { ColossusSetup } from '@/engine/objectives/ColossusObjective';
 import type { LevelSetup, MagnetSetup } from '@/engine/Game';
@@ -119,6 +119,8 @@ export interface LevelDefinition {
   readonly compact?: boolean;
   /** The chains stop this far along their track, as a share of it (training: no defeat). */
   readonly halt?: number;
+  /** Near the hole, the chains slow down (the campaign's grace zone, v1.8.0). */
+  readonly grace?: Grace;
   /** The hand's gesture, shown until its lesson is done (the first level, the training). */
   readonly lesson?: Lesson;
   /** Seconds without a shot after which the hand comes back, its lesson done (training). */
@@ -178,6 +180,8 @@ export function toLevelSetup(level: LevelDefinition): LevelSetup {
     minMatch: LEVEL_DEFAULTS.minMatch,
     ...(level.compact ? { compact: true } : {}),
     ...(level.halt === undefined ? {} : { halt: level.halt }),
+    // A chain that stops short of the hole (the training) needs no grace zone before it.
+    ...(level.grace && level.halt === undefined ? { grace: level.grace } : {}),
   };
   return {
     board: level.board,

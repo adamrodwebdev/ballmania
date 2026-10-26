@@ -6,6 +6,7 @@ import { referenceTime } from './calibration';
 import type { CampaignLevel, MirrorRecipe } from './campaign';
 import { LEVEL_DEFAULTS, type LevelDefinition, type ReflectorDefinition } from './LevelDefinition';
 import { DIFFICULTY_RULES, type Difficulty } from './difficulty';
+import { graceOf } from './grace';
 import { buildTrack, type Frame } from './tracks';
 
 /** Pull of the black hole at strength 1 (units³/s²), tuned so curves read clearly. */
@@ -68,6 +69,7 @@ export function resolveLevel(
 ): LevelDefinition {
   const rule = DIFFICULTY_RULES[difficulty];
   const hazards = hazardsOf(level, rule.hazards);
+  const grace = graceOf(level.world, difficulty);
   const track = buildTrack(level.track, frame);
   const radius = LEVEL_DEFAULTS.ballRadius;
   const longest = Math.max(
@@ -127,6 +129,7 @@ export function resolveLevel(
         }),
     ...(orbit ? { orbit } : {}),
     ...(hazards ? { hazards } : {}),
+    ...(grace ? { grace } : {}),
     ...(rule.score === 1 ? {} : { scoreFactor: rule.score }),
     ...(level.lesson ? { lesson: level.lesson } : {}),
   };

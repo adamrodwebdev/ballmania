@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Ball, BallFactory } from '@/engine/chain/Ball';
-import { Chain } from '@/engine/chain/Chain';
+import { Chain, type ChainParams } from '@/engine/chain/Chain';
 import { ChainGenerator } from '@/engine/chain/ChainGenerator';
 import { SeededRandom } from '@/engine/core/Random';
 import { Vec2 } from '@/engine/geometry/Vec2';
@@ -111,6 +111,28 @@ describe('Chain movement', () => {
     expect(head).toBeGreaterThanOrEqual(600);
     expect(head).toBeLessThan(600 + 200 / 60);
     expect(chain.reachedHole).toBe(false);
+  });
+
+  it('reads how far its head has gone along the track', () => {
+    expect(chainOf('ab', 300).progress).toBeCloseTo((300 + D) / 1000);
+    expect(new Chain(straightPath(), [], PARAMS).progress).toBe(0);
+  });
+
+  it('slows down near the hole, in its grace zone, easing in (v1.8.0)', () => {
+    const grace: ChainParams = { ...PARAMS, grace: { from: 0.8, factor: 0.5 } };
+    const step = (start: number, params: ChainParams = grace) => {
+      const chain = chainOf('ab', start, params);
+      const before = chain.balls[0]!.s;
+      chain.advance(0.1);
+      return chain.balls[0]!.s - before;
+    };
+    // Before the zone, full speed; well inside it, half; on its edge, in between.
+    expect(step(500)).toBeCloseTo(5);
+    expect(step(900)).toBeCloseTo(2.5);
+    expect(step(800)).toBeGreaterThan(2.5);
+    expect(step(800)).toBeLessThan(5);
+    // No grace zone (Legend, the Arcade): full speed to the hole.
+    expect(step(900, PARAMS)).toBeCloseTo(5);
   });
 });
 

@@ -5,6 +5,7 @@ import { SeededRandom } from '@/engine/core/Random';
 import { Game, type GameReport, type GameState } from '@/engine/Game';
 import type { PowerKind, PowerShot } from '@/engine/powers/Powers';
 import { Vec2 } from '@/engine/geometry/Vec2';
+import { ALARM_FROM, MUSIC_FROM, rise } from './dangerCues';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
 import type { SpriteCanvas } from './canvas';
@@ -122,8 +123,6 @@ const HINT_TIME = 6;
 const RESULT_DELAY = 1.6;
 /** Speed at which a lost chain is swallowed by the hole, in units per second. */
 const DRAIN_SPEED = 1400;
-/** Share of the track from which the heart starts beating. */
-const DANGER_FROM = 0.8;
 /** Real seconds between two updates of the tug-of-war gauge. */
 const TUG_REFRESH = 0.1;
 /** Seconds of holding the shot that charge it fully (§ 3.9, module de tir). */
@@ -793,30 +792,22 @@ export class PlaySession {
     if (lower) this.setProfile(lower);
   }
 
+  /** The danger cues (v1.8.0): the music tenses, then the heart beats and the danger is announced. */
   private beatHeart(realDt: number): void {
     if (this.game.state !== 'playing') return;
-    const danger = Math.max(
-      0,
-      ...this.game.chains.map((chain) => {
-        const head = chain.balls[chain.balls.length - 1];
-        return head ? head.s / chain.path.length : 0;
-      }),
-    );
-    this.feedback.sound.setTension(
-      Math.max(0, (danger - DANGER_FROM + 0.15) / (1 - DANGER_FROM + 0.15)),
-    );
-    if (danger < DANGER_FROM) {
+    const danger = Math.max(0, ...this.game.chains.map((chain) => chain.progress));
+    this.feedback.sound.setTension(rise(danger, MUSIC_FROM));
+    if (danger < ALARM_FROM) {
       this.heartIn = 0;
       // Far enough again: the next approach will be announced too.
-      if (danger < DANGER_FROM - 0.1 && this.hud.danger) this.hud.danger = false;
+      if (danger < ALARM_FROM - 0.1 && this.hud.danger) this.hud.danger = false;
       return;
     }
     if (!this.hud.danger) this.hud.danger = true;
     this.heartIn -= realDt;
     if (this.heartIn > 0) return;
     this.feedback.sound.heartbeat();
-    const urgency = (danger - DANGER_FROM) / (1 - DANGER_FROM);
-    this.heartIn = 1 - 0.55 * urgency;
+    this.heartIn = 1 - 0.55 * rise(danger, ALARM_FROM);
   }
 
   private render(): void {
