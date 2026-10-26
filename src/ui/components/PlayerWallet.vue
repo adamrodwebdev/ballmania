@@ -10,7 +10,8 @@ import { FRAGMENT_PATH, SHARD_PATH } from './icons';
  * each with its sign; the one this screen spends (`main`) is set larger, with
  * its name. A figure counts to its new value when it changes and the
  * difference rises from it ("−150", "+215"); with reduced motion, it changes
- * at once. Screen readers hear each balance as a sentence.
+ * at once. Screen readers hear each balance as a sentence. A reward that flies
+ * to a coin finds it with `coinOf`, and makes it pop as it lands (`pulse`).
  */
 const props = defineProps<{ main?: Currency | undefined }>();
 
@@ -21,6 +22,8 @@ const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Seconds a figure takes to count to its new value, and its difference to rise and fade. */
 const COUNT_TIME = 0.45;
 const DELTA_TIME = 1.2;
+/** Seconds a coin pops when a reward lands on it. */
+const PULSE_TIME = 0.45;
 
 /** How each currency is read, named, signed and found by the tests. */
 const COINS: Readonly<
@@ -108,15 +111,35 @@ const coins = computed(() =>
   }),
 );
 const signed = (amount: number) => `${amount > 0 ? '+' : '−'}${number.value.format(amount)}`;
+
+const root = ref<HTMLElement | null>(null);
+/** The sign of `currency`'s coin: where a reward's sparks land. */
+const coinOf = (currency: Currency): HTMLElement | null =>
+  root.value?.querySelector<HTMLElement>(`.coin.${currency} svg`) ?? null;
+/** The coin that pops, for as long as it does. */
+const pulsing = ref<Currency | null>(null);
+let pulseEnd: ReturnType<typeof setTimeout> | undefined;
+/** A reward lands on `currency`'s coin: it pops (not with reduced motion). */
+const pulse = (currency: Currency) => {
+  if (still) return;
+  clearTimeout(pulseEnd);
+  pulsing.value = null;
+  requestAnimationFrame(() => {
+    pulsing.value = currency;
+    pulseEnd = setTimeout(() => (pulsing.value = null), PULSE_TIME * 1000);
+  });
+};
+onBeforeUnmount(() => clearTimeout(pulseEnd));
+defineExpose({ coinOf, pulse });
 </script>
 
 <template>
-  <div class="wallet" role="group" :aria-label="t('wallet.label')">
+  <div ref="root" class="wallet" role="group" :aria-label="t('wallet.label')">
     <p
       v-for="coin in coins"
       :key="coin.currency"
       class="coin"
-      :class="[coin.currency, { main: coin.main }]"
+      :class="[coin.currency, { main: coin.main, pulsing: pulsing === coin.currency }]"
       :data-testid="coin.testid"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -265,6 +288,18 @@ const signed = (amount: number) => `${amount > 0 ? '+' : '−'}${number.value.fo
   100% {
     opacity: 0;
     transform: translateY(-1rem);
+  }
+}
+
+/* A reward lands: the coin's sign swells in a flash of its colour. */
+.coin.pulsing svg {
+  animation: land 0.45s ease-out;
+}
+
+@keyframes land {
+  35% {
+    transform: scale(1.45);
+    filter: drop-shadow(0 0 0.6rem var(--primary-top)) brightness(1.4);
   }
 }
 

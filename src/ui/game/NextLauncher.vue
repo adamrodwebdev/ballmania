@@ -5,6 +5,7 @@ import { useServices } from '@/app/AppServices';
 import { LauncherOffer, type OfferLine } from '@/app/LauncherOffer';
 import type { Cosmetic } from '@/player/catalog';
 import CosmeticPreview from '@/ui/components/CosmeticPreview.vue';
+import SparkFlight from '@/ui/components/SparkFlight.vue';
 
 /**
  * The launcher a win's shards bring closer, on the victory panel (§ 3.5,
@@ -72,23 +73,20 @@ const line = computed(() => (view.value ? lineOf(view.value.line) : ''));
 const row = ref<HTMLElement | null>(null);
 const track = ref<HTMLElement | null>(null);
 const picture = ref<HTMLElement | null>(null);
-/** Where the sparks leave from, and how far they fly to the picture: measured at the tap. */
-const sparks = ref<Record<string, string>>({});
+type Point = { readonly x: number; readonly y: number };
+/** Where the sparks leave the bar and where they land in the picture, in the row: measured at the tap. */
+const flight = ref<{ readonly from: Point; readonly to: Point } | null>(null);
 const take = (item: Cosmetic) => {
   const box = row.value?.getBoundingClientRect();
   const from = track.value?.getBoundingClientRect();
   const to = picture.value?.getBoundingClientRect();
   if (box && from && to) {
-    const start = {
-      x: from.left + from.width * (view.value?.fill ?? 1) - box.left,
-      y: from.top + from.height / 2 - box.top,
-    };
-    const end = { x: to.left + to.width / 2 - box.left, y: to.top + to.height / 2 - box.top };
-    sparks.value = {
-      left: `${start.x}px`,
-      top: `${start.y}px`,
-      '--dx': `${end.x - start.x}px`,
-      '--dy': `${end.y - start.y}px`,
+    flight.value = {
+      from: {
+        x: from.left + from.width * (view.value?.fill ?? 1) - box.left,
+        y: from.top + from.height / 2 - box.top,
+      },
+      to: { x: to.left + to.width / 2 - box.left, y: to.top + to.height / 2 - box.top },
     };
   }
   if (offer.take(item)) emit('equipped', item);
@@ -151,9 +149,7 @@ const take = (item: Cosmetic) => {
     >
       {{ t('shop.equip') }}
     </button>
-    <span v-if="view.flying" class="sparks" :style="sparks" aria-hidden="true">
-      <span v-for="i in SPARKS" :key="i" class="spark" :style="{ '--i': i }"></span>
-    </span>
+    <SparkFlight v-if="view.flying && flight" :from="flight.from" :to="flight.to" :count="SPARKS" />
     <span class="sr-only" role="status">{{ view.worn ? title : '' }}</span>
   </li>
 </template>
@@ -233,46 +229,6 @@ li.reward .btn.take {
   border: 2px solid var(--primary-top);
 }
 
-/* The tap: the shards leave the bar in an arc and fly into the picture. */
-.sparks {
-  position: absolute;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
-.spark {
-  --size: calc(0.25rem + var(--i) * 0.06rem);
-
-  position: absolute;
-  top: calc(var(--size) / -2);
-  left: calc(var(--size) / -2);
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  background: var(--primary-top);
-  box-shadow: 0 0 0.6rem var(--primary-top);
-  opacity: 0;
-  animation: spark 0.3s ease-in calc(var(--i) * 20ms) forwards;
-}
-
-@keyframes spark {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * 0.5 - 1.6rem)) scale(0.85);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(var(--dx), var(--dy)) scale(0.4);
-  }
-}
-
 /* The launcher is worn: its picture swells inside a ring of light. */
 .picture.popped {
   animation: pop 0.38s ease-out;
@@ -333,7 +289,6 @@ li.reward .btn.take {
     transition: none;
   }
 
-  .spark,
   .picture.popped,
   .picture.popped::after {
     animation: none;

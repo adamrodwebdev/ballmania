@@ -83,7 +83,7 @@ const start = async () => {
   feedback.sound.unlock();
   engine.value = feedback.sound;
 };
-let started = false;
+let started: Promise<void> | null = null;
 const wake = () => {
   // iOS interrupts the audio when the app goes to the background or a call
   // comes in; only a gesture may resume it, so every gesture tries.
@@ -91,9 +91,10 @@ const wake = () => {
     engine.value?.unlock();
     return;
   }
-  started = true;
-  void start();
+  started = start();
 };
+/** Today's gift is taken: its shards pour into the wallet, ringing, once the sound is awake. */
+const gift = () => void started?.then(() => engine.value?.equip());
 window.addEventListener('pointerdown', wake);
 window.addEventListener('keydown', wake);
 /*
@@ -212,6 +213,7 @@ watchEffect(() => {
         @daily="(challenge) => play({ kind: 'daily', challenge })"
         @shop="show({ kind: 'shop' })"
         @achievements="show({ kind: 'achievements' })"
+        @gift="gift"
       />
     </main>
   </template>

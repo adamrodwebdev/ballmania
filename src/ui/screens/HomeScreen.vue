@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { playerTrace, useServices } from '@/app/AppServices';
+import { GiftClaim } from '@/app/GiftClaim';
 import { startsTraining } from '@/app/landing';
 import { CAMPAIGN } from '@/levels/campaign';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { GIFT_SHARDS } from '@/player/DailyGift';
+import type { Currency } from '@/ui/components/Currency';
 import PlayerWallet from '@/ui/components/PlayerWallet.vue';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
+import SparkFlight from '@/ui/components/SparkFlight.vue';
 import TitleReel from '@/ui/title/TitleReel.vue';
 
 const props = defineProps<{
@@ -24,6 +27,8 @@ const emit = defineEmits<{
   observatory: [];
   shop: [];
   achievements: [];
+  /** Today's gift is taken: its shards pour into the wallet (the app rings). */
+  gift: [];
 }>();
 
 const challenge = DailyChallenge.of(today());
@@ -51,30 +56,163 @@ const nextLabel = computed(() => {
   return t('home.next', { world: t(`worlds.${level.world}.name`), number: level.number });
 });
 /**
- * The daily gift (v1.7): today's day of a seven-day streak. Taken, the card
- * folds into a pill that says what tomorrow brings.
+ * The daily gift (v1.7): today's day of a seven-day streak. Taken (v1.8.0),
+ * its shards fly to the wallet while the day shows ticked; then the card
+ * folds into a pill that says what tomorrow brings, and the reel glides into
+ * the room it leaves. With reduced motion, the pill fades in at once.
  */
 const GIFT_DAYS = GIFT_SHARDS.length;
+const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const gift = computed(() => player.giftOffer(today()));
+const claim = new GiftClaim(player, today, !still);
+/** The card stays while its shards fly. */
+const showCard = computed(() => !gift.value.taken || claim.flying);
 const giftMessage = ref('');
-const takeGift = () => {
-  const shards = player.takeGift(today());
-  if (shards > 0) {
-    giftMessage.value = t('gift.received', { shards: number.value.format(shards) }, shards);
-  }
+
+/** The gift's sparks: how many, each one's flight and the gap between two, in milliseconds. */
+const SPARKS = 9;
+const SPARK_TIME = 480;
+const SPARK_GAP = 24;
+type Point = { readonly x: number; readonly y: number };
+const screen = ref<HTMLElement | null>(null);
+const collect = ref<HTMLButtonElement | null>(null);
+/** The wallet, as far as a reward flying to it needs. */
+const wallet = ref<{
+  coinOf: (currency: Currency) => HTMLElement | null;
+  pulse: (currency: Currency) => void;
+} | null>(null);
+/** From the button to the wallet's coin, on the screen: measured at the tap. */
+const flight = ref<{ readonly from: Point; readonly to: Point; readonly lift: number } | null>(
+  null,
+);
+const timers: ReturnType<typeof setTimeout>[] = [];
+onBeforeUnmount(() => {
+  claim.stop();
+  timers.forEach(clearTimeout);
+});
+const takeGift = async () => {
+  const shards = claim.take();
+  if (shards <= 0) return;
+  giftMessage.value = t('gift.received', { shards: number.value.format(shards) }, shards);
+  emit('gift');
+  if (still) return;
+  // A newcomer's wallet comes with its first shards: measured once it is there.
+  await nextTick();
+  const box = screen.value?.getBoundingClientRect();
+  const from = collect.value?.getBoundingClientRect();
+  const to = wallet.value?.coinOf('shards')?.getBoundingClientRect();
+  if (!box || !from || !to) return;
+  const start = {
+    x: from.left + from.width / 2 - box.left,
+    y: from.top + from.height / 2 - box.top,
+  };
+  const end = { x: to.left + to.width / 2 - box.left, y: to.top + to.height / 2 - box.top };
+  // The arc rises with the distance, up to 4rem.
+  const lift = Math.min(4, Math.hypot(end.x - start.x, end.y - start.y) / 64);
+  flight.value = { from: start, to: end, lift };
+  timers.push(
+    setTimeout(() => wallet.value?.pulse('shards'), SPARK_TIME + SPARK_GAP),
+    setTimeout(() => (flight.value = null), SPARK_TIME + SPARKS * SPARK_GAP + 50),
+  );
 };
+
+/**
+ * The fold, played by hand: the card leaves the flow at once, folding where it
+ * stood, so the pill and the reel take their places while it does; the reel
+ * glides there from where it was (or fades in, where it had no room before).
+ */
+const reel = ref<{ readonly frame: HTMLElement | null } | null>(null);
+let reelBefore: DOMRect | null = null;
+const beforeFold = () => {
+  reelBefore = still ? null : (reel.value?.frame?.getBoundingClientRect() ?? null);
+};
+const fold = (element: Element, done: () => void) => {
+  const card = element as HTMLElement;
+  if (still) {
+    done();
+    return;
+  }
+  const { offsetTop, offsetLeft, offsetWidth, offsetHeight } = card;
+  Object.assign(card.style, {
+    position: 'absolute',
+    top: `${offsetTop}px`,
+    left: `${offsetLeft}px`,
+    width: `${offsetWidth}px`,
+    height: `${offsetHeight}px`,
+    margin: '0',
+    // Behind the reel and the pill, which take its place as it fades.
+    zIndex: '-1',
+    pointerEvents: 'none',
+  });
+  card
+    .animate(
+      [
+        { opacity: 1, transform: 'none' },
+        { opacity: 0, transform: 'translateY(-0.75rem) scale(0.9, 0.55)' },
+      ],
+      { duration: 260, easing: 'cubic-bezier(0.4, 0, 1, 1)' },
+    )
+    .finished.then(done, done);
+};
+const unfold = (element: Element, done: () => void) => {
+  glideReel();
+  const frames = still
+    ? [{ opacity: 0 }, { opacity: 1 }]
+    : [
+        { opacity: 0, transform: 'scale(0.85)' },
+        { opacity: 1, transform: 'none' },
+      ];
+  element
+    .animate(frames, {
+      duration: still ? 180 : 300,
+      delay: still ? 0 : 120,
+      easing: 'cubic-bezier(0.2, 0.9, 0.3, 1.3)',
+      fill: 'backwards',
+    })
+    .finished.then(done, done);
+};
+/** The reel takes the room the card left: from its old place and size to its new ones. */
+const glideReel = () => {
+  const frame = reel.value?.frame;
+  const first = reelBefore;
+  reelBefore = null;
+  if (!frame || still) return;
+  const last = frame.getBoundingClientRect();
+  if (last.width === 0) return;
+  if (!first || first.width === 0) {
+    frame.animate(
+      [
+        { opacity: 0, transform: 'scale(0.96)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      { duration: 380, easing: 'ease-out' },
+    );
+    return;
+  }
+  const scale = first.width / last.width;
+  const dx = first.left - last.left;
+  const dy = first.top - last.top;
+  if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(scale - 1) < 0.005) return;
+  frame.animate(
+    [
+      { transformOrigin: '0 0', transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
+      { transformOrigin: '0 0', transform: 'none' },
+    ],
+    { duration: 420, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+  );
+};
+
+/** A day of the streak: past, today (ticked once taken), the last. */
+const isDone = (day: number) =>
+  day < gift.value.day || (gift.value.taken && day === gift.value.day);
 const dayState = (day: number) => ({
-  done: day < gift.value.day,
+  done: isDone(day),
   today: day === gift.value.day,
   last: day === GIFT_DAYS,
 });
 const dayLabel = (day: number, shards: number) =>
   t(
-    day < gift.value.day
-      ? 'gift.dayDone'
-      : day === gift.value.day
-        ? 'gift.dayToday'
-        : 'gift.dayLater',
+    isDone(day) ? 'gift.dayDone' : day === gift.value.day ? 'gift.dayToday' : 'gift.dayLater',
     {
       day,
       shards: number.value.format(shards),
@@ -95,13 +233,13 @@ const openSettings = () => {
 </script>
 
 <template>
-  <section class="title-screen" aria-labelledby="home-title">
+  <section ref="screen" class="title-screen" aria-labelledby="home-title">
     <div class="top">
       <div class="chips">
-        <template v-if="returning">
-          <!-- The icon says what is counted: the numbers alone stay on one line in every
-               language, and screen readers hear the whole sentence. The wallet does the same. -->
-          <p class="chip" data-testid="stars-total">
+        <!-- The icon says what is counted: the numbers alone stay on one line in every
+             language, and screen readers hear the whole sentence. The wallet does the same. -->
+        <Transition name="arrive">
+          <p v-if="returning" class="chip" data-testid="stars-total">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="star">
               <path
                 fill="currentColor"
@@ -115,7 +253,7 @@ const openSettings = () => {
               {{ t('campaign.stars', { count: stars, total: ORDER.length * 3 }) }}
             </span>
           </p>
-        </template>
+        </Transition>
       </div>
       <!-- The round buttons, and the wallet beside them (under them on a phone). -->
       <div class="tools">
@@ -155,7 +293,9 @@ const openSettings = () => {
             </svg>
           </button>
         </div>
-        <PlayerWallet v-if="returning" class="wallet" />
+        <Transition name="arrive">
+          <PlayerWallet v-if="returning" ref="wallet" class="wallet" />
+        </Transition>
       </div>
     </div>
 
@@ -166,60 +306,77 @@ const openSettings = () => {
       </div>
       <!-- The reel and the gift: between the title and Play, or on the right of a wide screen. -->
       <div class="side">
-        <TitleReel class="reel-room" :paused="settingsOpen || props.covered" />
-        <section v-if="!gift.taken" class="gift" aria-labelledby="gift-title" data-testid="gift">
-          <div class="gift-head">
-            <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" class="gift-icon">
-              <path d="M5 14h22v13H5zM3 9.5h26V14H3zM16 9.5V27" />
-              <path
-                d="M16 9.5C14 4.5 8.5 4 8.5 7S12 9.5 16 9.5ZM16 9.5C18 4.5 23.5 4 23.5 7S20 9.5 16 9.5Z"
-              />
-            </svg>
-            <div class="gift-title">
-              <h2 id="gift-title" class="gift-name">{{ t('gift.title') }}</h2>
-              <span class="gift-day">{{ t('gift.day', { day: gift.day, days: GIFT_DAYS }) }}</span>
-            </div>
-            <button class="collect" type="button" data-testid="gift-collect" @click="takeGift">
-              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
+        <TitleReel ref="reel" class="reel-room" :paused="settingsOpen || props.covered" />
+        <Transition :css="false" @before-leave="beforeFold" @leave="fold" @enter="unfold">
+          <section
+            v-if="showCard"
+            key="card"
+            class="gift"
+            aria-labelledby="gift-title"
+            data-testid="gift"
+          >
+            <div class="gift-head">
+              <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" class="gift-icon">
+                <path d="M5 14h22v13H5zM3 9.5h26V14H3zM16 9.5V27" />
+                <path
+                  d="M16 9.5C14 4.5 8.5 4 8.5 7S12 9.5 16 9.5ZM16 9.5C18 4.5 23.5 4 23.5 7S20 9.5 16 9.5Z"
+                />
               </svg>
-              {{ t('gift.collect', { shards: number.format(gift.shards) }) }}
-            </button>
-          </div>
-          <ol class="streak" :aria-label="t('gift.streak')">
-            <li
-              v-for="(shards, index) in GIFT_SHARDS"
-              :key="index"
-              :class="dayState(index + 1)"
-              :aria-label="dayLabel(index + 1, shards)"
-            >
-              <svg v-if="index + 1 < gift.day" viewBox="0 0 24 24" aria-hidden="true" class="done">
-                <path d="M5 12.5l4.5 4.5L19 7.5" />
-              </svg>
-              <svg
-                v-else-if="index + 1 === GIFT_DAYS"
-                viewBox="0 0 32 24"
-                aria-hidden="true"
-                class="big"
+              <div class="gift-title">
+                <h2 id="gift-title" class="gift-name">{{ t('gift.title') }}</h2>
+                <span class="gift-day">{{
+                  t('gift.day', { day: gift.day, days: GIFT_DAYS })
+                }}</span>
+              </div>
+              <button
+                ref="collect"
+                class="collect"
+                type="button"
+                data-testid="gift-collect"
+                :disabled="claim.flying"
+                @click="takeGift"
               >
-                <path class="crystal" d="M16 1l5.5 6.5L16 22 10.5 7.5z" />
-                <path class="crystal cyan" d="M7 6l4 4.5L7 20l-4-9.5z" />
-                <path class="crystal gold" d="M25 6l4 4.5-4 9.5-4-9.5z" />
-              </svg>
-              <svg v-else viewBox="0 0 24 24" aria-hidden="true" class="shard">
-                <path d="M12 2l7 7-7 13L5 9z" />
-              </svg>
-              <span aria-hidden="true">{{ number.format(shards) }}</span>
-            </li>
-          </ol>
-          <p class="gift-note">{{ t('gift.note', { shards: number.format(gift.tomorrow) }) }}</p>
-        </section>
-        <p v-else class="gift-taken" data-testid="gift-taken">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7.5" />
-          </svg>
-          {{ t('gift.taken', { day: gift.day, shards: number.format(gift.tomorrow) }) }}
-        </p>
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
+                </svg>
+                {{ t('gift.collect', { shards: number.format(gift.shards) }) }}
+              </button>
+            </div>
+            <ol class="streak" :aria-label="t('gift.streak')">
+              <li
+                v-for="(shards, index) in GIFT_SHARDS"
+                :key="index"
+                :class="dayState(index + 1)"
+                :aria-label="dayLabel(index + 1, shards)"
+              >
+                <svg v-if="isDone(index + 1)" viewBox="0 0 24 24" aria-hidden="true" class="done">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+                <svg
+                  v-else-if="index + 1 === GIFT_DAYS"
+                  viewBox="0 0 32 24"
+                  aria-hidden="true"
+                  class="big"
+                >
+                  <path class="crystal" d="M16 1l5.5 6.5L16 22 10.5 7.5z" />
+                  <path class="crystal cyan" d="M7 6l4 4.5L7 20l-4-9.5z" />
+                  <path class="crystal gold" d="M25 6l4 4.5-4 9.5-4-9.5z" />
+                </svg>
+                <svg v-else viewBox="0 0 24 24" aria-hidden="true" class="shard">
+                  <path d="M12 2l7 7-7 13L5 9z" />
+                </svg>
+                <span aria-hidden="true">{{ number.format(shards) }}</span>
+              </li>
+            </ol>
+            <p class="gift-note">{{ t('gift.note', { shards: number.format(gift.tomorrow) }) }}</p>
+          </section>
+          <p v-else key="taken" class="gift-taken" data-testid="gift-taken">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+            {{ t('gift.taken', { day: gift.day, shards: number.format(gift.tomorrow) }) }}
+          </p>
+        </Transition>
       </div>
       <p class="sr-only" role="status">{{ giftMessage }}</p>
       <div class="actions">
@@ -280,6 +437,16 @@ const openSettings = () => {
       </div>
       <p class="version">{{ t('app.version', { version }) }}</p>
     </div>
+    <!-- The gift's shards, on their way to the wallet. -->
+    <SparkFlight
+      v-if="flight"
+      :from="flight.from"
+      :to="flight.to"
+      :lift="flight.lift"
+      :count="SPARKS"
+      :duration="SPARK_TIME"
+      :stagger="SPARK_GAP"
+    />
     <SettingsDialog ref="settingsDialog" @close="settingsOpen = false" />
   </section>
 </template>
@@ -441,6 +608,8 @@ const openSettings = () => {
  * the daily gift under it.
  */
 .side {
+  /* The card folds from where it stands, out of the flow (see `fold`). */
+  position: relative;
   display: flex;
   flex: 1 0 auto;
   flex-direction: column;
@@ -758,6 +927,12 @@ const openSettings = () => {
   font-size: 0.8rem;
 }
 
+/* While its shards fly, the button has done its work. */
+.collect:disabled {
+  cursor: default;
+  filter: saturate(0.5) brightness(0.9);
+}
+
 .gift-taken {
   display: inline-flex;
   align-items: center;
@@ -796,6 +971,32 @@ const openSettings = () => {
 @keyframes breathe {
   50% {
     opacity: 1;
+  }
+}
+
+/* A newcomer's first shards bring the wallet, and the stars beside it: they pop in. */
+@media (prefers-reduced-motion: no-preference) {
+  .arrive-enter-active {
+    transition:
+      opacity 0.25s ease-out,
+      transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  }
+
+  .arrive-enter-from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  /* Taken: today's check pops in while the shards fly. */
+  .streak li.today.done svg {
+    animation: tick 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  }
+}
+
+@keyframes tick {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
   }
 }
 
