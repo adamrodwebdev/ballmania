@@ -14,6 +14,8 @@ export interface BotResult {
   readonly shots: number;
   /** Furthest the head of a chain got, as a share of its track (1 = the hole). */
   readonly danger: number;
+  /** Seconds with the head of a chain past half its track: time under pressure (v1.8.0). */
+  readonly pressure: number;
   /** Points of the computer rival (Duel mode). */
   readonly rivalScore: number;
   /** Seconds spent with no ball on the board while more wait in the tunnel. */
@@ -28,6 +30,9 @@ export interface BotResult {
   readonly elapsed: number;
 }
 
+/** Share of its track past which the head of a chain puts the player under pressure. */
+export const PRESSURE_FROM = 0.5;
+
 /**
  * Players for balancing (frames between two shots, aim error, one move ahead).
  * Humans take longer than a greedy bot to decide, but once they do, they
@@ -35,6 +40,11 @@ export interface BotResult {
  * bonus and the stars.
  */
 export const PLAYERS = {
+  /**
+   * A newcomer (v1.8.0): a shot every 1.6 s, often off target, no plan; the
+   * profile of the genre study of 21/10/2026, to set again on the hallway test.
+   */
+  newcomer: { cadence: 96, sloppiness: 32, insight: false },
   /** A greedy, hasty player: a shot every 1.2 s, often off target. */
   casual: { cadence: 72, sloppiness: 24, insight: false },
   /** A human: decides every 1.5 s, shoots true, looks for chain reactions. */
@@ -95,6 +105,7 @@ export function playDefinition(
   const gravity = game.gravity;
   let shots = 0;
   let danger = 0;
+  let pressureFrames = 0;
   let idleFrames = 0;
   let thinFrames = 0;
   let bonus = 0;
@@ -334,10 +345,13 @@ export function playDefinition(
       }
     }
     game.update(1 / 60);
+    let ahead = 0;
     for (const chain of game.chains) {
       const head = chain.balls[chain.balls.length - 1];
-      if (head) danger = Math.max(danger, head.s / chain.path.length);
+      if (head) ahead = Math.max(ahead, head.s / chain.path.length);
     }
+    danger = Math.max(danger, ahead);
+    if (ahead > PRESSURE_FROM) pressureFrames++;
   }
   return {
     outcome: game.state === 'playing' ? 'timeout' : game.state,
@@ -345,6 +359,7 @@ export function playDefinition(
     seconds: Math.round(game.elapsed),
     shots,
     danger: Math.round(danger * 100) / 100,
+    pressure: Math.round(pressureFrames / 6) / 10,
     rivalScore: game.rivalScore,
     idle: Math.round(idleFrames / 6) / 10,
     thin: Math.round(thinFrames / 6) / 10,
