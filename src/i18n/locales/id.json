@@ -231,6 +231,13 @@
     "earned": "+{count} kepingan",
     "reward": "+{count} kepingan"
   },
+  "wallet": {
+    "label": "Saldomu",
+    "shards": "kepingan",
+    "fragments": "pecahan",
+    "missing": "Kurang {count}",
+    "after": "Saldo: {count}"
+  },
   "daily": {
     "title": "Tantangan harian",
     "short": "Harian",
@@ -261,11 +268,10 @@
   },
   "shop": {
     "title": "Bengkel",
-    "intro": "Semuanya didapat dengan bermain. Ini hanya tampilan: tidak ada yang membuat permainan lebih mudah.",
     "slots": {
       "shooter": "Penembak",
       "trail": "Jejak tembakan",
-      "burst": "Gaya pecahan",
+      "burst": "Gaya ledakan",
       "board": "Papan"
     },
     "equipped": "Dipakai",
@@ -274,7 +280,27 @@
     "unlockHint": "Selesaikan dunia {world}",
     "unlocked": "Terbuka: {name}",
     "bought": "{name} dibeli dan dipakai.",
-    "equippedNow": "{name} dipakai."
+    "equippedNow": "{name} dipakai.",
+    "tabs": {
+      "shooter": "Penembak",
+      "trail": "Jejak",
+      "burst": "Ledakan",
+      "board": "Papan"
+    },
+    "tabsLabel": "Bagian bengkel",
+    "ownedCount": "{count} dari {total} dimiliki",
+    "kinds": {
+      "shooter": "Penembak",
+      "trail": "Jejak tembakan",
+      "burst": "Gaya ledakan",
+      "board": "Papan"
+    },
+    "owned": "Milikmu",
+    "notYours": "Belum milikmu",
+    "locked": "Terkunci",
+    "buyLabel": "Beli · {price} kepingan",
+    "missing": "Kurang {count} kepingan",
+    "fitting": "Coba pakai"
   },
   "cosmetics": {
     "shooter-star": "Jantung Bintang",
@@ -540,7 +566,7 @@
   "observatory": {
     "title": "Obser\u00advatorium",
     "back": "Kembali",
-    "intro": "Tembak bintang jatuh untuk mengumpulkan pecahan bintang, lalu tingkatkan instrumenmu. Peningkatan berlaku di kampanye (tidak di tantangan harian maupun Arkade).",
+    "intro": "Tingkatkan instrumen kampanyemu.",
     "balance": "{count} pecahan",
     "ready": "Tingkatkan",
     "tip": "Tingkatkan permainanmu di sini dengan pecahan bintangmu.",
@@ -549,7 +575,20 @@
     "max": "Sudah maksimal",
     "rank": "Tingkat {rank} dari {max}",
     "bought": "{name}: tingkat {rank}",
-    "caught": "Belum ada pecahan | {count} pecahan bintang | {count} pecahan bintang"
+    "caught": "Belum ada pecahan | {count} pecahan bintang | {count} pecahan bintang",
+    "ranges": {
+      "shot": "Tembakan",
+      "chain": "Rantai",
+      "weather": "Cuaca"
+    },
+    "rangesLabel": "Peningkatan menurut efek",
+    "rangeRanks": "Tingkat: {count} dari {total}",
+    "rangeReady": "Ada peningkatan yang terjangkau",
+    "maxShort": "Maks",
+    "owned": "(dimiliki)",
+    "upgrade": "Tingkatkan · {cost}",
+    "missing": "Kurang {count} pecahan",
+    "earn": "Tembak bintang jatuh di kampanye untuk mendapatkannya."
   },
   "upgrades": {
     "eye": {

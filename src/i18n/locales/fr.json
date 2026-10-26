@@ -231,6 +231,13 @@
     "earned": "+{count} éclat | +{count} éclat | +{count} éclats",
     "reward": "+{count} éclat | +{count} éclat | +{count} éclats"
   },
+  "wallet": {
+    "label": "Votre solde",
+    "shards": "éclat | éclat | éclats",
+    "fragments": "fragment | fragment | fragments",
+    "missing": "Il manque {count}",
+    "after": "Solde\u00a0: {count}"
+  },
   "daily": {
     "title": "Défi du jour",
     "short": "Défi",
@@ -261,7 +268,6 @@
   },
   "shop": {
     "title": "Atelier",
-    "intro": "Tout se gagne en jouant. Ce ne sont que des apparences\u00a0: rien ne rend le jeu plus facile.",
     "slots": {
       "shooter": "Lanceurs",
       "trail": "Traînées de tir",
@@ -274,7 +280,27 @@
     "unlockHint": "Terminez le monde {world}",
     "unlocked": "Débloqué\u00a0: {name}",
     "bought": "{name} acheté et équipé.",
-    "equippedNow": "{name} équipé."
+    "equippedNow": "{name} équipé.",
+    "tabs": {
+      "shooter": "Lanceurs",
+      "trail": "Traînées",
+      "burst": "Éclatements",
+      "board": "Plateaux"
+    },
+    "tabsLabel": "Rayons de l’Atelier",
+    "ownedCount": "{count} sur {total} à vous",
+    "kinds": {
+      "shooter": "Lanceur",
+      "trail": "Traînée de tir",
+      "burst": "Style d’éclatement",
+      "board": "Plateau"
+    },
+    "owned": "À vous",
+    "notYours": "Pas encore à vous",
+    "locked": "Verrouillé",
+    "buyLabel": "Acheter · {price} éclat | Acheter · {price} éclat | Acheter · {price} éclats",
+    "missing": "Il manque {count} éclat | Il manque {count} éclat | Il manque {count} éclats",
+    "fitting": "Essayage"
   },
   "cosmetics": {
     "shooter-star": "Cœur d’étoile",
@@ -540,7 +566,7 @@
   "observatory": {
     "title": "Obser\u00advatoire",
     "back": "Retour",
-    "intro": "Touchez les étoiles filantes de vos tirs pour récolter des fragments d’étoiles, puis améliorez vos instruments. Les améliorations s’appliquent en campagne (jamais au défi du jour ni en Arcade).",
+    "intro": "Améliorez vos instruments de campagne.",
     "balance": "{count} fragment | {count} fragment | {count} fragments",
     "ready": "Améliorer",
     "tip": "Améliorez votre jeu ici avec vos fragments d’étoiles.",
@@ -549,7 +575,20 @@
     "max": "Au maximum",
     "rank": "Rang {rank} sur {max}",
     "bought": "{name}\u00a0: rang {rank}",
-    "caught": "Aucun fragment | {count} fragment d’étoile | {count} fragments d’étoiles"
+    "caught": "Aucun fragment | {count} fragment d’étoile | {count} fragments d’étoiles",
+    "ranges": {
+      "shot": "Tir",
+      "chain": "Chaîne",
+      "weather": "Météo"
+    },
+    "rangesLabel": "Améliorations par effet",
+    "rangeRanks": "Rangs\u00a0: {count} sur {total}",
+    "rangeReady": "Une amélioration à portée",
+    "maxShort": "Au max",
+    "owned": "(acquis)",
+    "upgrade": "Améliorer · {cost}",
+    "missing": "Il manque {count} fragment | Il manque {count} fragment | Il manque {count} fragments",
+    "earn": "Touchez les étoiles filantes en campagne pour en gagner."
   },
   "upgrades": {
     "eye": {
