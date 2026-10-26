@@ -102,14 +102,15 @@ qui le cite. Le build est statique et fonctionne depuis n'importe quel sous-doss
 Le jeu se publie aussi sur des portails, avec leurs publicités. Notre site reste sans
 publicité ni SDK.
 
-| Commande                         | Build                                                                    |
-| -------------------------------- | ------------------------------------------------------------------------ |
-| `npm run build:crazygames`       | CrazyGames, dans `dist-crazygames/` (Basic Launch, sans publicité)       |
-| `npm run build:poki`             | Poki, dans `dist-poki/`                                                  |
-| `npm run build:gamedistribution` | GameDistribution, dans `dist-gamedistribution/` (avec `VITE_GD_GAME_ID`) |
-| `npm run build:playgama`         | Playgama, dans `dist-playgama/` (titre « Ball Mania »)                   |
-| `npm run build:portals`          | Les quatre                                                               |
-| `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités, `?ads=off`)  |
+| Commande                         | Build                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `npm run build:crazygames`       | CrazyGames, dans `dist-crazygames/` (Basic Launch, sans publicité)                                     |
+| `npm run build:poki`             | Poki, dans `dist-poki/`                                                                                |
+| `npm run build:gamedistribution` | GameDistribution, dans `dist-gamedistribution/` (avec `VITE_GD_GAME_ID`)                               |
+| `npm run build:playgama`         | Playgama, dans `dist-playgama/` (titre « Ball Mania »)                                                 |
+| `npm run build:portals`          | Les quatre                                                                                             |
+| `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités, `?ads=off`)                                |
+| `npm run couloir`                | Le portail simulé servi au réseau de la maison, port 4190 ([test de couloir](docs/TEST_DE_COULOIR.md)) |
 
 Sur un portail, un nouveau joueur arrive directement dans le niveau 1-1, sans intro ni
 écran titre ; la page est en anglais, le jeu suit ensuite la langue du joueur. On envoie
