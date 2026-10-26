@@ -3,6 +3,81 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+La 1.8.0, « Les cinq premières minutes », en préparation : restent le réglage des niveaux du
+monde 1 après le test de couloir (étape 6, seconde partie), puis la livraison.
+
+### Ajouté
+
+- **Entraînement** : trois courtes vitrines enchaînées, à part de la campagne, qui montrent le
+  meilleur du jeu dès le premier geste. E1 « La Nova » : la Nova offerte, sa cascade et un
+  avant-goût du Laser ; E2 « Les miroirs » : un tir en bande sur les murs de néon ; E3 « Le
+  trou noir » : des tirs courbés jusqu'à la supernova, puis la promesse : le jeune Colosse
+  stellaire sort du trou noir, rugit, regarde le joueur et replonge, hors d'atteinte. Entre
+  deux vitrines, une carte de 1,8 s (« Étape 2 sur 3 », son nom, son geste) ; après la
+  dernière, un seul écran, qui annonce le Colosse au 1-3, et « Continuer » vers le 1-1. Aucune
+  défaite possible : la chaîne s'arrête à 86 % du tracé. Seuls la pause, le son, « Passer » et
+  trois points d'avancée restent à l'écran, et un entraînement interrompu reprend à sa
+  vitrine. Un nouveau joueur d'un portail y entre directement, sans logo, titre ni menu ; sur
+  notre site, il s'ouvre au premier « Jouer ».
+- **La main qui montre le geste** : elle cherche le tir que la vitrine enseigne (sur la
+  chaîne, en bande, courbé par le trou noir), revient après 5 s sans tir ou trois tirs sans
+  groupe, et se cache pendant un tir ; au 1-1, elle reste jusqu'au premier tir qui touche la
+  chaîne. Le moment fort de chaque vitrine est atteint dans au moins 90 % des parties
+  simulées, premier tir au hasard compris.
+- **Boucle des moments forts** sur l'écran titre, à la place de la spirale : huit vrais
+  moments de 3 à 5 s, chacun à son sommet en moins de 3 s (la Nova, le tir en bande, l'aimant,
+  le mélange des couleurs, l'aiguillage, le trou noir, la chute du Colosse et le Duel), avec
+  leur légende et un fondu de l'un à l'autre. Le vrai moteur les joue dans un worker, muets,
+  avec le lanceur, la traînée et l'éclatement du joueur ; la boucle se charge après le premier
+  affichage, s'arrête hors de l'écran et dans un onglet caché, et montre une image fixe en
+  mouvement réduit.
+- **Vidéos des portails** sur les mêmes scènes : six moments en 16,8 s, en paysage et en
+  portrait.
+- **Atelier en quatre onglets** (Lanceurs, Traînées, Éclatements, Plateaux), chacun avec son
+  compte d'objets possédés, et une **cabine d'essayage** : l'objet touché joue avec le vrai
+  moteur, plateau verrouillé compris (le lanceur tire, la traînée suit un long tir,
+  l'éclatement fait sauter un groupe, le plateau montre sa chaîne). Dessous, une seule
+  action : « Acheter · 150 », « Équiper » ou « Il manque 40 ». Rien de la cabine ne se charge
+  avant l'Atelier.
+- **Observatoire en trois onglets** par portée d'effet : Tir (Œil stellaire, Bille
+  prismatique, Nova, Attrape-étoiles), Chaîne (Chronos, Onde de choc, Seconde chance) et
+  Météo (Bouclier thermique, Brise-glace, Ancre), avec les rangs achetés, un point quand une
+  amélioration est à portée et un seul bouton doré. L'Atelier et l'Observatoire tiennent sur
+  un écran, de 360 × 640 à 2560 px ; sur 320 × 568, seule la grille défile, dans son cadre.
+- **Le solde toujours en vue** : un porte-monnaie, éclats et fragments, en haut de l'accueil,
+  de la carte, de l'Atelier, de l'Observatoire, de l'Arcade, des objectifs et du menu de
+  pause, la monnaie de l'écran mise en avant. Il compte à chaque gain et à chaque achat (un
+  « −150 » s'envole), et le panneau de victoire donne le nouveau solde.
+- **« Équiper » sur le panneau de victoire** : dès que les éclats couvrent le prix du
+  prochain lanceur, un toucher l'achète et le porte, puis la barre vise le suivant ; rien ne
+  s'achète sans ce geste. Un nouveau venu porte la Couronne au plus tard au panneau du 1-3
+  (robot, douze parcours).
+- **Zone de grâce** : dans le dernier cinquième du tracé, la chaîne de la campagne ralentit,
+  à la moitié de sa vitesse dans les mondes 1 à 3 et à 70 % dans les mondes 4 à 6 ; aucune en
+  Légende. Sur le monde 1, les deux défaites du robot nouveau venu (1-9, 1-11) deviennent des
+  quasi-défaites.
+- `npm run couloir` : le build du portail simulé servi au réseau de la maison (port 4190),
+  pour le test de couloir (protocole et grille dans `docs/TEST_DE_COULOIR.md`).
+- Mesures : le robot relève le temps sous pression (tête de chaîne au-delà de la moitié du
+  tracé) et le temps mort ; `TENSION=nebula` imprime les tables d'un monde, `ECONOMY=1` le
+  solde après chaque niveau.
+
+### Modifié
+
+- **Signaux de danger plus tôt**, là où va vraiment la chaîne d'un nouveau venu : la musique
+  se tend dès la moitié du tracé (65 % avant) ; dès les deux tiers, le trou rougit (75 %
+  avant), le cœur bat et le danger est annoncé (80 % avant).
+- **Nouveau 1-1** : un premier niveau simple, sans Nova ni Laser, une spirale de 1,25 tour et
+  30 billes de trois couleurs posées pour une première cascade ; sa vitrine d'avant est
+  devenue E1.
+- La Nova offerte se dépense à l'explosion et non plus au tir : un tir qui manque la chaîne
+  la rend au lanceur.
+- « Jouer » annonce « Entraînement » à un nouveau venu.
+- Le ciel étoilé de l'accueil est peint par la feuille de style, sans toile ni calcul à
+  chaque image.
+
 ## [1.7.6] — 2026-10-23
 
 Lighthouse mobile, build de production : 100 dans les quatre catégories aux trois mesures, au
