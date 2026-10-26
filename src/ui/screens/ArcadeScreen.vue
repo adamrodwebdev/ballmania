@@ -9,6 +9,7 @@ import { dailyPuzzle, PUZZLES } from '@/levels/arcade/puzzles';
 import { SONGS } from '@/levels/arcade/rhythm';
 import { playable } from '@/levels/campaign';
 import { DailyChallenge } from '@/player/DailyChallenge';
+import ScreenHeader from '@/ui/components/ScreenHeader.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 import SwiperDeck from '@/ui/components/SwiperDeck.vue';
 
@@ -46,15 +47,12 @@ const current = computed(() => {
 
 <template>
   <section class="arcade" aria-labelledby="arcade-title">
-    <div class="top">
-      <button class="btn back" type="button" data-testid="home" @click="emit('home')">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-          <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" />
-        </svg>
-        <span>{{ t('campaign.back') }}</span>
-      </button>
-      <h1 id="arcade-title">{{ t('arcade.title') }}</h1>
-    </div>
+    <ScreenHeader
+      :title="t('arcade.title')"
+      title-id="arcade-title"
+      currency="shards"
+      @back="emit('home')"
+    />
     <p class="intro">{{ t('arcade.intro') }}</p>
 
     <SwiperDeck :label="t('arcade.modesLabel')" :names="names" :initial="current">
@@ -209,23 +207,6 @@ const current = computed(() => {
   width: min(100%, 60rem);
   margin-inline: auto;
   padding: var(--space-4) var(--space-4) var(--space-12);
-}
-
-.top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.back {
-  flex-direction: row;
-  padding-inline: var(--space-3);
-}
-
-h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 1.4rem + 2vw, 2.6rem);
 }
 
 .intro,

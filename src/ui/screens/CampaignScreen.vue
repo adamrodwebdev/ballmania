@@ -5,6 +5,7 @@ import { useServices } from '@/app/AppServices';
 import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
 import { DEMO } from '@/levels/edition';
 import { DIFFICULTIES } from '@/levels/difficulty';
+import PlayerWallet from '@/ui/components/PlayerWallet.vue';
 import StarRow from '@/ui/components/StarRow.vue';
 import SwiperDeck from '@/ui/components/SwiperDeck.vue';
 
@@ -71,6 +72,8 @@ const closeTip = () => {
         <span>{{ t('campaign.back') }}</span>
       </button>
       <h1 id="campaign-title">{{ t('campaign.title') }}</h1>
+      <PlayerWallet class="wallet" />
+      <span class="break" aria-hidden="true"></span>
       <p v-if="DEMO" class="demo" data-testid="demo-note">{{ t('demo.note') }}</p>
       <p class="total" data-testid="stars-total">
         {{ t('campaign.stars', { count: total, total: order.length * 3 }) }}
@@ -217,6 +220,35 @@ const closeTip = () => {
 h1 {
   font-family: var(--font-display);
   font-size: clamp(1.75rem, 1.4rem + 2vw, 2.6rem);
+}
+
+/*
+ * The wallet at the top right (v1.8.0): beside the way back on a phone, the
+ * title and the stars on the line below them; beside the title when it all fits.
+ */
+.wallet {
+  order: -1;
+  margin-left: auto;
+}
+
+.back {
+  order: -2;
+}
+
+.break {
+  order: -1;
+  flex-basis: 100%;
+  height: 0;
+}
+
+@media (width >= 40rem) {
+  .wallet {
+    order: 0;
+  }
+
+  .break {
+    display: none;
+  }
 }
 
 /* Each world is a card of the deck; its neighbours peek out behind it. */
@@ -612,6 +644,23 @@ h2 {
   .back {
     grid-area: 1 / 1;
     justify-self: start;
+    padding-inline: var(--space-2);
+  }
+
+  /* The way back as an arrow alone (its name stays for screen readers): the wallet beside it. */
+  .back span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .wallet {
+    grid-area: 1 / 1;
+    justify-self: end;
+    margin-left: 0;
   }
 
   h1 {
