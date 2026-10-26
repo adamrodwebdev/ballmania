@@ -1,4 +1,4 @@
-import type { Moment } from './moments';
+import type { Scene } from './moments';
 import { ShowcaseHand } from './ShowcaseHand';
 import type { Stage } from './stage';
 
@@ -10,9 +10,10 @@ export const REEL_FPS = 30;
 const SETTLE_FRAMES = Math.round(SETTLE * REEL_FPS);
 
 /**
- * One play of a moment of the reel on a stage (v1.8.0), frame by frame at the
- * reel's rate, so that it plays the same every time: settled unseen, then
- * played by its hand until its time is up, noting when its peak came.
+ * One play of a scene on a stage (v1.8.0), a moment of the reel or a fitting
+ * of the Workshop, frame by frame at the reel's rate, so that it plays the
+ * same every time: settled unseen, then played by its hand until its time is
+ * up, noting when its peak came.
  */
 export class MomentRun {
   private readonly hand: ShowcaseHand;
@@ -22,11 +23,11 @@ export class MomentRun {
   private peakValue: number | null = null;
 
   constructor(
-    readonly moment: Moment,
+    readonly scene: Scene,
     private readonly stage: Stage,
   ) {
-    this.hand = new ShowcaseHand(moment.cues);
-    this.peaked = moment.peak(stage.game);
+    this.hand = new ShowcaseHand(scene.cues);
+    this.peaked = scene.peak(stage.game);
   }
 
   /** Seconds into the moment, from when it shows: negative while it settles. */
@@ -45,7 +46,7 @@ export class MomentRun {
   }
 
   get over(): boolean {
-    return this.time >= this.moment.seconds;
+    return this.time >= this.scene.seconds;
   }
 
   /** Plays its unseen frames at once: the chain rushes in and comes to rest. */

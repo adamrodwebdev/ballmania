@@ -245,16 +245,27 @@ test.describe('progression', () => {
     await page.goto('./');
     await expect(page.getByTestId('wallet')).toHaveText(/200 shards/);
     await page.getByTestId('shop').click();
+    // The Launchers open on the cheapest one to buy; a touch tries another on.
+    await expect(page.getByTestId('item-detail')).toContainText('Crown');
+    await page.getByTestId('tab-trail').click();
     const comet = page.getByTestId('item-trail-comet');
-    await comet.getByRole('button', { name: /Buy/ }).click();
+    await comet.click();
+    await page.getByRole('button', { name: 'Buy · 80 shards' }).click();
     await expect(comet.getByText('Equipped')).toBeVisible();
+    await expect(page.getByTestId('item-detail')).toContainText('Shot trail · Equipped');
     await expect(page.getByTestId('wallet')).toHaveText(/120 shards/);
-    await expect(
-      page.getByTestId('item-shooter-eye').getByRole('button', { name: /Buy/ }),
-    ).toBeDisabled();
-    await expect(page.getByTestId('item-board-neon')).toContainText('Finish the Nebula world');
+    await page.getByTestId('tab-shooter').click();
+    await page.getByTestId('item-shooter-eye').click();
+    await expect(page.getByTestId('buy')).toBeDisabled();
+    await expect(page.getByTestId('buy')).toHaveAccessibleName('Need 230 more shards');
+    // A board a world unlocks is tried on too, and says how to earn it.
+    await page.getByTestId('tab-board').click();
+    await page.getByTestId('item-board-neon').click();
+    await expect(page.getByTestId('item-detail')).toContainText('Finish the Nebula world');
+    await expect(page.getByTestId('buy')).toHaveCount(0);
     await page.reload();
     await page.getByTestId('shop').click();
+    await page.getByTestId('tab-trail').click();
     await expect(page.getByTestId('item-trail-comet').getByText('Equipped')).toBeVisible();
   });
 
@@ -278,6 +289,8 @@ test.describe('progression', () => {
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('shards-earned')).toHaveText('+10 shards');
+    // The balance they make (v1.8.0).
+    await expect(dialog.getByTestId('balance-after')).toHaveText('Balance: 210');
     await expect(dialog.getByTestId('share')).toBeVisible();
     await dialog.getByTestId('map').click();
     await expect(page.getByTestId('daily-done')).toBeVisible();

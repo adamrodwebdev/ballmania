@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { HINT_PRICE } from '@/player/rewards';
 import AdIcon from '@/ui/components/AdIcon.vue';
+import PlayerWallet from '@/ui/components/PlayerWallet.vue';
 import { useShardPrice } from './useShardPrice';
 
 /**
@@ -36,6 +37,8 @@ defineExpose({
 
 <template>
   <dialog ref="dialog" class="dialog" aria-labelledby="pause-title" @cancel.prevent>
+    <!-- The balance in sight (v1.8.0): a hint costs shards. -->
+    <PlayerWallet class="wallet" />
     <h2 id="pause-title">{{ t('game.paused') }}</h2>
     <div class="actions">
       <button class="btn btn-primary" type="button" autofocus @click="emit('resume')">
@@ -87,3 +90,9 @@ defineExpose({
 </template>
 
 <style scoped src="./game-dialog.css"></style>
+
+<style scoped>
+.wallet {
+  margin-bottom: var(--space-2);
+}
+</style>

@@ -179,6 +179,7 @@ test.describe('portal build', () => {
     await page.clock.install();
     await page.goto('./');
     await page.getByTestId('shop').click();
+    await page.getByTestId('item-shooter-eye').click();
     await page.getByTestId('try-shooter-eye').click();
     await page.clock.runFor(1000);
     await expect(page.getByTestId('trial')).toBeVisible();
@@ -228,7 +229,8 @@ test.describe('portal build', () => {
     await returning(page);
     await page.goto('./?ads=off');
     await page.getByTestId('shop').click();
-    await expect(page.getByTestId('item-shooter-eye')).toBeVisible();
+    await page.getByTestId('item-shooter-eye').click();
+    await expect(page.getByTestId('item-detail')).toContainText('Eye');
     await expect(page.getByTestId('try-shooter-eye')).toHaveCount(0);
     await expect(page.getByTestId('ads-blocked')).toHaveCount(0);
   });
@@ -237,7 +239,8 @@ test.describe('portal build', () => {
     await english(page, { worlds: ['nebula', 'neon'] });
     await page.goto('./?ads=blocked');
     await page.getByTestId('shop').click();
-    await expect(page.getByTestId('item-shooter-eye')).toBeVisible();
+    await page.getByTestId('item-shooter-eye').click();
+    await expect(page.getByTestId('item-detail')).toContainText('Eye');
     await expect(page.getByTestId('try-shooter-eye')).toHaveCount(0);
     await expect(page.getByTestId('ads-blocked')).toContainText('Video bonuses are unavailable');
     await page.getByTestId('home').click();

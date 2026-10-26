@@ -24,6 +24,7 @@ const rows = computed(() =>
     <ScreenHeader
       :title="t('achievements.title')"
       title-id="achievements-title"
+      currency="shards"
       @back="emit('home')"
     />
     <p class="intro">{{ t('achievements.intro') }}</p>

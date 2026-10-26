@@ -231,6 +231,13 @@
     "earned": "+{count} shards | +{count} shard | +{count} shards",
     "reward": "+{count} shards | +{count} shard | +{count} shards"
   },
+  "wallet": {
+    "label": "Your balance",
+    "shards": "shards | shard | shards",
+    "fragments": "fragments | fragment | fragments",
+    "missing": "Need {count} more",
+    "after": "Balance: {count}"
+  },
   "daily": {
     "title": "Daily challenge",
     "short": "Daily",
@@ -261,7 +268,6 @@
   },
   "shop": {
     "title": "Workshop",
-    "intro": "Everything is earned by playing. These are looks only: nothing makes the game easier.",
     "slots": {
       "shooter": "Launchers",
       "trail": "Shot trails",
@@ -274,7 +280,27 @@
     "unlockHint": "Finish the {world} world",
     "unlocked": "Unlocked: {name}",
     "bought": "{name} bought and equipped.",
-    "equippedNow": "{name} equipped."
+    "equippedNow": "{name} equipped.",
+    "tabs": {
+      "shooter": "Launchers",
+      "trail": "Trails",
+      "burst": "Bursts",
+      "board": "Boards"
+    },
+    "tabsLabel": "Workshop departments",
+    "ownedCount": "{count} of {total} owned",
+    "kinds": {
+      "shooter": "Launcher",
+      "trail": "Shot trail",
+      "burst": "Burst style",
+      "board": "Board"
+    },
+    "owned": "Yours",
+    "notYours": "Not yours yet",
+    "locked": "Locked",
+    "buyLabel": "Buy · {price} shards | Buy · {price} shard | Buy · {price} shards",
+    "missing": "Need {count} more shards | Need {count} more shard | Need {count} more shards",
+    "fitting": "Try-on"
   },
   "cosmetics": {
     "shooter-star": "Star heart",
@@ -540,7 +566,7 @@
   "observatory": {
     "title": "Obser\u00advatory",
     "back": "Back",
-    "intro": "Hit shooting stars with your shots to collect star fragments, then upgrade your instruments. Upgrades apply in the campaign only (not in the daily challenge or the Arcade).",
+    "intro": "Upgrade your campaign instruments.",
     "balance": "{count} fragments | {count} fragment | {count} fragments",
     "ready": "Upgrade",
     "tip": "Upgrade your game here with your star fragments.",
@@ -549,7 +575,20 @@
     "max": "Maxed out",
     "rank": "Rank {rank} of {max}",
     "bought": "{name}: rank {rank}",
-    "caught": "No fragments | {count} star fragment | {count} star fragments"
+    "caught": "No fragments | {count} star fragment | {count} star fragments",
+    "ranges": {
+      "shot": "Shot",
+      "chain": "Chain",
+      "weather": "Weather"
+    },
+    "rangesLabel": "Upgrades by effect",
+    "rangeRanks": "Ranks: {count} of {total}",
+    "rangeReady": "An upgrade within reach",
+    "maxShort": "Max",
+    "owned": "(owned)",
+    "upgrade": "Upgrade · {cost}",
+    "missing": "Need {count} more fragments | Need {count} more fragment | Need {count} more fragments",
+    "earn": "Hit shooting stars in the campaign to earn more."
   },
   "upgrades": {
     "eye": {

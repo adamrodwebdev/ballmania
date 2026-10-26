@@ -9,7 +9,7 @@ import type { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
 import type { CosmeticSlot } from '@/player/catalog';
 import type { EffectLevel } from '@/services/SettingsService';
-import type { Moment } from './moments';
+import type { Scene } from './moments';
 import { MomentRun } from './MomentRun';
 import { SessionStage } from './stage';
 
@@ -22,7 +22,7 @@ export interface ReelPalettes {
 /** How every moment of the reel looks. */
 export interface ReelStyle {
   readonly palettes: ReelPalettes;
-  /** What the player wears; each moment keeps its own world's board. */
+  /** What the player wears; each moment keeps its own world's board, unless it shows the player's. */
   readonly equipped: Readonly<Record<CosmeticSlot, string>>;
   /** The player's level of effects. */
   readonly effects: EffectLevel;
@@ -30,9 +30,9 @@ export interface ReelStyle {
   readonly still: boolean;
 }
 
-/** A moment to play, where, and how it looks. */
+/** A scene to play, where, and how it looks. */
 export interface TakeOptions {
-  readonly moment: Moment;
+  readonly scene: Scene;
   readonly canvas: SpriteCanvas;
   readonly style: ReelStyle;
   /** The board's shape: the title's window has the wide one. */
@@ -41,40 +41,80 @@ export interface TakeOptions {
   readonly distortion?: DistortionLayer | null;
 }
 
+/** The part of a take's canvas a window shows, in its device pixels. */
+export interface Crop {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
 /**
- * A moment of the reel being played (v1.8.0): the game's own play session,
- * on a canvas of its own, silent, driven frame by frame by its run. The
- * portal trailers film the same moments.
+ * A scene being played (v1.8.0): the game's own play session, on a canvas of
+ * its own, silent, driven frame by frame by its run. The title's reel and the
+ * portal trailers play the reel's moments; the Workshop's fitting room plays
+ * a cosmetic's scene, closer up: its canvas is then `zoom` times the
+ * window's, which shows the part around the scene's focus.
  */
 export class Take {
-  readonly moment: Moment;
+  readonly scene: Scene;
   readonly canvas: SpriteCanvas;
   readonly run: MomentRun;
   private readonly session: PlaySession;
   private readonly night: boolean;
+  private readonly zoom: number;
+  /** The scene's focus on the canvas, in device pixels, once the chain is in place. */
+  private focus: { readonly x: number; readonly y: number } | null = null;
+  private window = { width: 1, height: 1 };
 
-  constructor({ moment, canvas, style, frame = FRAMES.wide, distortion = null }: TakeOptions) {
-    this.moment = moment;
+  constructor({ scene, canvas, style, frame = FRAMES.wide, distortion = null }: TakeOptions) {
+    this.scene = scene;
     this.canvas = canvas;
-    const look = resolveLook({ ...style.equipped, board: 'board-world' }, moment.world);
+    const equipped = scene.ownBoard ? style.equipped : { ...style.equipped, board: 'board-world' };
+    const look = resolveLook(equipped, scene.world);
     this.night = look.theme.night;
+    this.zoom = Math.max(1, scene.framing?.zoom ?? 1);
     this.session = new PlaySession({
       canvas,
       distortion,
-      level: moment.level(frame),
+      level: scene.level(frame),
       palette: this.paletteOf(style.palettes),
       profile: EffectProfile.for(style.effects, style.still),
       feedback: { sound: new SoundEngine(0, () => null), haptics: new Haptics(false, null) },
       look,
-      seed: () => moment.seed,
+      seed: () => scene.seed,
       aimAssist: true,
     });
-    this.run = new MomentRun(moment, new SessionStage(this.session));
+    this.run = new MomentRun(scene, new SessionStage(this.session));
   }
 
   /** The window's CSS size, and its device pixels per CSS pixel. */
   resize(width: number, height: number, ratio: number): void {
-    this.session.resize(width, height, ratio);
+    this.window = { width: Math.round(width * ratio), height: Math.round(height * ratio) };
+    this.session.resize(width * this.zoom, height * this.zoom, ratio);
+    this.focus = null;
+  }
+
+  /** The part of its canvas the window shows: all of it, or the part around its focus. */
+  crop(): Crop {
+    const { width, height } = this.canvas;
+    const framing = this.scene.framing;
+    if (!framing || this.zoom === 1) return { x: 0, y: 0, width, height };
+    const shown = {
+      width: Math.min(width, this.window.width),
+      height: Math.min(height, this.window.height),
+    };
+    // Read once the chain has come to rest: the scene plays the same from there.
+    if (!this.focus && this.run.settled) {
+      this.focus = this.session.deviceOf(framing.focus(this.session.playing));
+    }
+    const centre = this.focus ?? { x: width / 2, y: height / 2 };
+    const clamp = (value: number, room: number) => Math.max(0, Math.min(room, value));
+    return {
+      x: clamp(centre.x - shown.width / 2, width - shown.width),
+      y: clamp(centre.y - shown.height / 2, height - shown.height),
+      ...shown,
+    };
   }
 
   setPalettes(palettes: ReelPalettes): void {

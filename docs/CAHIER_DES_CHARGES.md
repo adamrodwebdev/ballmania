@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                     |
-| ------- | ---------- | ------------------------------------------ |
-| 1.10    | 26/10/2026 | Le premier lanceur (v1.8.0, étape 7 sur 8) |
+| Version | Date       | Statut                                              |
+| ------- | ---------- | --------------------------------------------------- |
+| 1.11    | 26/10/2026 | L'Atelier et l'Observatoire (v1.8.0, étape 8 sur 9) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -693,7 +693,8 @@ jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête d
 | Objectif atteint              | 20 à 500 selon l'objectif    |
 | Arcade (lot 10)               | Voir les modes Arcade, § 3.2 |
 
-**Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu).
+**Atelier** (cosmétiques, aucun effet sur le jeu ; aperçus dessinés par le code du jeu ;
+en onglets avec une cabine d'essayage depuis la v1.8.0, § 3.16).
 Le **Cœur d'étoile** (v1.7) : anneau d'astrolabe aux graduations d'or qui tourne lentement,
 cinq pétales de cristal dont les pointes prennent la couleur chargée, cœur violet qui tient
 la bille suivante, berceau d'or derrière la bille prête à partir ; mêmes couleurs dans les
@@ -1006,7 +1007,8 @@ Livré à l'étape 11.2 :
 - **Fragments d'étoiles** : des étoiles filantes traversent le plateau de temps en temps ;
   les toucher d'un tir les **récolte** (le tir continue sa course). Monnaie à part des éclats,
   gagnée uniquement en campagne.
-- **Observatoire** : écran où l'on achète **10 améliorations à trois rangs** (coût croissant),
+- **Observatoire** : écran où l'on achète **10 améliorations à trois rangs** (coût croissant ;
+  en trois onglets par portée depuis la v1.8.0, § 3.16),
   actives en campagne (jamais au défi du jour ni en Arcade, pour l'équité) :
   1. **Œil stellaire** : la bille fantôme montre aussi la bille suivante ; rang 3 : la ligne
      de visée montre un rebond de plus.
@@ -1475,6 +1477,74 @@ celles du robot nouveau venu, sur 24 parties ; les durées, celles de vrais joue
    de l'étape 6 (« au moins une quasi-défaite par niveau dès 1-3 »).
 3. **1-9 n'a pas de nouveauté** dans les données : c'est le niveau où les acquis se mêlent,
    sur le plus long tracé du monde ; la cinquième couleur reste en 1-11.
+
+### 3.16 Atelier, Observatoire et porte-monnaie (v1.8.0)
+
+**Demandé le 26/10/2026**, maquette validée le même jour : les deux écrans tiennent sur un
+écran, sans défilement, et le solde reste en vue partout.
+
+**Porte-monnaie** (`PlayerWallet`) :
+
+- Les deux monnaies, chacune avec son signe : l'éclat, gemme d'or ourlée comme les boutons
+  dorés ; le fragment d'étoile, étoile cyan. Les éclats sont dorés partout, cadeau du jour
+  compris, les fragments cyan.
+- En haut à droite de chaque écran de menu : accueil (sous les boutons ronds sur un
+  téléphone, à côté dès 40rem), carte (à côté du retour ; sur un écran couché, le retour n'y
+  garde que sa flèche, son nom restant lu), Observatoire, Atelier, Arcade et objectifs ; en
+  tête du menu de pause.
+- La monnaie de l'écran est mise en avant : plus grande, cerclée de sa couleur, son nom sous
+  le chiffre (éclats à l'Atelier, en Arcade et aux objectifs ; fragments à l'Observatoire).
+  Le nom disparaît des bandeaux de moins de 22rem (téléphones de 360 px et moins).
+- À chaque gain ou achat, le chiffre compte jusqu'au nouveau solde en 0,45 s et la
+  différence s'envole (« −150 », « +215 ») ; en mouvement réduit, le chiffre change d'un coup
+  et la différence s'efface sur place. Un lecteur d'écran entend chaque solde en phrase
+  (« 280 éclats »).
+- Le panneau de victoire donne le nouveau solde à côté des éclats gagnés (« +215 éclats ·
+  Solde : 495 »).
+
+**Atelier** :
+
+- Quatre onglets, Lanceurs, Traînées, Éclatements et Plateaux, chacun avec son compte
+  « possédés / total » ; les flèches, Début et Fin passent d'un onglet à l'autre
+  (`TabBar`). Un onglet s'ouvre sur l'objet le moins cher à acheter, sinon sur l'objet porté.
+- **Cabine d'essayage** : l'objet touché joue avec le vrai moteur, en boucle, comme la
+  boucle de l'écran titre (§ 3.14) : le lanceur vise et tire, vu de près (×2,2) ; la traînée
+  suit le plus long tir qui fait un groupe (×1,5) ; l'éclatement fait sauter une cascade
+  (×1,9) ; le plateau montre sa chaîne (×1,3). Toutes sur le niveau 1-2, posé en paires
+  emboîtées (`src/showcase/fittings.ts`). Chaque scène culmine en moins de 2 s et dure 3,5 à
+  4 s ; un autre objet touché se fond sur la scène qui joue. Jouée par un worker quand le
+  navigateur le permet, arrêtée hors de l'écran et dans un onglet caché ; en mouvement
+  réduit, une image fixe, au sommet de chaque scène. Jusqu'à la première image, la vignette
+  de l'objet tient la place. Aucun code de la cabine n'est chargé avant l'ouverture de
+  l'Atelier (`FittingPlayer`, `fittingWorker`).
+- La cabine prend la place que les cartes lui laissent : 16:9, jusqu'au carré sur un
+  téléphone et au 4:3 à côté des cartes ; elle rétrécit la première, jusqu'à 7rem de haut.
+- Sous la cabine, le nom, la nature et l'état de l'objet (« Lanceur · Pas encore à vous »)
+  et une seule action : « Acheter · 150 ◆ », « Équiper » ou « Il manque 40 ◆ » (désactivé).
+  Un plateau à débloquer s'essaie aussi et dit quel monde finir. L'essai d'une partie contre
+  une publicité (§ 3.7) reste, dans le coin de la cabine, là où les publicités jouent ;
+  derrière un bloqueur, une note le dit au pied de la cabine.
+
+**Observatoire** :
+
+- Trois onglets par portée d'effet : **Tir** (Œil stellaire, Bille prismatique, Nova,
+  Attrape-étoiles), **Chaîne** (Chronos, Onde de choc, Seconde chance) et **Météo** (Bouclier
+  thermique, Brise-glace, Ancre) ; chacun montre ses rangs achetés (« 3/12 ») et un point
+  cyan quand une amélioration y est à portée (`src/engine/upgrades/ranges.ts`).
+- Des tuiles (nom, rangs, coût du prochain) et le détail de l'amélioration choisie : ses
+  trois rangs, acquis cochés et prochain cerclé, et un seul bouton doré : « Améliorer ·
+  12 ★ », « Il manque 7 ★ » (désactivé, avec le moyen d'en gagner) ou « Au maximum ».
+- Il s'ouvre sur la première amélioration abordable dans l'ordre des onglets, sinon la
+  première qui n'est pas au maximum ; chaque onglet s'ouvre de même sur la sienne.
+- Introduction courte, « Améliorez vos instruments de campagne. », masquée sur les
+  téléphones de moins de 44rem de haut.
+
+**Tenue à l'écran** : aucun défilement de 360 × 640 à 2560 px, téléphones couchés (844 × 390,
+734 × 343, 640 × 400) et cadres des portails compris, dans les quatre langues ; sur 320 × 568,
+seules les cartes de l'Atelier défilent, dans leur cadre (`e2e/menus.spec.ts`). Le bandeau
+(`ScreenHeader`) se règle sur sa propre largeur : retour et porte-monnaie, puis titre, puis
+onglets sur un téléphone ; titre au premier rang dès 36rem ; tout sur une ligne dès 48rem,
+le titre passant à la ligne à sa césure plutôt que de serrer les onglets sous 17rem.
 
 ## 4. Exigences non fonctionnelles
 
@@ -2096,3 +2166,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                              |
 | 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                           |
 | 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                           |
+| 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).   |

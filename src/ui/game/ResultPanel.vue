@@ -7,6 +7,7 @@ import type { PlayRequest } from '@/app/PlayRequest';
 import { DEMO } from '@/levels/edition';
 import { nextLauncher } from '@/player/catalog';
 import { CONTINUE_PRICE } from '@/player/rewards';
+import { SHARD_PATH } from '@/ui/components/icons';
 import type { HudState } from '@/play/PlaySession';
 import AdIcon from '@/ui/components/AdIcon.vue';
 import StarRow from '@/ui/components/StarRow.vue';
@@ -272,14 +273,19 @@ defineExpose({
       <li v-if="(hud?.fragments ?? 0) > 0" class="shards total" data-testid="fragments-earned">
         {{ t('observatory.caught', { count: hud?.fragments ?? 0 }, hud?.fragments ?? 0) }}
       </li>
-      <li v-if="settlement.rewards.shards > 0" class="shards total" data-testid="shards-earned">
-        {{
+      <li v-if="settlement.rewards.shards > 0" class="shards total earned-line">
+        <span data-testid="shards-earned">{{
           t(
             'player.earned',
             { count: number.format(settlement.rewards.shards) },
             settlement.rewards.shards,
           )
-        }}
+        }}</span>
+        <!-- The new balance (v1.8.0): what the shards earned add up to. -->
+        <span class="after" data-testid="balance-after">
+          {{ t('wallet.after', { count: number.format(player.view.shards) }) }}
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="SHARD_PATH" /></svg>
+        </span>
       </li>
       <NextLauncher
         v-if="launcherShown"
@@ -419,6 +425,36 @@ defineExpose({
 
 .unlock {
   font-weight: 700;
+}
+
+/* The shards earned, and the balance they make. */
+.earned-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.after {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.after svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.after path {
+  fill: var(--primary-mid);
+  stroke: var(--primary-edge);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
 }
 
 /* What was earned, set apart from the goals above it. */

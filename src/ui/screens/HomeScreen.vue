@@ -6,6 +6,7 @@ import { startsTraining } from '@/app/landing';
 import { CAMPAIGN } from '@/levels/campaign';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { GIFT_SHARDS } from '@/player/DailyGift';
+import PlayerWallet from '@/ui/components/PlayerWallet.vue';
 import SettingsDialog from '@/ui/components/SettingsDialog.vue';
 import SoundToggle from '@/ui/components/SoundToggle.vue';
 import TitleReel from '@/ui/title/TitleReel.vue';
@@ -31,8 +32,10 @@ const number = computed(() => new Intl.NumberFormat(locale.value));
 const ORDER = CAMPAIGN.map((level) => level.id);
 /** Stars won in the campaign, out of three per level. */
 const stars = computed(() => progress.totalStars(ORDER));
-/** A returning player sees their stars and shards; a newcomer sees only the game. */
-const returning = computed(() => stars.value > 0 || player.view.shards > 0);
+/** A returning player sees their stars and their wallet; a newcomer sees only the game. */
+const returning = computed(
+  () => stars.value > 0 || player.view.shards > 0 || player.view.fragments > 0,
+);
 /** The level "Play" leads to: the first open one not won yet, else the last open one. */
 const nextLevel = computed(() => {
   const open = CAMPAIGN.filter((level) => progress.isUnlocked(ORDER, level.id));
@@ -97,7 +100,7 @@ const openSettings = () => {
       <div class="chips">
         <template v-if="returning">
           <!-- The icon says what is counted: the numbers alone stay on one line in every
-               language, and screen readers hear the whole sentence. -->
+               language, and screen readers hear the whole sentence. The wallet does the same. -->
           <p class="chip" data-testid="stars-total">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="star">
               <path
@@ -112,58 +115,47 @@ const openSettings = () => {
               {{ t('campaign.stars', { count: stars, total: ORDER.length * 3 }) }}
             </span>
           </p>
-          <p class="chip" data-testid="wallet">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="shard">
-              <path fill="currentColor" d="M12 2l7 7-7 13L5 9z" />
-            </svg>
-            <span aria-hidden="true">{{ number.format(player.view.shards) }}</span>
-            <span class="sr-only">
-              {{
-                t(
-                  'player.balance',
-                  { count: number.format(player.view.shards) },
-                  player.view.shards,
-                )
-              }}
-            </span>
-          </p>
         </template>
       </div>
+      <!-- The round buttons, and the wallet beside them (under them on a phone). -->
       <div class="tools">
-        <SoundToggle />
-        <button
-          class="round"
-          type="button"
-          :aria-label="t('achievements.title')"
-          data-testid="achievements"
-          @click="emit('achievements')"
-        >
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path
-              d="M7 4h10v4a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
-        <button
-          class="round"
-          type="button"
-          :aria-label="t('settings.open')"
-          data-testid="open-settings"
-          @click="openSettings"
-        >
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.7 7.7 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.7 7.7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.7 7.7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"
-              transform="translate(-1 0)"
-            />
-          </svg>
-        </button>
+        <div class="buttons">
+          <SoundToggle />
+          <button
+            class="round"
+            type="button"
+            :aria-label="t('achievements.title')"
+            data-testid="achievements"
+            @click="emit('achievements')"
+          >
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path
+                d="M7 4h10v4a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            class="round"
+            type="button"
+            :aria-label="t('settings.open')"
+            data-testid="open-settings"
+            @click="openSettings"
+          >
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.7 7.7 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.7 7.7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.7 7.7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"
+                transform="translate(-1 0)"
+              />
+            </svg>
+          </button>
+        </div>
+        <PlayerWallet v-if="returning" class="wallet" />
       </div>
     </div>
 
@@ -345,16 +337,42 @@ const openSettings = () => {
 }
 
 .chips,
-.tools {
+.buttons {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-/* The chips may wrap on a narrow phone; the round buttons stay in one row. */
+/* The round buttons stay in one row, the wallet under them on a phone, beside them wider. */
 .tools {
+  display: flex;
   flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.buttons {
   flex-wrap: nowrap;
+}
+
+@media (width >= 40rem) {
+  .tools {
+    flex-direction: row-reverse;
+    align-items: center;
+  }
+}
+
+/* The wallet wears the night sky, like the chips beside it. */
+.wallet :deep(.coin) {
+  border-color: var(--tile-edge);
+  background: rgb(20 8 50 / 0.72);
+  color: var(--scene-text);
+}
+
+.wallet :deep(.delta) {
+  background: rgb(20 8 50 / 0.9);
+  color: var(--scene-muted);
 }
 
 .chip {
@@ -374,8 +392,9 @@ const openSettings = () => {
   color: var(--primary-mid);
 }
 
+/* Shards are gold gems everywhere (v1.8.0), star fragments cyan stars. */
 .shard {
-  color: var(--orb-cyan);
+  color: var(--primary-mid);
 }
 
 .round {
@@ -713,7 +732,7 @@ const openSettings = () => {
 }
 
 .streak .shard path {
-  fill: var(--orb-cyan);
+  fill: var(--primary-mid);
 }
 
 .streak .big {
