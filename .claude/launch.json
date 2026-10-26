@@ -12,6 +12,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["vite", "preview", "--host", "--port", "5184", "--strictPort"],
       "port": 5184
+    },
+    {
+      "name": "ballmania-couloir",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "couloir"],
+      "port": 4190
     }
   ]
 }
