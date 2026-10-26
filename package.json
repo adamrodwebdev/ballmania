@@ -18,6 +18,7 @@
     "build:portals": "npm run build:crazygames && npm run build:poki && npm run build:gamedistribution && npm run build:playgama",
     "build:demo": "vue-tsc --noEmit -p tsconfig.app.json && vite build --mode demo",
     "preview": "vite preview --port 4173 --strictPort",
+    "couloir": "vite build --mode simulated && vite preview --mode simulated --host --port 4190 --strictPort",
     "typecheck": "vue-tsc --noEmit -p tsconfig.vitest.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",
     "format": "prettier --write .",
