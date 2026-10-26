@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                                            |
-| ------- | ---------- | ----------------------------------------------------------------- |
-| 1.13    | 26/10/2026 | Le cadeau du jour qui se range, la carte sans défilement (v1.8.0) |
+| Version | Date       | Statut                                   |
+| ------- | ---------- | ---------------------------------------- |
+| 1.14    | 26/10/2026 | Le monde 1 réglé (v1.8.0, étape 6 sur 9) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1399,7 +1399,8 @@ niveau avant tout réglage (étape 6).
 
 **Mesures** (`tests/levels/tension.test.ts` ; `TENSION=nebula npx vitest run
 tests/levels/tension.test.ts` imprime les tables d'un monde) : chaque niveau joué par deux
-robots sur les trois plateaux (carré, haut, large), huit graines chacun.
+robots sur les trois plateaux (carré, haut, large), huit graines chacun (vingt-quatre depuis le
+réglage, plus bas).
 
 - **Le nouveau venu** : un tir toutes les 1,6 s, une erreur de visée de 32 unités, sans plan
   (profil de l'étude du 21/10/2026, à recaler sur le test de couloir).
@@ -1505,6 +1506,69 @@ le réglage des niveaux, qui attend le test de couloir) :
   seules défaites deviennent des quasi-défaites, en 1-9 (pointe max 101 % → 95 %) et en 1-11
   (100 % → 92 %) ; rien d'autre ne change, aucune autre chaîne n'atteignant le dernier
   cinquième. Elle servira de filet au réglage, qui rapprochera les chaînes du trou.
+
+**Réglage du monde 1** (étape 6, seconde partie, 26/10/2026). Le test de couloir est remis à
+plus tard : le robot nouveau venu reste celui du 21/10/2026, et les durées réelles restent à
+mesurer sur des inconnus. Les mesures passent à 72 parties par niveau (vingt-quatre graines sur
+chacun des trois plateaux) : sur 24, les quasi-défaites variaient de deux à trois d'un tirage à
+l'autre, et 1-11, mesuré à 61 %, est à 70 % sur 72 parties. Les leviers, dans l'ordre du tableau :
+
+| Niveau | Réglage                                 | Niveau | Réglage                               |
+| ------ | --------------------------------------- | ------ | ------------------------------------- |
+| 1-1    | inchangé (chaîne posée à la main)       | 1-7    | 22 → 26 billes par chaîne             |
+| 1-2    | vitesse 34 → 64, 34 → 46 billes         | 1-8    | vitesse 58 → 64                       |
+| 1-3    | vitesse 30 → 46, Colosse 20 → 30 points | 1-9    | vitesse 48 → 53, 52 → 56 billes       |
+| 1-4    | vitesse 44 → 76, 40 → 50 billes         | 1-10   | vitesse 50 → 76, 46 → 56 billes       |
+| 1-5    | vitesse 50 → 74                         | 1-11   | inchangé (déjà à 70 % sur 72 parties) |
+| 1-6    | vitesse 42 → 56, 38 → 42 billes         | 1-12   | inchangé (déjà dans sa cible)         |
+
+Robot nouveau venu, 72 parties par niveau :
+
+| Niveau | Victoires | Durée | Pointe | Pointe max | Sous pression | Quasi-défaites | Temps mort | Maigre |
+| ------ | --------- | ----- | ------ | ---------- | ------------- | -------------- | ---------- | ------ |
+| 1-1    | 72/72     | 0:31  | 28 %   | 36 %       | 0 %           | 0/72           | 0,0 s      | 0,3 s  |
+| 1-2    | 72/72     | 0:40  | 35 %   | 74 %       | 0 %           | 0/72           | 0,0 s      | 0,3 s  |
+| 1-3    | 72/72     | 0:45  | 53 %   | 100 %      | 5 %           | 11/72          | 0,0 s      | 0,3 s  |
+| 1-4    | 72/72     | 0:45  | 35 %   | 89 %       | 0 %           | 1/72           | 0,0 s      | 0,3 s  |
+| 1-5    | 72/72     | 0:59  | 54 %   | 93 %       | 4 %           | 5/72           | 0,0 s      | 0,3 s  |
+| 1-6    | 72/72     | 0:53  | 43 %   | 96 %       | 0 %           | 8/72           | 0,0 s      | 0,3 s  |
+| 1-7    | 72/72     | 1:02  | 64 %   | 98 %       | 18 %          | 11/72          | 0,0 s      | 0,1 s  |
+| 1-8    | 72/72     | 1:03  | 47 %   | 87 %       | 0 %           | 1/72           | 0,0 s      | 0,3 s  |
+| 1-9    | 72/72     | 1:21  | 46 %   | 87 %       | 0 %           | 9/72           | 0,0 s      | 0,3 s  |
+| 1-10   | 72/72     | 1:07  | 54 %   | 93 %       | 5 %           | 7/72           | 0,0 s      | 0,3 s  |
+| 1-11   | 72/72     | 1:26  | 70 %   | 99 %       | 23 %          | 18/72          | 0,0 s      | 0,3 s  |
+| 1-12   | 72/72     | 1:36  | 66 %   | 96 %       | 19 %          | 16/72          | 0,0 s      | 0,3 s  |
+
+Robot occasionnel, 72 parties par niveau : 72 victoires sur 72 partout, pointes de 27 à 51 %,
+deux quasi-défaites en tout (1-3) : qui joue mieux garde de la marge.
+
+**Lecture** : les trois frissons montent (1-3 à 53 %, 1-7 à 64 %, 1-11 à 70 %), chacun suivi
+d'une respiration (1-4 à 35 %, 1-8 à 47 %), et le Colosse conclut (66 %) ; les quasi-défaites
+sont toutes dans leur cible ramenée à 24 parties, et le nouveau venu ne perd plus aucune des
+864 parties du monde. Quatre pointes restent sous la leur, à dessein :
+
+- **1-2 et 1-4** (35 %) : le deuxième niveau et une respiration ; plus vite, le nouveau venu
+  frôle déjà le trou en 1-2, et le robot joue plus vite que les gens.
+- **1-6 et 1-9** (43 et 46 %), les serpentins : sur un plateau large, leur tracé est 1,7 fois
+  plus long qu'ailleurs (il tient 73 billes au lieu de 42), si bien que le large reste facile
+  quand les autres plateaux font déjà des quasi-défaites et des défaites ; leurs quasi-défaites,
+  elles, sont dans la cible.
+
+**Règles tenues** : aucune chaîne plus longue que son tracé ne le permet (le tracé fait au moins
+1,2 fois la chaîne sur chaque plateau), aucun temps mort, aucune défaite en 1-1 ni en 1-2. Les
+étoiles sont recalibrées sur 72 parties par niveau (36 avant), et la garde du monde 1 vérifie
+sur 24 parties que la calibration n'a pas vues que la troisième étoile reste entre 15 et 45 % des
+victoires d'un joueur soigneux.
+
+**Durées** : celles du robot vont de 0:31 à 1:36. Le rapport aux vrais joueurs reste à mesurer
+(test sur inconnus) ; s'ils mettent 1,5 fois plus de temps, le monde va de 0:47 à 2:24, sous les
+durées visées des premiers niveaux.
+
+**Écart entre les plateaux**, relevé pendant le réglage : le plateau large, celui d'un écran
+d'ordinateur en 16:9, est le plus facile presque partout, de 5 à 18 points de pointe médiane
+(1-6 : 26 % en large, 40 % en haut). La vitesse ne suffit pas à le corriger, puisqu'un tracé plus
+long rend aussi chaque explosion moins efficace ; il faudra un réglage par plateau, sur tous les
+mondes et leurs étoiles.
 
 ### 3.16 Atelier, Observatoire et porte-monnaie (v1.8.0)
 
@@ -2169,34 +2233,35 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 
 ## 12. Journal des versions du document
 
-| Version | Date       | Changements                                                                                                                                                             |
-| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                                                        |
-| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus.                                  |
-| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                                                       |
-| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                                                       |
-| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                                                   |
-| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                   |
-| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                          |
-| 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7).    |
-| 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                                  |
-| 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                                  |
-| 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                              |
-| 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                             |
-| 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                          |
-| 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                    |
-| 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                      |
-| 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                           |
-| 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                                |
-| 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                        |
-| 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                      |
-| 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                            |
-| 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                                |
-| 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).                  |
-| 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                     |
-| 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                                 |
-| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                              |
-| 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                              |
-| 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).      |
-| 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                          |
-| 1.13    | 26/10/2026 | Version 1.8.0, corrections : le cadeau du jour se range (étincelles, repli, glissement de la boucle), la carte tient dans une fenêtre de navigateur (§ 3.9, 3.12, 4.2). |
+| Version | Date       | Changements                                                                                                                                                                       |
+| ------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                                                                  |
+| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus.                                            |
+| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                                                                 |
+| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                                                                 |
+| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                                                             |
+| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                             |
+| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                                    |
+| 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7).              |
+| 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                                            |
+| 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                                            |
+| 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                                        |
+| 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                                       |
+| 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                                    |
+| 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                              |
+| 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                                |
+| 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                                     |
+| 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                                          |
+| 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                                  |
+| 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                                |
+| 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                                      |
+| 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                                          |
+| 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).                            |
+| 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                               |
+| 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                                           |
+| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                                        |
+| 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                                        |
+| 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).                |
+| 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                                    |
+| 1.13    | 26/10/2026 | Version 1.8.0, corrections : le cadeau du jour se range (étincelles, repli, glissement de la boucle), la carte tient dans une fenêtre de navigateur (§ 3.9, 3.12, 4.2).           |
+| 1.14    | 26/10/2026 | Version 1.8.0, étape 6, seconde partie : le monde 1 réglé sur son tableau, mesuré sur 72 parties par niveau, ses étoiles recalibrées, l'écart entre les plateaux relevé (§ 3.15). |
