@@ -10,12 +10,24 @@ test('spends star fragments on upgrades at the Observatory', async ({ page }) =>
   await page.getByTestId('observatory').click();
   await expect(page.getByRole('heading', { name: 'Observatory', level: 1 })).toBeVisible();
   await expect(page.getByTestId('fragments')).toContainText('20 fragments');
+  // It opens on the first upgrade within reach, in the Shot tab.
+  await expect(page.getByTestId('tab-shot')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByTestId('upgrade-eye')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('upgrade-nova').click();
   await page.getByTestId('buy-nova').click();
   await expect(page.getByTestId('fragments')).toContainText('15 fragments');
   await expect(page.getByLabel('Rank 1 of 3').first()).toBeVisible();
   await page.getByTestId('buy-nova').click();
   await expect(page.getByTestId('fragments')).toContainText('3 fragments');
   await expect(page.getByTestId('buy-nova')).toBeDisabled();
+  await expect(page.getByTestId('buy-nova')).toHaveAccessibleName('Need 22 more fragments');
+  // The Chain tab opens on its first upgrade, which says what is missing; the arrows move on.
+  await page.getByTestId('tab-chain').click();
+  await expect(page.getByTestId('upgrade-chronos')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('buy-chronos')).toHaveAccessibleName('Need 2 more fragments');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByTestId('tab-weather')).toBeFocused();
+  await expect(page.getByTestId('upgrade-shield')).toHaveAttribute('aria-pressed', 'true');
   await page.getByTestId('back').click();
   await expect(page.getByTestId('upgrade-ready')).toHaveCount(0);
 });

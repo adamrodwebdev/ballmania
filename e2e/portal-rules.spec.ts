@@ -87,8 +87,8 @@ test.describe('portal rules', () => {
     expect(await portalScroll()).toBe(0);
 
     // A screen longer than its frame scrolls inside the game, and only there.
-    await game.getByTestId('observatory').click();
-    await game.locator('#observatory-title').click();
+    await game.getByTestId('achievements').click();
+    await game.locator('#achievements-title').click();
     await page.keyboard.press('End');
     const screen = game.locator('main');
     await expect
@@ -99,7 +99,7 @@ test.describe('portal rules', () => {
     expect(await portalScroll()).toBe(0);
 
     // In play, the keys aim and fire; the others do nothing to the portal either.
-    await game.getByTestId('back').click();
+    await game.getByTestId('home').click();
     await game.getByTestId('play').click();
     await game.getByTestId('level-nebula-01').click();
     await expect(game.getByTestId('board')).toBeVisible();
