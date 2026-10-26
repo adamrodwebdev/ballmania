@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                                     |
-| ------- | ---------- | ---------------------------------------------------------- |
-| 1.12    | 26/10/2026 | Signaux de danger et zone de grâce (v1.8.0, étape 6 sur 9) |
+| Version | Date       | Statut                                                            |
+| ------- | ---------- | ----------------------------------------------------------------- |
+| 1.13    | 26/10/2026 | Le cadeau du jour qui se range, la carte sans défilement (v1.8.0) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1030,11 +1030,14 @@ Livré à l'étape 11.2 :
 - **Bulle de l'Observatoire** (v1.7.4) : la première fois qu'une amélioration devient
   abordable, une bulle sous le bouton Observatoire de la carte (au-dessus, au pied de la
   colonne, sur un écran couché) dit « Améliorez votre jeu ici avec vos fragments
-  d'étoiles. », et un anneau souligne le bouton. Dans le flux de la page, elle ne cache
-  rien ; sur un écran couché de 600 px de haut au plus (fenêtres des portails, téléphone
-  couché), où la colonne n'a plus de place, elle flotte au-dessus du bouton, sur les
-  dernières difficultés, jusqu'au toucher, et atteindre les difficultés au clavier la retire :
-  la carte tient toujours sur un écran. Elle s'affiche lors d'une seule visite de la carte,
+  d'étoiles. », et un anneau souligne le bouton. Dans la colonne d'une carte couchée, elle
+  ne cache rien ; sur un écran couché de 600 px de haut au plus (fenêtres des portails,
+  téléphone couché), où la colonne n'a plus de place, elle flotte au-dessus du bouton, sur les
+  dernières difficultés, jusqu'au toucher, et atteindre les difficultés au clavier la retire.
+  Sur la carte empilée d'un écran large (debout, ou de plus de 960 px de haut), elle flotte
+  de même sous le bouton, resté dans l'en-tête (v1.8.0) : dans le flux, elle poussait les
+  niveaux hors de l'écran (1 026 px de haut au lieu de 863). La carte tient toujours sur un
+  écran. Elle s'affiche lors d'une seule visite de la carte,
   disparaît au toucher et rend le focus au bouton ; ouvrir l'Observatoire la retire aussi, et
   qui possède déjà une amélioration ne la voit jamais. Pour un lecteur d'écran, le texte est une note et un
   bouton « Compris » la ferme ; son entrée disparaît avec le mouvement réduit. Le profil
@@ -1159,6 +1162,14 @@ fait éclater son nom au-dessus du plateau.
   replie sur sa première ligne pour laisser le trou noir visible. Sur un petit téléphone,
   la note disparaît. Une fois le cadeau pris : une pastille « Jour 3 récupéré · Demain
   +30 ». Annonce au lecteur d'écran. L'écran titre ne défile jamais, carte ou pastille.
+- **Le cadeau se range** (v1.8.0) : au toucher, ses éclats filent en arc du bouton au
+  porte-monnaie, qui compte et dont la gemme s'illumine quand ils arrivent (le porte-monnaie
+  d'un nouveau venu apparaît avec eux), pendant que la carte montre le jour coché, avec le son
+  des éclats qui se versent du panneau de victoire. Une demi-seconde après, la carte se
+  replie, la pastille prend sa place et la boucle de l'écran titre glisse dans la place
+  libérée, ou y apparaît en fondu sur un téléphone : rien ne saute. Le minutage est
+  `GiftClaim` (`src/app`), les étincelles `SparkFlight`, partagées avec « Équiper ». En
+  mouvement réduit, la pastille apparaît en fondu, sans étincelles ni glissement.
 
 ### 3.13 Entraînement (v1.8.0)
 
@@ -1606,11 +1617,14 @@ size`) ; ses bandes de HUD, ses rails, le cadre 2:1 et ses fenêtres (pause, ré
 - Aucun défilement horizontal de 320 à 1920 px ; aire de jeu mise à l'échelle en conservant
   ses proportions, portrait et paysage. Plus aucun `overflow-x: hidden` ne masque un
   débordement (v1.7.6) : le test de débordement mesure la page et le cadre de chaque écran.
-- **Carte de campagne sur un écran large et bas** (v1.7, jusqu'à 800 px de haut : cadres de
-  portail 907 × 510 et 821 × 462, téléphone couché, 1280 × 720) : le menu en colonne à
-  gauche (retour, titre, étoiles, difficulté, Observatoire en bas), le paquet des mondes à
-  droite, douze niveaux en deux rangées de six ; la page ne défile pas (testé de 915 × 412
-  à 1280 × 720). Sous 480 px de haut, la devise du monde et la description de la difficulté
+- **Carte de campagne sur un écran large et bas** (v1.7, jusqu'à 800 px de haut ; 960 px
+  depuis la 1.8.0 : cadres de portail 907 × 510 et 821 × 462, téléphone couché,
+  1280 × 720, fenêtres de navigateur jusqu'à celle d'un écran 1080p) : le menu en colonne à
+  gauche (retour, titre, étoiles, difficulté, Observatoire en bas ; au-delà de 800 px de
+  haut, l'Observatoire sous les difficultés), le paquet des mondes à droite, douze niveaux en
+  deux rangées de six ; la page ne défile pas (testé de 915 × 412 à 1920 × 947). Empilée en
+  une colonne, la carte demande 863 px de haut, 930 en russe, dont le badge de l'Observatoire
+  met l'en-tête sur deux lignes : entre 800 et 863 px, elle défilait (v1.7). Sous 480 px de haut, la devise du monde et la description de la difficulté
   s'effacent. Sur un téléphone couché, jusqu'à 460 px de haut (v1.7.6 : 844 × 390,
   734 × 343, 640 × 400 et le 800 × 450 de CrazyGames), les trois difficultés se rangent côte à côte dans une colonne de
   14 rem, et le paquet perd sa rangée de noms : la carte nomme son monde, les flèches et le
@@ -2155,33 +2169,34 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 
 ## 12. Journal des versions du document
 
-| Version | Date       | Changements                                                                                                                                                          |
-| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                                                     |
-| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus.                               |
-| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                                                    |
-| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                                                    |
-| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                                                |
-| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                |
-| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                       |
-| 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7). |
-| 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                               |
-| 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                               |
-| 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                           |
-| 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                          |
-| 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                       |
-| 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                 |
-| 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                   |
-| 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                        |
-| 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                             |
-| 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                     |
-| 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                   |
-| 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                         |
-| 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                             |
-| 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).               |
-| 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                  |
-| 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                              |
-| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                           |
-| 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                           |
-| 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).   |
-| 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                       |
+| Version | Date       | Changements                                                                                                                                                             |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                                                        |
+| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus.                                  |
+| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                                                       |
+| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                                                       |
+| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                                                   |
+| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                   |
+| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                          |
+| 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7).    |
+| 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                                  |
+| 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                                  |
+| 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                              |
+| 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                             |
+| 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                          |
+| 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                    |
+| 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                      |
+| 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                           |
+| 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                                |
+| 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                        |
+| 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                      |
+| 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                            |
+| 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                                |
+| 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).                  |
+| 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                     |
+| 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                                 |
+| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                              |
+| 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                              |
+| 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).      |
+| 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                          |
+| 1.13    | 26/10/2026 | Version 1.8.0, corrections : le cadeau du jour se range (étincelles, repli, glissement de la boucle), la carte tient dans une fenêtre de navigateur (§ 3.9, 3.12, 4.2). |
