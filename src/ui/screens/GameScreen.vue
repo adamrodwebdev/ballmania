@@ -232,6 +232,11 @@ const doubleShards = async () => {
   } else adMessage.value = t('ads.unavailable');
   resultPanel.value?.show();
 };
+/** A launcher bought and worn from the victory panel (v1.8.0): it rings, the phone answers. */
+const launcherEquipped = () => {
+  feedback.sound.equip();
+  feedback.haptics.equip();
+};
 
 /** Puzzle mode: the best next shot circled, offered in the pause menu, never while playing. */
 const giveHint = (play: PlaySession) => {
@@ -379,6 +384,7 @@ const leaveToMenu = () => {
       @replay="afterBreak(restart)"
       @leave="leaveToMenu"
       @chime="(index) => feedback.sound.star(index)"
+      @equip="launcherEquipped"
     />
   </section>
 </template>

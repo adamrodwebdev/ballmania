@@ -423,6 +423,15 @@ export class SoundEngine {
     });
   }
 
+  /** A launcher bought and worn on the victory panel (v1.8.0): the shards pour in, then it rings. */
+  equip(): void {
+    this.play((ctx, out, now) => {
+      this.sweep(ctx, out, now, 'sine', 660, 1320, 0.3, 0.06);
+      this.bell(ctx, out, now + 0.32, semitones(1047, 7), 0.9, 0.14);
+      this.bell(ctx, out, now + 0.36, semitones(2093, 7), 0.6, 0.05);
+    });
+  }
+
   /** A star of the result lights up: each one a step higher. */
   star(index: number): void {
     this.play((ctx, out, now) => {

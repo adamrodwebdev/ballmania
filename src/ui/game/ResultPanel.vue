@@ -9,8 +9,8 @@ import { nextLauncher } from '@/player/catalog';
 import { CONTINUE_PRICE } from '@/player/rewards';
 import type { HudState } from '@/play/PlaySession';
 import AdIcon from '@/ui/components/AdIcon.vue';
-import CosmeticPreview from '@/ui/components/CosmeticPreview.vue';
 import StarRow from '@/ui/components/StarRow.vue';
+import NextLauncher from './NextLauncher.vue';
 import { useMessage } from './useMessage';
 import { useShardPrice } from './useShardPrice';
 
@@ -43,6 +43,8 @@ const emit = defineEmits<{
   leave: [];
   /** A star of the result lights up: its chime, a step higher than the one before. */
   chime: [index: number];
+  /** A launcher was bought and worn from the panel (v1.8.0): its sound. */
+  equip: [];
 }>();
 
 const { t, locale } = useI18n();
@@ -71,11 +73,11 @@ const goNext = () => {
   if (following.value) emit('next', following.value.request);
 };
 /** After a win that paid shards: the launcher they bring closer (§ 3.6). */
-const goal = computed(() =>
-  props.hud?.over === 'won' && (props.settlement?.rewards.shards ?? 0) > 0
-    ? nextLauncher((id) => player.owns(id))
-    : null,
+const launcherShown = computed(
+  () => props.hud?.over === 'won' && (props.settlement?.rewards.shards ?? 0) > 0,
 );
+/** It follows what the player owns: once one is bought, the bar aims at the next. */
+const goal = computed(() => (launcherShown.value ? nextLauncher((id) => player.owns(id)) : null));
 /** The end bonus (what the time earned, when it did) and the best score, on one line. */
 const scoreLine = computed(() => {
   const parts: string[] = [];
@@ -156,6 +158,12 @@ const celebrate = () => {
 };
 
 const dialog = ref<HTMLDialogElement | null>(null);
+const nextButton = ref<HTMLButtonElement | null>(null);
+/** A launcher bought and worn on the panel (v1.8.0): it rings, and the focus goes on to what is next. */
+const equipped = () => {
+  emit('equip');
+  (nextButton.value ?? dialog.value?.querySelector<HTMLButtonElement>('.btn-primary'))?.focus();
+};
 watch(
   () => props.hud?.over,
   (over) => {
@@ -273,34 +281,12 @@ defineExpose({
           )
         }}
       </li>
-      <li v-if="goal" class="reward" data-testid="next-launcher">
-        <CosmeticPreview :item="goal" class="reward-preview" />
-        <span class="reward-text">
-          <span class="reward-name">
-            {{ t('game.reward.launcher', { name: t(`cosmetics.${goal.id}`) }) }}
-          </span>
-          <progress
-            class="reward-bar"
-            :max="goal.price"
-            :value="Math.min(player.view.shards, goal.price)"
-            :aria-label="t('game.reward.launcher', { name: t(`cosmetics.${goal.id}`) })"
-          ></progress>
-          <span class="reward-count">
-            {{
-              player.view.shards >= goal.price
-                ? t('game.reward.ready')
-                : t(
-                    'game.reward.progress',
-                    {
-                      have: number.format(player.view.shards),
-                      price: number.format(goal.price),
-                    },
-                    goal.price,
-                  )
-            }}
-          </span>
-        </span>
-      </li>
+      <NextLauncher
+        v-if="launcherShown"
+        :goal="goal"
+        :reduced-motion="reducedMotion"
+        @equipped="equipped"
+      />
     </ul>
 
     <p v-if="adMessage" class="detail" data-testid="ad-message">{{ adMessage }}</p>
@@ -351,6 +337,7 @@ defineExpose({
       </button>
       <button
         v-if="following"
+        ref="nextButton"
         class="btn btn-primary"
         type="button"
         autofocus
@@ -439,59 +426,6 @@ defineExpose({
   margin-top: var(--space-1);
   padding-top: var(--space-2);
   border-top: 1px solid color-mix(in srgb, var(--text-muted) 24%, transparent);
-}
-
-/* The launcher the shards bring closer: its picture, a bar, what is left. */
-.reward {
-  display: grid;
-  grid-template-columns: 3rem 1fr;
-  align-items: center;
-  gap: var(--space-3);
-  text-align: start;
-}
-
-.reward-preview {
-  width: 3rem;
-  margin: 0;
-}
-
-.reward-text {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.reward-name {
-  font-weight: 800;
-}
-
-.reward-bar {
-  width: 100%;
-  height: 0.5rem;
-  overflow: hidden;
-  border: 0;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--text-muted) 26%, transparent);
-  appearance: none;
-}
-
-.reward-bar::-webkit-progress-bar {
-  background: transparent;
-}
-
-.reward-bar::-webkit-progress-value {
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--primary-mid), var(--primary-top));
-}
-
-.reward-bar::-moz-progress-bar {
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--primary-mid), var(--primary-top));
-}
-
-.reward-count {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
 }
 
 .next-detail {

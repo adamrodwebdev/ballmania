@@ -91,8 +91,14 @@
     "nextLevelNamed": "Next: Level {level}",
     "reward": {
       "launcher": "{name} · launcher",
-      "progress": "{have} / {price} shards",
-      "ready": "Ready in the Workshop!"
+      "progress": "Launcher · {have} / {price} shards",
+      "price": "Launcher · {price} shards | Launcher · {price} shard | Launcher · {price} shards",
+      "next": "{name} · {have} / {price} shards",
+      "equipped": {
+        "shooter-crown": "Crown equipped",
+        "shooter-halo": "Halo equipped",
+        "shooter-eye": "Eye equipped"
+      }
     },
     "gaugeReached": "{count} stars within reach | {count} star within reach | {count} stars within reach"
   },
