@@ -122,6 +122,166 @@ un menu de départ complet exigé (règle 4.2.10, contraire à notre règle « j
 les portails), le stockage de VK au lieu du stockage local, aucune publicité au lancement. Fiche de
 référence : `references/vk-games.md`.
 
+## Stratégie de croissance : chaque ligne à 5 (décidée le 26/10/2026)
+
+**But** : porter à 5 sur 5 les douze lignes de la grille de l'audit marketing du 25/10/2026, où
+Ballmania obtient 3,6 comme jeu et 1,3 comme préparation au marché. Rester devant les succès du
+genre là où il les dépasse déjà (accroche, effets et son, originalité, équité), et les rejoindre
+là où ils sont forts (volume de contenu, retour chaque semaine, revenus, diffusion, preuve) par
+d'autres moyens que les leurs : des milliers de niveaux générés et validés plutôt que faits main,
+des événements écrits en données plutôt qu'une équipe d'animation, des achats qui vendent du temps,
+de l'allure et du confort pendant que chaque victoire continue de payer, et les portails plutôt
+que l'achat de joueurs. Audit : https://claude.ai/artifact/DknX3F4G8ndktEJLHRajB6 ; stratégie :
+https://claude.ai/artifact/Rp94DZXtBfcMrCUH8YwXjo (pages privées de l'auteur).
+
+**Trois phases, trois portes** :
+
+- **A. Prouver le jeu** (jusqu'à mi-novembre 2026) : la fin de la 1.8.0 (étapes 4 à 8), puis le
+  dépôt CrazyGames et Yandex Games (1.9.0), tous deux avant la fin novembre, pour que la sortie sur
+  Yandex et un Full Launch de CrazyGames profitent des tarifs publicitaires de décembre. Porte A :
+  au moins 25 % des inconnus au-delà de 3 minutes et les bandes de tension du robot tenues, avant le
+  dépôt CrazyGames.
+- **B. Donner des raisons de revenir** (mi-novembre à fin janvier 2027) : 1.10.0, 1.11.0 et 1.12.0.
+  Porte B, sur les mesures du Basic Launch et de Yandex : rétention J1 d'au moins 10 % et 8 minutes
+  de jeu en moyenne ; très en dessous, on corrige une fois le plus gros écart, puis l'effort passe à
+  un autre jeu.
+- **C. Gagner et se diffuser** (février à avril 2027) : 1.13.0, 1.14.0 et 1.15.0. Porte C : 4 $ pour
+  1 000 parties sans perte de temps de jeu, avant toute promotion payante. La preuve sur de vrais
+  joueurs et la mise en avant par un portail n'atteignent 5 qu'après environ un an de données.
+
+**Décisions** (26/10/2026) :
+
+- **Les éclats se vendent**, comme les succès du genre vendent leur monnaie de progression : chaque
+  victoire et chaque étoile continuent d'en rapporter, et un joueur qui ne paie jamais finit le jeu,
+  plus lentement. Ni vies, ni énergie, ni mur réglé pour forcer un achat : un robot termine la
+  campagne et la route sans rien acheter.
+- **Une longue route pour avancer plus vite** (précisé le 26/10/2026) : des paquets d'éclats pour qui
+  veut aller plus vite, ce qui suppose une route bien plus longue. Après la campagne faite main, des
+  milliers de niveaux générés et validés par le robot (1.12.0) ; une courbe allongée par la route et
+  la boutique, jamais par des victoires qui paient moins ; une mécanique nouvelle par saison (1.13.0)
+  pour garder l'intérêt.
+- **Mesures** : les tableaux de bord des portails jugent les portes A, B et C ; notre site reste sans
+  traceur ; des événements de jeu passés par le canal des portails sont proposés (question ouverte).
+- **Poki abandonné** : l'exclusivité qu'il demande fermerait CrazyGames et Yandex.
+- **Google Play** sur le compte d'organisation de l'entreprise (numéro D-U-N-S obtenu le
+  26/10/2026), sans le test fermé à 12 testeurs imposé aux nouveaux comptes personnels.
+- **Une version toutes les deux semaines**, les saisons préparées un mois à l'avance.
+- **Les achats après les saisons**, avec des offres uniques aux jalons.
+
+**Questions ouvertes** (26/10/2026) :
+
+- **Bonus de départ en éclats** (recommandé). Sans vies ni énergie, avancer plus vite veut dire passer
+  un niveau difficile en moins d'essais. Les éclats achèteraient aussi la bille bonus de départ que
+  la 1.14.0 offre déjà contre une publicité récompensée (Recul, Ralenti, Tir arc-en-ciel ou Laser,
+  prête au premier tir). Elle se gagnerait aussi dans les coffres et les missions, serait interdite au
+  défi du jour, au défi du Colosse et dans les classements, et le robot gagnerait chaque niveau sans
+  elle. C'est une entorse à la règle d'or du § 3.6 du cahier des charges (rien ne rend un niveau plus
+  facile). Sans elle, les éclats n'achètent que des continuations, des indices et de l'allure, et les
+  cosmétiques s'épuisent : toute la boutique coûte 1 990 éclats, la campagne en rapporte environ
+  3 960 avec ses trois étoiles partout.
+- **Mesures en jeu** (recommandé). Les tableaux de bord disent combien de joueurs reviennent, pas où
+  ils partent. Une dizaine d'événements anonymes : étapes de l'entraînement ; début, fin et abandon
+  d'un niveau (résultat, étoiles, durée, pointe de danger) ; 3, 8 et 15 minutes de jeu ; premier
+  lanceur ; offres vues et prises. Envoyés seulement par le canal du portail : les objectifs de
+  Yandex Metrica (compteur dans le seul build Yandex), puis `bridge.analytics.send`, le seul suivi
+  que Playgama admet, une fois vu où ses événements s'affichent ; rien sur notre site, aucun kit tiers
+  sur CrazyGames. Un port `Analytics` nourri par un écouteur des événements du jeu, chargé dans ces
+  seuls builds. Un journal des mesures (`docs/MESURES.md`) : pour chaque version, l'hypothèse, la
+  mesure, le seuil, puis le résultat à J+7 et J+14 ; les tests A/B de build et les drapeaux de Yandex
+  pour les choix risqués (prix, moment des offres, difficulté). Si oui, étape 2 de la 1.10.0.
+
+**Ce qui ne change pas** : trois couches (règles, logique, rendu) ; heure et hasard injectés
+(semaines, saisons et paquets de niveaux viennent de l'horloge et du hasard à graine, comme le défi
+du jour) ; un petit port par service de plateforme (`Leaderboards`, `Purchases`), fourni seulement
+là où un portail l'offre, jamais une interface large qui simule le reste ; stratégies et registres
+pour les objectifs, les billes spéciales, les segments de joueurs et les événements ; boutique,
+saisons et générateur chargés à l'usage ; simulations lourdes en CI ; Lighthouse à 100 dans les
+quatre catégories ; quatre langues ; thèmes clair et sombre ; l'entraînement d'abord sur les builds
+de portail ; jamais « Zuma » ni « Luxor » ; maquettes avant le code ; une branche par étape ;
+fusion, étiquette et publication avec votre accord.
+
+## v1.10.0 — Revenir chaque semaine (prévue)
+
+**But** : un objectif à portée à chaque ouverture du jeu, et une raison de revenir chaque semaine.
+Lignes visées : objectifs et progression de 3 à 5, événements et saisons de 1 à 3.
+
+| Étape                            | Contenu                                                                                                                                                                                                                                                                       | Fini quand                                                                                                                                               |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Maquettes                     | Missions, défi du Colosse de la semaine, coffres d'étoiles, atlas des Colosses et codex des billes, carte « Nouveautés » ; téléphone et ordinateur, clair et sombre.                                                                                                          | Maquettes validées.                                                                                                                                      |
+| 2. Missions                      | Trois missions du jour et trois de la semaine (« faire éclater 300 billes », « gagner un niveau sans échanger »), payées en éclats, jamais sautées contre de l'argent ; règles en données (`MissionCatalog`), suivi par un `MissionTracker` qui écoute les événements du jeu. | Tests sur une horloge figée ; chaque ouverture du jeu propose au moins un objectif à portée.                                                             |
+| 3. Défi du Colosse de la semaine | Le même pour tous, tiré de la semaine comme le défi du jour (`WeeklyChallenge.of(week)`), avec des paliers bronze, argent et or ; un classement là où le portail en offre un, par un port `Leaderboards` (Yandex, CrazyGames, Playgama), absent de notre site.                | Deux joueurs ont le même défi la même semaine (test) ; classement vérifié dans le mode test de chaque portail.                                           |
+| 4. Coffres et collections        | Un coffre toutes les 15 étoiles (éclats ou cosmétique), annoncé au panneau de victoire ; atlas des Colosses et codex des billes spéciales, chaque page complète récompensée.                                                                                                  | Chaque récompense versée une seule fois et conservée au rechargement.                                                                                    |
+| 5. Livraison                     | Textes dans les quatre langues, CHANGELOG, cahier des charges, revue de modérateur de chaque build.                                                                                                                                                                           | `npm run verify` et tests de bout en bout verts ; matrice ; Lighthouse à 100 dans les quatre catégories, sur mobile aux trois mesures et sur ordinateur. |
+
+## v1.11.0 — Toute la campagne en dents de scie (prévue)
+
+**But** : la tension de la 1.8.0 dans les six mondes, et des objectifs plus variés. Lignes visées :
+tension de 4 à 5, effets et son de 4,5 à 5, volume de contenu de 1,5 à 2,5.
+
+| Étape                            | Contenu                                                                                                                                                                                                                                              | Fini quand                                                                                                                                            |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Tableaux des mondes 2 à 6     | Pour chaque monde : calme, montée, frisson, respiration ; une quasi-défaite dès le troisième niveau ; zone de grâce réduite dans les mondes 4 à 6 et supprimée en Légende ; mesures du robot de la 1.8.0 (temps sous pression, temps mort, pointes). | Robot nouveau venu : pointes de 55 à 70 % du tracé dans chaque monde ; aucun niveau allongé par l'attente ; chaque niveau à 10 % près de son tableau. |
+| 2. Objectifs et billes spéciales | Survivre au chrono, collecter, sauver ; billes de pierre et de glace ; chacun une stratégie enregistrée, sans toucher aux niveaux existants.                                                                                                         | Règles testées ; chaque nouveauté arrive seule dans un niveau sûr.                                                                                    |
+| 3. Avant-goûts                   | Un miroir en 1-4, sans autre nouveauté dans ce niveau ; Infini et Duel ouverts après 1-6.                                                                                                                                                            | Tout nouveau joueur rencontre deux mécaniques propres au jeu dans ses cinq premières minutes (simulation et bout en bout).                            |
+| 4. Écoute et toucher             | Écoute du mixage de chaque monde (niveaux, montée des combos, signaux de danger) ; décalage de visée au toucher, pour que le doigt ne cache jamais la cible.                                                                                         | Grille d'écoute validée par l'auteur ; essai sur un vrai téléphone.                                                                                   |
+| 5. Livraison                     | Comme la 1.10.0.                                                                                                                                                                                                                                     | Comme la 1.10.0.                                                                                                                                      |
+
+## v1.12.0 — La longue route (prévue)
+
+**But** : des milliers de niveaux après la campagne faite main, variés et validés, pour que chacun
+avance à son rythme et que les paquets d'éclats aient un sens, sans faire chaque niveau à la main
+(précisé le 26/10/2026). Ligne visée : volume de contenu de 2,5 à 5.
+
+| Étape                                    | Contenu                                                                                                                                                                                                                                                                                                                                                                                      | Fini quand                                                                                                                                                                              |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Maquettes                             | La route sur la carte de campagne, après le monde 6 : ses chapitres, ses niveaux difficiles annoncés, l'expédition de la semaine, la carte d'un niveau généré.                                                                                                                                                                                                                               | Maquettes validées.                                                                                                                                                                     |
+| 2. Générateur                            | `LevelGenerator` (règles) : une graine et une recette donnent une définition de niveau, à partir des recettes de tracés existantes et du hasard à graine ; règles de variété : jamais deux fois de suite la même famille de tracé, la musique d'un monde par chapitre, un Colosse en fin de chapitre.                                                                                        | Même graine, même niveau (test) ; variété mesurée sur 1 000 niveaux.                                                                                                                    |
+| 3. Validation en CI                      | Les robots nouveau venu et occasionnel doivent gagner, culminer entre 55 et 75 % du tracé, finir en 60 à 150 s, sans temps mort ; un niveau qui échoue n'est jamais servi ; la validation tourne en CI, pas sur la machine de l'auteur.                                                                                                                                                      | 95 % des niveaux candidats passent ; rapport en CI.                                                                                                                                     |
+| 4. Chapitres et expédition de la semaine | Des chapitres de vingt niveaux, chacun autour d'une idée qui mêle des mécaniques connues, un Colosse à la fin ; 1 000 niveaux validés à l'ouverture, puis cent au moins par version : plusieurs milliers en un an ; un niveau difficile tous les dix environ, annoncé avant d'y entrer ; l'expédition de la semaine, douze niveaux le lundi, les mêmes pour tous, tirés de la date injectée. | Un chapitre et une expédition arrivent sans code nouveau ; 1 000 niveaux atteignables ; le robot nouveau venu gagne chaque niveau difficile en trois essais au plus, sans rien acheter. |
+| 5. Courbe et dépenses                    | Gains et prix en données : le monde 1 généreux (premier lanceur au plus tard à 1-3), puis des prix qui montent par palier pendant que chaque victoire paie autant ; de quoi dépenser tout au long de la route : lots de cosmétiques par chapitre, collections et, si la question ouverte est tranchée oui, bonus de départ.                                                                  | Simulation de la route entière sans achat : à tout moment, un achat en vue à dix victoires au plus ; la route finie sans payer.                                                         |
+| 6. Livraison                             | Comme la 1.10.0.                                                                                                                                                                                                                                                                                                                                                                             | Comme la 1.10.0.                                                                                                                                                                        |
+
+## v1.13.0 — Saisons (prévue)
+
+**But** : un rendez-vous chaque mois et chaque semaine, sans écrire de code à chaque fois, et une
+mécanique nouvelle par saison. Ligne visée : événements et saisons de 3,5 à 5.
+
+| Étape              | Contenu                                                                                                                                                                                                                                                                                                                                            | Fini quand                                                                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Maquettes       | Piste de saison (gratuite et premium), événement de la semaine, variantes de couleurs des mondes.                                                                                                                                                                                                                                                  | Maquettes validées.                                                                                                                                                 |
+| 2. Calendrier      | `EventCalendar` : saisons et événements en données, lus par l'horloge injectée ; ouvrir une saison ne change aucun code.                                                                                                                                                                                                                           | Chaque saison testée à date figée.                                                                                                                                  |
+| 3. Piste de saison | Points de saison gagnés par les missions et les défis ; une piste gratuite de cosmétiques ; la place de la piste premium, ouverte en 1.14.0 là où les achats existent.                                                                                                                                                                             | La piste gratuite est atteignable par un joueur qui joue chaque semaine (simulation).                                                                               |
+| 4. Trois saisons   | Hiver, printemps, anniversaire : thème, variantes de couleurs des mondes (cosmétiques seulement, jamais les règles d'un niveau), cosmétiques propres ; une mécanique nouvelle par saison pour la route, codée dans la version et ouverte par la saison, apprise dans son chapitre puis mêlée aux autres par le générateur (précisé le 26/10/2026). | Trois saisons écrites en données, une en ligne ; un événement chaque semaine pendant huit semaines ; la mécanique de chaque saison arrive seule dans un niveau sûr. |
+| 5. Livraison       | Comme la 1.10.0.                                                                                                                                                                                                                                                                                                                                   | Comme la 1.10.0.                                                                                                                                                    |
+
+## v1.14.0 — Revenus équitables (prévue)
+
+**But** : plusieurs sources de revenus, réglées selon le joueur, sans renoncer à l'équité. Ligne
+visée : profondeur de monétisation de 1,5 à 5.
+
+| Étape                     | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                          | Fini quand                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| 1. Maquettes              | Boutique, offres uniques, pack de soutien, piste premium.                                                                                                                                                                                                                                                                                                                                                                                        | Maquettes validées.                                                                                |
+| 2. Port d'achats          | `Purchases` à côté de `Ads` et `Saves`, fourni par les adaptateurs Yandex, CrazyGames (sur invitation, par Xsolla) et Playgama ; le code d'achat n'est chargé qu'à l'ouverture de la boutique.                                                                                                                                                                                                                                                   | Achat, restauration et échec testés avec un faux SDK ; aucun achat payé sans objet remis.          |
+| 3. Catalogue              | Packs d'éclats, sans publicité à vie, pack de soutien, lots de cosmétiques, piste premium de saison ; offres uniques aux jalons (pack de départ après le premier monde, pack après un premier Colosse), une par session au plus, jamais à l'ouverture ni après une défaite. Les éclats achètent toujours continuations, indices et cosmétiques (et les bonus de départ si la question ouverte est tranchée oui), et chaque victoire en rapporte. | Prix fixés par portail ; textes dans les quatre langues.                                           |
+| 4. Politiques par segment | Nouveau venu (rien), habitué (offres récompensées et pauses espacées par le temps), soutien (aucune interstitielle), bloqueur de publicités (aucune interface publicitaire, le pack de soutien à la place) ; offres récompensées utiles (bille bonus au départ d'un niveau, coffre doublé).                                                                                                                                                      | Stratégies testées ; réglages en données.                                                          |
+| 5. Contrats d'équité      | Aucune interstitielle avant 8 minutes à la première visite ni après une défaite ; aucun bouton publicitaire qui ne peut pas marcher ; le robot nouveau venu termine la campagne et la route sans rien acheter.                                                                                                                                                                                                                                   | Tests verts à chaque version.                                                                      |
+| 6. Revue de modérateur    | Chaque build : achats masqués dans l'application CrazyGames et sans sauvegarde automatique, règles d'achat de Yandex.                                                                                                                                                                                                                                                                                                                            | Aucune règle en échec.                                                                             |
+| 7. Livraison              | Comme la 1.10.0, plus le revenu pour 1 000 parties suivi par portail.                                                                                                                                                                                                                                                                                                                                                                            | 4 $ pour 1 000 parties visés ; temps de jeu en baisse de 5 % au plus après l'ouverture des achats. |
+
+## v1.15.0 — Partout (prévue)
+
+**But** : être présent partout où le jeu a sa place. Lignes visées : diffusion de 3 à 4, nom, fiche et
+visuels de 3 à 5.
+
+| Étape              | Contenu                                                                                                                                                                                                                                                                                                                                                                  | Fini quand                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| 1. Portails        | GameDistribution ; le réseau élargi de Playgama ; retrait de l'adaptateur et du build Poki, abandonné le 26/10/2026.                                                                                                                                                                                                                                                     | Chaque build revu avec la compétence de revue des portails.                                        |
+| 2. Google Play     | Une Trusted Web Activity (Bubblewrap) sur le build de notre site, jouable hors ligne grâce à un service worker ; compte d'organisation de l'entreprise (numéro D-U-N-S obtenu le 26/10/2026 ; compte ouvert un mois avant, le temps que Google vérifie l'entreprise) ; « Ballmania: Marble Shooter » ; fiche, captures et image de présentation dans les quatre langues. | Règles de Google Play relues (jamais un simple lien vers un site) ; publication avec votre accord. |
+| 3. Microsoft Store | Le même build, en application web.                                                                                                                                                                                                                                                                                                                                       | Publication avec votre accord.                                                                     |
+| 4. Couvertures     | Trois couvertures comparées sur le taux de clic des portails, vérifiées à 200 px de large.                                                                                                                                                                                                                                                                               | Taux de clic dans le quart supérieur de la balise.                                                 |
+| 5. Livraison       | Comme la 1.10.0.                                                                                                                                                                                                                                                                                                                                                         | Présent sur cinq canaux au moins.                                                                  |
+
 ## v1.7.6 — Socle solide (livrée le 23/10/2026)
 
 **But** : tenir la directive responsive mise à jour le 22/10/2026 et les règles des portails
