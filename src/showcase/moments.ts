@@ -1,6 +1,7 @@
 import type { Game, GameEvents } from '@/engine/Game';
+import type { Vec2 } from '@/engine/geometry/Vec2';
 import { duelLevel } from '@/levels/arcade/duel';
-import { findLevel } from '@/levels/campaign';
+import { findLevel, type WorldId } from '@/levels/campaign';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { resolveLevel } from '@/levels/resolveLevel';
 import type { Frame } from '@/levels/tracks';
@@ -10,7 +11,7 @@ import { LINEUP, type Highlight, type MomentId } from './lineup';
 import type { Cue } from './ShowcaseHand';
 
 /** How a moment of the reel plays. */
-interface Script {
+export interface Script {
   /** Seconds it plays. */
   readonly seconds: number;
   /** Seconds by which its peak comes (all under 3: the window opens on the action). */
@@ -21,6 +22,26 @@ interface Script {
   readonly cues: readonly Cue[];
   /** Watches a game for the moment's peak: the function says whether it has come. */
   peak(game: Game): () => boolean;
+}
+
+/** How close a take comes to its board: `zoom` times, centred on a point of the board. */
+export interface Framing {
+  readonly zoom: number;
+  /** The point to centre on, in board units, read once the chain is in place. */
+  focus(game: Game): Vec2;
+}
+
+/**
+ * What a take plays (v1.8.0): a script on a world's board, as the title's
+ * reel shows its moments and the Workshop's fitting room its cosmetics.
+ */
+export interface Scene extends Script {
+  readonly id: string;
+  readonly world: WorldId;
+  /** It wears the player's board rather than its world's (the fitting room's boards). */
+  readonly ownBoard?: boolean;
+  /** Closer than the whole board; the whole board if absent. */
+  readonly framing?: Framing;
 }
 
 /**
@@ -36,13 +57,13 @@ const READY = 0.45;
 const RUSH = 2600;
 
 /** A level whose chains are in place within a few tenths of a second. */
-function ready(level: LevelDefinition): LevelDefinition {
+export function ready(level: LevelDefinition): LevelDefinition {
   const longest = Math.max(...toLevelSetup(level).chains.map((chain) => chain.path.length));
   return { ...level, rushSpeed: RUSH, rushDistance: longest * READY };
 }
 
 /** A campaign level, its chain laid out by hand (head first) and its first colours dealt. */
-function laidOut(
+export function laidOut(
   id: string,
   frame: Frame,
   layout: { readonly headFirst: readonly number[]; readonly opening: readonly number[] },
@@ -60,7 +81,7 @@ function laidOut(
 }
 
 /** Says whether the game has emitted an event of a kind that passes `test`. */
-function seen<K extends keyof GameEvents>(
+export function seen<K extends keyof GameEvents>(
   game: Game,
   event: K,
   test: (payload: GameEvents[K]) => boolean = () => true,
@@ -82,7 +103,7 @@ function then(game: Game, first: () => boolean): () => boolean {
 }
 
 /** Pairs nested around a pair, head first: a shot of the middle's colour sets a cascade off. */
-const nested = (a: number, b: number, c: number) => [a, a, b, b, c, c, b, b, a, a];
+export const nested = (a: number, b: number, c: number) => [a, a, b, b, c, c, b, b, a, a];
 
 const SCRIPTS: Readonly<Record<MomentId, Script>> = {
   // The Nova of the training's first showcase, then the cascade behind it.

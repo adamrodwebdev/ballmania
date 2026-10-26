@@ -25,7 +25,7 @@ describe("the trailers' cuts (v1.8.0)", () => {
   )('%s peaks within its cut on the %s board', (_, board, cut) => {
     const moment = MOMENTS.find((candidate) => candidate.id === cut.moment)!;
     const take = new Take({
-      moment,
+      scene: moment,
       canvas: fakeCanvas(),
       style: reelStyle(),
       frame: FRAMES[board],

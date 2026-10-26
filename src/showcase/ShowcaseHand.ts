@@ -7,10 +7,12 @@ import type { Stage } from './stage';
 /**
  * What the hand does at a cue: a shot of a kind (the best group it can make,
  * its chain reaction counting double: anywhere, off a mirror, curved by the
- * black hole, next to the Colossus; the Nova where it takes the most), a
- * marble pulled out (Abyss), a fusion (Jewel), a switch flipped (Volcano).
+ * black hole, next to the Colossus, as far as it can; the Nova where it takes
+ * the most), a marble pulled out (Abyss), a fusion (Jewel), a switch flipped
+ * (Volcano).
  */
-export type Act = 'shot' | 'nova' | 'bank' | 'curve' | 'colossus' | 'pull' | 'fuse' | 'flip';
+export type Act =
+  'shot' | 'far' | 'nova' | 'bank' | 'curve' | 'colossus' | 'pull' | 'fuse' | 'flip';
 
 /** One cue of a moment: what the hand does, at so many seconds. */
 export interface Cue {
@@ -33,6 +35,15 @@ function group(game: Game, line: AimLine): number {
   const preview = game.preview(false, line, true);
   const size = preview?.group.length ?? 0;
   return size === 0 ? 0 : size + 2 * (preview?.reaction.length ?? 0);
+}
+
+/** Board units a line runs, from the shooter to where it lands. */
+function reach(line: AimLine): number {
+  let length = 0;
+  for (let i = 1; i < line.points.length; i++) {
+    length += line.points[i]!.distanceTo(line.points[i - 1]!);
+  }
+  return length;
 }
 
 /** The ball a line meets, and its chain. */
@@ -64,6 +75,8 @@ function run(
 
 const WORTH: Readonly<Record<Exclude<Act, 'flip'>, Worth>> = {
   shot: (game, line) => (line.target ? group(game, line) : null),
+  // A long shot that still makes a group: the fitting room's trails show along it.
+  far: (game, line) => (line.target && group(game, line) > 0 ? Math.round(reach(line)) : null),
   // The bomb takes every marble within its blast: the more, the better, its blast in the window.
   nova: (game, line) => {
     const preview = line.target ? game.preview(false, line) : null;

@@ -146,7 +146,7 @@ export class Trailer {
     if (!moment) throw new Error(`Unknown moment ${cut.moment}`);
     const overlay = document.createElement('canvas');
     const take = new Take({
-      moment,
+      scene: moment,
       canvas: document.createElement('canvas'),
       style: this.style,
       frame: this.frame,

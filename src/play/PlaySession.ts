@@ -368,6 +368,11 @@ export class PlaySession {
     this.monitor.reset();
   }
 
+  /** Where a point of the board falls on the canvas, in device pixels (a take's framing). */
+  deviceOf(point: Vec2): Vec2 {
+    return this.renderer.toDevice(point);
+  }
+
   /** Aims at a point given in CSS pixels relative to the canvas. */
   aimAt(x: number, y: number): void {
     if (this.acceptsCommands) this.game.aimAt(this.renderer.toBoard(x, y));
