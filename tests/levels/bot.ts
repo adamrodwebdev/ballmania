@@ -1,7 +1,7 @@
 import { ingredients, mix } from '@/engine/chain/Alchemy';
 import type { BallView } from '@/engine/chain/Ball';
 import { SeededRandom } from '@/engine/core/Random';
-import { Game } from '@/engine/Game';
+import { Game, type GameReport } from '@/engine/Game';
 import type { CampaignLevel } from '@/levels/campaign';
 import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
@@ -28,6 +28,8 @@ export interface BotResult {
   readonly bonus: number;
   /** Seconds played, to the tenth. */
   readonly elapsed: number;
+  /** The game's own report, as the game settles it (rewards, achievements). */
+  readonly report: GameReport;
 }
 
 /** Share of its track past which the head of a chain puts the player under pressure. */
@@ -366,5 +368,6 @@ export function playDefinition(
     bestStreak: game.summary().bestStreak,
     bonus,
     elapsed: Math.round(game.elapsed * 10) / 10,
+    report: game.summary(),
   };
 }
