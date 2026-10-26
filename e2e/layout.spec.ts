@@ -108,6 +108,13 @@ test.describe('layout', () => {
     [844, 390],
     [640, 400],
     [734, 343],
+    // Browser windows (v1.8.0): maximised on a 1080p screen at 100 % and 125 %,
+    // and the heights between the map's two layouts, which used to scroll.
+    [1920, 947],
+    [1920, 900],
+    [1536, 840],
+    [1440, 810],
+    [1280, 820],
   ] as const;
 
   for (const [width, height] of FRAMES) {
@@ -121,6 +128,35 @@ test.describe('layout', () => {
       const last = page.getByTestId('level-nebula-12');
       await expect(last).toBeInViewport({ ratio: 1 });
       // The screen's entrance (a short slide) is over once the last tile has settled.
+      await expect.poll(() => overflowOf(page)).toBeLessThanOrEqual(0);
+    });
+  }
+
+  /**
+   * The Observatory's bubble (once a first upgrade is in reach) and its badge
+   * make the header the longest in Russian: the map still fits, whether it
+   * sits in two columns or stacked, the bubble floating under its button.
+   */
+  for (const [width, height] of [
+    [1920, 900],
+    [1920, 1000],
+  ] as const) {
+    test(`shows the whole map with the Observatory's bubble at ${width}×${height}`, async ({
+      page,
+    }) => {
+      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      await page.addInitScript(() => {
+        localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'ru' }));
+        localStorage.setItem(
+          'ballmania:player',
+          JSON.stringify({ version: 2, fragments: 18, training: { step: 1, done: true } }),
+        );
+      });
+      await page.setViewportSize({ width, height });
+      await page.goto('./');
+      await page.getByTestId('play').click();
+      await expect(page.getByTestId('observatory-tip')).toBeVisible();
+      await expect(page.getByTestId('level-nebula-12')).toBeInViewport({ ratio: 1 });
       await expect.poll(() => overflowOf(page)).toBeLessThanOrEqual(0);
     });
   }

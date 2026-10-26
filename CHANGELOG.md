@@ -78,6 +78,18 @@ monde 1 après le test de couloir (étape 6, seconde partie), puis la livraison.
 - Le ciel étoilé de l'accueil est peint par la feuille de style, sans toile ni calcul à
   chaque image.
 
+### Corrigé
+
+- **Le cadeau du jour se range**, au lieu de disparaître d'un coup : ses éclats filent vers
+  le porte-monnaie, qui compte et s'illumine à leur arrivée, avec le son des éclats qui se
+  versent ; la carte montre le jour coché, puis se replie en pastille, et la boucle de
+  l'écran titre glisse dans la place libérée. En mouvement réduit, un simple fondu.
+- **La carte de campagne ne défile plus dans une fenêtre de navigateur** : elle défilait
+  entre 800 et 863 px de haut (1536 × 840, 1440 × 810, 1280 × 820), et, le jour où la bulle de
+  l'Observatoire s'affiche, jusqu'à 1 026 px, une fenêtre maximisée sur un écran 1080p
+  comprise. Les deux colonnes vont désormais jusqu'à 960 px de haut, et la bulle flotte sous
+  son bouton sur la carte empilée.
+
 ## [1.7.6] — 2026-10-23
 
 Lighthouse mobile, build de production : 100 dans les quatre catégories aux trois mesures, au

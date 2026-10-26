@@ -567,6 +567,32 @@ h2 {
   }
 }
 
+/*
+ * The stacked map on a wide screen (upright, or taller than 60rem): the button
+ * keeps its place in the header and the bubble floats under it, over the end of
+ * the difficulties, until it is touched; reaching the difficulties from the
+ * keyboard hides it too. In the flow, it pushed the levels off the screen
+ * (1 026 px instead of 863, v1.8.0).
+ */
+@media (width >= 40rem) and (aspect-ratio < 5/4), (width >= 40rem) and (height > 60rem) {
+  .observatory-group {
+    position: relative;
+  }
+
+  .observatory-group.tipped {
+    flex-basis: auto;
+  }
+
+  .tip {
+    position: absolute;
+    top: calc(100% + var(--space-3));
+    inset-inline: 0;
+    z-index: 2;
+    width: auto;
+    min-width: 0;
+  }
+}
+
 .difficulty {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -621,11 +647,12 @@ h2 {
 }
 
 /*
- * Landscape frames up to 800 px tall (portal iframes, laptops, phones on their
- * side): the menu in a column on the left and the world deck on the right, so
- * the twelve levels show without scrolling the page.
+ * Landscape frames up to 960 px tall (portal iframes, laptops, browser windows,
+ * phones on their side): the menu in a column on the left and the world deck on
+ * the right, so the twelve levels show without scrolling the page. Stacked in one
+ * column, the map needs up to 930 px (Russian, its header on two lines; v1.8.0).
  */
-@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height <= 50rem) {
+@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height <= 60rem) {
   .campaign {
     grid-template-columns: 15rem minmax(0, 1fr);
     grid-template-rows: repeat(4, auto) 1fr auto;
@@ -789,6 +816,22 @@ h2 {
   .tile {
     min-height: 3.4rem;
     padding: var(--space-1);
+  }
+}
+
+/*
+ * The taller of these frames (a browser window on a 1080p screen): the menu
+ * holds together at the top of its column, the Observatory under the
+ * difficulties rather than alone at the foot of the screen.
+ */
+@media (width >= 40rem) and (aspect-ratio >= 5/4) and (height > 50rem) and (height <= 60rem) {
+  .campaign {
+    grid-template-rows: repeat(5, auto) 1fr;
+  }
+
+  .observatory-group,
+  .observatory-group.tipped {
+    margin-top: var(--space-4);
   }
 }
 

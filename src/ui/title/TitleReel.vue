@@ -130,6 +130,9 @@ onBeforeUnmount(() => {
   reel = null;
   for (const cleanup of cleanups) cleanup();
 });
+
+/** The window, for a screen that moves it smoothly when its room changes. */
+defineExpose({ frame });
 </script>
 
 <template>
