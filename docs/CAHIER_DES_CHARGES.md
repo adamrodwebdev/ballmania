@@ -2,7 +2,7 @@
 
 | Version | Date       | Statut                                     |
 | ------- | ---------- | ------------------------------------------ |
-| 1.9     | 26/10/2026 | Tension du monde 1 (v1.8.0, étape 5 sur 8) |
+| 1.10    | 26/10/2026 | Le premier lanceur (v1.8.0, étape 7 sur 8) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1573,11 +1573,29 @@ size`) ; ses bandes de HUD, ses rails, le cadre 2:1 et ses fenêtres (pause, ré
   « Boss : Jeune Colosse stellaire », une bille, un nouveau monde ou une mécanique, d'après le
   conseil du niveau, `noveltyOf`) ; le bloc des gains donne les objectifs atteints, puis
   les éclats gagnés et la barre vers le prochain lanceur de l'Atelier (le moins cher
-  qu'on ne possède pas, avec son aperçu : « Couronne · 115 / 150 éclats ») ; bonus de fin
-  et record tiennent sur une ligne ; « Rejouer » et « Carte » se partagent une ligne sous
-  le bouton principal. Tout le panneau tient sans défilement à 1280 × 720 et au téléphone,
-  même avec l'offre de publicité. Mesuré : le panneau s'ouvre 1,8 s après la dernière
-  bille, et le niveau suivant accepte un tir 0,05 s après le clic.
+  qu'on ne possède pas, avec son aperçu : « Couronne », puis « Lanceur · 115 / 150 éclats »
+  sous la barre) ; bonus de fin et record tiennent sur une ligne ; « Rejouer » et « Carte » se
+  partagent une ligne sous le bouton principal. Tout le panneau tient sans défilement à
+  1280 × 720 et au téléphone, même avec l'offre de publicité. Mesuré : le panneau s'ouvre
+  1,8 s après la dernière bille, et le niveau suivant accepte un tir 0,05 s après le clic.
+- **Le premier lanceur** (v1.8.0, maquette validée le 26/10/2026) : dès que les éclats
+  couvrent le prix du lanceur visé, la barre est pleine, « Lanceur · 150 éclats » se lit
+  dessous et « Équiper » apparaît à côté, un bouton secondaire bordé d'or (« Suivant » reste
+  le seul bouton doré du panneau). Un toucher l'achète et le porte, rien ne s'achète sans
+  ce geste, et l'Atelier reste là pour choisir autrement. Le geste, en 0,7 s : le bouton
+  s'enfonce, les éclats quittent la barre en arc et filent dans l'aperçu (0,3 s), qui
+  enfle dans un anneau de lumière quand le titre devient « Couronne équipée » (0,32 s), puis
+  la barre se remplit vers le lanceur suivant (« Halo · 65 / 250 éclats »), avec un son
+  (un souffle qui monte, puis deux cloches) et une vibration. La rangée garde sa hauteur :
+  rien ne bouge sous le doigt. Si les éclats couvrent aussi le suivant, « Équiper » revient,
+  un toucher par lanceur. Le focus passe à « Suivant », et les lecteurs d'écran entendent
+  « Couronne équipée ». Mouvement réduit : les mots changent en fondu, sans étincelles. La
+  logique est `LauncherOffer` (`src/app`), le dessin `NextLauncher.vue`. Mesuré
+  (`tests/app/firstLauncher.test.ts`, robot nouveau venu, monde 1 dans l'ordre, chaque
+  niveau rejoué jusqu'à la victoire, quatre graines sur trois plateaux) : la Couronne se
+  porte au panneau de 1-1 dans 4 parcours sur 12, de 1-2 dans 4 et de 1-3 dans 4 ; le Halo
+  au plus tard à 1-7 ; l'Œil à 1-12 dans 8 parcours, plus tôt dans 3 ; solde médian après
+  chaque niveau entre 98 et 223 éclats.
 - **Jauge d'étoiles** (v1.7.2) : sous le score, une barre se remplit vers les points de la
   2ᵉ et de la 3ᵉ étoile (`starThresholds` ; la 1ʳᵉ est la victoire), et chaque étoile
   s'allume avec son carillon quand le score l'atteint (annoncé aux lecteurs d'écran :
@@ -2077,3 +2095,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                  |
 | 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                              |
 | 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                           |
+| 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                           |
