@@ -109,6 +109,26 @@ Pour un déploiement, `SITE_URL=https://exemple.org/ npm run build` ajoute le li
 canonique, les adresses absolues des cartes de partage, `sitemap.xml` et un `robots.txt`
 qui le cite. Le build est statique et fonctionne depuis n'importe quel sous-dossier.
 
+## Branches et déploiement
+
+- **`dev`** reçoit tout le travail : chaque étape s'y fusionne et s'y pousse, et l'intégration
+  continue y tourne à chaque envoi.
+- **`main`** est la production : Netlify déploie chaque envoi sur `main`
+  (<https://ballmania.netlify.app>), et chaque déploiement coûte des crédits. `main` ne reçoit
+  `dev` qu'à la publication d'une version, à la demande de l'auteur, en une seule fois, et la
+  version s'étiquette à ce moment-là :
+
+```bash
+git switch main && git merge --ff-only dev && git push origin main
+git tag vX.Y.Z && git push origin vX.Y.Z
+git switch dev
+```
+
+Réglage de Netlify : Branch deploys → « Deploy only the production branch », pour que les envois
+sur `dev` ne coûtent rien. Les envois reçus pendant que les builds sont arrêtés ne sont pas
+rejoués : une fois les builds réactivés, un déploiement manuel (Deploys → Trigger deploy →
+Deploy project) publie tout ce qui attend.
+
 ## Portails de jeux
 
 Le jeu se publie aussi sur des portails, avec leurs publicités. Notre site reste sans
@@ -183,9 +203,9 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 
 ## Conventions
 
-Branche `main` stable, une branche par lot fusionnée sans avance rapide, commits en
-français au format Conventional Commits ; code et commentaires en anglais, documentation
-en français.
+Le travail sur `dev`, la production sur `main` (voir « Branches et déploiement ») ; une
+branche par étape, fusionnée dans `dev` sans avance rapide ; commits en français au format
+Conventional Commits ; code et commentaires en anglais, documentation en français.
 
 ## Crédits
 
