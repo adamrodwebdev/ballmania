@@ -81,17 +81,18 @@ onBeforeUnmount(() => {
   settleNow();
   endOfGame.dispose();
 });
-const { session, hud, feedback, reducedMotion, silence, newGame, focusBoard } = useGameSession(
-  { mode, look, assisted },
-  {
-    root,
-    surface,
-    canvas,
-    overlay,
-    safeArea,
-    bars: () => [hudPart.value?.bar, hudPart.value?.extra, controlsPart.value?.bar],
-  },
-);
+const { session, hud, feedback, reducedMotion, silence, newGame, focusBoard, board } =
+  useGameSession(
+    { mode, look, assisted },
+    {
+      root,
+      surface,
+      canvas,
+      overlay,
+      safeArea,
+      bars: () => [hudPart.value?.bar, hudPart.value?.extra, controlsPart.value?.bar],
+    },
+  );
 const { announcement, cheer } = useAnnouncements(hud);
 const ending = computed(() => hud.value?.over ?? null);
 onMounted(() => {
@@ -290,6 +291,7 @@ const leaveToMenu = () => {
     class="game"
     :class="{ night, gauged: mode.stars !== null, training: training !== null }"
     :aria-label="t('game.board')"
+    :data-board="board ?? undefined"
   >
     <!-- The level fills the screen; the HUD and the buttons float over its edges. -->
     <span ref="safeArea" class="safe-area" aria-hidden="true"></span>
