@@ -174,7 +174,7 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   garde la page immobile et passe l'audit WCAG 2.2 ; un balayage de 320 à 2 560 px sans
   défilement horizontal ; et chaque écran en russe, en indonésien et en français à
   320 × 568, 360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
-- Lighthouse (v1.7.6), en anglais comme en russe : 100 dans les quatre catégories sur
+- Lighthouse (v1.8.0), en anglais comme en russe : 100 dans les quatre catégories sur
   mobile, aux trois mesures (premier affichage simulé 0,6 s, plus grand élément 0,9 s), et
   sur ordinateur. Règle du projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur
   la plus faible de trois mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en

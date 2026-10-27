@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                   |
-| ------- | ---------- | ---------------------------------------- |
-| 1.14    | 26/10/2026 | Le monde 1 réglé (v1.8.0, étape 6 sur 9) |
+| Version | Date       | Statut               |
+| ------- | ---------- | -------------------- |
+| 1.15    | 27/10/2026 | Version 1.8.0 livrée |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -2265,3 +2265,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                                    |
 | 1.13    | 26/10/2026 | Version 1.8.0, corrections : le cadeau du jour se range (étincelles, repli, glissement de la boucle), la carte tient dans une fenêtre de navigateur (§ 3.9, 3.12, 4.2).           |
 | 1.14    | 26/10/2026 | Version 1.8.0, étape 6, seconde partie : le monde 1 réglé sur son tableau, mesuré sur 72 parties par niveau, ses étoiles recalibrées, l'écart entre les plateaux relevé (§ 3.15). |
+| 1.15    | 27/10/2026 | Version 1.8.0 livrée, sans test de couloir faute de testeurs ; l'équilibre entre le téléphone et l'ordinateur passe à la 1.8.1.                                                   |
