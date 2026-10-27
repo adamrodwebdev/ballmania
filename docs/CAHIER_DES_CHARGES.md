@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                       |
-| ------- | ---------- | ---------------------------- |
-| 1.16    | 27/10/2026 | Fiches de la 1.8.1, validées |
+| Version | Date       | Statut                                     |
+| ------- | ---------- | ------------------------------------------ |
+| 1.17    | 27/10/2026 | Joueurs-robots de la 1.8.1 (étape 2 sur 7) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1831,6 +1831,59 @@ surtout en Joaillerie (66 défaites sur 576 parties, souvent une partie qui s'em
 dans la Singularité ; les mondes 2 à 6, réglés sur l'ancien robot « occasionnel », restent souvent
 plats sur ordinateur (pointes de 18 à 35 %).
 
+**Joueurs-robots en place** (étape 2, le 27/10/2026) : `NewcomerBrain`, `robotOf` et `playRobot`
+dans `tests/levels/bot.ts`, vérifiés par `tests/levels/robots.test.ts` (cadence, dispersion,
+regard, échange). Les robots d'avant (nouveau venu, occasionnel, humain, appliqué) jouent à
+l'identique, partie pour partie : les étoiles et le réglage du monde 1 ne bougent pas.
+`DEVICES=nebula npx vitest run tests/levels/devices.test.ts` écrit les tables d'un monde dans
+`reports/appareils-nebula.md` (`DEVICES=all` : tous les mondes).
+
+**Monde 1 remesuré** (version 1.8.0, avant les étapes 3 et 4 ; durée : médiane des victoires ;
+pointe et pression : médianes des parties) :
+
+Téléphone (plateau haut) : 24 suites de couleurs × 3 mains par robot.
+
+| Niveau | Victoires typique | lent  | vif   | Durée typique | Pointe typique | Quasi-défaites typique | Sous pression typique |
+| ------ | ----------------- | ----- | ----- | ------------- | -------------- | ---------------------- | --------------------- |
+| 1-1    | 100 %             | 100 % | 100 % | 0:37          | 27 %           | 0/72                   | 0 %                   |
+| 1-2    | 100 %             | 83 %  | 100 % | 0:49          | 45 %           | 0/72                   | 0 %                   |
+| 1-3    | 79 %              | 35 %  | 100 % | 0:58          | 89 %           | 47/72                  | 44 %                  |
+| 1-4    | 100 %             | 78 %  | 100 % | 0:58          | 48 %           | 7/72                   | 0 %                   |
+| 1-5    | 97 %              | 44 %  | 100 % | 1:11          | 68 %           | 22/72                  | 23 %                  |
+| 1-6    | 85 %              | 10 %  | 99 %  | 1:09          | 77 %           | 34/72                  | 35 %                  |
+| 1-7    | 100 %             | 57 %  | 100 % | 1:18          | 73 %           | 24/72                  | 28 %                  |
+| 1-8    | 99 %              | 46 %  | 100 % | 1:21          | 67 %           | 18/72                  | 23 %                  |
+| 1-9    | 85 %              | 7 %   | 100 % | 1:41          | 84 %           | 45/72                  | 38 %                  |
+| 1-10   | 99 %              | 32 %  | 100 % | 1:24          | 78 %           | 33/72                  | 29 %                  |
+| 1-11   | 96 %              | 15 %  | 100 % | 1:41          | 86 %           | 48/72                  | 41 %                  |
+| 1-12   | 99 %              | 64 %  | 100 % | 1:57          | 74 %           | 23/72                  | 25 %                  |
+
+Ordinateur (plateau large) : 24 suites de couleurs × 3 mains par robot.
+
+| Niveau | Victoires typique | lent  | vif   | Durée typique | Pointe typique | Quasi-défaites typique | Sous pression typique |
+| ------ | ----------------- | ----- | ----- | ------------- | -------------- | ---------------------- | --------------------- |
+| 1-1    | 100 %             | 100 % | 100 % | 0:30          | 28 %           | 0/72                   | 0 %                   |
+| 1-2    | 100 %             | 99 %  | 100 % | 0:41          | 34 %           | 0/72                   | 0 %                   |
+| 1-3    | 100 %             | 97 %  | 100 % | 0:47          | 41 %           | 0/72                   | 0 %                   |
+| 1-4    | 100 %             | 96 %  | 100 % | 0:48          | 33 %           | 0/72                   | 0 %                   |
+| 1-5    | 100 %             | 89 %  | 100 % | 0:59          | 50 %           | 1/72                   | 0 %                   |
+| 1-6    | 100 %             | 85 %  | 100 % | 0:50          | 30 %           | 0/72                   | 0 %                   |
+| 1-7    | 100 %             | 76 %  | 100 % | 1:03          | 61 %           | 5/72                   | 15 %                  |
+| 1-8    | 100 %             | 93 %  | 100 % | 1:02          | 45 %           | 1/72                   | 0 %                   |
+| 1-9    | 100 %             | 65 %  | 100 % | 1:15          | 27 %           | 0/72                   | 0 %                   |
+| 1-10   | 100 %             | 75 %  | 100 % | 1:08          | 55 %           | 8/72                   | 7 %                   |
+| 1-11   | 100 %             | 50 %  | 100 % | 1:27          | 64 %           | 17/72                  | 20 %                  |
+| 1-12   | 100 %             | 94 %  | 100 % | 1:38          | 62 %           | 3/72                   | 13 %                  |
+
+**Lecture** : sur ordinateur, le nouveau venu typique gagne tout, avec des pointes de 27 à 64 %,
+et le lent perd jusqu'à une partie sur deux (1-11). Au téléphone, le monde est bien plus dur : le
+typique tombe à 79 et 85 % sur les serpentins (1-3, 1-6, 1-9) et frôle le trou presque à chaque
+partie (47 quasi-défaites sur 72 en 1-3) ; le lent, au doigt, ne gagne plus que 7 à 64 % des
+parties dès 1-3, loin des 80 % visés ; le vif gagne partout. L'écart des serpentins (étape 3) et la
+visée au toucher (étape 4) passent d'abord. La règle du lent au doigt reste à trancher avec les
+tableaux (étape 5) : la tenir à la lettre rendrait le monde 1 plat pour les autres, alors qu'une
+aide invisible, comme celle d'EA, ne soulagerait que ceux qui perdent.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -2460,3 +2513,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.14    | 26/10/2026 | Version 1.8.0, étape 6, seconde partie : le monde 1 réglé sur son tableau, mesuré sur 72 parties par niveau, ses étoiles recalibrées, l'écart entre les plateaux relevé (§ 3.15).                                                                                  |
 | 1.15    | 27/10/2026 | Version 1.8.0 livrée, sans test de couloir faute de testeurs ; l'équilibre entre le téléphone et l'ordinateur passe à la 1.8.1.                                                                                                                                    |
 | 1.16    | 27/10/2026 | Version 1.8.1, étape 1 : l'équilibre entre le téléphone et l'ordinateur, ce que la 1.8.1 retient des études publiées, ses joueurs-robots, la visée au toucher, la porte de dépôt CrazyGames et les tables de départ des 72 niveaux sur les deux plateaux (§ 3.17). |
+| 1.17    | 27/10/2026 | Version 1.8.1, étape 2 : les joueurs-robots par appareil, trois nouveaux venus sur chacun, et le monde 1 remesuré sur les deux plateaux (§ 3.17).                                                                                                                  |
