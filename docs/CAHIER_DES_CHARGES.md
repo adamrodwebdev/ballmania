@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                        |
-| ------- | ---------- | ----------------------------- |
-| 1.16    | 27/10/2026 | Fiches de la 1.8.1, à valider |
+| Version | Date       | Statut                       |
+| ------- | ---------- | ---------------------------- |
+| 1.16    | 27/10/2026 | Fiches de la 1.8.1, validées |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
