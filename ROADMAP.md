@@ -3,6 +3,63 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
+## v1.8.1 — Équilibre téléphone et ordinateur (en préparation)
+
+**But** : qu'un niveau soit aussi difficile au téléphone qu'à l'ordinateur, et que les 72 niveaux
+suivent la courbe des campagnes mesurées, réglés sur des joueurs-robots tirés des études
+publiées, avant le dépôt CrazyGames. Faute de testeurs, les études fixent la forme de la courbe
+et les limites du robot ; seuls les premiers joueurs des portails en fixeront le niveau absolu.
+
+**Mesures de départ** (1.8.0, robot nouveau venu, 24 parties par plateau, le 27/10/2026) : 29
+niveaux sur 72 s'écartent de 10 points de pointe ou plus entre le plateau du téléphone (haut) et
+celui de l'ordinateur (large). Les serpentins sont plus durs au téléphone dans tous les mondes :
+leurs rangées traversent la largeur, et le plateau large leur donne 87 ou 116 billes de place
+contre 52 ou 71 (1-6 : pointe de 65 % au téléphone, 30 % à l'ordinateur). Les jumeaux des
+Abysses (3-4, 3-9) sont au contraire plus durs sur ordinateur (pointe de 91 % contre 35 %, la
+moitié des parties perdues), comme deux niveaux de la Singularité (6-6, 6-9). La Joaillerie coûte
+au robot 66 défaites sur 576 parties, et les mondes 2 à 6, réglés sur l'ancien robot
+« occasionnel », restent souvent plats sur ordinateur (pointes de 20 à 35 %).
+
+**Ce que disent les études** (rapport du 27/10/2026, hors dépôt, dans `reports/`) :
+
+- les campagnes mesurées s'ouvrent par une longue suite de niveaux presque sans défaite (10 à 20
+  chez King, une centaine chez Tactile), puis demandent 1,2 à 3 essais par niveau ;
+- les grandes expériences de terrain (10 000 à 300 000 joueurs) gardent plus longtemps les
+  joueurs avec un jeu plus facile ; l'abandon suit les joueurs qui échouent et partent sans finir,
+  et la première marche après l'apprentissage est celle où EA perdait ses joueurs ;
+- aucun robot ne prédit le taux de réussite réel sans données de joueurs : le nôtre classe les
+  niveaux et place les pics, les portails fixeront le niveau absolu ;
+- corrigé, le robot nouveau venu vise presque comme un humain (1,4 fois la dispersion d'un
+  utilisateur de souris en laboratoire), mais choisit toujours la meilleure cible : il joue sans
+  doute mieux qu'un vrai nouveau venu ;
+- environ la moitié du jeu des portails se fait au téléphone, où nos billes mesurent 3 à 4 mm
+  contre 11 à 14 mm sur un écran ; aucune étude ne soutient un jeu ralenti au téléphone, et les
+  jeux portés au toucher ont corrigé leurs commandes, pas leurs niveaux.
+
+**Décidé le 27/10/2026** : la 1.8.0 part d'abord, et l'équilibre devient la 1.8.1, avant le dépôt
+CrazyGames ; des joueurs-robots tirés des études, par appareil ; au toucher, seule la visée figée
+avant le lever du doigt (ni glisser relatif, ni attraction de visée) ; des objectifs par monde
+tirés des études. **Change la décision du 26/10/2026** (validé le 27/10/2026) : les mondes 2 à 6 se règlent
+maintenant, sur le jeu d'aujourd'hui, et la 1.11.0 relance le même outil, récompenses et renforts
+compris, au lieu de faire leurs tableaux après eux. Le build Yandex attend la 1.8.1 : la moitié du temps
+de jeu de Yandex se passe au téléphone.
+
+| Étape                            | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Fini quand                                                                                                                                               |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Fiches                        | Cahier des charges, § 3.17 : les chiffres retenus des études (bandes par monde, joueurs-robots par appareil, visée au toucher), les tables de départ des 72 niveaux sur les deux plateaux, et la porte de dépôt CrazyGames sans test sur inconnus.                                                                                                                                                                                                                                                                                                                                 | Fiches validées.                                                                                                                                         |
+| 2. Joueurs-robots                | Par appareil, une main tirée des mesures : souris, écart type de 0,25 bille ; doigt, 0,30 bille et 0,35 s de plus par tir (visée glissée avec l'aperçu) ; trois fois plus sur un tir en bande. Le regard d'un nouveau venu : il ne pèse que quelques cibles au hasard, comme le robot de l'entraînement, et oublie parfois d'échanger ; une cadence inégale autour de 1,6 s, jusqu'à 3,5 s. Trois nouveaux venus par appareil (vif, typique, lent) ; les couleurs et la main tirées de graines séparées ; 72 parties par plateau pour décider.                                     | Tests des profils (dispersion, cadence) ; monde 1 remesuré sur les deux plateaux.                                                                        |
+| 3. Même tracé sur chaque plateau | Les serpentins prennent autant de rangées que la hauteur du plateau le permet, comme les jumeaux, pour garder la même place de billes ; les jumeaux des Abysses et la Singularité vérifiés plateau par plateau, la cause de l'écart corrigée.                                                                                                                                                                                                                                                                                                                                      | Test de géométrie : place des billes à ±10 % entre les cinq plateaux, règle de 1,2 fois la chaîne tenue ; captures des serpentins au téléphone validées. |
+| 4. Visée au toucher              | Le tir part dans la direction visée juste avant que le doigt se lève, et non vers le point où il quitte l'écran : le point de contact glisse au lever.                                                                                                                                                                                                                                                                                                                                                                                                                             | Test des commandes ; essai sur le téléphone de l'auteur.                                                                                                 |
+| 5. Tableaux des mondes 2 à 6     | Comme celui du monde 1 : le rôle de chaque niveau (calme, montée, frisson, respiration, Colosse) et sa bande de victoires pour le nouveau venu typique, sur chaque appareil. Monde 1 : au moins 90 % (le plus dur, au moins 80 %) ; monde 2 : 80 à 85 % (le plus dur vers 60 %, après deux ou trois niveaux d'apprentissage) ; mondes 3 et 4 : 70 à 80 % (le plus dur, 40 à 50 %) ; mondes 5 et 6 : 60 à 70 % (le plus dur, 30 à 40 %). Une respiration après chaque pic, jamais deux niveaux durs de suite, la tension par les victoires de justesse plutôt que par les défaites. | Tableaux validés.                                                                                                                                        |
+| 6. Réglage des 72 niveaux        | Un outil cherche, niveau par niveau et plateau par plateau, la vitesse puis la longueur qui tiennent la bande (calendrier des couleurs inchangé, règle de place) ; les défaites de la Joaillerie expliquées (robot ou niveau) ; étoiles recalibrées avec un joueur au doigt.                                                                                                                                                                                                                                                                                                       | Chaque niveau dans sa bande sur les deux appareils, l'écart entre eux sous 10 points de victoires ; `npm run verify` et tests de bout en bout verts.     |
+| 7. Livraison                     | CHANGELOG, cahier des charges, builds, bac à sable Playgama ; dans la 1.10.0, chaque événement de niveau porte l'appareil, les essais, les victoires, les défaites et les abandons, pour caler le robot sur les premiers joueurs.                                                                                                                                                                                                                                                                                                                                                  | Lighthouse à 100 dans les quatre catégories, sur mobile aux trois mesures et sur ordinateur.                                                             |
+
+**Porte de dépôt CrazyGames** (décidée le 27/10/2026) : à la place du test sur inconnus, les
+bandes de la 1.8.1 tenues par les joueurs-robots des deux appareils, et, dans le bac à sable
+Playgama, au moins 50 nouvelles parties sur la 1.8.1, dont au moins un tiers au-delà de 2 minutes
+et une sur dix au-delà de 5 minutes (22 % et 5 % le 21/10/2026, sur la 1.4) ; puis, comme prévu,
+la revue de modérateur complète, les vidéos rendues de nouveau, la fiche et la case Progress Save.
+
 ## v1.9.0 — Yandex Games en direct (en préparation)
 
 **But** : publier Ballmania en direct sur Yandex Games, la première plateforme de jeux web
@@ -17,7 +74,8 @@ exigé pour y figurer), ordinateur et téléphone. Les joueurs d'autres pays voi
 Games quand il parle leur langue ; ceux de l'Union européenne passent par les sites partenaires
 comme playhop.com, sous le même contrat (support de Yandex, 23/10/2026).
 
-**Ordre** : après la 1.8.0. La modération de Yandex refuse environ trois envois sur quatre ;
+**Ordre** : après la 1.8.1 (décidé le 27/10/2026 : la moitié du temps de jeu de Yandex se passe
+au téléphone, que la 1.8.1 équilibre). La modération de Yandex refuse environ trois envois sur quatre ;
 l'attente avant un nouvel envoi double après chaque refus (de 24 h à 16 jours) ; un nouveau compte
 n'a qu'un jeu en revue à la fois ; un jeu dont la note ne dépasse pas 30 au bout de trois semaines
 est retiré. Le jeu doit d'abord accrocher dans ses premières minutes, ce que vise la 1.8.0, dont
@@ -216,15 +274,16 @@ contenu de 1,5 à 2,5.
   niveau ne change que là où le robot, récompenses comprises, trouve encore la tension trop
   basse, après les couleurs et la vitesse, comme dans les classiques du genre, dont les chaînes
   s'allongent et accélèrent avec la difficulté.
-- **Avant les tableaux des mondes 2 à 6**, pour les régler récompenses comprises ; la 1.8.0, son
-  test de couloir et les dépôts restent sur le jeu d'aujourd'hui.
+- **Après les tableaux de la 1.8.1** (décidé le 27/10/2026, au lieu d'avant eux) : les mondes 2 à
+  6 y sont réglés sur le jeu d'aujourd'hui, et le même outil les relance ici, récompenses et
+  renforts compris.
 
 | Étape                            | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Fini quand                                                                                                                                                                                           |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1. Maquettes                     | La boule de démolition image par image (visée et arc, envol du crochet, chaîne qui se tend, balayage, réactions qui suivent) et l'annonce d'une récompense ×4 ; téléphone et ordinateur, clair et sombre.                                                                                                                                                                                                                                                                                                                                                    | Maquettes validées.                                                                                                                                                                                  |
 | 2. Récompenses de combo          | Un ×4 charge dans le lanceur une bille d'attaque, Laser ou Tir arc-en-ciel à tour de rôle, annoncée au-dessus du plateau et au lecteur d'écran ; en campagne, au défi du jour et en Infini, jamais en Énigmes, en Rythme ni en Duel ; chaque récompense envoie des renforts dans le tunnel, derrière la chaîne ; règles en données, déclenchées par les événements de réaction du moteur.                                                                                                                                                                    | Tests du moteur (×4 exact, une récompense par réaction) ; le robot nouveau venu garde ses bandes de tension, récompenses comprises.                                                                  |
 | 3. La boule de démolition        | Un ×5 charge la boule : crochet visé, arc montré avant le tir, un seul balayage autour du point saisi, une quinzaine de billes au plus, autant de billes en renfort, un Colosse blessé ; animation de poids (le crochet file, la chaîne claque en se tendant, la boule part lentement, file au bas de l'arc, puis ralentit), arrêts sur image et secousse à chaque impact, débris et son propres ; mouvement réduit : sans secousse ni ralenti. La première se gagne à coup sûr dans un niveau dessiné pour elle, au début du monde 2, sans autre nouveauté. | Tests du moteur (arc, plafond de billes, dégâts au Colosse) ; le niveau dessiné donne la boule à chaque partie du robot ; ailleurs, un ×5 reste rare (robot) ; image par image validée par l'auteur. |
-| 4. Tableaux des mondes 2 à 6     | Pour chaque monde : calme, montée, frisson, respiration ; une quasi-défaite dès le troisième niveau ; zone de grâce réduite dans les mondes 4 à 6 et supprimée en Légende ; mesures du robot de la 1.8.0 (temps sous pression, temps mort, pointes). Récompenses de combo et renforts compris, monde 1 compris ; la longueur seulement là où la tension reste trop basse après les couleurs et la vitesse.                                                                                                                                                   | Robot nouveau venu : pointes de 55 à 70 % du tracé dans chaque monde ; aucun niveau allongé par l'attente ; chaque niveau à 10 % près de son tableau.                                                |
+| 4. Réglage relancé               | Les tableaux de la 1.8.1 relancés par son outil, récompenses de combo et renforts compris, monde 1 compris ; zone de grâce réduite dans les mondes 4 à 6 et supprimée en Légende ; la longueur seulement là où la tension reste trop basse après les couleurs et la vitesse.                                                                                                                                                                                                                                                                                 | Chaque niveau dans sa bande de la 1.8.1 sur les deux appareils ; aucun niveau allongé par l'attente.                                                                                                 |
 | 5. Objectifs et billes spéciales | Survivre au chrono, collecter, sauver ; billes de pierre et de glace ; chacun une stratégie enregistrée, sans toucher aux niveaux existants.                                                                                                                                                                                                                                                                                                                                                                                                                 | Règles testées ; chaque nouveauté arrive seule dans un niveau sûr.                                                                                                                                   |
 | 6. Avant-goûts                   | Un miroir en 1-4, sans autre nouveauté dans ce niveau ; Infini et Duel ouverts après 1-6.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Tout nouveau joueur rencontre deux mécaniques propres au jeu dans ses cinq premières minutes (simulation et bout en bout).                                                                           |
 | 7. Écoute et toucher             | Écoute du mixage de chaque monde (niveaux, montée des combos, signaux de danger) ; décalage de visée au toucher, pour que le doigt ne cache jamais la cible.                                                                                                                                                                                                                                                                                                                                                                                                 | Grille d'écoute validée par l'auteur ; essai sur un vrai téléphone.                                                                                                                                  |
@@ -330,8 +389,8 @@ mesurés sur le plateau du téléphone et sur celui de l'ordinateur ne donnent p
 difficulté (29 niveaux à 10 points de pointe ou plus) : l'équilibre entre les deux, sur des
 joueurs-robots tirés des études publiées, passe à la 1.8.1, avant le dépôt CrazyGames.
 
-**Porte de dépôt CrazyGames, après la 1.8.1** (décidé le 27/10/2026 ; le test sur inconnus,
-faute de testeurs, est à remplacer, proposition avec la feuille de route de la 1.8.1) : un
+**Porte de dépôt CrazyGames, après la 1.8.1** (décidé le 27/10/2026 ; faute de testeurs, le test
+sur inconnus ci-dessous est remplacé par la porte de la 1.8.1) : un
 test sur inconnus (10 à 20 premières sessions enregistrées, sans explication, sur ordinateur et
 téléphone ; la 1.7.1 d'abord, comme référence) où au moins 25 % des parties dépassent 3 minutes ;
 une revue de modérateur complète
