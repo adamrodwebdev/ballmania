@@ -5,7 +5,7 @@ import { Game, type GameReport } from '@/engine/Game';
 import type { CampaignLevel } from '@/levels/campaign';
 import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
-import type { Frame } from '@/levels/tracks';
+import type { Frame, FrameKind } from '@/levels/tracks';
 
 export interface BotResult {
   readonly outcome: 'won' | 'lost' | 'timeout';
@@ -56,6 +56,145 @@ export const PLAYERS = {
 } as const;
 
 /**
+ * A hand per device (v1.8.1, spec § 3.17): the spread of the aim, as a
+ * standard deviation in marble widths, and the seconds each shot costs on top.
+ */
+export const DEVICES = {
+  /** The mouse on a desktop: the ISO 9241-9 rule and Aim Lab's first day. */
+  mouse: { spread: 0.25, extra: 0 },
+  /** A finger dragging with the preview on 3–4 mm marbles, firing on release. */
+  finger: { spread: 0.3, extra: 0.35 },
+} as const;
+
+export type Device = keyof typeof DEVICES;
+
+/** The board each device shows (spec § 3.17): a phone held upright, a 16:9 desktop screen. */
+export const BOARD_OF: Readonly<Record<Device, FrameKind>> = { mouse: 'wide', finger: 'tall' };
+
+/**
+ * Three newcomers on each device (spec § 3.17): the median time between two
+ * shots, how many targets they weigh, how often they swap for a better next
+ * ball, and their hand against the device's. Looks and swaps are assumptions
+ * no study has measured, for the first portal players to correct.
+ */
+export const NEWCOMERS = {
+  quick: { cadence: 1.2, looks: 6, swaps: 0.9, hand: { mouse: 0.8, finger: 0.8 } },
+  typical: { cadence: 1.6, looks: 4, swaps: 0.7, hand: { mouse: 1, finger: 1 } },
+  /** Players over 60: twice as slow with a mouse, more scattered with a finger. */
+  slow: { cadence: 2.4, looks: 2, swaps: 0.4, hand: { mouse: 1, finger: 1.5 } },
+} as const;
+
+export type Newcomer = keyof typeof NEWCOMERS;
+
+/** One newcomer on one device, as the robot plays them. */
+export interface RobotPlayer {
+  /** Median seconds between two shots. */
+  readonly cadence: number;
+  /** Seconds each shot costs on top (aiming on release). */
+  readonly extra: number;
+  /** Targets weighed before a shot, drawn at random among the possible ones. */
+  readonly looks: number;
+  /** Chance of swapping when the next ball has a clearly better target. */
+  readonly swaps: number;
+  /** Standard deviation of the aim, in marble widths. */
+  readonly spread: number;
+}
+
+export const robotOf = (newcomer: Newcomer, device: Device): RobotPlayer => {
+  const profile = NEWCOMERS[newcomer];
+  return {
+    cadence: profile.cadence,
+    extra: DEVICES[device].extra,
+    looks: profile.looks,
+    swaps: profile.swaps,
+    spread: DEVICES[device].spread * profile.hand[device],
+  };
+};
+
+/** Shot times spread around their median: nine in ten under 1.37 times it. */
+const CADENCE_SPREAD = 0.25;
+/** A bank shot scatters three times as much (Puzzle Bobble, Isaksen et al. 2017). */
+const BANK_SPREAD = 3;
+
+/** How a robot paces its decisions, weighs its targets and aims. */
+export interface Brain {
+  /** Whether the robot decides at this frame, once the shooter is ready. */
+  due(frame: number): boolean;
+  /** The robot has just decided: it waits before the next decision. */
+  decided(frame: number): void;
+  /** The targets it weighs, best first. */
+  weigh<T extends { readonly score: number }>(list: readonly T[]): T[];
+  /** Whether it swaps for a next ball with a clearly better target. */
+  swaps(): boolean;
+  /** Aim error, in board units along the track; `bank` tells whether the shot rebounds. */
+  error(bank: () => boolean): number;
+}
+
+/** The balancing players up to v1.8.0: a fixed cadence, a uniform error, every target weighed. */
+const steadyBrain = (cadence: number, sloppiness: number, hand: SeededRandom): Brain => ({
+  due: (frame) => frame % cadence === 0,
+  decided: () => undefined,
+  weigh: (list) => [...list],
+  swaps: () => true,
+  error: () => (hand.next() - 0.5) * 2 * sloppiness,
+});
+
+/** A standard normal draw (Box–Muller). */
+const normal = (random: SeededRandom): number =>
+  Math.sqrt(-2 * Math.log(1 - random.next())) * Math.cos(2 * Math.PI * random.next());
+
+/**
+ * A newcomer's mind (v1.8.1, spec § 3.17): uneven times between shots, a few
+ * targets weighed at random rather than all, a swap sometimes forgotten, and
+ * a hand that scatters like a person's, three times as much on a bank shot.
+ */
+export class NewcomerBrain implements Brain {
+  private next: number;
+
+  constructor(
+    private readonly robot: RobotPlayer,
+    private readonly random: SeededRandom,
+    /** A marble's width on this board, in board units. */
+    private readonly marble: number,
+  ) {
+    // A newcomer looks at the board before the first shot.
+    this.next = this.pause();
+  }
+
+  /** Frames until the next decision: a log-normal time around the median, plus the device's cost. */
+  pause(): number {
+    const seconds =
+      this.robot.cadence * Math.exp(CADENCE_SPREAD * normal(this.random)) + this.robot.extra;
+    return Math.round(60 * Math.min(6, Math.max(0.4, seconds)));
+  }
+
+  due(frame: number): boolean {
+    return frame >= this.next;
+  }
+
+  decided(frame: number): void {
+    this.next = frame + this.pause();
+  }
+
+  weigh<T extends { readonly score: number }>(list: readonly T[]): T[] {
+    const pool = [...list];
+    const seen: T[] = [];
+    while (seen.length < this.robot.looks && pool.length > 0) {
+      seen.push(pool.splice(Math.floor(this.random.next() * pool.length), 1)[0]!);
+    }
+    return seen.sort((a, b) => b.score - a.score);
+  }
+
+  swaps(): boolean {
+    return this.random.next() < this.robot.swaps;
+  }
+
+  error(bank: () => boolean): number {
+    return normal(this.random) * this.robot.spread * this.marble * (bank() ? BANK_SPREAD : 1);
+  }
+}
+
+/**
  * A simple greedy player, for balancing: it shoots at a visible ball of the
  * loaded colour, preferring pairs and the balls closest to the hole, and
  * swaps when the next ball has a better target. With `insight`, it also
@@ -72,6 +211,27 @@ export function playLevel(
   insight = false,
 ): BotResult {
   return playDefinition(resolveLevel(level, frame), seed, cadence, sloppiness, insight);
+}
+
+/**
+ * A newcomer of the v1.8.1 robots on a level: `seed` draws the colours,
+ * `handSeed` the player's hesitations and errors, so that one sequence of
+ * colours can be played by several hands.
+ */
+export function playRobot(
+  level: CampaignLevel,
+  frame: Frame,
+  seed: string,
+  robot: RobotPlayer,
+  handSeed = seed,
+): BotResult {
+  return run(
+    resolveLevel(level, frame),
+    seed,
+    handSeed,
+    false,
+    (hand, marble) => new NewcomerBrain(robot, hand, marble),
+  );
 }
 
 /**
@@ -101,8 +261,20 @@ export function playDefinition(
   sloppiness = 18,
   insight = false,
 ): BotResult {
-  const hand = SeededRandom.fromString(`hand:${seed}`);
+  return run(definition, seed, seed, insight, (hand) => steadyBrain(cadence, sloppiness, hand));
+}
+
+function run(
+  definition: LevelDefinition,
+  seed: string,
+  handSeed: string,
+  insight: boolean,
+  /** The robot's mind, from its own random draws and a marble's width on the board. */
+  mind: (hand: SeededRandom, marble: number) => Brain,
+): BotResult {
+  const hand = SeededRandom.fromString(`hand:${handSeed}`);
   const game = new Game(toLevelSetup(definition), SeededRandom.fromString(seed));
+  const brain = mind(hand, game.setup.chain.ballRadius * 2);
   const alchemy = game.setup.alchemy === true;
   const gravity = game.gravity;
   let shots = 0;
@@ -215,7 +387,7 @@ export function playDefinition(
    * matters. Without any reachable candidate, the best one anyway.
    */
   const target = (tone: number): Candidate | null => {
-    const list = candidates(tone);
+    const list = brain.weigh(candidates(tone));
     if (curving()) return list.find((candidate) => reach.has(candidate.id)) ?? null;
     const saved = game.shooter.angle;
     for (const candidate of list.slice(0, 8)) {
@@ -305,8 +477,12 @@ export function playDefinition(
       }
     }
     const magnet = game.magnet;
-    if (frameIndex % cadence === 0 && game.shooter.ready) sweep();
-    if (frameIndex % cadence === 0 && game.shooter.ready && magnet && magnet.charges > 0) {
+    const decide = brain.due(frameIndex) && game.shooter.ready;
+    if (decide) {
+      brain.decided(frameIndex);
+      sweep();
+    }
+    if (decide && magnet && magnet.charges > 0) {
       const target = separator();
       if (target) {
         const angle = reach.get(target.id);
@@ -320,27 +496,35 @@ export function playDefinition(
     }
     // A power loaded a rainbow ball or a laser: the player uses it at once.
     const special = game.powerShot;
-    if (frameIndex % cadence === 0 && game.shooter.ready && special) {
+    if (decide && special) {
       if (special === 'laser' ? aimLaser() : aimWild()) {
         if (game.fire()) shots++;
         game.update(1 / 60);
         continue;
       }
     }
-    if (frameIndex % cadence === 0 && game.shooter.ready) {
+    if (decide) {
       let aim = target(game.shooter.current);
       const other = target(game.shooter.next);
-      if (other && (!aim || other.score > aim.score + 1)) {
+      if (other && (!aim || other.score > aim.score + 1) && brain.swaps()) {
         game.swap();
         aim = other;
       }
       if (aim) {
-        const chain = game.chains[aim.chain]!;
-        const angle = reach.get(aim.id);
-        const error = (hand.next() - 0.5) * 2 * sloppiness;
-        // Around the black hole, the error is on the angle: about as far off at the chain.
-        if (angle === undefined) game.aimAt(chain.path.pointAt(aim.s + 6 + error));
-        else game.shooter.aim(angle + error * 0.0006);
+        const chosen = aim;
+        const chain = game.chains[chosen.chain]!;
+        const angle = reach.get(chosen.id);
+        const aimed = (error: number) => {
+          // Around the black hole, the error is on the angle: about as far off at the chain.
+          if (angle === undefined) game.aimAt(chain.path.pointAt(chosen.s + 6 + error));
+          else game.shooter.aim(angle + error * 0.0006);
+        };
+        aimed(
+          brain.error(() => {
+            aimed(0);
+            return game.aimLine().rebounds.length > 0;
+          }),
+        );
         if (game.fire()) shots++;
       } else if (alchemy && harmless()) {
         if (game.fire()) shots++;
