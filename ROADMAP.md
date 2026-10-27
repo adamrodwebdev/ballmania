@@ -3,6 +3,62 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
+## v1.8.1 — Équilibre téléphone et ordinateur (à valider)
+
+**But** : qu'un niveau soit aussi difficile au téléphone qu'à l'ordinateur, et que les 72 niveaux
+suivent la courbe des campagnes mesurées, réglés sur des joueurs-robots tirés des études
+publiées, avant le dépôt CrazyGames. Faute de testeurs, les études fixent la forme de la courbe
+et les limites du robot ; seuls les premiers joueurs des portails en fixeront le niveau absolu.
+
+**Mesures de départ** (1.8.0, robot nouveau venu, 24 parties par plateau, le 27/10/2026) : 29
+niveaux sur 72 s'écartent de 10 points de pointe ou plus entre le plateau du téléphone (haut) et
+celui de l'ordinateur (large). Les serpentins sont plus durs au téléphone dans tous les mondes :
+leurs rangées traversent la largeur, et le plateau large leur donne 87 ou 116 billes de place
+contre 52 ou 71 (1-6 : pointe de 65 % au téléphone, 30 % à l'ordinateur). Les jumeaux des
+Abysses (3-4, 3-9) sont au contraire plus durs sur ordinateur (pointe de 91 % contre 35 %, la
+moitié des parties perdues), comme deux niveaux de la Singularité (6-6, 6-9). La Joaillerie coûte
+au robot 66 défaites sur 576 parties, et les mondes 2 à 6, réglés sur l'ancien robot
+« occasionnel », restent souvent plats sur ordinateur (pointes de 20 à 35 %).
+
+**Ce que disent les études** (rapport du 27/10/2026, hors dépôt, dans `reports/`) :
+
+- les campagnes mesurées s'ouvrent par une longue suite de niveaux presque sans défaite (10 à 20
+  chez King, une centaine chez Tactile), puis demandent 1,2 à 3 essais par niveau ;
+- les grandes expériences de terrain (10 000 à 300 000 joueurs) gardent plus longtemps les
+  joueurs avec un jeu plus facile ; l'abandon suit les joueurs qui échouent et partent sans finir,
+  et la première marche après l'apprentissage est celle où EA perdait ses joueurs ;
+- aucun robot ne prédit le taux de réussite réel sans données de joueurs : le nôtre classe les
+  niveaux et place les pics, les portails fixeront le niveau absolu ;
+- corrigé, le robot nouveau venu vise presque comme un humain (1,4 fois la dispersion d'un
+  utilisateur de souris en laboratoire), mais choisit toujours la meilleure cible : il joue sans
+  doute mieux qu'un vrai nouveau venu ;
+- environ la moitié du jeu des portails se fait au téléphone, où nos billes mesurent 3 à 4 mm
+  contre 11 à 14 mm sur un écran ; aucune étude ne soutient un jeu ralenti au téléphone, et les
+  jeux portés au toucher ont corrigé leurs commandes, pas leurs niveaux.
+
+**Décidé le 27/10/2026** : la 1.8.0 part d'abord, et l'équilibre devient la 1.8.1, avant le dépôt
+CrazyGames ; des joueurs-robots tirés des études, par appareil ; au toucher, seule la visée figée
+avant le lever du doigt (ni glisser relatif, ni attraction de visée) ; des objectifs par monde
+tirés des études. **Change la décision du 26/10/2026 (à valider)** : les mondes 2 à 6 se règlent
+maintenant, sur le jeu d'aujourd'hui, et la 1.11.0 relance le même outil, récompenses et renforts
+compris, au lieu de faire leurs tableaux après eux.
+
+| Étape                            | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Fini quand                                                                                                                                               |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Fiches                        | Cahier des charges, § 3.17 : les chiffres retenus des études (bandes par monde, joueurs-robots par appareil, visée au toucher), les tables de départ des 72 niveaux sur les deux plateaux, et la porte de dépôt CrazyGames sans test sur inconnus.                                                                                                                                                                                                                                                                                                                                 | Fiches validées.                                                                                                                                         |
+| 2. Joueurs-robots                | Par appareil, une main tirée des mesures : souris, écart type de 0,25 bille ; doigt, 0,30 bille et 0,35 s de plus par tir (visée glissée avec l'aperçu) ; trois fois plus sur un tir en bande. Le regard d'un nouveau venu : il ne pèse que quelques cibles au hasard, comme le robot de l'entraînement, et oublie parfois d'échanger ; une cadence inégale autour de 1,6 s, jusqu'à 3,5 s. Trois nouveaux venus par appareil (vif, typique, lent) ; les couleurs et la main tirées de graines séparées ; 72 parties par plateau pour décider.                                     | Tests des profils (dispersion, cadence) ; monde 1 remesuré sur les deux plateaux.                                                                        |
+| 3. Même tracé sur chaque plateau | Les serpentins prennent autant de rangées que la hauteur du plateau le permet, comme les jumeaux, pour garder la même place de billes ; les jumeaux des Abysses et la Singularité vérifiés plateau par plateau, la cause de l'écart corrigée.                                                                                                                                                                                                                                                                                                                                      | Test de géométrie : place des billes à ±10 % entre les cinq plateaux, règle de 1,2 fois la chaîne tenue ; captures des serpentins au téléphone validées. |
+| 4. Visée au toucher              | Le tir part dans la direction visée juste avant que le doigt se lève, et non vers le point où il quitte l'écran : le point de contact glisse au lever.                                                                                                                                                                                                                                                                                                                                                                                                                             | Test des commandes ; essai sur le téléphone de l'auteur.                                                                                                 |
+| 5. Tableaux des mondes 2 à 6     | Comme celui du monde 1 : le rôle de chaque niveau (calme, montée, frisson, respiration, Colosse) et sa bande de victoires pour le nouveau venu typique, sur chaque appareil. Monde 1 : au moins 90 % (le plus dur, au moins 80 %) ; monde 2 : 80 à 85 % (le plus dur vers 60 %, après deux ou trois niveaux d'apprentissage) ; mondes 3 et 4 : 70 à 80 % (le plus dur, 40 à 50 %) ; mondes 5 et 6 : 60 à 70 % (le plus dur, 30 à 40 %). Une respiration après chaque pic, jamais deux niveaux durs de suite, la tension par les victoires de justesse plutôt que par les défaites. | Tableaux validés.                                                                                                                                        |
+| 6. Réglage des 72 niveaux        | Un outil cherche, niveau par niveau et plateau par plateau, la vitesse puis la longueur qui tiennent la bande (calendrier des couleurs inchangé, règle de place) ; les défaites de la Joaillerie expliquées (robot ou niveau) ; étoiles recalibrées avec un joueur au doigt.                                                                                                                                                                                                                                                                                                       | Chaque niveau dans sa bande sur les deux appareils, l'écart entre eux sous 10 points de victoires ; `npm run verify` et tests de bout en bout verts.     |
+| 7. Livraison                     | CHANGELOG, cahier des charges, builds, bac à sable Playgama ; dans la 1.10.0, chaque événement de niveau porte l'appareil, les essais, les victoires, les défaites et les abandons, pour caler le robot sur les premiers joueurs.                                                                                                                                                                                                                                                                                                                                                  | Lighthouse à 100 dans les quatre catégories, sur mobile aux trois mesures et sur ordinateur.                                                             |
+
+**Porte de dépôt CrazyGames, proposition (à valider)** : à la place du test sur inconnus, les
+bandes de la 1.8.1 tenues par les joueurs-robots des deux appareils, et, dans le bac à sable
+Playgama, au moins 50 nouvelles parties sur la 1.8.1, dont au moins un tiers au-delà de 2 minutes
+et une sur dix au-delà de 5 minutes (22 % et 5 % le 21/10/2026, sur la 1.4) ; puis, comme prévu,
+la revue de modérateur complète, les vidéos rendues de nouveau, la fiche et la case Progress Save.
+
 ## v1.9.0 — Yandex Games en direct (en préparation)
 
 **But** : publier Ballmania en direct sur Yandex Games, la première plateforme de jeux web
