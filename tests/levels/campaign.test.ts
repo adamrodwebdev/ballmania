@@ -112,7 +112,7 @@ describe('campaign', () => {
   it('makes the Colossus of 1-3 young: smaller, a single phase', () => {
     const young = resolveLevel(findLevel('nebula-03')!, FRAMES.square).colossus!;
     const adult = resolveLevel(findLevel('nebula-12')!, FRAMES.square).colossus!;
-    expect(young).toMatchObject({ hp: 20, spit: 4, phases: [1], young: true });
+    expect(young).toMatchObject({ hp: 30, spit: 4, phases: [1], young: true });
     expect(young.radius).toBeLessThan(adult.radius);
     expect(adult.phases).toHaveLength(3);
     expect(adult.young).toBeUndefined();

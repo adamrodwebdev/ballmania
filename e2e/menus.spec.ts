@@ -68,8 +68,16 @@ const sweep = async (page: Page) => {
   for (const [width, height] of SIZES) {
     await page.setViewportSize({ width, height });
     await settle(page);
-    const screen = await overflowOf(page);
-    const lists = await listOverflow(page);
+    let screen = await overflowOf(page);
+    let lists = await listOverflow(page);
+    if (screen > 0 || lists > 0) {
+      // On a busy machine the layout may still be settling (a pixel too many, now and
+      // then, at 734 × 343): measure again once it has. A real overflow stays.
+      await page.waitForTimeout(250);
+      await settle(page);
+      screen = await overflowOf(page);
+      lists = await listOverflow(page);
+    }
     if (screen > 0 || lists > 0) found.push(`${width}×${height}: screen ${screen}, lists ${lists}`);
   }
   // The smallest phone: only a list may scroll, in its own frame.

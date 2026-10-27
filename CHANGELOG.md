@@ -69,6 +69,11 @@ monde 1 après le test de couloir (étape 6, seconde partie), puis la livraison.
 - **Signaux de danger plus tôt**, là où va vraiment la chaîne d'un nouveau venu : la musique
   se tend dès la moitié du tracé (65 % avant) ; dès les deux tiers, le trou rougit (75 %
   avant), le cœur bat et le danger est annoncé (80 % avant).
+- **Monde 1 réglé** sur son tableau : la tension monte en dents de scie, trois frissons de plus
+  en plus hauts (1-3, 1-7, 1-11), chacun suivi d'une respiration, puis le Colosse. Vitesses et
+  longueurs relevées de 1-2 à 1-10, et le jeune Colosse du 1-3 plus endurant (30 points au lieu
+  de 20). Pour le robot nouveau venu, sur 72 parties par niveau : des quasi-défaites dès 1-3,
+  respirations exceptées, et aucune défaite dans tout le monde. Étoiles recalibrées.
 - **Nouveau 1-1** : un premier niveau simple, sans Nova ni Laser, une spirale de 1,25 tour et
   30 billes de trois couleurs posées pour une première cascade ; sa vitrine d'avant est
   devenue E1.

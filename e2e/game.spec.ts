@@ -204,7 +204,7 @@ test.describe('campaign', () => {
     await page.goto('./');
     await page.getByTestId('play').click();
     await page.getByTestId('level-nebula-03').click();
-    await expect(page.getByTestId('colossus')).toHaveAttribute('max', '20');
+    await expect(page.getByTestId('colossus')).toHaveAttribute('max', '30');
     await expect(page.locator('.colossus')).toContainText('Young Stellar Colossus');
     await expect(page.getByTestId('hint')).toBeVisible();
     const gauge = (await page.getByTestId('star-gauge').boundingBox())!;
