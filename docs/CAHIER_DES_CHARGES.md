@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut               |
-| ------- | ---------- | -------------------- |
-| 1.15    | 27/10/2026 | Version 1.8.0 livrée |
+| Version | Date       | Statut                        |
+| ------- | ---------- | ----------------------------- |
+| 1.16    | 27/10/2026 | Fiches de la 1.8.1, à valider |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1638,6 +1638,199 @@ seules les cartes de l'Atelier défilent, dans leur cadre (`e2e/menus.spec.ts`).
 onglets sur un téléphone ; titre au premier rang dès 36rem ; tout sur une ligne dès 48rem,
 le titre passant à la ligne à sa césure plutôt que de serrer les onglets sous 17rem.
 
+### 3.17 Équilibre téléphone et ordinateur (v1.8.1)
+
+**But** : qu'un niveau soit aussi difficile au téléphone qu'à l'ordinateur, et que les 72 niveaux
+suivent la courbe des campagnes mesurées. Faute de testeurs, le réglage s'appuie sur des
+joueurs-robots tirés d'études publiées ; seuls les premiers joueurs des portails fixeront le
+niveau absolu.
+
+**L'étude** du 27/10/2026, « Difficulty studies for Ballmania balance » (hors dépôt, dans
+`reports/etude-crazygames-2026-10-21/reports/`, chaque chiffre sourcé), en sept points :
+
+- **Le robot classe, il ne prédit pas.** Aucune équipe n'a prédit la réussite de vrais joueurs à
+  partir d'un robot sans données de joueurs : King y arrive à 4 ou 5 points près, après avoir
+  appris sur 800 niveaux de parties humaines, et Rovio comme Tactile partent aussi de leurs
+  joueurs. Le robot range donc les niveaux, place les pics et mesure les marges ; les bandes
+  ci-dessous sont ses cibles, que les événements de la 1.10.0 recaleront (appareil, essais,
+  victoires, défaites et abandons de chaque niveau).
+- **Une longue entrée, puis 1,2 à 3 essais par niveau.** Candy Crush s'ouvre sur 10 à 20
+  niveaux presque sans défaite, Lily's Garden sur une centaine ; ensuite, un niveau demande en
+  moyenne 1,2 à 3 essais. Nos 72 niveaux tiennent tout entiers dans cette entrée des jeux
+  gratuits, et un jeu financé par la publicité n'a aucune raison de copier leurs niveaux à 80 ou
+  95 % d'échecs, faits pour vendre.
+- **Plus facile garde plus longtemps.** Les grandes expériences de terrain (Lomas et al. 2013,
+  10 000 et 70 000 joueurs ; Ascarza et al., plus de 300 000) gardent plus longtemps les joueurs
+  d'un jeu plus facile. L'abandon suit les joueurs qui échouent et partent sans finir (Rovio :
+  corrélation de −0,59 avec la réussite, contre −0,14 pour l'abandon en général), et la première
+  marche après l'apprentissage est celle où EA perdait des joueurs.
+- **Des frissons sans défaite.** Perdre de justesse excite autant qu'une victoire et donne autant
+  envie de rejouer (Larche et al. 2017) : la zone de grâce (§ 3.15) change les défaites en
+  victoires de justesse. L'aide invisible d'EA, une graine plus facile après une défaite, a
+  augmenté les parties jouées de 4 à 8 % ; elle reste pour plus tard.
+- **Le robot de la 1.8.0 joue mieux qu'un vrai nouveau venu.** Son erreur, uniforme sur
+  ±32 unités le long de la chaîne, vaut ±0,62 bille (une bille fait 52 unités), avec un écart
+  type de 0,36 bille : 1,4 fois celui d'un utilisateur de souris en laboratoire, autant qu'un tir
+  pressé au doigt. Mais il pèse toutes les cibles et n'oublie jamais d'échanger : son monde 1
+  sans défaite est une borne optimiste.
+- **La moitié des joueurs au téléphone.** Yandex compte la moitié de son temps de jeu sur des
+  navigateurs de téléphone (avril 2025), et les estimations de trafic donnent 44 % de visites
+  mobiles à CrazyGames aux États-Unis, 57 % à Poki : les 97 % d'ordinateurs du bac à sable
+  Playgama ne sont pas représentatifs. Au téléphone, nos billes mesurent 3 à 4 mm, contre 11 à
+  14 mm sur un écran d'ordinateur : la taille où, en laboratoire, le doigt commence à manquer sa
+  cible.
+- **Corriger les commandes, pas ralentir le jeu.** Aucune étude ne soutient un jeu plus lent au
+  téléphone ; les jeux portés au toucher ont corrigé leurs commandes (bouton de tir à part, loupe,
+  aide à la visée), pas leurs niveaux. Le point de contact glisse quand le doigt se lève (Holz et
+  Baudisch 2011) ; viser en glissant avec un aperçu coûte 0,3 à 0,4 s de plus, mais rattrape
+  l'essentiel de la précision (Vogel et Baudisch 2007).
+
+**Bandes par monde** (décidées le 27/10/2026) : la part de victoires par essai du nouveau venu
+typique, sur chaque appareil. La forme du monde 1 reste celle du § 3.15 (frissons en 1-3, 1-7,
+1-11 et le Colosse, respirations en 1-4 et 1-8).
+
+| Monde  | Rôle                                         | Victoires par essai | Le niveau le plus dur                                  | Règle                                                                  |
+| ------ | -------------------------------------------- | ------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| 1      | L'entrée, les premières minutes des portails | au moins 90 %       | au moins 80 %                                          | des victoires de justesse ; le nouveau venu lent, au doigt, gagne 80 % |
+| 2      | La première marche, une mécanique nouvelle   | 80 à 85 %           | vers 60 %, après deux ou trois niveaux d'apprentissage | aucun pic dans les trois premiers niveaux                              |
+| 3 et 4 | Le jeu engagé                                | 70 à 80 %           | 40 à 50 %                                              | une respiration après chaque pic, jamais deux niveaux durs de suite    |
+| 5 et 6 | La fin de campagne                           | 60 à 70 %           | 30 à 40 %                                              | des pics courts, chacun suivi d'une respiration                        |
+
+**Joueurs-robots** (étape 2), une main par appareil :
+
+| Mesure                                     | Souris (ordinateur, plateau large) | Doigt (téléphone, plateau haut) | Source                                                                        |
+| ------------------------------------------ | ---------------------------------- | ------------------------------- | ----------------------------------------------------------------------------- |
+| Dispersion de la main (écart type, billes) | 0,25                               | 0,30                            | ISO 9241-9 et Aim Lab ; tir glissé avec aperçu sur 3 à 4 mm : 0,13 à 0,40     |
+| Tir en bande                               | dispersion × 3                     | dispersion × 3                  | Puzzle Bobble : 0,0854 rad en bande contre 0,0274 en direct (Isaksen 2017)    |
+| Temps de plus par tir                      | —                                  | 0,35 s                          | sélection au lever avec aperçu : 0,3 à 0,4 s de plus (Vogel et Baudisch 2007) |
+
+Et trois nouveaux venus sur chacune :
+
+| Profil                                           | Vif                | Typique       | Lent                            |
+| ------------------------------------------------ | ------------------ | ------------- | ------------------------------- |
+| Cadence : médiane (neuf tirs sur dix en dessous) | 1,2 s (1,7 s)      | 1,6 s (2,2 s) | 2,4 s (3,3 s)                   |
+| Regard : la meilleure de                         | 6 cibles au hasard | 4 cibles      | 2 cibles                        |
+| Échange quand la bille suivante vaut mieux       | 9 fois sur 10      | 7 fois sur 10 | 4 fois sur 10                   |
+| Main                                             | × 0,8              | × 1           | × 1 à la souris, × 1,5 au doigt |
+
+La cadence suit une loi log-normale : jamais deux tirs au même rythme. Le profil lent couvre les
+joueurs de plus de 60 ans, deux fois plus lents à la souris (Findlater et al. 2013), et plus
+dispersés au doigt sur de petites cibles ; 80 % des joueurs de Yandex ont plus de 25 ans. Le regard
+et l'échange n'ont aucune mesure publiée : ce sont des hypothèses, que les premiers joueurs
+recaleront ; le robot de l'entraînement fait déjà ce choix limité (la meilleure de dix visées au
+hasard). Les couleurs et la main tirent de deux graines séparées, pour rejouer une même suite de
+couleurs avec plusieurs mains. Chaque décision se prend sur 72 parties par plateau et par
+robot : à 50 %, une part de victoires n'est connue qu'à ±11,5 points près.
+
+**Visée au toucher** (étape 4) : le tir part dans la direction du dernier point stable. Si le
+doigt a glissé de plus de 6 px (environ 1 mm) dans les 80 ms qui précèdent son lever, le tir garde
+la visée d'avant ce glissement ; sinon, celle du point de lever. La souris ne change pas. Les deux
+valeurs s'essaient sur un vrai téléphone.
+
+**Même tracé sur chaque plateau** (étape 3) : un serpentin prend, dans la hauteur du plateau,
+autant de rangées qu'il en faut pour garder à 10 % près la place de billes du plateau large, ses
+rangées jamais à moins de 125 unités l'une de l'autre (2,4 billes) ; les aiguillages du Volcan
+suivent leurs rangées. Les jumeaux des Abysses (3-4, 3-9), plus durs sur le plateau large malgré
+plus de place, et les spirales à portail de la Singularité (6-6, 6-9) sont vérifiés plateau par
+plateau, et la cause de leur écart corrigée.
+
+**Porte de dépôt CrazyGames** (décidée le 27/10/2026, à la place du test sur inconnus) : les
+bandes tenues par les joueurs-robots des deux appareils ; au moins 50 nouvelles parties de la
+1.8.1 dans le bac à sable Playgama, dont un tiers au-delà de 2 minutes et une sur dix au-delà de
+5 minutes (22 % et 5 % le 21/10/2026, sur la 1.4) ; puis la revue de modérateur complète.
+
+**Tables de départ** (27/10/2026, version 1.8.0) : le robot nouveau venu de la 1.8.0, 24 parties
+par plateau. Haut : un téléphone en portrait ; large : un ordinateur en 16:9 ; place : les billes
+que tient le tracé de chaque chaîne ; pointe : médiane ; écart : haut moins large, en points.
+
+| Niveau | Tracé                     | Place (haut / large) | Pointe (haut / large) | Écart | Victoires (haut / large) |
+| ------ | ------------------------- | -------------------- | --------------------- | ----- | ------------------------ |
+| 1-1    | spirale                   | 71 / 69              | 27 % / 28 %           | −1    | 24/24 / 24/24            |
+| 1-2    | spirale                   | 77 / 74              | 34 % / 32 %           | +2    | 24/24 / 24/24            |
+| 1-3    | serpentin                 | 52 / 87              | 64 % / 41 %           | +23   | 24/24 / 24/24            |
+| 1-4    | spirale                   | 83 / 84              | 35 % / 32 %           | +3    | 24/24 / 24/24            |
+| 1-5    | spirale                   | 93 / 90              | 56 % / 50 %           | +6    | 24/24 / 24/24            |
+| 1-6    | serpentin                 | 52 / 87              | 65 % / 30 %           | +35   | 24/24 / 24/24            |
+| 1-7    | double spirale            | 61+61 / 61+61        | 58 % / 57 %           | +1    | 24/24 / 24/24            |
+| 1-8    | spirale                   | 90 / 90              | 43 % / 44 %           | −1    | 24/24 / 24/24            |
+| 1-9    | serpentin                 | 71 / 116             | 58 % / 26 %           | +32   | 24/24 / 24/24            |
+| 1-10   | spirale                   | 93 / 92              | 52 % / 54 %           | −2    | 24/24 / 24/24            |
+| 1-11   | spirale                   | 101 / 102            | 70 % / 67 %           | +3    | 24/24 / 24/24            |
+| 1-12   | spirale                   | 87 / 88              | 64 % / 59 %           | +5    | 24/24 / 24/24            |
+| 2-1    | spirale                   | 74 / 72              | 29 % / 28 %           | +1    | 24/24 / 24/24            |
+| 2-2    | serpentin                 | 52 / 87              | 38 % / 25 %           | +13   | 24/24 / 24/24            |
+| 2-3    | spirale                   | 87 / 84              | 27 % / 27 %           | 0     | 24/24 / 24/24            |
+| 2-4    | double spirale            | 61+61 / 61+61        | 56 % / 50 %           | +6    | 24/24 / 24/24            |
+| 2-5    | serpentin                 | 71 / 116             | 34 % / 22 %           | +12   | 24/24 / 24/24            |
+| 2-6    | spirale                   | 77 / 79              | 27 % / 28 %           | −1    | 24/24 / 24/24            |
+| 2-7    | spirale                   | 95 / 96              | 39 % / 38 %           | +1    | 24/24 / 24/24            |
+| 2-8    | serpentin                 | 52 / 87              | 64 % / 31 %           | +33   | 22/24 / 24/24            |
+| 2-9    | double spirale            | 61+61 / 61+61        | 80 % / 75 %           | +5    | 24/24 / 24/24            |
+| 2-10   | spirale                   | 89 / 90              | 26 % / 26 %           | 0     | 24/24 / 24/24            |
+| 2-11   | spirale                   | 95 / 95              | 95 % / 89 %           | +6    | 17/24 / 20/24            |
+| 2-12   | spirale                   | 87 / 88              | 56 % / 57 %           | −1    | 24/24 / 24/24            |
+| 3-1    | spirale                   | 74 / 72              | 27 % / 25 %           | +2    | 24/24 / 24/24            |
+| 3-2    | serpentin                 | 52 / 87              | 34 % / 23 %           | +11   | 24/24 / 24/24            |
+| 3-3    | spirale                   | 88 / 86              | 28 % / 25 %           | +3    | 24/24 / 24/24            |
+| 3-4    | jumeaux                   | 56+56 / 73+73        | 35 % / 91 %           | −56   | 24/24 / 12/24            |
+| 3-5    | serpentin                 | 71 / 116             | 31 % / 21 %           | +10   | 24/24 / 24/24            |
+| 3-6    | spirale                   | 77 / 79              | 24 % / 27 %           | −3    | 24/24 / 24/24            |
+| 3-7    | spirale                   | 99 / 98              | 42 % / 43 %           | −1    | 24/24 / 24/24            |
+| 3-8    | serpentin                 | 52 / 87              | 43 % / 27 %           | +16   | 23/24 / 24/24            |
+| 3-9    | jumeaux                   | 56+56 / 73+73        | 36 % / 67 %           | −31   | 24/24 / 16/24            |
+| 3-10   | spirale                   | 92 / 91              | 25 % / 23 %           | +2    | 24/24 / 24/24            |
+| 3-11   | spirale                   | 92 / 93              | 72 % / 68 %           | +4    | 24/24 / 24/24            |
+| 3-12   | spirale                   | 87 / 88              | 56 % / 54 %           | +2    | 24/24 / 24/24            |
+| 4-1    | spirale                   | 74 / 72              | 32 % / 27 %           | +5    | 22/24 / 23/24            |
+| 4-2    | serpentin                 | 52 / 87              | 36 % / 27 %           | +9    | 23/24 / 22/24            |
+| 4-3    | spirale                   | 88 / 86              | 32 % / 26 %           | +6    | 23/24 / 23/24            |
+| 4-4    | double spirale            | 61+61 / 61+61        | 49 % / 40 %           | +9    | 18/24 / 22/24            |
+| 4-5    | serpentin                 | 71 / 116             | 31 % / 25 %           | +6    | 21/24 / 21/24            |
+| 4-6    | spirale                   | 77 / 79              | 27 % / 30 %           | −3    | 22/24 / 22/24            |
+| 4-7    | spirale                   | 99 / 98              | 32 % / 41 %           | −9    | 23/24 / 22/24            |
+| 4-8    | serpentin                 | 52 / 87              | 63 % / 31 %           | +32   | 18/24 / 23/24            |
+| 4-9    | double spirale            | 64+64 / 64+64        | 77 % / 57 %           | +20   | 15/24 / 21/24            |
+| 4-10   | spirale                   | 92 / 91              | 31 % / 24 %           | +7    | 21/24 / 23/24            |
+| 4-11   | spirale                   | 92 / 93              | 44 % / 40 %           | +4    | 24/24 / 19/24            |
+| 4-12   | spirale                   | 87 / 88              | 63 % / 45 %           | +18   | 21/24 / 18/24            |
+| 5-1    | serpentin à aiguillages   | 52 / 87              | 41 % / 28 %           | +13   | 24/24 / 24/24            |
+| 5-2    | serpentin à aiguillages   | 52 / 87              | 56 % / 32 %           | +24   | 24/24 / 24/24            |
+| 5-3    | serpentin à aiguillages   | 71 / 116             | 39 % / 24 %           | +15   | 23/24 / 24/24            |
+| 5-4    | serpentin à aiguillages   | 52 / 87              | 36 % / 25 %           | +11   | 24/24 / 24/24            |
+| 5-5    | serpentin à aiguillages   | 71 / 116             | 40 % / 28 %           | +12   | 24/24 / 24/24            |
+| 5-6    | serpentin à aiguillages   | 52 / 87              | 39 % / 28 %           | +11   | 24/24 / 24/24            |
+| 5-7    | serpentin à aiguillages   | 52 / 87              | 67 % / 41 %           | +26   | 22/24 / 24/24            |
+| 5-8    | serpentin à aiguillages   | 71 / 116             | 54 % / 31 %           | +23   | 23/24 / 24/24            |
+| 5-9    | serpentin à aiguillages   | 52 / 87              | 39 % / 29 %           | +10   | 24/24 / 24/24            |
+| 5-10   | serpentin à aiguillages   | 71 / 116             | 26 % / 18 %           | +8    | 24/24 / 24/24            |
+| 5-11   | serpentin à aiguillages   | 71 / 116             | 79 % / 34 %           | +45   | 20/24 / 22/24            |
+| 5-12   | serpentin à aiguillages   | 52 / 87              | 76 % / 44 %           | +32   | 19/24 / 24/24            |
+| 6-1    | spirale à portail         | 53 / 53              | 50 % / 39 %           | +11   | 24/24 / 24/24            |
+| 6-2    | spirale à portail         | 60 / 59              | 38 % / 37 %           | +1    | 24/24 / 24/24            |
+| 6-3    | spirale à portail         | 66 / 66              | 44 % / 44 %           | 0     | 23/24 / 23/24            |
+| 6-4    | double spirale à portails | 43+43 / 43+43        | 73 % / 69 %           | +4    | 24/24 / 23/24            |
+| 6-5    | spirale à portail         | 73 / 73              | 52 % / 45 %           | +7    | 24/24 / 24/24            |
+| 6-6    | spirale à portail         | 59 / 60              | 61 % / 83 %           | −22   | 18/24 / 18/24            |
+| 6-7    | spirale à portail         | 73 / 73              | 37 % / 36 %           | +1    | 24/24 / 24/24            |
+| 6-8    | double spirale à portails | 50+50 / 50+50        | 72 % / 61 %           | +11   | 23/24 / 24/24            |
+| 6-9    | spirale à portail         | 76 / 76              | 72 % / 87 %           | −15   | 19/24 / 22/24            |
+| 6-10   | spirale à portail         | 59 / 60              | 37 % / 36 %           | +1    | 19/24 / 22/24            |
+| 6-11   | spirale à portail         | 83 / 83              | 43 % / 41 %           | +2    | 24/24 / 24/24            |
+| 6-12   | spirale à portail         | 66 / 66              | 52 % / 58 %           | −6    | 24/24 / 24/24            |
+
+**Lecture** : 29 niveaux sur 72 s'écartent de 10 points ou plus, et 21 d'entre eux sont des
+serpentins. Leurs rangées traversent la largeur : le plateau large leur donne 1,7 fois plus de
+place (87 ou 116 billes contre 52 ou 71), et ils y sont de 6 à 45 points plus faciles qu'au
+téléphone ; sur ordinateur, les serpentins du Volcan plafonnent entre 18 et 44 %. Les spirales
+tiennent la même place sur les deux plateaux, et le même frisson à quelques points près. À
+l'inverse, les jumeaux des Abysses sont bien plus durs sur le large (91 % et la moitié des parties
+perdues en 3-4), comme deux spirales à portail de la Singularité (6-6, 6-9). Les écarts de la
+Joaillerie en 4-9 et 4-12 (+20 et +18), sur des spirales de même place, sont à revérifier : à 24
+parties par plateau, un écart de moins de 15 points peut n'être que du bruit. Le robot perd
+surtout en Joaillerie (66 défaites sur 576 parties, souvent une partie qui s'emballe), en 2-11 et
+dans la Singularité ; les mondes 2 à 6, réglés sur l'ancien robot « occasionnel », restent souvent
+plats sur ordinateur (pointes de 18 à 35 %).
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -2233,36 +2426,37 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 
 ## 12. Journal des versions du document
 
-| Version | Date       | Changements                                                                                                                                                                       |
-| ------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                                                                  |
-| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus.                                            |
-| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                                                                 |
-| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                                                                 |
-| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                                                             |
-| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                             |
-| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                                    |
-| 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7).              |
-| 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                                            |
-| 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                                            |
-| 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                                        |
-| 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                                       |
-| 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                                    |
-| 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                              |
-| 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                                |
-| 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                                     |
-| 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                                          |
-| 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                                  |
-| 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                                |
-| 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                                      |
-| 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                                          |
-| 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).                            |
-| 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                               |
-| 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                                           |
-| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                                        |
-| 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                                        |
-| 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).                |
-| 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                                    |
-| 1.13    | 26/10/2026 | Version 1.8.0, corrections : le cadeau du jour se range (étincelles, repli, glissement de la boucle), la carte tient dans une fenêtre de navigateur (§ 3.9, 3.12, 4.2).           |
-| 1.14    | 26/10/2026 | Version 1.8.0, étape 6, seconde partie : le monde 1 réglé sur son tableau, mesuré sur 72 parties par niveau, ses étoiles recalibrées, l'écart entre les plateaux relevé (§ 3.15). |
-| 1.15    | 27/10/2026 | Version 1.8.0 livrée, sans test de couloir faute de testeurs ; l'équilibre entre le téléphone et l'ordinateur passe à la 1.8.1.                                                   |
+| Version | Date       | Changements                                                                                                                                                                                                                                                        |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0.1     | 12/10/2026 | Création : objectifs, positionnement, règles, 12 modes proposés.                                                                                                                                                                                                   |
+| 0.2     | 12/10/2026 | Campagne (6 mondes, 72 niveaux), thèmes à débloquer, éclats et cosmétiques, monétisation par portails (`PlatformAdapter`), lots revus.                                                                                                                             |
+| 0.3     | 12/10/2026 | Lot 0 livré : pile et versions, socle (réglages, thèmes, stockage), CSP, Lighthouse 100 × 4 mobile et ordinateur.                                                                                                                                                  |
+| 0.4     | 12/10/2026 | Lot 1 livré : moteur (§ 5.3), règles de score et de génération précisées (§ 3.1).                                                                                                                                                                                  |
+| 0.5     | 12/10/2026 | Lot 2 livré : couche de jeu (§ 5.4), commandes précisées (§ 3.3), niveaux en données.                                                                                                                                                                              |
+| 0.6     | 12/10/2026 | Lot 3 livré : destruction détaillée (§ 3.5), réglages (§ 3.4), effets et son (§ 5.5).                                                                                                                                                                              |
+| 0.7     | 12/10/2026 | Lot 4 livré : monde 1 (§ 3.2), Colosse, bonus de fin (§ 3.1), sauvegarde (§ 3.4), équilibrage par robot, architecture (§ 5.6).                                                                                                                                     |
+| 0.8     | 12/10/2026 | Lot 5 livré : éclats, atelier, objectifs, défi du jour partageable, aide après 3 défaites (§ 3.2, 3.6), langues chargées à la demande (§ 4.4), architecture (§ 5.7).                                                                                               |
+| 0.9     | 12/10/2026 | Lot 6 livré : monde 2 Néon (§ 3.2), règle du ricochet (§ 3.1), 14ᵉ objectif (§ 3.6), architecture des miroirs (§ 5.8).                                                                                                                                             |
+| 0.10    | 12/10/2026 | Lot 7 livré : monde 3 Abysses et aimant (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.9).                                                                                                                                             |
+| 0.11    | 12/10/2026 | Lot 8 livré : monde 4 Joaillerie et alchimie (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.10).                                                                                                                                                         |
+| 0.12    | 12/10/2026 | Lot 9 livré : monde 5 Volcan et aiguillages (§ 3.2), commande (§ 3.3), plateau et objectifs (§ 3.6), architecture (§ 5.11).                                                                                                                                        |
+| 0.13    | 12/10/2026 | Lot 10, première partie : monde 6 Singularité, gravité et orbite (§ 3.2), plateau et objectifs (§ 3.6), architecture (§ 5.12).                                                                                                                                     |
+| 0.14    | 12/10/2026 | Lot 10 livré : modes Arcade Infini, Énigmes, Rythme et Duel (§ 3.2), commande (§ 3.3), sauvegarde (§ 3.4), objectifs (§ 3.6), architecture (§ 5.13).                                                                                                               |
+| 0.15    | 13/10/2026 | Retours de test : lot 11 « Expérience » (§ 3.9) ; lots suivants renumérotés (§ 9).                                                                                                                                                                                 |
+| 1.0     | 13/10/2026 | Lot 12 livré, version 1.0.0 : accessibilité (§ 4.3), référencement (§ 4.3 bis), lots 11 et 12 terminés (§ 9).                                                                                                                                                      |
+| 1.1     | 13/10/2026 | Lot 13 livré, version 1.1.0 : builds portails, publicités et récompenses (§ 3.7), architecture des plateformes (§ 5.14).                                                                                                                                           |
+| 1.2     | 13/10/2026 | Exigences de CrazyGames appliquées et kit de soumission (§ 3.7).                                                                                                                                                                                                   |
+| 1.3     | 14/10/2026 | Refonte visuelle et sonore, version 1.2.0 (§ 3.5).                                                                                                                                                                                                                 |
+| 1.4     | 14/10/2026 | Bombe offerte et geste d'apprentissage au niveau 1-1, version 1.3.0 (§ 3.5).                                                                                                                                                                                       |
+| 1.5     | 22/10/2026 | Version 1.7.5 : textes revus et russe (§ 1, 2.1, 2.3, 3.7, 4.3, 4.4, 8).                                                                                                                                                                                           |
+| 1.6     | 23/10/2026 | Version 1.7.6 : socle solide (premier affichage, portails, toucher, CSS moderne, matrice de tests, écran de jeu) (§ 3.5, 4.1, 4.2, 4.6, 5.1, 5.15, 6).                                                                                                             |
+| 1.7     | 23/10/2026 | Version 1.8.0, étape 2 : l'entraînement construit, sa main, ses fins, son écran de fin et ses simulations (§ 3.13).                                                                                                                                                |
+| 1.8     | 23/10/2026 | Version 1.8.0, étape 3 : la boucle des moments forts de l'écran titre, son worker, sa place et ses tests (§ 3.5, 3.14).                                                                                                                                            |
+| 1.9     | 26/10/2026 | Version 1.8.0, étape 5 : les mesures de tension du robot, les tables de départ du monde 1 et son tableau, validé (§ 3.15).                                                                                                                                         |
+| 1.10    | 26/10/2026 | Version 1.8.0, étape 7 : le premier lanceur s'équipe d'un toucher sur le panneau de victoire, son geste et ses mesures d'économie (§ 4.2).                                                                                                                         |
+| 1.11    | 26/10/2026 | Version 1.8.0, étape 8 : l'Atelier en onglets et sa cabine d'essayage sur le vrai moteur, l'Observatoire en onglets par portée, le porte-monnaie partout (§ 3.16).                                                                                                 |
+| 1.12    | 26/10/2026 | Version 1.8.0, étape 6, première partie : les signaux de danger plus tôt et la zone de grâce, mesurés sur le monde 1 (§ 3.15).                                                                                                                                     |
+| 1.13    | 26/10/2026 | Version 1.8.0, corrections : le cadeau du jour se range (étincelles, repli, glissement de la boucle), la carte tient dans une fenêtre de navigateur (§ 3.9, 3.12, 4.2).                                                                                            |
+| 1.14    | 26/10/2026 | Version 1.8.0, étape 6, seconde partie : le monde 1 réglé sur son tableau, mesuré sur 72 parties par niveau, ses étoiles recalibrées, l'écart entre les plateaux relevé (§ 3.15).                                                                                  |
+| 1.15    | 27/10/2026 | Version 1.8.0 livrée, sans test de couloir faute de testeurs ; l'équilibre entre le téléphone et l'ordinateur passe à la 1.8.1.                                                                                                                                    |
+| 1.16    | 27/10/2026 | Version 1.8.1, étape 1 : l'équilibre entre le téléphone et l'ordinateur, ce que la 1.8.1 retient des études publiées, ses joueurs-robots, la visée au toucher, la porte de dépôt CrazyGames et les tables de départ des 72 niveaux sur les deux plateaux (§ 3.17). |
