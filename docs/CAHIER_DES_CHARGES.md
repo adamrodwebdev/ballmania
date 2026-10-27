@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                     |
-| ------- | ---------- | ------------------------------------------ |
-| 1.17    | 27/10/2026 | Joueurs-robots de la 1.8.1 (étape 2 sur 7) |
+| Version | Date       | Statut                                        |
+| ------- | ---------- | --------------------------------------------- |
+| 1.18    | 27/10/2026 | Même tracé sur chaque plateau (étape 3 sur 7) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1884,6 +1884,40 @@ visée au toucher (étape 4) passent d'abord. La règle du lent au doigt reste �
 tableaux (étape 5) : la tenir à la lettre rendrait le monde 1 plat pour les autres, alors qu'une
 aide invisible, comme celle d'EA, ne soulagerait que ceux qui perdent.
 
+**Même tracé sur chaque plateau** (étape 3, le 27/10/2026, captures validées par l'auteur) :
+
+- **Les serpentins** (`src/levels/tracks.ts`) : leurs rangées traversent le plateau, si bien
+  qu'un plateau étroit en empile désormais davantage, autant qu'il en faut pour approcher la
+  longueur du plateau large, jamais à moins de 125 unités l'une de l'autre. Trois rangs : 52
+  billes de place au téléphone, 87 maintenant, comme sur le large ; quatre rangs : 71, 119
+  maintenant, pour 116. Les plateaux haut, portrait et paysage tiennent à 10 % du large ; le
+  carré, celui d'une tablette couchée, ne tient que cinq rangs, soit 83 billes au plus (28 % de
+  moins sur les serpentins à quatre rangs). Au téléphone, le tracé remplit l'écran au lieu de
+  laisser un grand vide au-dessus du lanceur. Le mode Rythme, seul serpentin hors campagne,
+  suit la même règle.
+- **Les jumeaux des Abysses** (3-4, 3-9) : leurs rangées fuient devant le lanceur, placé entre
+  les deux chaînes. Sur un plateau d'ordinateur, longues, elles se cachent l'une l'autre : 54 à
+  62 % des tirs visés touchaient d'abord une autre bille (35 à 38 % au téléphone), et le robot
+  typique ne gagnait que 4 à 12 parties sur 24 (moins de rangées n'y changeait rien). Sur un
+  plateau plus large que haut, chaque chaîne descend maintenant du haut de sa moitié et
+  serpente en colonnes, face au lanceur : 7 à 13 % de tirs cachés, 24 parties gagnées sur 24,
+  pointe de 33 % (39 % au téléphone). Les colonnes ne sont pas plus hautes que les rangées,
+  sans quoi l'écran d'ordinateur choisissait le plateau carré, aux rangées serrées : 46 à 48
+  billes de place contre 56 au téléphone. Les plateaux d'une tablette (portrait, carré) sont
+  trop étroits pour trois colonnes et gardent leurs rangées, plus difficiles (45 à 48 % de tirs
+  cachés).
+- **La Singularité** (6-6, 6-9) : avec la même main sur les deux plateaux, aucun écart réel ;
+  celui des tables de départ venait du hasard de 24 parties.
+- **Le robot compte les tirs cachés** (`aimedShots`, `hiddenShots`) : visé juste, le tir
+  rencontre d'abord une autre bille.
+
+**Quel plateau pour quel appareil** : le jeu choisit le plateau qui montre le contenu du niveau
+le plus grand, pas celui de l'écran. Une fenêtre d'ordinateur maximisée (1920 × 947) montre
+ainsi plusieurs niveaux sur le plateau paysage (1-6, et 3-4 avant ses colonnes), quand les
+tables de départ supposaient le large partout. L'écran de jeu donne désormais son plateau
+(`data-board`) : un relevé des 72 niveaux sur deux téléphones et trois fenêtres d'ordinateur
+dira lequel chaque robot doit jouer, avant les tableaux (étape 5).
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -2514,3 +2548,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.15    | 27/10/2026 | Version 1.8.0 livrée, sans test de couloir faute de testeurs ; l'équilibre entre le téléphone et l'ordinateur passe à la 1.8.1.                                                                                                                                    |
 | 1.16    | 27/10/2026 | Version 1.8.1, étape 1 : l'équilibre entre le téléphone et l'ordinateur, ce que la 1.8.1 retient des études publiées, ses joueurs-robots, la visée au toucher, la porte de dépôt CrazyGames et les tables de départ des 72 niveaux sur les deux plateaux (§ 3.17). |
 | 1.17    | 27/10/2026 | Version 1.8.1, étape 2 : les joueurs-robots par appareil, trois nouveaux venus sur chacun, et le monde 1 remesuré sur les deux plateaux (§ 3.17).                                                                                                                  |
+| 1.18    | 27/10/2026 | Version 1.8.1, étape 3 : les serpentins et les jumeaux tiennent le même tracé sur le téléphone et l'ordinateur, les tirs cachés, le plateau de chaque appareil (§ 3.17).                                                                                           |
