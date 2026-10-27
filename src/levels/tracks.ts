@@ -145,11 +145,39 @@ function spiralTrack(recipe: Extract<TrackRecipe, { kind: 'spiral' }>, frame: Fr
   return { paths, shooter: [cx, cy] };
 }
 
+type SerpentineRecipe = Extract<TrackRecipe, { kind: 'serpentine' }>;
+
+/** Rows of a serpentine never come closer than this, in board units (2.4 marbles). */
+const ROW_GAP = 125;
+
+const lengthOf = (points: readonly Point[]): number =>
+  points.reduce(
+    (sum, [x, y], i) =>
+      i === 0 ? 0 : sum + Math.hypot(x - points[i - 1]![0], y - points[i - 1]![1]),
+    0,
+  );
+
+/**
+ * A serpentine holds as many marbles on every board as on the wide one
+ * (v1.8.1, spec § 3.17): its rows cross the board, so a narrower board stacks
+ * more of them, as many as brings its track closest to the wide board's,
+ * never closer together than `ROW_GAP`.
+ */
+function serpentineTrack(recipe: SerpentineRecipe, frame: Frame): Track {
+  if (frame.kind === 'wide') return serpentineRows(recipe, frame);
+  const wanted = lengthOf(serpentineRows(recipe, FRAMES.wide).paths[0]!);
+  const offBy = (track: Track) => Math.abs(lengthOf(track.paths[0]!) - wanted);
+  const most = Math.max(recipe.rows, Math.floor((frame.height * 0.62 - 110) / ROW_GAP) + 1);
+  let best = serpentineRows(recipe, frame);
+  for (let rows = recipe.rows + 1; rows <= most; rows++) {
+    const track = serpentineRows({ ...recipe, rows }, frame);
+    if (offBy(track) < offBy(best)) best = track;
+  }
+  return best;
+}
+
 /** Rows sweeping left and right across the top of the board; the shooter stands below. */
-function serpentineTrack(
-  recipe: Extract<TrackRecipe, { kind: 'serpentine' }>,
-  frame: Frame,
-): Track {
+function serpentineRows(recipe: SerpentineRecipe, frame: Frame): Track {
   const margin = 90;
   const top = 110;
   const gap = Math.min(300, (frame.height * 0.62 - top) / Math.max(1, recipe.rows - 1));
