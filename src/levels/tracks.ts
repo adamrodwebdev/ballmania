@@ -84,9 +84,71 @@ export function buildTrack(recipe: TrackRecipe, frame: Frame): Track {
 
 /**
  * Two mirrored serpentines, one on each half of the board, each ending in
- * its own hole on either side of the middle, below the shooter.
+ * its own hole on either side of the middle, below the shooter. On a board
+ * wider than tall, they wind in columns (v1.8.1, spec § 3.17).
  */
 function twinTrack(frame: Frame): Track {
+  if (frame.width > frame.height) return twinColumns(frame);
+  return twinRows(frame);
+}
+
+/**
+ * The twins on a board wider than tall: each chain comes down from the top
+ * of its half and winds up and down in columns, which face the shooter
+ * standing between the two chains, instead of long rows that run away from
+ * it and hide each other (54 to 62 % of shots met another marble first).
+ * Among the counts of columns that keep them `ROW_GAP` apart, the one whose
+ * track is closest in length to the twins of a phone held upright.
+ */
+function twinColumns(frame: Frame): Track {
+  const wanted = lengthOf(twinRows(FRAMES.tall).paths[0]!);
+  const middle = frame.width / 2;
+  let best: Track | null = null;
+  for (let columns = 3; (middle - 200) / columns >= ROW_GAP; columns += 2) {
+    const track = twinColumnsOf(frame, columns);
+    const offBy = (candidate: Track) => Math.abs(lengthOf(candidate.paths[0]!) - wanted);
+    if (!best || offBy(track) < offBy(best)) best = track;
+  }
+  return best ?? twinColumnsOf(frame, 3);
+}
+
+function twinColumnsOf(frame: Frame, columns: number): Track {
+  const middle = frame.width / 2;
+  // Column centres from 70 + turn to 130 + turn short of the middle.
+  const gap = (middle - 200) / columns;
+  const turn = gap / 2;
+  // The turns stay on the board; the holes sit below the columns, near the middle,
+  // where the rows put them: no taller than the rows, the columns keep the board
+  // a desktop screen chooses for them.
+  const top = Math.max(110, turn + 70);
+  const bottom = frame.height * 0.63;
+  const outer = 70 + turn;
+  const hole: Point = [middle - 70, bottom + 140];
+  const left: Point[] = [[outer, -TUNNEL]];
+  for (let column = 0; column < columns; column++) {
+    const x = outer + column * gap;
+    const down = column % 2 === 0;
+    left.push([x, down ? bottom : top]);
+    if (column === columns - 1) break;
+    // Half circle round to the next column, below it or above it.
+    for (let k = 1; k <= 24; k++) {
+      const a = Math.PI - (k / 24) * Math.PI;
+      const y = down ? bottom + Math.sin(a) * turn : top - Math.sin(a) * turn;
+      left.push([x + turn + Math.cos(a) * turn, y]);
+    }
+  }
+  // A smooth bend from the last column, coming down, into the hole.
+  const [ex, ey] = left[left.length - 1]!;
+  for (let k = 1; k <= 16; k++) {
+    const t = k / 16;
+    left.push([ex + (hole[0] - ex) * t * t, ey + (hole[1] - ey) * Math.sin((t * Math.PI) / 2)]);
+  }
+  const right = left.map(([x, y]): Point => [frame.width - x, y]);
+  return { paths: [left, right], shooter: [middle, (top + bottom) / 2] };
+}
+
+/** The twins drawn in rows, for a board as tall as wide or taller. */
+function twinRows(frame: Frame): Track {
   const top = 110;
   const span = frame.height * 0.62 - top;
   // An odd number of rows, about 125 units apart: the last one runs towards the middle.
