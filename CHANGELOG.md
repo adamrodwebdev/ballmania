@@ -3,10 +3,14 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié]
+## [1.8.0] — 2026-10-27
 
-La 1.8.0, « Les cinq premières minutes », en préparation : restent le réglage des niveaux du
-monde 1 après le test de couloir (étape 6, seconde partie), puis la livraison.
+« Les cinq premières minutes ». Lighthouse mobile, build de production : 100 dans les quatre
+catégories aux trois mesures, en anglais comme en russe (premier affichage simulé 0,6 s, plus
+grand élément 0,9 s), et 100 dans les quatre sur ordinateur dans les deux langues. Le test de
+couloir prévu n'a pas eu lieu, faute de testeurs : le monde 1 est réglé sur le robot nouveau
+venu, et l'écart de difficulté entre le téléphone et l'ordinateur, relevé sur les 72 niveaux, se
+corrige en 1.8.1.
 
 ### Ajouté
 
