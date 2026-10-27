@@ -24,6 +24,10 @@ export interface BotResult {
   readonly thin: number;
   /** Longest run of shots in a row that each made a group explode. */
   readonly bestStreak: number;
+  /** Shots aimed at a marble of the chain. */
+  readonly aimedShots: number;
+  /** Of those, shots whose marble another one hid from the launcher: aimed true, the line meets that one first. */
+  readonly hiddenShots: number;
   /** End-of-level bonus included in the score (0 without a win). */
   readonly bonus: number;
   /** Seconds played, to the tenth. */
@@ -278,6 +282,8 @@ function run(
   const alchemy = game.setup.alchemy === true;
   const gravity = game.gravity;
   let shots = 0;
+  let aimedShots = 0;
+  let hiddenShots = 0;
   let danger = 0;
   let pressureFrames = 0;
   let idleFrames = 0;
@@ -519,6 +525,9 @@ function run(
           if (angle === undefined) game.aimAt(chain.path.pointAt(chosen.s + 6 + error));
           else game.shooter.aim(angle + error * 0.0006);
         };
+        aimed(0);
+        aimedShots++;
+        if (game.aimTarget()?.ball.id !== chosen.id) hiddenShots++;
         aimed(
           brain.error(() => {
             aimed(0);
@@ -550,6 +559,8 @@ function run(
     idle: Math.round(idleFrames / 6) / 10,
     thin: Math.round(thinFrames / 6) / 10,
     bestStreak: game.summary().bestStreak,
+    aimedShots,
+    hiddenShots,
     bonus,
     elapsed: Math.round(game.elapsed * 10) / 10,
     report: game.summary(),
