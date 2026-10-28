@@ -13,7 +13,7 @@ import { useServices } from '@/app/AppServices';
 import type { PlayMode } from '@/app/modes';
 import type { Silence } from '@/platform/AdService';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
-import type { Frame } from '@/levels/tracks';
+import type { Frame, FrameKind } from '@/levels/tracks';
 import { chooseFrame, contentBounds, NO_INSETS, type Insets } from '@/play/BoardView';
 import { pixelRatioFor } from '@/play/canvas';
 import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
@@ -104,6 +104,8 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
   });
 
   let frame: Frame | null = null;
+  /** The board shape the screen chose, shown on the game screen for tests (v1.8.1). */
+  const board = shallowRef<FrameKind | null>(null);
   /** The level for a board shape, slowed down when the assistance is on. */
   const definitionOn = (shape: Frame): LevelDefinition =>
     mode.definition(shape, {
@@ -163,6 +165,7 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
   /** A new game of the level, on the board shape the screen asks for now. */
   const newGame = () => {
     frame = chooseShape();
+    board.value = frame.kind;
     session.value?.restart(definitionOn(frame));
     focusBoard();
   };
@@ -173,6 +176,7 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
     const { canvas, surface, root, overlay } = elements;
     if (!canvas.value || !surface.value || !root.value) return;
     frame = chooseShape();
+    board.value = frame.kind;
     const seed = mode.seed;
     const frameRate = frameRateCap();
     const play = new PlaySession({
@@ -281,5 +285,5 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
     for (const cleanup of cleanups) cleanup();
   });
 
-  return { session, hud, feedback, reducedMotion, silence, newGame, focusBoard };
+  return { session, hud, feedback, reducedMotion, silence, newGame, focusBoard, board };
 }
