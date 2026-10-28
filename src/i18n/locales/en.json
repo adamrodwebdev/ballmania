@@ -214,6 +214,18 @@
     "powerLaser": "The lightning marble turns your next shot into a laser that pierces 4 marbles."
   },
   "training": {
+    "lessons": {
+      "swap": {
+        "touch": "The next marble fits better here: tap the launcher to swap.",
+        "mouse": "Right-click, or press X: swap, the next marble fits better here."
+      },
+      "charge": {
+        "touch": "Keep your finger still: the ring fills…",
+        "mouse": "Hold the click, or Space: the shot charges…"
+      },
+      "release": "…release: the charged shot flies twice as fast!",
+      "charged": "Charged!"
+    },
     "step": "Step {step} of {of}",
     "home": "Training",
     "skip": "Skip",

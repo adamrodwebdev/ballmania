@@ -122,6 +122,13 @@ export class Shooter {
     this.cooldownLeft = this.cooldown;
   }
 
+  /** Loads `current` and deals `next` after it (the training's swap lesson, v1.8.1). */
+  stage(current: Tone, next: Tone): void {
+    this.currentTone = current;
+    this.nextTone = next;
+    this.pinned = null;
+  }
+
   tick(dt: number): void {
     this.cooldownLeft = Math.max(0, this.cooldownLeft - dt);
   }

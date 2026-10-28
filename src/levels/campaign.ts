@@ -75,8 +75,8 @@ export interface CampaignLevel {
   readonly repeatChance: number;
   readonly speed: number;
   readonly hint?: HintId;
-  /** The hand's gesture, shown until its lesson is done (level 1-1, the training). */
-  readonly lesson?: Lesson;
+  /** The hand's lessons, each shown until it is done, in turn (level 1-1, the training). */
+  readonly lessons?: readonly Lesson[];
   /** The first shot is a Nova bomb (the training's first showcase). */
   readonly gift?: 'bomb';
   /** The chain's exact colours, tail first, laid out by hand (1-1, the training). */
@@ -262,7 +262,7 @@ const NEBULA: readonly CampaignLevel[] = [
     repeatChance: 0.55,
     speed: 30,
     hint: 'match',
-    lesson: 'shot',
+    lessons: ['shot'],
     sequence: [...FIRST_LEVEL].reverse(),
     opening: [2],
   }),

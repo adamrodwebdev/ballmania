@@ -26,9 +26,17 @@ const share = (runs: readonly ShowcaseRun[], reached: (run: ShowcaseRun) => bool
  * ends: without a defeat, nobody is ever stuck in it.
  */
 describe('the showcases played by newcomers', () => {
-  it('E1: the Nova, then a cascade', () => {
+  it('E1: the Nova, the swap and the charge, and a cascade', () => {
     const runs = play(1);
-    expect(share(runs, (run) => run.learntAt !== null)).toBe(1);
+    // Each control shown and done in at least nine games out of ten (v1.8.1), the first
+    // shot anywhere included.
+    expect(share(runs, (run) => run.lessons.shot !== undefined)).toBe(1);
+    for (const lesson of ['swap', 'charge'] as const) {
+      expect(
+        share(runs, (run) => run.lessons[lesson] !== undefined),
+        lesson,
+      ).toBeGreaterThanOrEqual(SURE);
+    }
     expect(share(runs, (run) => run.bestDepth >= 2)).toBeGreaterThanOrEqual(SURE);
     expect(share(runs, (run) => run.won)).toBe(1);
   }, 120_000);

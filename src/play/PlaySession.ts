@@ -21,6 +21,7 @@ import { TimeWarp } from './effects/TimeWarp';
 import { FrameCap } from './FrameCap';
 import { GameLoop } from './GameLoop';
 import { HandCoach } from './HandCoach';
+import type { Lesson } from '@/levels/LevelDefinition';
 import type { Haptics } from './Haptics';
 import type { Palette } from './Palette';
 import type { Look } from './cosmetics/Look';
@@ -87,8 +88,12 @@ export interface HudState {
    * rival's hole: won) to 1 (in the player's: lost); null elsewhere.
    */
   tug: number | null;
-  /** The hand's lesson is done (the first level, the training); null without a lesson. */
+  /** The hand's lessons are all done (the first level, the training); null without lessons. */
   taught: boolean | null;
+  /** The lesson the hand teaches now, for its line (v1.8.1); null between lessons or without. */
+  lesson: Lesson | null;
+  /** The shot held is fully charged: released, it flies twice as fast (v1.8.1). */
+  charged: boolean;
 }
 
 export interface SessionOptions {
@@ -108,6 +113,8 @@ export interface SessionOptions {
   readonly aimAssist?: boolean;
   /** Most frames drawn a second (60 on a touch screen, v1.7.6); every frame by default. */
   readonly frameRate?: number;
+  /** Words the board draws, in the player's language (v1.8.1): a charged shot's badge. */
+  readonly words?: { readonly charged: string };
 }
 
 /** Sound and vibrations, shared by every game of the visit. */
@@ -185,6 +192,7 @@ export class PlaySession {
   private recoil = 0;
   /** The hand that teaches the level's gesture (its `lesson`), or null. */
   private coach: HandCoach | null = null;
+  private readonly words: { readonly charged: string } | null;
   /** Puzzle hint: the ball circled, and until when (session time). */
   private hinted: { readonly at: Vec2; readonly until: number } | null = null;
   /** An ad is playing over the game: time stands still, without the pause menu. */
@@ -202,6 +210,7 @@ export class PlaySession {
     } = options);
     this.seed = options.seed ?? (() => `${options.level.id}:${Date.now()}`);
     this.root = options.root ?? 55;
+    this.words = options.words ?? null;
     this.aimAssist = options.aimAssist ?? true;
     this.game = this.createGame();
     this.renderer = new CanvasRenderer(this.canvas, this.game, this.palette, this.look);
@@ -487,8 +496,8 @@ export class PlaySession {
 
   private createGame(): Game {
     const game = new Game(toLevelSetup(this.level), SeededRandom.fromString(this.seed()));
-    const { lesson, nudge } = this.level;
-    this.coach = lesson ? new HandCoach(game, lesson, nudge ?? null) : null;
+    const { lessons, nudge } = this.level;
+    this.coach = lessons ? new HandCoach(game, lessons, nudge ?? null) : null;
     const { sound, haptics } = this.feedback;
     game.events.on('inserted', ({ ball, from }) => {
       this.motion.land(ball, from);
@@ -680,6 +689,8 @@ export class PlaySession {
       slow: null,
       powerShot: null,
       taught: this.coach ? this.coach.learnt : null,
+      lesson: this.coach?.teaching ?? null,
+      charged: false,
     };
   }
 
@@ -706,6 +717,8 @@ export class PlaySession {
         this.feedback.sound.charged();
       }
     }
+    const charged = this.powered;
+    if (this.hud.charged !== charged) this.hud.charged = charged;
     if (this.turning !== 0 && this.acceptsCommands) {
       this.game.shooter.aim(this.game.shooter.angle + this.turning * 2.4 * realDt);
     }
@@ -713,6 +726,8 @@ export class PlaySession {
     if (this.coach) {
       this.coach.update(dt, this.coachable);
       if (this.hud.taught !== this.coach.learnt) this.hud.taught = this.coach.learnt;
+      const teaching = this.coach.teaching;
+      if (this.hud.lesson !== teaching) this.hud.lesson = teaching;
     }
     if (this.game.state === 'lost') this.motion.drain(DRAIN_SPEED, dt);
     this.motion.update(this.game.chains, dt);
@@ -840,6 +855,9 @@ export class PlaySession {
       colossusFlash: this.colossusFlash,
       hint: this.hinted && this.time < this.hinted.until ? this.hinted.at : null,
       tutorial: this.coach?.gesture ?? null,
+      // The charge's lesson (v1.8.1): once the ring is full, a badge says so by the launcher.
+      charged:
+        this.hud.lesson === 'charge' && this.hud.charged ? (this.words?.charged ?? null) : null,
     });
     if (!this.distortion) return;
     const k = this.renderer.deviceScale;

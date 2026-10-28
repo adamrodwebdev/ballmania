@@ -22,7 +22,13 @@ defineExpose({ bar });
 
 <template>
   <div ref="bar" class="controls">
-    <button class="btn control swap" type="button" data-testid="swap" @click="emit('swap')">
+    <button
+      class="btn control swap"
+      :class="{ lesson: hud?.lesson === 'swap' }"
+      type="button"
+      data-testid="swap"
+      @click="emit('swap')"
+    >
       <span class="balls" aria-hidden="true">
         <span class="dot" :class="`tone-${hud?.current ?? 0}`"></span>
         <span class="dot small" :class="`tone-${hud?.next ?? 0}`"></span>
@@ -108,6 +114,40 @@ defineExpose({ bar });
 
 .control:active:not(:disabled) {
   transform: translateY(2px);
+}
+
+/* The swap's lesson (v1.8.1): a ring of light leaves the button, again and again, until the swap. */
+.swap.lesson {
+  position: relative;
+  border-color: var(--accent);
+}
+
+.swap.lesson::after {
+  position: absolute;
+  inset: -0.3rem;
+  border: 3px solid var(--accent);
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+  animation: lesson 1.2s ease-out infinite;
+}
+
+@keyframes lesson {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.18, 1.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swap.lesson::after {
+    animation: none;
+  }
 }
 
 /* The buttons pressed all game long (swap, magnet, Nova): 48 px under a finger (v1.7.6). */

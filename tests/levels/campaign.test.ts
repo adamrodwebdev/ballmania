@@ -82,7 +82,7 @@ describe('campaign', () => {
   it('lays out level 1-1 for a first cascade, without the Nova of the training (v1.8.0)', () => {
     const first = findLevel('nebula-01')!;
     expect(first.gift).toBeUndefined();
-    expect(first.lesson).toBe('shot');
+    expect(first.lessons).toEqual(['shot']);
     const tailFirst = first.sequence!;
     const chain = chainOf(tailFirst.map((tone) => String.fromCharCode(97 + tone)).join(''));
     // Head first: the colour dealt first has a pair at 3 and 4, between two pairs of

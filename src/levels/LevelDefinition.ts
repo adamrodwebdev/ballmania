@@ -63,9 +63,10 @@ export interface ChainDefinition {
 
 /**
  * What a level's hand gesture teaches, shown until it is done (§ 3.13): a
- * shot at the chain, a bank shot off a mirror, a shot the black hole bends.
+ * shot at the chain, a bank shot off a mirror, a shot the black hole bends;
+ * a swap, when the next ball does better, and a charged shot (v1.8.1).
  */
-export type Lesson = 'shot' | 'bank' | 'curve';
+export type Lesson = 'shot' | 'bank' | 'curve' | 'swap' | 'charge';
 
 /**
  * How a won level of the training ends (§ 3.13): a short burst, on to the
@@ -121,9 +122,9 @@ export interface LevelDefinition {
   readonly halt?: number;
   /** Near the hole, the chains slow down (the campaign's grace zone, v1.8.0). */
   readonly grace?: Grace;
-  /** The hand's gesture, shown until its lesson is done (the first level, the training). */
-  readonly lesson?: Lesson;
-  /** Seconds without a shot after which the hand comes back, its lesson done (training). */
+  /** The hand's lessons, each shown until it is done, in turn (the first level, the training). */
+  readonly lessons?: readonly Lesson[];
+  /** Seconds without a shot after which the hand comes back, its lessons done (training). */
   readonly nudge?: number;
   /** How a win ends (the training, see `Victory`); the full victory without. */
   readonly victory?: Victory;

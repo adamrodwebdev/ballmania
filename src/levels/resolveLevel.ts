@@ -131,7 +131,7 @@ export function resolveLevel(
     ...(hazards ? { hazards } : {}),
     ...(grace ? { grace } : {}),
     ...(rule.score === 1 ? {} : { scoreFactor: rule.score }),
-    ...(level.lesson ? { lesson: level.lesson } : {}),
+    ...(level.lessons ? { lessons: level.lessons } : {}),
   };
 }
 

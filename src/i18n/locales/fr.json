@@ -214,6 +214,18 @@
     "powerLaser": "La bille éclair transforme votre prochain tir en laser qui traverse 4 billes."
   },
   "training": {
+    "lessons": {
+      "swap": {
+        "touch": "La suivante va mieux ici\u00a0: touchez le lanceur pour échanger.",
+        "mouse": "Clic droit, ou X\u00a0: échangez, la suivante va mieux ici."
+      },
+      "charge": {
+        "touch": "Gardez le doigt immobile\u00a0: l’anneau se remplit…",
+        "mouse": "Maintenez le clic, ou Espace\u00a0: le tir se charge…"
+      },
+      "release": "…relâchez\u00a0: le tir chargé file deux fois plus vite\u00a0!",
+      "charged": "Chargé\u00a0!"
+    },
     "step": "Étape {step} sur {of}",
     "home": "Entraînement",
     "skip": "Passer",

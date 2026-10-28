@@ -187,7 +187,7 @@ describe('what the game screen asks its mode (v1.7.6)', () => {
 
   it('a campaign level: ranked, assisted on request, taught by a gesture at 1-1', () => {
     const mode = createMode({ kind: 'campaign', level: first, assisted: true });
-    expect(mode.definition(FRAMES.square, play(false, 'pilot')).lesson).toBe('shot');
+    expect(mode.definition(FRAMES.square, play(false, 'pilot')).lessons).toEqual(['shot']);
     expect(mode.assisted).toBe(true);
     expect(mode.ranked).toBe(true);
     expect(mode.assistLevel).toBe(first.id);
@@ -251,10 +251,10 @@ describe('the training (v1.8.0)', () => {
     expect(e1.halt).toBeLessThan(1);
     expect(e1.victory).toBe('short');
     expect(e1.gift).toBe('bomb');
-    expect(e1.lesson).toBe('shot');
+    expect(e1.lessons).toEqual(['shot', 'swap', 'charge']);
     const e3 = createMode({ kind: 'training', step: 3 }).definition(FRAMES.square, options);
     expect(e3.victory).toBe('promise');
-    expect(e3.lesson).toBe('curve');
+    expect(e3.lessons).toEqual(['curve']);
     expect(e3.gravity).toBeDefined();
   });
 
