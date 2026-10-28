@@ -271,4 +271,23 @@ describe('PointerControls', () => {
     expect(commands.fire).toHaveBeenCalledTimes(1);
     expect(shot()).toEqual([192, 290]);
   });
+
+  it('keeps charging while a finger trembles or corrects its aim by a few pixels (v1.8.1)', () => {
+    const { commands, send } = setup();
+    send('pointerdown', 100, 400, 0);
+    send('pointermove', 106, 404, 60);
+    send('pointermove', 112, 396, 140);
+    send('pointermove', 104, 390, 260);
+    expect(commands.charge).toHaveBeenCalledTimes(1);
+    expect(commands.aimAt).toHaveBeenLastCalledWith(104, 390);
+  });
+
+  it('starts the charge again after a real move of the finger', () => {
+    const { commands, send } = setup();
+    send('pointerdown', 100, 400, 0);
+    send('pointermove', 140, 380, 120);
+    expect(commands.charge).toHaveBeenCalledTimes(2);
+    send('pointermove', 150, 385, 200);
+    expect(commands.charge).toHaveBeenCalledTimes(2);
+  });
 });

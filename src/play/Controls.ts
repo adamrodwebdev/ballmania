@@ -16,7 +16,13 @@ export interface PlayCommands {
   toggleMagnet(): void;
 }
 
-/** A finger moving less than this (CSS pixels) keeps charging the shot. */
+/**
+ * A finger that stays within this distance (CSS pixels, about 3 mm on a phone)
+ * of where its charge began keeps charging the shot (v1.8.1): its tremor and
+ * small aim corrections no longer start the charge again, a real move does.
+ */
+const HOLD = 18;
+/** A finger moving less than this (CSS pixels) as it lifts has not slid. */
 const STILL = 6;
 /**
  * The contact point slides as a finger lifts (v1.8.1, spec § 3.17): when the
@@ -104,8 +110,8 @@ export class PointerControls {
         this.trail.shift();
       }
     }
-    // A finger that moves is still aiming: the charge starts again once it stops.
-    if (this.still && Math.hypot(x - this.still[0], y - this.still[1]) > STILL) {
+    // A finger that really moves is still aiming: the charge starts again once it holds.
+    if (this.still && Math.hypot(x - this.still[0], y - this.still[1]) > HOLD) {
       this.still = [x, y];
       this.commands.charge();
     }
