@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                        |
-| ------- | ---------- | --------------------------------------------- |
-| 1.18    | 27/10/2026 | Même tracé sur chaque plateau (étape 3 sur 7) |
+| Version | Date       | Statut                                      |
+| ------- | ---------- | ------------------------------------------- |
+| 1.19    | 28/10/2026 | Visée et charge au toucher (étape 4 sur 11) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1918,6 +1918,19 @@ tables de départ supposaient le large partout. L'écran de jeu donne désormais
 (`data-board`) : un relevé des 72 niveaux sur deux téléphones et trois fenêtres d'ordinateur
 dira lequel chaque robot doit jouer, avant les tableaux (étape 5).
 
+**Visée et charge au toucher** (étape 4, essai validé par l'auteur sur son téléphone le
+28/10/2026) :
+
+- **La visée d'avant le lever** (`src/play/Controls.ts`) : si le doigt a glissé de plus de 6 px
+  dans les 80 ms qui précèdent son lever, le tir garde la visée d'avant ce glissement ; sinon,
+  celle du point de lever. La souris ne change pas.
+- **La charge tient sous le doigt** : elle ne repart de zéro qu'au-delà de 18 px (environ 3 mm)
+  de son point de départ, au lieu de 6 px, si bien que le tremblement du doigt et les retouches
+  de visée ne la vident plus ; le tir chargé, presque jamais atteint au téléphone, l'est
+  désormais. À la souris, la charge court depuis l'appui, comme avant.
+- **Le Ralenti garde les couleurs** (`PowerPainter.frost`) : un liseré de givre autour des
+  billes remplace le voile clair qui délavait leurs couleurs pendant 8 s, le cyan d'abord.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -2549,3 +2562,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.16    | 27/10/2026 | Version 1.8.1, étape 1 : l'équilibre entre le téléphone et l'ordinateur, ce que la 1.8.1 retient des études publiées, ses joueurs-robots, la visée au toucher, la porte de dépôt CrazyGames et les tables de départ des 72 niveaux sur les deux plateaux (§ 3.17). |
 | 1.17    | 27/10/2026 | Version 1.8.1, étape 2 : les joueurs-robots par appareil, trois nouveaux venus sur chacun, et le monde 1 remesuré sur les deux plateaux (§ 3.17).                                                                                                                  |
 | 1.18    | 27/10/2026 | Version 1.8.1, étape 3 : les serpentins et les jumeaux tiennent le même tracé sur le téléphone et l'ordinateur, les tirs cachés, le plateau de chaque appareil (§ 3.17).                                                                                           |
+| 1.19    | 28/10/2026 | Version 1.8.1, étape 4 : au toucher, la visée d'avant le lever du doigt, la charge qui tient sous le doigt, le Ralenti qui garde les couleurs (§ 3.17).                                                                                                            |
