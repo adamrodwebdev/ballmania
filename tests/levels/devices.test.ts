@@ -1,13 +1,16 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { WORLDS, type CampaignLevel } from '@/levels/campaign';
-import { FRAMES } from '@/levels/tracks';
-import { BOARD_OF, playRobot, robotOf, type BotResult, type Device, type Newcomer } from './bot';
+import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
+import { FRAMES, type FrameKind } from '@/levels/tracks';
+import { boardOn, SCREENS, SURVEYED_IDS, type Screen } from './boards';
+import { playRobot, robotOf, type BotResult, type Newcomer } from './bot';
 
 /**
  * Each level as phone and desktop players meet it (v1.8.1, spec § 3.17): the
- * three newcomers on each device, on its own board, 24 sequences of colours
- * each played by three hands, 72 games a robot.
+ * newcomers on each screen, on the board the game gives that level there
+ * (`boards.ts`), 24 sequences of colours each played by three hands, 72
+ * games a robot; the typical newcomer on every screen, the slow one at the
+ * finger too.
  *
  * `DEVICES=nebula npx vitest run tests/levels/devices.test.ts` writes the
  * tables of a world to `reports/appareils-nebula.md`; `DEVICES=all`, of every world.
@@ -16,11 +19,17 @@ const COLOURS = Array.from({ length: 24 }, (_, i) => `tension-${i}`);
 const HANDS = 3;
 /** Past this share of its track, the head of a chain makes a near miss. */
 const NEAR_MISS = 0.8;
-const DEVICE_NAMES: Readonly<Record<Device, string>> = { finger: 'Téléphone', mouse: 'Ordinateur' };
+const BOARD_NAMES: Readonly<Record<FrameKind, string>> = {
+  square: 'carré',
+  portrait: 'portrait',
+  landscape: 'paysage',
+  tall: 'haut',
+  wide: 'large',
+};
 
-const play = (level: CampaignLevel, device: Device, newcomer: Newcomer): BotResult[] => {
-  const robot = robotOf(newcomer, device);
-  const frame = FRAMES[BOARD_OF[device]];
+const play = (level: CampaignLevel, screen: Screen, newcomer: Newcomer): BotResult[] => {
+  const robot = robotOf(newcomer, SCREENS[screen].device);
+  const frame = FRAMES[boardOn(level, screen)];
   return COLOURS.flatMap((seed) =>
     Array.from({ length: HANDS }, (_, hand) =>
       playRobot(level, frame, seed, robot, `${seed}/${hand}`),
@@ -45,27 +54,24 @@ const wins = (games: readonly BotResult[]): number =>
 const label = (level: CampaignLevel): string =>
   `${WORLDS.findIndex((world) => world.id === level.world) + 1}-${level.number}`;
 
-/** A world as one device's three newcomers play it, as a Markdown table. */
-function table(levels: readonly CampaignLevel[], device: Device): string {
+/** A world as one screen's newcomers play it, as a Markdown table. */
+function table(levels: readonly CampaignLevel[], screen: Screen): string {
+  const finger = SCREENS[screen].device === 'finger';
   const lines = [
-    `${DEVICE_NAMES[device]} (plateau ${BOARD_OF[device] === 'tall' ? 'haut' : 'large'}) : ${COLOURS.length} suites de couleurs × ${HANDS} mains par robot.`,
+    `${SCREENS[screen].name} : ${COLOURS.length} suites de couleurs × ${HANDS} mains par robot.`,
     '',
-    '| Niveau | Victoires typique | lent | vif | Durée typique | Pointe typique | Quasi-défaites typique | Sous pression typique |',
-    '| ------ | ----------------- | ---- | --- | ------------- | -------------- | ---------------------- | --------------------- |',
+    `| Niveau | Plateau | Victoires typique |${finger ? ' lent |' : ''} Durée typique | Pointe typique | Quasi-défaites typique | Sous pression typique |`,
+    `| ------ | ------- | ----------------- |${finger ? ' ---- |' : ''} ------------- | -------------- | ---------------------- | --------------------- |`,
   ];
   for (const level of levels) {
-    const games = {
-      typical: play(level, device, 'typical'),
-      slow: play(level, device, 'slow'),
-      quick: play(level, device, 'quick'),
-    };
-    const typical = games.typical;
+    const typical = play(level, screen, 'typical');
+    const slow = finger ? play(level, screen, 'slow') : null;
     lines.push(
       `| ${[
         label(level),
+        BOARD_NAMES[boardOn(level, screen)],
         share(wins(typical)),
-        share(wins(games.slow)),
-        share(wins(games.quick)),
+        ...(slow ? [share(wins(slow))] : []),
         clock(median(typical.filter((game) => game.outcome === 'won').map((game) => game.elapsed))),
         share(median(typical.map((game) => game.danger))),
         `${typical.filter((game) => game.danger >= NEAR_MISS).length}/${typical.length}`,
@@ -77,6 +83,15 @@ function table(levels: readonly CampaignLevel[], device: Device): string {
 }
 
 describe('levels on the phone and on the desktop (v1.8.1)', () => {
+  it('knows the board of every campaign level on every screen', () => {
+    expect([...SURVEYED_IDS].sort()).toEqual(CAMPAIGN.map((level) => level.id).sort());
+    for (const level of CAMPAIGN) {
+      for (const screen of ['phone', 'phoneFull', 'desktop', 'window'] as const) {
+        expect(Object.keys(FRAMES)).toContain(boardOn(level, screen));
+      }
+    }
+  });
+
   const selected = process.env.DEVICES;
   it.runIf(selected)(
     "writes a world's tables",
@@ -85,13 +100,13 @@ describe('levels on the phone and on the desktop (v1.8.1)', () => {
       expect(worlds.length, `DEVICES=${selected ?? ''}`).toBeGreaterThan(0);
       mkdirSync('reports', { recursive: true });
       for (const world of worlds) {
-        const text = (['finger', 'mouse'] as const)
-          .map((device) => table(world.levels, device))
+        const text = (Object.keys(SCREENS) as Screen[])
+          .map((screen) => table(world.levels, screen))
           .join('\n\n');
         writeFileSync(`reports/appareils-${world.id}.md`, `${text}\n`);
         console.log(`\n${text}\n`);
       }
     },
-    3_600_000,
+    10_800_000,
   );
 });
