@@ -105,15 +105,16 @@ export class SoundEngine {
     this.musicPlayer?.play(this.playable);
   }
 
-  /** The world's music again after a defeat's silence (a new game, a continue). */
+  /** The world's music again after a defeat's silence (a new game, a continue), at rest. */
   restoreMusic(): void {
     this.hushed = false;
+    this.musicPlayer?.setDanger(0);
     this.musicPlayer?.play(this.playable);
   }
 
-  /** How close the danger is, 0 to 1: the music tightens. */
-  setTension(tension: number): void {
-    this.musicPlayer?.setIntensity(tension);
+  /** How far the chain's head has gone along its track (0 to 1): the music tenses by tiers. */
+  setDanger(share: number): void {
+    this.musicPlayer?.setDanger(share);
   }
 
   setMusicVolume(volume: number): void {

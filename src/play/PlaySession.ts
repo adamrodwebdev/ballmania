@@ -5,7 +5,7 @@ import { SeededRandom } from '@/engine/core/Random';
 import { Game, type GameReport, type GameState } from '@/engine/Game';
 import type { PowerKind, PowerShot } from '@/engine/powers/Powers';
 import { Vec2 } from '@/engine/geometry/Vec2';
-import { ALARM_FROM, MUSIC_FROM, rise } from './dangerCues';
+import { ALARM_FROM, rise } from './dangerCues';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
 import { BallMotion } from './BallMotion';
 import type { SpriteCanvas } from './canvas';
@@ -798,7 +798,7 @@ export class PlaySession {
   private beatHeart(realDt: number): void {
     if (this.game.state !== 'playing') return;
     const danger = Math.max(0, ...this.game.chains.map((chain) => chain.progress));
-    this.feedback.sound.setTension(rise(danger, MUSIC_FROM));
+    this.feedback.sound.setDanger(danger);
     if (danger < ALARM_FROM) {
       this.heartIn = 0;
       // Far enough again: the next approach will be announced too.
