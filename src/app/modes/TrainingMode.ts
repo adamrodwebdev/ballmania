@@ -89,6 +89,11 @@ export class TrainingMode implements PlayMode {
     return won && this.last;
   }
 
+  /** No defeat in the training: its chain stops before the hole. */
+  defeat(): null {
+    return null;
+  }
+
   outcome(won: boolean): Message {
     if (!won) return { key: 'game.lost' };
     return { key: this.last ? 'training.end.title' : 'game.won' };

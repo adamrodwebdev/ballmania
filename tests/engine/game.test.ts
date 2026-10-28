@@ -99,6 +99,15 @@ describe('Game', () => {
     expect(game.fire()).toBe(false);
   });
 
+  it('reports the balls still in the chain when it is lost (v1.8.1)', () => {
+    const game = new Game(level(10), SeededRandom.fromString('lost'));
+    until(game, () => game.state !== 'playing', 40);
+    const left = game.chains.reduce((sum, chain) => sum + chain.balls.length, 0);
+    expect(left).toBeGreaterThan(0);
+    expect(game.summary().ballsLeft).toBe(left);
+    expect(game.summary().colossus).toBeNull();
+  });
+
   it('is won when the last balls explode', () => {
     // Fixed randomness: a chain of two balls of tone 0, and a shooter loaded with tone 0.
     const game = new Game(level(2, 2), new FixedRandom(0));

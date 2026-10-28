@@ -53,6 +53,32 @@
     "ru": "Русский"
   },
   "game": {
+    "defeat": {
+      "close": "Nyaris!",
+      "lost": "Rantai menang",
+      "marblesLeft": {
+        "close": "Tinggal {count} bola lagi",
+        "far": "Masih ada {count} bola"
+      },
+      "colossusLeft": {
+        "close": "Kolosus tinggal {count} HP lagi",
+        "far": "Kolosus masih punya {count} HP"
+      },
+      "shareChain": "{share} rantai hancur",
+      "shareColossus": "{share} HP-nya hilang",
+      "reaction": "Reaksi ×{depth}",
+      "tip": "Tips",
+      "tips": {
+        "swap": {
+          "touch": "Sentuh penembak untuk menukar saat bola berikutnya lebih cocok.",
+          "mouse": "Klik kanan, atau tekan X, untuk menukar saat bola berikutnya lebih cocok."
+        },
+        "charge": {
+          "touch": "Tahan jari tanpa bergerak: cincin terisi, dan tembakan bermuatan melesat lebih cepat.",
+          "mouse": "Tahan klik, atau Spasi: tembakan bermuatan melesat lebih cepat."
+        }
+      }
+    },
     "board": "Papan permainan",
     "help": "Bidik dengan mouse atau jari, lalu lepaskan untuk menembak. Keyboard: panah untuk membidik (tahan Shift agar lebih presisi), Spasi untuk menembak, X untuk menukar, P untuk jeda.",
     "score": "Skor",

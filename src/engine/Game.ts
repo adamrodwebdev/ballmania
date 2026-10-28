@@ -167,6 +167,12 @@ export interface GameReport {
   readonly curves: number;
   /** Shots the player fired. */
   readonly shots: number;
+  /** Of those, shots fired charged (a laser aside). */
+  readonly chargedShots: number;
+  /** Balls still in the chains, on the track or in its tunnel, when the game ended (0 after a win). */
+  readonly ballsLeft: number;
+  /** The Colossus as the game ended (its hit points left and at the start), or null without one. */
+  readonly colossus: { readonly hp: number; readonly maxHp: number } | null;
   /** Highest groove multiplier reached (Rhythm mode; 1 elsewhere). */
   readonly bestGroove: number;
   /** Last stage reached (Endless mode; 0 elsewhere). */
@@ -327,6 +333,7 @@ export class Game {
   private bestGroove = 1;
   private beatIndex = 0;
   private shotsFired = 0;
+  private chargedFired = 0;
   /** The player's last shots in a row of a colour that had no pair on the board. */
   private dryShots = 0;
   private readonly random: RandomSource;
@@ -861,6 +868,12 @@ export class Game {
       switches: this.flips,
       curves: this.curves,
       shots: this.shotsFired,
+      chargedShots: this.chargedFired,
+      ballsLeft:
+        this.stateValue === 'won'
+          ? 0
+          : this.chains.reduce((sum, chain) => sum + chain.balls.length, 0),
+      colossus: this.colossus ? { hp: this.colossus.hp, maxHp: this.colossus.maxHp } : null,
       bestGroove: this.bestGroove,
       stage: this.stage ?? 0,
       rivalScore: this.rivalScoring.score,
@@ -909,6 +922,7 @@ export class Game {
       this.gift = false;
     } else if (special !== null && special === this.powers.loaded) this.powers.spend();
     this.shotsFired++;
+    if (power && special !== 'laser') this.chargedFired++;
     this.flying.push(projectile);
     this.events.emit('fired', { projectile });
     if (this.tempo) {

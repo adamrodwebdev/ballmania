@@ -53,6 +53,32 @@
     "ru": "Русский"
   },
   "game": {
+    "defeat": {
+      "close": "Si près\u00a0!",
+      "lost": "La chaîne l’emporte",
+      "marblesLeft": {
+        "close": "Plus aucune bille | Plus qu’{count} bille | Plus que {count} billes",
+        "far": "Plus aucune bille | Encore {count} bille | Encore {count} billes"
+      },
+      "colossusLeft": {
+        "close": "Le Colosse n’a plus de points de vie | Le Colosse n’a plus qu’{count} point de vie | Le Colosse n’a plus que {count} points de vie",
+        "far": "Le Colosse n’a plus de points de vie | Le Colosse a encore {count} point de vie | Le Colosse a encore {count} points de vie"
+      },
+      "shareChain": "{share} de la chaîne détruite",
+      "shareColossus": "{share} de ses points de vie perdus",
+      "reaction": "Réaction ×{depth}",
+      "tip": "Astuce",
+      "tips": {
+        "swap": {
+          "touch": "Touchez le lanceur pour échanger quand la bille suivante va mieux.",
+          "mouse": "Clic droit, ou X, pour échanger quand la bille suivante va mieux."
+        },
+        "charge": {
+          "touch": "Gardez le doigt immobile\u00a0: l’anneau se remplit, et le tir chargé file plus vite.",
+          "mouse": "Maintenez le clic, ou Espace\u00a0: le tir chargé file plus vite."
+        }
+      }
+    },
     "board": "Plateau de jeu",
     "help": "Visez avec la souris ou le doigt, puis relâchez pour tirer. Au clavier\u00a0: flèches pour viser (maintenez Maj pour affiner), Espace pour tirer, X pour échanger, P pour la pause.",
     "score": "Score",

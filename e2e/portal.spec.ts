@@ -127,7 +127,7 @@ test.describe('portal build', () => {
     await page.goto('./');
     await expect(page.getByTestId('board')).toBeVisible();
     await page.clock.runFor(150_000);
-    const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    const dialog = page.getByRole('dialog', { name: 'The chain wins' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('ad-continue')).toContainText('Watch an ad');
     // The ad offer looks like any other choice, and shards are the way without an ad.
@@ -207,7 +207,7 @@ test.describe('portal build', () => {
     await page.goto('./?ads=off');
     await expect(page.getByTestId('board')).toBeVisible();
     await page.clock.runFor(150_000);
-    const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    const dialog = page.getByRole('dialog', { name: 'The chain wins' });
     await expect(dialog).toBeVisible();
     // Continuing is still offered, for shards only, and says why it can't be taken yet.
     await expect(dialog.getByTestId('ad-continue')).toHaveCount(0);

@@ -8,6 +8,7 @@ import type { TrainingStep } from '@/levels/training';
 import type { DailyChallenge } from '@/player/DailyChallenge';
 import type { Rewards } from '@/player/PlayerProfile';
 import type { AppServices } from '../AppServices';
+import type { Aiming, DefeatSummary } from '../DefeatSummary';
 import type { PlayRequest } from '../PlayRequest';
 
 /** A showcase of the training (v1.8.0): its place among them, for the dots, and the way out. */
@@ -126,6 +127,12 @@ export interface PlayMode {
   definition(frame: Frame, options: PlayOptions): LevelDefinition;
   /** Saves the finished game and pays its rewards. */
   settle(report: GameReport, services: AppServices): Settlement;
+  /**
+   * A lost game as the defeat screen tells it (v1.8.1): how close it came and
+   * a tip, for a level lost to the chain; null where a defeat means something
+   * else (Arcade modes) or cannot happen (the training).
+   */
+  defeat(report: GameReport, aiming: Aiming): DefeatSummary | null;
   /** What to offer after a win, if anything is open. */
   next(services: AppServices): NextGame | null;
 }

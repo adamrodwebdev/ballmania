@@ -15,6 +15,7 @@ import type { Frame } from '@/levels/tracks';
 import type { DailyChallenge } from '@/player/DailyChallenge';
 import { ASSIST_SPEED } from '@/player/rewards';
 import type { AppServices } from '../AppServices';
+import { DefeatSummary, type Aiming } from '../DefeatSummary';
 import type { PlayRequest } from '../PlayRequest';
 import type { Message, NextGame, PlayMode, PlayOptions, Settlement } from './PlayMode';
 
@@ -127,6 +128,10 @@ export class CampaignMode implements PlayMode {
     return won && this.finale;
   }
 
+  defeat(report: GameReport, aiming: Aiming): DefeatSummary {
+    return DefeatSummary.of(report, aiming, this.hint);
+  }
+
   definition(frame: Frame, { assisted, difficulty, upgrades }: PlayOptions): LevelDefinition {
     const resolved = resolveLevel(this.level, frame, difficulty);
     return {
@@ -229,6 +234,11 @@ export class DailyMode implements PlayMode {
 
   celebrates(): boolean {
     return false;
+  }
+
+  /** The daily result keeps its own defeat: the first attempt's score counts and is shared. */
+  defeat(): null {
+    return null;
   }
 
   definition(frame: Frame): LevelDefinition {

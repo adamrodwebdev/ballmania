@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
+import type { Aiming, DefeatSummary } from '@/app/DefeatSummary';
 import { EndOfGame } from '@/app/EndOfGame';
 import { createMode, type Message, type Settlement } from '@/app/modes';
 import { shortName } from '@/app/modes/CampaignModes';
@@ -57,6 +58,10 @@ const hintVisible = ref(mode.hint !== null && !card.value);
  */
 const extraRow = mode.alchemy || mode.rope || mode.boss !== null;
 const settlement = shallowRef<Settlement | null>(null);
+/** A level lost to the chain, as its defeat screen tells it (v1.8.1), or null. */
+const defeat = shallowRef<DefeatSummary | null>(null);
+/** A finger or a mouse: the defeat's tip names the gesture as the player makes it. */
+const aiming = (): Aiming => (window.matchMedia('(pointer: coarse)').matches ? 'touch' : 'mouse');
 /** What became of the last rewarded ad, for the result and the screen reader. */
 const adMessage = ref('');
 
@@ -168,7 +173,9 @@ watch(
     // The end of a game is the game's moment: the starting hint steps aside.
     if (state !== undefined && state !== 'playing') hintVisible.value = false;
     const play = session.value;
+    if (state === 'playing') defeat.value = null;
     if (!play || state === undefined || state === 'playing') return;
+    if (state === 'lost') defeat.value = mode.defeat(play.summary(), aiming());
     if (state === 'lost' && endOfGame.holdDefeat(play.revivable)) return;
     settle();
   },
@@ -177,6 +184,7 @@ watch(
 const restart = () => {
   settleNow();
   settlement.value = null;
+  defeat.value = null;
   endOfGame.restart();
   adMessage.value = '';
   newGame();
@@ -372,6 +380,7 @@ const leaveToMenu = () => {
       :mode="mode"
       :hud="hud"
       :settlement="settlement"
+      :defeat="defeat"
       :puzzle-result="puzzleResult"
       :offer-continue="offerContinue"
       :offer-assist="offerAssist"

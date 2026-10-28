@@ -153,7 +153,7 @@ test.describe('campaign', () => {
     await expect(page.getByText('2 / 36 stars')).toBeVisible();
   });
 
-  test('shows the result when the chain reaches the hole, and goes back to the map', async ({
+  test('shows the defeat when the chain reaches the hole, and goes back to the map', async ({
     page,
   }) => {
     // Simulating a whole level frame by frame takes a while.
@@ -166,8 +166,16 @@ test.describe('campaign', () => {
     await expect(page.getByTestId('level')).toHaveText('1-1');
     // Nobody shoots: the chain reaches the hole, slowed down in its last fifth (v1.8.0).
     await page.clock.runFor(150_000);
-    const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    // Its own screen (v1.8.1): nothing destroyed, so the chain wins, and a tip for the
+    // gesture never made; "Play again" has the focus.
+    const dialog = page.getByRole('dialog', { name: 'The chain wins' });
     await expect(dialog).toBeVisible();
+    await expect(dialog.getByTestId('defeat-left')).toHaveText(/^\d+ marbles left$/);
+    await expect(dialog.getByTestId('defeat-share')).toHaveText('0% of the chain destroyed');
+    await expect(dialog.getByTestId('defeat-tip')).toContainText(
+      'to swap when the next marble fits better',
+    );
+    await expect(dialog.getByTestId('replay')).toBeFocused();
     await dialog.getByTestId('map').click();
     await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
   });
@@ -319,10 +327,10 @@ test('offers help after three failures in a row on a level', async ({ page }) =>
   await page.getByTestId('level-nebula-01').click();
   await expect(page.getByTestId('board')).toBeVisible();
   await page.clock.runFor(150_000);
-  const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+  const dialog = page.getByRole('dialog', { name: 'The chain wins' });
   await expect(dialog).toBeVisible();
-  // The first choice has the focus: Enter takes it, not "Play again".
-  await expect(dialog.getByTestId('assist')).toBeFocused();
+  // "Play again" comes first (v1.8.1): Enter replays, and the help is the next choice.
+  await expect(dialog.getByTestId('replay')).toBeFocused();
   await dialog.getByTestId('assist').click();
   await expect(dialog).toBeHidden();
   await expect(page.getByTestId('assisted')).toHaveText('Help on');
