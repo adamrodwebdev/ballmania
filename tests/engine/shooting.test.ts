@@ -109,6 +109,16 @@ describe('the shooting module', () => {
     expect(game.preview(false, game.aimLine(), true)?.reaction.length).toBeGreaterThan(0);
   });
 
+  it('counts the charged shots among the shots (v1.8.1)', () => {
+    const game = new Game(level([0, 1, 2, 0, 1, 2]), new FixedRandom(0));
+    game.aimAt(new Vec2(500, 0));
+    expect(game.fire(true)).toBe(true);
+    for (let step = 0; step < 600 && !game.shooter.ready; step++) game.update(1 / 120);
+    expect(game.fire()).toBe(true);
+    expect(game.summary().shots).toBe(2);
+    expect(game.summary().chargedShots).toBe(1);
+  });
+
   it("loads a puzzle hint's colour without counting a swap of the player", () => {
     const game = new Game(level([0, 1, 2, 0, 1, 2]), new FixedRandom(0));
     const other = game.shooter.next;

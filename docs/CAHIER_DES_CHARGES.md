@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                      |
-| ------- | ---------- | ------------------------------------------- |
-| 1.19    | 28/10/2026 | Visée et charge au toucher (étape 4 sur 11) |
+| Version | Date       | Statut                               |
+| ------- | ---------- | ------------------------------------ |
+| 1.20    | 28/10/2026 | Écran de la défaite (étape 6 sur 11) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1931,6 +1931,28 @@ dira lequel chaque robot doit jouer, avant les tableaux (étape 5).
 - **Le Ralenti garde les couleurs** (`PowerPainter.frost`) : un liseré de givre autour des
   billes remplace le voile clair qui délavait leurs couleurs pendant 8 s, le cyan d'abord.
 
+**Écran de la défaite** (étape 6, le 28/10/2026, maquette validée par l'auteur) : une défaite
+de campagne a son écran à elle (`DefeatReport`, d'après `DefeatSummary`) ; le défi du jour,
+l'Arcade et l'entraînement, où l'on ne perd pas, gardent le panneau de fin.
+
+- **Ce qui manquait, en vrai** : le trou qui l'a emporté, puis « Si près ! » dès 70 % du niveau
+  détruit, « La chaîne l'emporte » en deçà ; les billes restées sur le tracé (« Plus que 9
+  billes » quand c'était près, « Encore 46 billes » sinon) ou les points de vie du Colosse, une
+  jauge de la part détruite, et la réaction la plus profonde de la partie.
+- **Une astuce** : d'abord un geste jamais fait dans la partie (l'échange, puis le tir chargé),
+  dit au doigt ou à la souris selon l'appareil, avec son dessin ; sinon l'indice du niveau,
+  sauf ceux qui ouvrent un niveau (viser, assortir, échanger) ; sinon la réaction en chaîne.
+- **« Rejouer » d'abord** : en grand, avec le focus, 1,9 s après la défaite ; puis l'aide après
+  trois défaites, « Continuer » sur les portails, et la carte en simple lien. Le score de la
+  partie n'y figure plus.
+- **Tout tient sans défiler** aux quatre tailles du test des langues (de 320 × 568 à
+  1280 × 720), dans les quatre langues, aide comprise : dans une fenêtre basse, le titre de
+  l'astuce passe dans son texte, et sous 680 px de haut le trou, simple décor, cède sa place.
+  Seule la défaite la plus chargée (l'aide et un objectif atteint) défile un peu sur un
+  téléphone de 568 px de haut, « Rejouer » restant en vue.
+- **Le rapport de partie** (`GameReport`) compte désormais les tirs chargés, les billes restées
+  sur le tracé et les points de vie du Colosse.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -2563,3 +2585,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.17    | 27/10/2026 | Version 1.8.1, étape 2 : les joueurs-robots par appareil, trois nouveaux venus sur chacun, et le monde 1 remesuré sur les deux plateaux (§ 3.17).                                                                                                                  |
 | 1.18    | 27/10/2026 | Version 1.8.1, étape 3 : les serpentins et les jumeaux tiennent le même tracé sur le téléphone et l'ordinateur, les tirs cachés, le plateau de chaque appareil (§ 3.17).                                                                                           |
 | 1.19    | 28/10/2026 | Version 1.8.1, étape 4 : au toucher, la visée d'avant le lever du doigt, la charge qui tient sous le doigt, le Ralenti qui garde les couleurs (§ 3.17).                                                                                                            |
+| 1.20    | 28/10/2026 | Version 1.8.1, étape 6 : l'écran de la défaite, ce qui manquait en vrai, une astuce et « Rejouer » d'abord (§ 3.17).                                                                                                                                               |

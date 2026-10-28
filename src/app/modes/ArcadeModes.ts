@@ -63,6 +63,11 @@ abstract class ArcadeMode implements PlayMode {
     return false;
   }
 
+  /** An Arcade defeat means something else (a stage reached, a duel lost): its own result. */
+  defeat(): null {
+    return null;
+  }
+
   abstract readonly label: Message;
   abstract outcome(won: boolean): Message;
   abstract definition(frame: Frame): LevelDefinition;

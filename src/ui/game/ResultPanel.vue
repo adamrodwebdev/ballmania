@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
+import type { DefeatSummary } from '@/app/DefeatSummary';
 import type { PlayMode, Settlement } from '@/app/modes';
 import type { PlayRequest } from '@/app/PlayRequest';
 import { DEMO } from '@/levels/edition';
@@ -11,6 +12,7 @@ import { SHARD_PATH } from '@/ui/components/icons';
 import type { HudState } from '@/play/PlaySession';
 import AdIcon from '@/ui/components/AdIcon.vue';
 import StarRow from '@/ui/components/StarRow.vue';
+import DefeatReport from './DefeatReport.vue';
 import NextLauncher from './NextLauncher.vue';
 import { useMessage } from './useMessage';
 import { useShardPrice } from './useShardPrice';
@@ -25,6 +27,8 @@ const props = defineProps<{
   mode: PlayMode;
   hud: HudState | null;
   settlement: Settlement | null;
+  /** A level lost to the chain, as its defeat screen tells it (v1.8.1), or null. */
+  defeat: DefeatSummary | null;
   /** Puzzle mode: the shots used against par, once the game is saved. */
   puzzleResult: { readonly shots: number; readonly par: number } | null;
   offerContinue: boolean;
@@ -66,6 +70,12 @@ const HOME_LABELS = {
 } as const;
 
 const won = computed(() => props.hud?.over === 'won');
+/** A level lost to the chain: its own screen, "Play again" first (v1.8.1, spec § 3.17). */
+const defeated = computed(() => props.hud?.over === 'lost' && props.defeat !== null);
+const defeatLabel = computed(
+  () =>
+    `${say(props.mode.label)} · ${t(`difficulty.${services.settings.current.difficulty}.name`)}`,
+);
 /** What to play after a win: the next level, puzzle, song or rival, when it is open. */
 const following = computed(() =>
   props.hud?.over === 'won' && props.settlement ? props.mode.next(services) : null,
@@ -196,8 +206,11 @@ defineExpose({
     aria-labelledby="end-title"
     @cancel.prevent
   >
-    <p v-if="daily" class="eyebrow">{{ t('daily.title') }} · {{ dayLabel }}</p>
-    <h2 id="end-title">{{ say(mode.outcome(hud?.over === 'won')) }}</h2>
+    <DefeatReport v-if="defeated && defeat" :summary="defeat" :label="defeatLabel" />
+    <template v-else>
+      <p v-if="daily" class="eyebrow">{{ t('daily.title') }} · {{ dayLabel }}</p>
+      <h2 id="end-title">{{ say(mode.outcome(hud?.over === 'won')) }}</h2>
+    </template>
     <StarRow
       v-if="hud?.over === 'won' && settlement?.stars"
       class="earned"
@@ -211,7 +224,7 @@ defineExpose({
         t('game.starsGained', { count: settlement?.starsGained ?? 0 }, settlement?.starsGained ?? 0)
       }}
     </p>
-    <p class="result">
+    <p v-if="!defeated" class="result">
       <span aria-hidden="true">
         {{ t('game.finalScore', { score: number.format(shownScore) }) }}
       </span>
@@ -243,8 +256,8 @@ defineExpose({
     <p v-else-if="settlement?.record?.unit === 'wins'" class="detail" data-testid="wins">
       {{ t('arcade.duel.wins', { count: settlement.record.value }, settlement.record.value) }}
     </p>
-    <p v-if="scoreLine" class="detail" data-testid="score-line">{{ scoreLine }}</p>
-    <p v-if="(hud?.bestDepth ?? 0) > 1" class="detail">
+    <p v-if="scoreLine && !defeated" class="detail" data-testid="score-line">{{ scoreLine }}</p>
+    <p v-if="!defeated && (hud?.bestDepth ?? 0) > 1" class="detail">
       {{ t('game.bestDepth', { depth: hud?.bestDepth ?? 0 }) }}
     </p>
     <p
@@ -308,6 +321,28 @@ defineExpose({
     </p>
 
     <div class="actions">
+      <!-- A defeat: playing again comes first, in one tap; the help and the offers after it. -->
+      <template v-if="defeated">
+        <button
+          class="btn btn-primary again"
+          type="button"
+          autofocus
+          data-testid="replay"
+          @click="emit('replay')"
+        >
+          {{ t('game.playAgain') }}
+        </button>
+        <button
+          v-if="offerAssist"
+          class="btn"
+          type="button"
+          data-testid="assist"
+          @click="emit('assist')"
+        >
+          <span>{{ t('assist.retry') }}</span>
+          <small>{{ t('assist.detail') }}</small>
+        </button>
+      </template>
       <template v-if="offerContinue">
         <!-- The offer looks like every other choice: no button pushes the ad. -->
         <button
@@ -369,7 +404,7 @@ defineExpose({
         {{ t(`daily.shareOutcome.${shareOutcome}`) }}
       </p>
       <button
-        v-if="offerAssist"
+        v-if="offerAssist && !defeated"
         class="btn btn-primary"
         type="button"
         autofocus
@@ -379,8 +414,17 @@ defineExpose({
         <span>{{ t('assist.retry') }}</span>
         <small>{{ t('assist.detail') }}</small>
       </button>
+      <button
+        v-if="defeated"
+        class="map-link"
+        type="button"
+        data-testid="map"
+        @click="emit('leave')"
+      >
+        {{ t(HOME_LABELS[mode.home]) }}
+      </button>
       <!-- Side by side under "Next": the whole panel stays in a short window. -->
-      <div class="pair" :class="{ split: !primaryReplay }">
+      <div v-else class="pair" :class="{ split: !primaryReplay }">
         <button
           class="btn"
           :class="{ 'btn-primary': primaryReplay }"
@@ -498,10 +542,39 @@ defineExpose({
   padding-inline: var(--space-2);
 }
 
+/* A defeat: one big tap to play again, and the map as a plain link below the choices. */
+.again {
+  min-height: 3.25rem;
+  font-size: 1.2rem;
+}
+
+.map-link {
+  justify-self: center;
+  min-width: var(--touch);
+  min-height: var(--touch);
+  padding-inline: var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (hover: hover) {
+  .map-link:hover {
+    color: var(--text);
+  }
+}
+
 /* Short windows (portal frames): the result keeps every choice in view without scrolling. */
 @container game (height <= 47.5rem) {
   .gains {
     margin-top: var(--space-3);
+  }
+
+  .again {
+    min-height: 3rem;
   }
 }
 

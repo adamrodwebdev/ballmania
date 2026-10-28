@@ -53,6 +53,32 @@
     "ru": "Русский"
   },
   "game": {
+    "defeat": {
+      "close": "So close!",
+      "lost": "The chain wins",
+      "marblesLeft": {
+        "close": "No marbles left | Only {count} marble left | Only {count} marbles left",
+        "far": "No marbles left | {count} marble left | {count} marbles left"
+      },
+      "colossusLeft": {
+        "close": "The Colossus has no hit points left | The Colossus has only {count} hit point left | The Colossus has only {count} hit points left",
+        "far": "The Colossus has no hit points left | The Colossus has {count} hit point left | The Colossus has {count} hit points left"
+      },
+      "shareChain": "{share} of the chain destroyed",
+      "shareColossus": "{share} of its hit points gone",
+      "reaction": "Reaction ×{depth}",
+      "tip": "Tip",
+      "tips": {
+        "swap": {
+          "touch": "Tap the launcher to swap when the next marble fits better.",
+          "mouse": "Right-click, or press X, to swap when the next marble fits better."
+        },
+        "charge": {
+          "touch": "Keep your finger still: the ring fills, and the charged shot flies faster.",
+          "mouse": "Hold the click, or Space: the charged shot flies faster."
+        }
+      }
+    },
     "board": "Game board",
     "help": "Aim with the mouse or your finger, then release to shoot. Keyboard: arrow keys to aim (hold Shift for precision), Space to shoot, X to swap, P to pause.",
     "score": "Score",
