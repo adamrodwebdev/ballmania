@@ -1953,6 +1953,156 @@ l'Arcade et l'entraînement, où l'on ne perd pas, gardent le panneau de fin.
 - **Le rapport de partie** (`GameReport`) compte désormais les tirs chargés, les billes restées
   sur le tracé et les points de vie du Colosse.
 
+**Le plateau de chaque écran** (relevé dans le jeu, `data-board`, le 28/10/2026) : le jeu prend
+le plateau qui montre le niveau le plus grand, si bien qu'il change avec le niveau et l'écran.
+Les tables de départ supposaient le plateau haut au téléphone et le large sur ordinateur.
+
+| Écran                                             | Carré | Portrait | Haut | Paysage | Large |
+| ------------------------------------------------- | ----- | -------- | ---- | ------- | ----- |
+| Téléphone, barres du navigateur visibles, 393×659 | 43    | 27       | 2    | —       | —     |
+| Téléphone en plein écran, 390×844                 | 3     | 17       | 52   | —       | —     |
+| Ordinateur, cadre de portail 16:9, 1280×720       | 14    | —        | —    | 33      | 25    |
+| Ordinateur, fenêtre de notre site, 1920×947       | —     | —        | —    | 14      | 58    |
+
+Les robots jouent désormais chaque niveau sur le plateau de chacun des trois premiers écrans
+(`tests/levels/boards.ts`) ; le cadre de portail tient lieu d'ordinateur, puisque c'est là que
+les modérateurs et la plupart des joueurs des portails découvrent le jeu.
+
+**Tableaux des mondes** (étape 9, proposés le 28/10/2026, à valider) : le rôle de chaque niveau
+sur la forme du monde 1 (frissons en 3, 7 et 11, respirations en 4 et 8, le Colosse en 12 ; au
+Néon, aucun pic avant 2-5), la bande visée pour le nouveau venu typique d'après les bandes par
+monde, et le robot d'aujourd'hui, avant tout réglage : victoires du typique sur 72 parties par
+écran (↓ sous la bande, ↑ au-dessus), et celles du lent au doigt, barres visibles.
+
+| Rôle        | Monde 1 | Monde 2 | Mondes 3 et 4 | Mondes 5 et 6 |
+| ----------- | ------- | ------- | ------------- | ------------- |
+| Calme       | ≥ 95 %  | ≥ 95 %  | ≥ 90 %        | 85–95 %       |
+| Montée      | ≥ 90 %  | 85–90 % | 75–85 %       | 65–75 %       |
+| Respiration | ≥ 95 %  | ≥ 90 %  | 85–95 %       | 80–90 %       |
+| Frisson     | 85–95 % | 65–75 % | 55–65 %       | 45–55 %       |
+| Le plus dur | 80–90 % | 55–65 % | 40–50 %       | 30–40 %       |
+| Colosse     | 85–95 % | 65–75 % | 55–65 %       | 45–55 %       |
+
+**Monde 1 — Nébuleuse**
+
+| Niveau | Rôle                 | Nouveauté                                  | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
+| ------ | -------------------- | ------------------------------------------ | ------- | ------------------ | ----------- | ------- | ------------ |
+| 1-1    | Calme                | Viser et grouper                           | ≥ 95 %  | 100 %              | 100 %       | 100 %   | 100 %        |
+| 1-2    | Montée               | Échanger                                   | ≥ 90 %  | 100 %              | 100 %       | 100 %   | 69 %         |
+| 1-3    | Frisson              | Le jeune Colosse                           | 85–95 % | 99 % ↑             | 100 % ↑     | 100 % ↑ | 86 %         |
+| 1-4    | Respiration          | Le Recul, première bille bonus             | ≥ 95 %  | 100 %              | 100 %       | 100 %   | 83 %         |
+| 1-5    | Montée               | Les réactions, la quatrième couleur        | ≥ 90 %  | 92 %               | 100 %       | 100 %   | 33 %         |
+| 1-6    | Montée               | Le Ralenti                                 | ≥ 90 %  | 100 %              | 97 %        | 100 %   | 57 %         |
+| 1-7    | Frisson              | Deux chaînes                               | 85–95 % | 90 %               | 94 %        | 100 % ↑ | 24 %         |
+| 1-8    | Respiration          | Le Tir arc-en-ciel                         | ≥ 95 %  | 100 %              | 99 %        | 100 %   | 51 %         |
+| 1-9    | Montée               | Les acquis mêlés, serpentin à quatre rangs | ≥ 90 %  | 100 %              | 100 %       | 99 %    | 31 %         |
+| 1-10   | Montée               | Le Laser                                   | ≥ 90 %  | 81 % ↓             | 93 %        | 100 %   | 17 %         |
+| 1-11   | Frisson, le plus dur | La cinquième couleur                       | 80–90 % | 72 % ↓             | 90 %        | 100 % ↑ | 4 %          |
+| 1-12   | Colosse              | Le Colosse stellaire                       | 85–95 % | 89 %               | 99 % ↑      | 100 % ↑ | 19 %         |
+
+**Monde 2 — Néon**
+
+| Niveau | Rôle                 | Nouveauté                            | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
+| ------ | -------------------- | ------------------------------------ | ------- | ------------------ | ----------- | ------- | ------------ |
+| 2-1    | Calme                | Le rebond sur les murs               | ≥ 95 %  | 100 %              | 100 %       | 100 %   | 100 %        |
+| 2-2    | Montée               | Les murs sur un serpentin            | 85–90 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 93 %         |
+| 2-3    | Montée               | Le prisme                            | 85–90 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 97 %         |
+| 2-4    | Respiration          | Court, 26 billes                     | ≥ 90 %  | 90 %               | 100 %       | 100 %   | 31 %         |
+| 2-5    | Frisson              | Les prismes qui tournent, l’arythmie | 65–75 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 63 %         |
+| 2-6    | Respiration          | Les murs, sans nouveauté             | ≥ 90 %  | 100 %              | 100 %       | 100 %   | 100 %        |
+| 2-7    | Montée               | Les prismes, une chaîne vive         | 85–90 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 67 %         |
+| 2-8    | Frisson              | Les météores, la cinquième couleur   | 65–75 % | 85 % ↑             | 92 % ↑      | 100 % ↑ | 18 %         |
+| 2-9    | Respiration          | Court, les prismes                   | ≥ 90 %  | 56 % ↓             | 75 % ↓      | 96 %    | 3 %          |
+| 2-10   | Montée               | L’arythmie                           | 85–90 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 100 %        |
+| 2-11   | Frisson, le plus dur | Cinq couleurs, météores et arythmie  | 55–65 % | 14 % ↓             | 28 % ↓      | 68 % ↑  | 0 %          |
+| 2-12   | Colosse              | Le Colosse prismatique               | 65–75 % | 79 % ↑             | 96 % ↑      | 100 % ↑ | 17 %         |
+
+**Monde 3 — Abysses**
+
+| Niveau | Rôle                 | Nouveauté                               | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
+| ------ | -------------------- | --------------------------------------- | ------- | ------------------ | ----------- | ------- | ------------ |
+| 3-1    | Calme                | L’aimant                                | ≥ 90 %  | 100 %              | 100 %       | 100 %   | 100 %        |
+| 3-2    | Montée               | L’aimant qui relie deux groupes         | 75–85 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 99 %         |
+| 3-3    | Frisson              | Le vent                                 | 55–65 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 97 %         |
+| 3-4    | Respiration          | Les jumeaux, en colonnes                | 85–95 % | 92 %               | 92 %        | 100 % ↑ | 38 %         |
+| 3-5    | Montée               | Cinq couleurs, serpentin à quatre rangs | 75–85 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 90 %         |
+| 3-6    | Montée               | Les météores                            | 75–85 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 99 %         |
+| 3-7    | Frisson              | Cinq couleurs, une chaîne vive          | 55–65 % | 100 % ↑            | 99 % ↑      | 100 % ↑ | 72 %         |
+| 3-8    | Respiration          | Vent et arythmie, une seule charge      | 85–95 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 57 %         |
+| 3-9    | Montée               | Les jumeaux et l’arythmie               | 75–85 % | 88 % ↑             | 88 % ↑      | 100 % ↑ | 42 %         |
+| 3-10   | Montée               | Sans nouveauté                          | 75–85 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 99 %         |
+| 3-11   | Frisson, le plus dur | Vent et météores, une seule charge      | 40–50 % | 65 % ↑             | 67 % ↑      | 100 % ↑ | 11 %         |
+| 3-12   | Colosse              | Le Colosse abyssal                      | 55–65 % | 85 % ↑             | 97 % ↑      | 100 % ↑ | 14 %         |
+
+**Monde 4 — Joaillerie**
+
+| Niveau | Rôle                 | Nouveauté                               | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
+| ------ | -------------------- | --------------------------------------- | ------- | ------------------ | ----------- | ------- | ------------ |
+| 4-1    | Calme                | L’alchimie, trois primaires             | ≥ 90 %  | 90 %               | 81 % ↓      | 88 % ↓  | 13 %         |
+| 4-2    | Montée               | Les couleurs secondaires                | 75–85 % | 76 %               | 82 %        | 64 % ↓  | 4 %          |
+| 4-3    | Frisson              | Le froid                                | 55–65 % | 86 % ↑             | 75 % ↑      | 61 %    | 6 %          |
+| 4-4    | Respiration          | Court, 20 billes                        | 85–95 % | 49 % ↓             | 49 % ↓      | 64 % ↓  | 0 %          |
+| 4-5    | Montée               | Cinq couleurs, serpentin à quatre rangs | 75–85 % | 47 % ↓             | 63 % ↓      | 69 % ↓  | 0 %          |
+| 4-6    | Montée               | Sans nouveauté                          | 75–85 % | 85 %               | 69 % ↓      | 88 % ↑  | 14 %         |
+| 4-7    | Frisson              | Six couleurs, le froid                  | 55–65 % | 57 %               | 53 % ↓      | 67 % ↑  | 0 %          |
+| 4-8    | Respiration          | Cinq couleurs, serpentin                | 85–95 % | 51 % ↓             | 38 % ↓      | 57 % ↓  | 1 %          |
+| 4-9    | Montée               | Court, cinq couleurs                    | 75–85 % | 38 % ↓             | 38 % ↓      | 31 % ↓  | 0 %          |
+| 4-10   | Montée               | Sans nouveauté                          | 75–85 % | 76 %               | 56 % ↓      | 65 % ↓  | 1 %          |
+| 4-11   | Frisson, le plus dur | Six couleurs, froid et arythmie         | 40–50 % | 79 % ↑             | 44 %        | 89 % ↑  | 0 %          |
+| 4-12   | Colosse              | Le Colosse de cristal                   | 55–65 % | 82 % ↑             | 78 % ↑      | 75 % ↑  | 1 %          |
+
+**Monde 5 — Volcan**
+
+| Niveau | Rôle                 | Nouveauté                               | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
+| ------ | -------------------- | --------------------------------------- | ------- | ------------------ | ----------- | ------- | ------------ |
+| 5-1    | Calme                | L’aiguillage                            | 85–95 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 86 %         |
+| 5-2    | Montée               | Le raccourci brûlant                    | 65–75 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 69 %         |
+| 5-3    | Frisson              | L’éruption solaire                      | 45–55 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 72 %         |
+| 5-4    | Respiration          | L’aimant revient, cinq couleurs         | 80–90 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 76 %         |
+| 5-5    | Montée               | Deux aiguillages, l’éruption            | 65–75 % | 100 % ↑            | 100 % ↑     | 99 % ↑  | 68 %         |
+| 5-6    | Montée               | Sans nouveauté                          | 65–75 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 78 %         |
+| 5-7    | Frisson              | Les murs reviennent                     | 45–55 % | 96 % ↑             | 93 % ↑      | 100 % ↑ | 15 %         |
+| 5-8    | Respiration          | Trois aiguillages, l’éruption           | 80–90 % | 100 % ↑            | 99 % ↑      | 100 % ↑ | 57 %         |
+| 5-9    | Montée               | Les murs, cinq couleurs                 | 65–75 % | 99 % ↑             | 99 % ↑      | 100 % ↑ | 43 %         |
+| 5-10   | Montée               | Aimant, météores et arythmie            | 65–75 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 71 %         |
+| 5-11   | Frisson, le plus dur | Trois aiguillages, éruption et arythmie | 30–40 % | 97 % ↑             | 96 % ↑      | 92 % ↑  | 32 %         |
+| 5-12   | Colosse              | Le Colosse de lave                      | 45–55 % | 99 % ↑             | 100 % ↑     | 100 % ↑ | 78 %         |
+
+**Monde 6 — Singularité**
+
+| Niveau | Rôle                 | Nouveauté                      | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
+| ------ | -------------------- | ------------------------------ | ------- | ------------------ | ----------- | ------- | ------------ |
+| 6-1    | Calme                | La gravité                     | 85–95 % | 94 %               | 94 %        | 100 % ↑ | 85 %         |
+| 6-2    | Montée               | L’orbite                       | 65–75 % | 100 % ↑            | 100 % ↑     | 100 % ↑ | 71 %         |
+| 6-3    | Frisson              | Le vent autour du trou noir    | 45–55 % | 69 % ↑             | 90 % ↑      | 78 % ↑  | 32 %         |
+| 6-4    | Respiration          | L’orbite à rebours, court      | 80–90 % | 40 % ↓             | 78 % ↓      | 94 % ↑  | 1 %          |
+| 6-5    | Montée               | Le froid, cinq couleurs        | 65–75 % | 90 % ↑             | 99 % ↑      | 100 % ↑ | 29 %         |
+| 6-6    | Montée               | L’arythmie                     | 65–75 % | 81 % ↑             | 64 % ↓      | 83 % ↑  | 53 %         |
+| 6-7    | Frisson              | L’aimant et l’éruption         | 45–55 % | 99 % ↑             | 100 % ↑     | 100 % ↑ | 60 %         |
+| 6-8    | Respiration          | Court, cinq couleurs           | 80–90 % | 46 % ↓             | 89 %        | 97 % ↑  | 0 %          |
+| 6-9    | Montée               | Murs, météores et vent         | 65–75 % | 15 % ↓             | 39 % ↓      | 58 % ↓  | 0 %          |
+| 6-10   | Montée               | L’alchimie autour du trou noir | 65–75 % | 46 % ↓             | 28 % ↓      | 50 % ↓  | 3 %          |
+| 6-11   | Frisson, le plus dur | Les trois météos               | 30–40 % | 78 % ↑             | 97 % ↑      | 100 % ↑ | 6 %          |
+| 6-12   | Colosse              | Le Colosse ultime              | 45–55 % | 57 % ↑             | 100 % ↑     | 100 % ↑ | 28 %         |
+
+**Lecture** :
+
+- **Le plateau décide d'abord.** Le carré d'un téléphone aux barres visibles, où les tracés se
+  serrent, est partout l'écran le plus dur, le cadre de portail le plus facile : au Néon, 2-11
+  est gagné 14 fois sur 100 au téléphone, 68 sur ordinateur. L'outil de l'étape 10 règle donc
+  chaque niveau plateau par plateau.
+- **Le monde 1 est le plus près du but** (94 à 100 % en moyenne) : trop calme sur ordinateur,
+  sans frisson (pointes de 28 à 64 %), un peu dur à sa fin au téléphone aux barres (1-10, 1-11).
+- **Les mondes 2, 3 et 5 sont bien trop faciles** : presque tout s'y gagne à 96–100 %, avec des
+  pointes de 20 à 50 %, sauf quelques pics bien trop durs (2-9, 2-11, 3-11). Le Volcan est le
+  monde le plus facile de la campagne (99 % sur chaque écran).
+- **La Joaillerie est trop dure et inégale** (31 à 90 %), et le lent n'y gagne presque jamais
+  (1 % en médiane) : reste à savoir si c'est le robot, à l'alchimie, ou les niveaux (étape 10).
+- **La Singularité est inégale** : son « plus dur », 6-11, se gagne à 78–100 %, quand 6-9 et
+  6-10 tombent à 15–58 %.
+- **Le nouveau venu lent, au doigt** : 42 % en médiane au monde 1 (4 % en 1-11), loin des 80 %
+  de la règle ; 65 % au Néon, 81 % aux Abysses, 70 % au Volcan, 28 % à la Singularité.
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
