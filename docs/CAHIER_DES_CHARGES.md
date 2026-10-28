@@ -2,7 +2,7 @@
 
 | Version | Date       | Statut                               |
 | ------- | ---------- | ------------------------------------ |
-| 1.20    | 28/10/2026 | Écran de la défaite (étape 6 sur 11) |
+| 1.21    | 28/10/2026 | Tableaux des mondes (étape 9 sur 11) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -1968,7 +1968,7 @@ Les robots jouent désormais chaque niveau sur le plateau de chacun des trois pr
 (`tests/levels/boards.ts`) ; le cadre de portail tient lieu d'ordinateur, puisque c'est là que
 les modérateurs et la plupart des joueurs des portails découvrent le jeu.
 
-**Tableaux des mondes** (étape 9, proposés le 28/10/2026, à valider) : le rôle de chaque niveau
+**Tableaux des mondes** (étape 9, validés par l'auteur le 28/10/2026) : le rôle de chaque niveau
 sur la forme du monde 1 (frissons en 3, 7 et 11, respirations en 4 et 8, le Colosse en 12 ; au
 Néon, aucun pic avant 2-5), la bande visée pour le nouveau venu typique d'après les bandes par
 monde, et le robot d'aujourd'hui, avant tout réglage : victoires du typique sur 72 parties par
@@ -2101,7 +2101,14 @@ monde, et le robot d'aujourd'hui, avant tout réglage : victoires du typique sur
 - **La Singularité est inégale** : son « plus dur », 6-11, se gagne à 78–100 %, quand 6-9 et
   6-10 tombent à 15–58 %.
 - **Le nouveau venu lent, au doigt** : 42 % en médiane au monde 1 (4 % en 1-11), loin des 80 %
-  de la règle ; 65 % au Néon, 81 % aux Abysses, 70 % au Volcan, 28 % à la Singularité.
+  de la règle ; 65 % au Néon, 81 % aux Abysses, 70 % au Volcan, 28 % à la Singularité. L'aide
+  d'aujourd'hui (la chaîne 15 % moins vite après trois défaites) ne le porte qu'à 19–100 % au
+  monde 1.
+
+**La règle du lent au doigt** (tranchée le 28/10/2026) : au monde 1 seulement, l'aide s'offre
+après deux défaites d'affilée au lieu de trois, et ralentit la chaîne de 25 % au lieu de 15 % ;
+elle reste visible et choisie, et le nouveau venu typique garde ses victoires de justesse. Le
+lent se remesure après le réglage de l'étape 10, aide comprise.
 
 ## 4. Exigences non fonctionnelles
 
@@ -2736,3 +2743,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.18    | 27/10/2026 | Version 1.8.1, étape 3 : les serpentins et les jumeaux tiennent le même tracé sur le téléphone et l'ordinateur, les tirs cachés, le plateau de chaque appareil (§ 3.17).                                                                                           |
 | 1.19    | 28/10/2026 | Version 1.8.1, étape 4 : au toucher, la visée d'avant le lever du doigt, la charge qui tient sous le doigt, le Ralenti qui garde les couleurs (§ 3.17).                                                                                                            |
 | 1.20    | 28/10/2026 | Version 1.8.1, étape 6 : l'écran de la défaite, ce qui manquait en vrai, une astuce et « Rejouer » d'abord (§ 3.17).                                                                                                                                               |
+| 1.21    | 28/10/2026 | Version 1.8.1, étape 9 : le plateau de chaque écran relevé dans le jeu, les tableaux des six mondes validés, la règle du lent au doigt (§ 3.17).                                                                                                                   |
