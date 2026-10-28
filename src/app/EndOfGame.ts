@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import type { GameReport } from '@/engine/Game';
-import { ASSIST_AFTER, CONTINUE_PRICE, HINT_COOLDOWN, HINT_PRICE } from '@/player/rewards';
+import { CONTINUE_PRICE, HINT_COOLDOWN, HINT_PRICE } from '@/player/rewards';
 import type { PlayMode, Settlement } from './modes';
 
 /** How a game ended, or null while it goes on. */
@@ -72,10 +72,10 @@ export class EndOfGame {
 
   /** After repeated defeats of a campaign level: retry it slower (the assistance, § 3.9). */
   offersAssist(ending: Ending, assisted: boolean): boolean {
-    const level = this.mode.assistLevel;
-    if (level === null || ending !== 'lost' || assisted) return false;
+    const { assistLevel: level, assistance } = this.mode;
+    if (level === null || assistance === null || ending !== 'lost' || assisted) return false;
     // A defeat not saved yet counts already.
-    return this.context.player.failures(level) + (this.pending.value ? 1 : 0) >= ASSIST_AFTER;
+    return this.context.player.failures(level) + (this.pending.value ? 1 : 0) >= assistance.after;
   }
 
   /** Continuing the defeat kept, once: for a rewarded ad, or for shards. */

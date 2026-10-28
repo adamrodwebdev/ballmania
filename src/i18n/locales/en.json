@@ -473,7 +473,7 @@
   },
   "assist": {
     "retry": "Retry with help",
-    "detail": "The chain moves 15% slower for this attempt.",
+    "detail": "The chain moves {percent} slower for this attempt.",
     "active": "Help on"
   },
   "magnet": {

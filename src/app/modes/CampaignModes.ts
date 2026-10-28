@@ -13,7 +13,7 @@ import { noveltyOf, type Novelty } from '@/levels/novelty';
 import { resolveLevel } from '@/levels/resolveLevel';
 import type { Frame } from '@/levels/tracks';
 import type { DailyChallenge } from '@/player/DailyChallenge';
-import { ASSIST_SPEED } from '@/player/rewards';
+import { assistanceOf, type Assistance } from '@/player/rewards';
 import type { AppServices } from '../AppServices';
 import { DefeatSummary, type Aiming } from '../DefeatSummary';
 import type { PlayRequest } from '../PlayRequest';
@@ -96,6 +96,10 @@ export class CampaignMode implements PlayMode {
     return this.level.id;
   }
 
+  get assistance(): Assistance {
+    return assistanceOf(this.level.world);
+  }
+
   get finale(): boolean {
     return this.level.id === CAMPAIGN[CAMPAIGN.length - 1]?.id;
   }
@@ -136,7 +140,7 @@ export class CampaignMode implements PlayMode {
     const resolved = resolveLevel(this.level, frame, difficulty);
     return {
       ...resolved,
-      speed: resolved.speed * (assisted ? ASSIST_SPEED : 1),
+      speed: resolved.speed * (assisted ? this.assistance.speed : 1),
       upgrades,
       fragments: { every: FRAGMENT_EVERY },
     };
@@ -188,6 +192,7 @@ export class DailyMode implements PlayMode {
   readonly hintable = false;
   readonly par = null;
   readonly assistLevel = null;
+  readonly assistance = null;
   readonly finale = false;
   readonly training = null;
   private readonly challenge: DailyChallenge;

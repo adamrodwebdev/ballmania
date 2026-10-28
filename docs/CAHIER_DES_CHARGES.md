@@ -168,7 +168,8 @@ Deux portes d'entrée depuis l'accueil :
   **Livrée au lot 5** : après 3 défaites d'affilée sur un niveau de campagne, l'écran de fin
   propose « Réessayer avec de l'aide » (chaîne 15 % moins rapide pour cet essai, signalée
   par « Aide active »). Les étoiles restent attribuées normalement : l'aide est visible et
-  choisie, elle ne triche pas. Pas d'aide sur le défi du jour (classement équitable).
+  choisie, elle ne triche pas. Pas d'aide sur le défi du jour (classement équitable). Au monde 1
+  (v1.8.1, § 3.17), elle s'offre dès la deuxième défaite et ralentit la chaîne de 25 %.
 
 #### Monde 1 « Nébuleuse », livré au lot 4
 

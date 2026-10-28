@@ -7,6 +7,7 @@ import type { Frame } from '@/levels/tracks';
 import type { TrainingStep } from '@/levels/training';
 import type { DailyChallenge } from '@/player/DailyChallenge';
 import type { Rewards } from '@/player/PlayerProfile';
+import type { Assistance } from '@/player/rewards';
 import type { AppServices } from '../AppServices';
 import type { Aiming, DefeatSummary } from '../DefeatSummary';
 import type { PlayRequest } from '../PlayRequest';
@@ -109,6 +110,8 @@ export interface PlayMode {
   readonly par: number | null;
   /** The level whose defeats count toward the assistance, or null where there is none. */
   readonly assistLevel: string | null;
+  /** The assistance after repeated defeats (when, and how much slower), or null without. */
+  readonly assistance: Assistance | null;
   /** A win of this game finishes the campaign. */
   readonly finale: boolean;
   /** A showcase of the training (v1.8.0): its place among them, and the way out; else null. */

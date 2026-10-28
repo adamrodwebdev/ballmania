@@ -58,6 +58,12 @@ const { player, platform, ads, share } = services;
 const say = useMessage();
 const shardPrice = useShardPrice();
 const number = computed(() => new Intl.NumberFormat(locale.value));
+/** How much slower the assistance makes the chain: "15 %", "25 %" in the first world (v1.8.1). */
+const slower = computed(() =>
+  new Intl.NumberFormat(locale.value, { style: 'percent' }).format(
+    1 - (props.mode.assistance?.speed ?? 1),
+  ),
+);
 const daily = props.mode.daily;
 const dayLabel = computed(() =>
   daily ? new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(daily.date) : '',
@@ -340,7 +346,7 @@ defineExpose({
           @click="emit('assist')"
         >
           <span>{{ t('assist.retry') }}</span>
-          <small>{{ t('assist.detail') }}</small>
+          <small>{{ t('assist.detail', { percent: slower }) }}</small>
         </button>
       </template>
       <template v-if="offerContinue">
@@ -412,7 +418,7 @@ defineExpose({
         @click="emit('assist')"
       >
         <span>{{ t('assist.retry') }}</span>
-        <small>{{ t('assist.detail') }}</small>
+        <small>{{ t('assist.detail', { percent: slower }) }}</small>
       </button>
       <button
         v-if="defeated"

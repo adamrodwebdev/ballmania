@@ -473,7 +473,7 @@
   },
   "assist": {
     "retry": "Coba lagi dengan bantuan",
-    "detail": "Rantai bergerak 15% lebih lambat untuk percobaan ini.",
+    "detail": "Rantai bergerak {percent} lebih lambat untuk percobaan ini.",
     "active": "Bantuan aktif"
   },
   "magnet": {

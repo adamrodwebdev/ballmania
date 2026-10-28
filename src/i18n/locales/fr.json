@@ -473,7 +473,7 @@
   },
   "assist": {
     "retry": "Réessayer avec de l’aide",
-    "detail": "La chaîne avance 15\u00a0% moins vite pour cet essai.",
+    "detail": "La chaîne avance {percent} moins vite pour cet essai.",
     "active": "Aide active"
   },
   "magnet": {

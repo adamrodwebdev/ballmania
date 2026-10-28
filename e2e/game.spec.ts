@@ -305,7 +305,7 @@ test.describe('progression', () => {
   });
 });
 
-test('offers help after three failures in a row on a level', async ({ page }) => {
+test('offers help after repeated failures on a level', async ({ page }) => {
   test.setTimeout(150_000);
   await page.addInitScript(() => {
     if (sessionStorage.getItem('seeded')) return;

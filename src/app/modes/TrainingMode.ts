@@ -44,6 +44,7 @@ export class TrainingMode implements PlayMode {
   readonly hintable = false;
   readonly par = null;
   readonly assistLevel = null;
+  readonly assistance = null;
   readonly finale = false;
   readonly training: TrainingStepView;
   private readonly level: TrainingLevel;

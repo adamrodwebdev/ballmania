@@ -198,6 +198,23 @@ describe('what the game screen asks its mode (v1.7.6)', () => {
     expect(createMode({ kind: 'campaign', level: last }).assisted).toBe(false);
   });
 
+  it('helps sooner and more after repeated defeats in the first world (v1.8.1)', () => {
+    const neon = CAMPAIGN.find((level) => level.world === 'neon')!;
+    const speedOf = (level: typeof first, assisted: boolean) =>
+      createMode({ kind: 'campaign', level }).definition(FRAMES.square, play(assisted, 'pilot'))
+        .speed;
+    expect(createMode({ kind: 'campaign', level: first }).assistance).toEqual({
+      after: 2,
+      speed: 0.75,
+    });
+    expect(createMode({ kind: 'campaign', level: neon }).assistance).toEqual({
+      after: 3,
+      speed: 0.85,
+    });
+    expect(speedOf(first, true) / speedOf(first, false)).toBeCloseTo(0.75);
+    expect(speedOf(neon, true) / speedOf(neon, false)).toBeCloseTo(0.85);
+  });
+
   it('the daily challenge: its challenge, no assistance, no ranking', () => {
     const challenge = DailyChallenge.of(new Date(2026, 9, 23));
     const mode = createMode({ kind: 'daily', challenge });

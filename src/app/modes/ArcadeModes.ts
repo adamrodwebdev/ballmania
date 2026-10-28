@@ -31,6 +31,7 @@ abstract class ArcadeMode implements PlayMode {
   readonly swapLabel: Message = { key: 'game.swap' };
   readonly hintable: boolean = false;
   readonly assistLevel = null;
+  readonly assistance = null;
   readonly finale = false;
   readonly training = null;
 

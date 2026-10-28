@@ -5,7 +5,7 @@ import { DUEL_DIFFICULTIES } from '@/levels/arcade/duel';
 import { PUZZLES } from '@/levels/arcade/puzzles';
 import { CAMPAIGN } from '@/levels/campaign';
 import { DailyChallenge } from '@/player/DailyChallenge';
-import { ASSIST_AFTER, HINT_COOLDOWN } from '@/player/rewards';
+import { assistanceOf, HINT_COOLDOWN } from '@/player/rewards';
 
 const FIRST = CAMPAIGN[0]!;
 const LAST = CAMPAIGN[CAMPAIGN.length - 1]!;
@@ -65,6 +65,7 @@ describe('EndOfGame', () => {
   });
 
   it('offers the assistance after repeated defeats of a campaign level, the one kept included', () => {
+    const ASSIST_AFTER = assistanceOf(FIRST.world).after;
     const almost = new EndOfGame(campaign(), context({}, ASSIST_AFTER - 1));
     expect(almost.offersAssist('lost', false)).toBe(false);
     almost.holdDefeat(true);
