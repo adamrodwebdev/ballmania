@@ -5,6 +5,8 @@ const LOOKAHEAD = 0.15;
 const TICK_MS = 25;
 /** Seconds of the fade between two themes. */
 const FADE = 0.8;
+/** Seconds the music takes to fall silent at a defeat, before its motif. */
+export const HUSH = 0.25;
 
 /**
  * Plays the themes of `score.ts` with Web Audio: a classic look-ahead
@@ -61,14 +63,20 @@ export class MusicPlayer {
     this.timer = null;
   }
 
-  private fadeOut(): void {
+  /** Falls silent in a moment (a defeat): nothing plays until a theme is played again. */
+  hush(): void {
+    this.fadeOut(HUSH);
+    this.theme = null;
+  }
+
+  private fadeOut(seconds = FADE): void {
     const bus = this.bus;
     if (!bus) return;
     const now = this.ctx.currentTime;
     bus.gain.cancelScheduledValues(now);
     bus.gain.setValueAtTime(Math.max(0.0001, bus.gain.value), now);
-    bus.gain.exponentialRampToValueAtTime(0.0001, now + FADE);
-    setTimeout(() => bus.disconnect(), (FADE + 0.2) * 1000);
+    bus.gain.exponentialRampToValueAtTime(0.0001, now + seconds);
+    setTimeout(() => bus.disconnect(), (seconds + 0.2) * 1000);
     this.bus = null;
   }
 

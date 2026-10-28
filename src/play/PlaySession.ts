@@ -299,6 +299,7 @@ export class PlaySession {
     this.motion.undrain();
     this.overIn = null;
     this.feedback.sound.resume();
+    this.feedback.sound.restoreMusic();
     Object.assign(this.hud, {
       state: 'playing',
       over: null,
@@ -343,6 +344,7 @@ export class PlaySession {
     this.victory = null;
     this.hinted = null;
     this.feedback.sound.resume();
+    this.feedback.sound.restoreMusic();
     Object.assign(this.hud, this.initialHud());
   }
 
@@ -636,7 +638,7 @@ export class PlaySession {
         haptics.win();
       } else {
         this.destruction.defeat(this.palette.danger);
-        sound.lose();
+        sound.lose(game.tempo ? this.root : null);
         haptics.lose();
       }
     });
