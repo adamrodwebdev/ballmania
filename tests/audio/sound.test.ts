@@ -56,6 +56,16 @@ describe('a defeat', () => {
     expect(musicOver(ctx)).toBeGreaterThan(0);
   });
 
+  it('keeps its silence when the music is switched off and on again', () => {
+    const { ctx, sound } = engine();
+    sound.lose();
+    sound.setMusicVolume(0);
+    sound.setMusicVolume(0.6);
+    expect(musicOver(ctx, 2)).toBe(0);
+    sound.restoreMusic();
+    expect(musicOver(ctx)).toBeGreaterThan(0);
+  });
+
   it('sings in the key of a song the music does not play (Rhythm mode)', () => {
     const { ctx, sound } = engine();
     sound.playMusic(null);
