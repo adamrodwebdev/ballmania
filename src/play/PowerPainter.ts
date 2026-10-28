@@ -7,7 +7,7 @@ import type { Context2D, SpriteCanvas } from './canvas';
 type Context = Context2D;
 
 const TAU = Math.PI * 2;
-const ICE = 'rgba(205, 246, 255, 0.24)';
+const ICE = 'rgba(214, 248, 255, 0.9)';
 const COOL = '#7cd8ff';
 const BEAM = '#9d7bff';
 
@@ -119,20 +119,25 @@ export class PowerPainter {
     ctx.restore();
   }
 
-  /** Slow-down: frost over every ball of the chains. */
+  /**
+   * Slow-down: a rim of frost round every ball of the chains. It leaves the
+   * colours as they are (v1.8.1): a veil over the balls washed them out, cyan
+   * first, just when the player has to tell them apart.
+   */
   frost(ctx: Context, chains: readonly Chain[], motion: BallMotion, radius: number): void {
     ctx.save();
-    ctx.fillStyle = ICE;
+    ctx.strokeStyle = ICE;
+    ctx.lineWidth = Math.max(1.5, radius * 0.12);
     ctx.beginPath();
     for (const chain of chains) {
       for (const ball of chain.balls) {
         if (motion.arcOf(ball) < 0) continue;
         const at = motion.positionOf(chain, ball);
-        ctx.moveTo(at.x + radius, at.y);
-        ctx.arc(at.x, at.y, radius, 0, TAU);
+        ctx.moveTo(at.x + radius * 1.06, at.y);
+        ctx.arc(at.x, at.y, radius * 1.06, 0, TAU);
       }
     }
-    ctx.fill();
+    ctx.stroke();
     ctx.restore();
   }
 

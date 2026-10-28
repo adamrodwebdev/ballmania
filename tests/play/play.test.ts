@@ -3,7 +3,7 @@ import { Ball } from '@/engine/chain/Ball';
 import { Chain } from '@/engine/chain/Chain';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallMotion, LANDING_TIME } from '@/play/BallMotion';
-import { KeyboardControls, type PlayCommands } from '@/play/Controls';
+import { KeyboardControls, PointerControls, type PlayCommands } from '@/play/Controls';
 import { FrameCap } from '@/play/FrameCap';
 import { GameLoop } from '@/play/GameLoop';
 import { luminance, Palette, TONE_VARIABLES } from '@/play/Palette';
@@ -193,5 +193,101 @@ describe('KeyboardControls', () => {
     expect(commands.turn).toHaveBeenLastCalledWith(-0.25);
     press('keyup', 'ArrowLeft');
     expect(commands.turn).toHaveBeenLastCalledWith(0);
+  });
+});
+
+describe('PointerControls', () => {
+  const setup = () => {
+    const listeners = new Map<string, (event: PointerEvent) => void>();
+    const target = {
+      addEventListener: (type: string, listener: (event: PointerEvent) => void) =>
+        listeners.set(type, listener),
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      setPointerCapture: vi.fn(),
+    } as unknown as HTMLElement;
+    const commands = {
+      aimAt: vi.fn(),
+      isOnShooter: vi.fn(() => false),
+      flipSwitchAt: vi.fn(() => false),
+      flipNextSwitch: vi.fn(),
+      charge: vi.fn(),
+      fire: vi.fn(),
+      swap: vi.fn(),
+      turn: vi.fn(),
+      togglePause: vi.fn(),
+      toggleMagnet: vi.fn(),
+    } satisfies PlayCommands;
+    new PointerControls(target, commands);
+    const send = (type: string, x: number, y: number, at: number, pointerType = 'touch') =>
+      listeners.get(type)!({
+        pointerType,
+        pointerId: 1,
+        button: 0,
+        clientX: x,
+        clientY: y,
+        timeStamp: at,
+        preventDefault: vi.fn(),
+      } as unknown as PointerEvent);
+    /** Where the shot went: the last aim given before firing. */
+    const shot = () => commands.aimAt.mock.calls.at(-1);
+    return { commands, send, shot };
+  };
+
+  it('fires a finger where it lifts when it held still', () => {
+    const { commands, send, shot } = setup();
+    send('pointerdown', 100, 400, 0);
+    send('pointermove', 180, 300, 200);
+    send('pointermove', 181, 301, 320);
+    send('pointerup', 182, 300, 400);
+    expect(commands.fire).toHaveBeenCalledTimes(1);
+    expect(shot()).toEqual([182, 300]);
+  });
+
+  it('keeps the aim from before a finger slides as it lifts (v1.8.1)', () => {
+    const { send, shot } = setup();
+    send('pointerdown', 100, 400, 0);
+    send('pointermove', 180, 300, 200);
+    send('pointermove', 180, 300, 330);
+    // The contact point slips 12 px in the last 30 ms.
+    send('pointermove', 186, 296, 380);
+    send('pointerup', 192, 290, 410);
+    expect(shot()).toEqual([180, 300]);
+  });
+
+  it('fires a quick flick from where it started', () => {
+    const { send, shot } = setup();
+    send('pointerdown', 100, 400, 0);
+    send('pointermove', 130, 360, 30);
+    send('pointerup', 160, 320, 60);
+    expect(shot()).toEqual([100, 400]);
+  });
+
+  it('leaves the mouse as it was: the shot goes where the button is released', () => {
+    const { commands, send, shot } = setup();
+    send('pointerdown', 100, 400, 0, 'mouse');
+    send('pointermove', 180, 300, 330, 'mouse');
+    send('pointermove', 192, 290, 380, 'mouse');
+    send('pointerup', 192, 290, 410, 'mouse');
+    expect(commands.fire).toHaveBeenCalledTimes(1);
+    expect(shot()).toEqual([192, 290]);
+  });
+
+  it('keeps charging while a finger trembles or corrects its aim by a few pixels (v1.8.1)', () => {
+    const { commands, send } = setup();
+    send('pointerdown', 100, 400, 0);
+    send('pointermove', 106, 404, 60);
+    send('pointermove', 112, 396, 140);
+    send('pointermove', 104, 390, 260);
+    expect(commands.charge).toHaveBeenCalledTimes(1);
+    expect(commands.aimAt).toHaveBeenLastCalledWith(104, 390);
+  });
+
+  it('starts the charge again after a real move of the finger', () => {
+    const { commands, send } = setup();
+    send('pointerdown', 100, 400, 0);
+    send('pointermove', 140, 380, 120);
+    expect(commands.charge).toHaveBeenCalledTimes(2);
+    send('pointermove', 150, 385, 200);
+    expect(commands.charge).toHaveBeenCalledTimes(2);
   });
 });

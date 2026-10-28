@@ -16,8 +16,27 @@ export interface PlayCommands {
   toggleMagnet(): void;
 }
 
-/** A finger moving less than this (CSS pixels) keeps charging the shot. */
+/**
+ * A finger that stays within this distance (CSS pixels, about 3 mm on a phone)
+ * of where its charge began keeps charging the shot (v1.8.1): its tremor and
+ * small aim corrections no longer start the charge again, a real move does.
+ */
+const HOLD = 18;
+/** A finger moving less than this (CSS pixels) as it lifts has not slid. */
 const STILL = 6;
+/**
+ * The contact point slides as a finger lifts (v1.8.1, spec § 3.17): when the
+ * finger moved more than `STILL` in this many milliseconds before lifting, the
+ * shot keeps the aim from before that slide.
+ */
+const LIFT = 80;
+
+interface TrailPoint {
+  readonly x: number;
+  readonly y: number;
+  /** The event's time stamp, in milliseconds. */
+  readonly at: number;
+}
 
 /**
  * Mouse: aim by moving, fire by releasing the main button (holding it charges
@@ -31,6 +50,8 @@ export class PointerControls {
   private swapping: number | null = null;
   private pressed = false;
   private still: [number, number] | null = null;
+  /** Where the aiming finger has been lately: the oldest point kept is LIFT old or more. */
+  private trail: TrailPoint[] = [];
   private readonly abort = new AbortController();
 
   constructor(
@@ -76,14 +97,21 @@ export class PointerControls {
     this.commands.aimAt(x, y);
     this.commands.charge();
     this.still = [x, y];
+    this.trail = [{ x, y, at: event.timeStamp }];
   };
 
   private readonly move = (event: PointerEvent): void => {
     if (event.pointerType !== 'mouse' && event.pointerId !== this.aiming) return;
     const [x, y] = this.local(event);
     this.commands.aimAt(x, y);
-    // A finger that moves is still aiming: the charge starts again once it stops.
-    if (this.still && Math.hypot(x - this.still[0], y - this.still[1]) > STILL) {
+    if (event.pointerType !== 'mouse') {
+      this.trail.push({ x, y, at: event.timeStamp });
+      while (this.trail.length > 1 && this.trail[1]!.at <= event.timeStamp - LIFT) {
+        this.trail.shift();
+      }
+    }
+    // A finger that really moves is still aiming: the charge starts again once it holds.
+    if (this.still && Math.hypot(x - this.still[0], y - this.still[1]) > HOLD) {
       this.still = [x, y];
       this.commands.charge();
     }
@@ -99,16 +127,25 @@ export class PointerControls {
     if (event.pointerId === this.swapping) {
       if (this.commands.isOnShooter(x, y)) this.commands.swap();
     } else if (event.pointerId === this.aiming) {
-      this.commands.aimAt(x, y);
+      const [aimX, aimY] = this.steadyPoint(x, y, event.timeStamp);
+      this.commands.aimAt(aimX, aimY);
       this.commands.fire();
     }
     this.cancel();
   };
 
+  /** Where the finger aimed as it lifted: the lift point, unless it slid on the way up. */
+  private steadyPoint(x: number, y: number, at: number): [number, number] {
+    const before = this.trail.findLast((point) => point.at <= at - LIFT) ?? this.trail[0];
+    if (!before || Math.hypot(x - before.x, y - before.y) <= STILL) return [x, y];
+    return [before.x, before.y];
+  }
+
   private readonly cancel = (): void => {
     this.aiming = null;
     this.swapping = null;
     this.still = null;
+    this.trail = [];
   };
 }
 
