@@ -9,7 +9,9 @@ import { nearestOf, type Seat } from './seat';
  * calibration.test.ts): the reference time is 1.2 × their median time, the
  * third star is reached by about 30 % of their wins, the second by about
  * 80 %. A seat not calibrated takes its nearest calibrated seat's values; a
- * level not calibrated yet falls back on a model of a careful player.
+ * level not calibrated yet falls back on a model of a careful player. The
+ * tables load with the games only: the campaign list, which the title screen
+ * needs at once, never imports them.
  */
 
 /** Balls a level makes the player destroy: every chain's, and a third of a Colossus's health. */
@@ -31,13 +33,24 @@ export function referenceTime(level: CampaignLevel, seat: Seat): number {
 }
 
 /**
- * Points of the second and third stars (the first is the win): a slightly
- * unlucky game for the second, whatever its time; for the third, an average
- * one played a tenth quicker than a careful player.
+ * Points of the second and third stars at a seat (the first is the win). Not
+ * calibrated: a slightly unlucky game for the second, whatever its time; for
+ * the third, an average one played a tenth quicker than a careful player.
  */
-export function calibratedStars(level: CampaignLevel, seat: Seat): readonly [number, number] {
+export function starThresholds(level: CampaignLevel, seat: Seat): readonly [number, number] {
   const calibrated = nearestOf(CALIBRATION[level.id], seat);
   if (calibrated) return [calibrated[1], calibrated[2]];
   const balls = ballsOf(level);
   return [round(300 + 30 * balls), round(300 + 32 * balls + 40 * 0.3 * carefulTime(level))];
+}
+
+/** The stars a game earned: none for a defeat, then by its score at its seat. */
+export function starsFor(
+  level: CampaignLevel,
+  seat: Seat,
+  game: { readonly score: number; readonly won: boolean },
+): number {
+  if (!game.won) return 0;
+  const [two, three] = starThresholds(level, seat);
+  return game.score >= three ? 3 : game.score >= two ? 2 : 1;
 }
