@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                  |
-| ------- | ---------- | --------------------------------------- |
-| 1.23    | 30/10/2026 | Livraison de la 1.8.1 (étape 11 sur 11) |
+| Version | Date       | Statut               |
+| ------- | ---------- | -------------------- |
+| 1.24    | 30/10/2026 | Version 1.8.1 livrée |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -2949,3 +2949,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.21    | 28/10/2026 | Version 1.8.1, étape 9 : le plateau de chaque écran relevé dans le jeu, les tableaux des six mondes validés, la règle du lent au doigt (§ 3.17).                                                                                                                   |
 | 1.22    | 30/10/2026 | Version 1.8.1, étape 10 : les 72 niveaux réglés siège par siège, les outils des mondes en nouveau venu, la règle du centre et les mélanges de la Joaillerie, les aiguillages du Volcan, le garde-fou des parties qui traînent, la porte précisée (§ 3.2, 3.17).    |
 | 1.23    | 30/10/2026 | Version 1.8.1, étapes 5, 7 et 8 décrites à la livraison : les commandes au premier niveau, le son de la défaite, la musique de tension (§ 3.5, 3.13, 3.17).                                                                                                        |
+| 1.24    | 30/10/2026 | Version 1.8.1 livrée : la porte de dépôt CrazyGames tenue par les joueurs-robots, Lighthouse à 100 dans les quatre catégories ; restent le bac à sable Playgama et la revue de modérateur avant le dépôt.                                                          |

@@ -17,17 +17,21 @@ indonésien et russe**, thèmes clair et sombre, sur mobile comme sur ordinateur
   meilleur du jeu dès le premier geste (la Nova et sa cascade, un tir en bande sur le néon,
   des tirs courbés par un trou noir jusqu'à la supernova), puis le jeune Colosse stellaire
   surgit du trou noir et donne rendez-vous au 1-3. Une main montre le geste de chaque
-  vitrine, et aucune défaite n'y est possible.
+  vitrine, la première apprend chaque commande (viser, échanger, charger le tir), et aucune
+  défaite n'y est possible.
 - **Campagne** de 6 mondes × 12 niveaux, chacun avec sa mécanique et son Colosse :
   Nébuleuse (règles de base, sous un ciel de nébuleuse peint en couches), Néon (miroirs et
   ricochets), Abysses (aimant), Joaillerie (alchimie des couleurs), Volcan (aiguillages),
   Singularité (gravité d'un trou noir, lanceur en orbite) ; un premier boss dès le niveau
   1-3, le jeune Colosse stellaire. Trois difficultés : Explorateur, Pilote, Légende. Une
   jauge sous le score montre la 2ᵉ et la 3ᵉ étoile, et un bonus de temps récompense la
-  vitesse. Quand la chaîne approche du trou, la musique se tend, le trou rougit et le cœur
-  bat, puis la chaîne ralentit dans le dernier cinquième du tracé (sauf en Légende). À la
-  victoire, le panneau annonce la nouveauté du niveau suivant et le prochain lanceur, qu'un
-  geste équipe dès que les éclats suffisent.
+  vitesse. Quand la chaîne approche du trou, la musique monte par paliers et accélère, le
+  trou rougit et le cœur bat, puis la chaîne ralentit dans le dernier cinquième du tracé
+  (sauf en Légende). À la victoire, le panneau annonce la nouveauté du niveau suivant et le
+  prochain lanceur, qu'un geste équipe dès que les éclats suffisent ; une défaite a son
+  écran, qui dit ce qui manquait, donne une astuce et propose « Rejouer » d'abord. Chaque
+  niveau est réglé pour le téléphone comme pour l'ordinateur, sur des joueurs-robots tirés
+  d'études publiées.
 - **Billes bonus** cachées dans la chaîne : **Recul**, **Ralenti**, **Tir arc-en-ciel**
   et **Laser**, une nouveauté par niveau dans le monde 1, puis mêlées aux mondes suivants.
 - **Aléas** : billes qui tombent du ciel, arythmie, tempête solaire, froid mordant, vents
@@ -183,18 +187,18 @@ script ni style en ligne). Détails, décisions et équilibrage : le
 
 ## Qualité
 
-- Plus de 1 400 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
-  gagne (billes bonus comprises) et calibre ses étoiles et son temps de référence (profils
-  pressé, posé et appliqué), un nouveau venu qui mesure la tension de chaque niveau (temps
-  sous pression, quasi-défaites), et un test qui fait résoudre chaque énigme par le vrai
-  moteur.
+- Plus de 1 500 tests unitaires, dont un robot joueur qui vérifie que chaque niveau se
+  gagne (billes bonus comprises), des joueurs-robots par appareil (une main de souris ou de
+  doigt, des nouveaux venus vif, typique et lent) qui règlent chaque niveau plateau par
+  plateau, mesurent sa tension (temps sous pression, quasi-défaites) et calibrent ses
+  étoiles, et un test qui fait résoudre chaque énigme par le vrai moteur.
 - Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
   d'accessibilité en anglais et en russe dans les deux thèmes ; une matrice de tailles
   (téléphones, téléphone couché, tablette, grands écrans, zoom à 200 et 400 %) où chaque écran
   garde la page immobile et passe l'audit WCAG 2.2 ; un balayage de 320 à 2 560 px sans
   défilement horizontal ; et chaque écran en russe, en indonésien et en français à
   320 × 568, 360 × 640, 390 × 844 et 1 280 × 720, sans texte coupé ni sorti de son cadre.
-- Lighthouse (v1.8.0), en anglais comme en russe : 100 dans les quatre catégories sur
+- Lighthouse (v1.8.1), en anglais comme en russe : 100 dans les quatre catégories sur
   mobile, aux trois mesures (premier affichage simulé 0,6 s, plus grand élément 0,9 s), et
   sur ordinateur. Règle du projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur
   la plus faible de trois mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en
