@@ -31,7 +31,7 @@ describe('the danger cues and the grace zone (v1.8.0)', () => {
 
   it('give the first worlds a deeper respite than the last, and none in Legend', () => {
     const graceOf = (id: string, difficulty: 'explorer' | 'pilot' | 'legend') =>
-      toLevelSetup(resolveLevel(findLevel(id)!, FRAMES.square, difficulty)).chain.grace;
+      toLevelSetup(resolveLevel(findLevel(id)!, FRAMES.square, { difficulty })).chain.grace;
     expect(graceOf('nebula-05', 'pilot')).toEqual({ from: GRACE_FROM, factor: 0.5 });
     expect(graceOf('abyss-03', 'explorer')).toEqual({ from: GRACE_FROM, factor: 0.5 });
     expect(graceOf('jewel-03', 'pilot')).toEqual({ from: GRACE_FROM, factor: 0.7 });

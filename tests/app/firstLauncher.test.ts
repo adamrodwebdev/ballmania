@@ -46,7 +46,7 @@ function journey(kind: FrameKind, seed: string): Journey {
         sloppiness,
         insight,
       );
-      mode.settle(report, services);
+      mode.settle({ ...report, seat: { board: kind, aiming: 'touch' } }, services);
       if (report.outcome === 'won') break;
     }
     // The victory panel: each tap buys and wears the launcher its bar aims at.

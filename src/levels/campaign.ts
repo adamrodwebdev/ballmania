@@ -3,6 +3,7 @@ import { DEMO, DEMO_WORLDS } from './edition';
 import type { WeatherKind } from '@/engine/hazards/Hazards';
 import { POWER_KINDS, type PowerSetup } from '@/engine/powers/Powers';
 import type { Lesson } from './LevelDefinition';
+import type { Seat } from './seat';
 import type { TrackRecipe } from './tracks';
 
 export type WorldId = 'nebula' | 'neon' | 'abyss' | 'jewel' | 'volcano' | 'singularity';
@@ -183,7 +184,11 @@ export const orbital = (
 ): TrackRecipe =>
   spiral(turns, start, clockwise, { outer: 0.6, inner: 0.2, portal: true, ...extra });
 
-/** A serpentine whose listed rows split into a hot shortcut and a slower detour. */
+/**
+ * A serpentine whose listed rows split into a hot shortcut and a slower
+ * detour. Never the first row (v1.8.1): the opening rush reaches its fork in
+ * a second, before anyone can flip it.
+ */
 const forked = (rows: number, ...forks: number[]): TrackRecipe => ({
   kind: 'serpentine',
   rows,
@@ -602,7 +607,8 @@ const ABYSS: readonly CampaignLevel[] = [
  * World 4, Jewels: colours mix like light. A primary shot onto another
  * primary fuses with it (ruby + lime = amber, lime + violet = cyan,
  * ruby + violet = rose). Secondaries cannot be shot: three of them side by
- * side must be made by fusion. They appear one by one.
+ * side must be made by fusion. They appear one by one; the breathers, 4 and
+ * 8, deal only the primaries (decided on 29/10/2026).
  */
 const JEWEL: readonly CampaignLevel[] = [
   jewel(1, {
@@ -635,17 +641,17 @@ const JEWEL: readonly CampaignLevel[] = [
   }),
   jewel(4, {
     track: spiral(1.1, 0.75, true, { arms: 2, inner: 0.4 }),
-    palette: withSecondaries(5),
+    palette: withSecondaries(),
     length: 20,
-    tones: 4,
+    tones: 3,
     repeatChance: 0.42,
     speed: 30,
   }),
   jewel(5, {
     track: { kind: 'serpentine', rows: 4 },
-    palette: withSecondaries(1, 3),
+    palette: withSecondaries(3),
     length: 36,
-    tones: 5,
+    tones: 4,
     repeatChance: 0.42,
     speed: 30,
   }),
@@ -659,26 +665,26 @@ const JEWEL: readonly CampaignLevel[] = [
   }),
   jewel(7, {
     track: spiral(1.65, 0, false, { squareness: 3, inner: 0.38, outer: 0.84 }),
-    palette: withSecondaries(1, 3, 5),
+    palette: withSecondaries(1, 3),
     length: 38,
-    tones: 6,
+    tones: 5,
     repeatChance: 0.4,
     speed: 36,
     hazards: { weather: ['cold'] },
   }),
   jewel(8, {
     track: { kind: 'serpentine', rows: 3 },
-    palette: withSecondaries(3, 5),
+    palette: withSecondaries(),
     length: 34,
-    tones: 5,
+    tones: 3,
     repeatChance: 0.42,
     speed: 36,
   }),
   jewel(9, {
     track: spiral(1.15, 0.25, false, { arms: 2, inner: 0.4 }),
-    palette: withSecondaries(1, 5),
+    palette: withSecondaries(1),
     length: 24,
-    tones: 5,
+    tones: 4,
     repeatChance: 0.42,
     speed: 36,
   }),
@@ -720,7 +726,7 @@ const JEWEL: readonly CampaignLevel[] = [
  */
 const VOLCANO: readonly CampaignLevel[] = [
   volcano(1, {
-    track: forked(3, 0),
+    track: forked(3, 1),
     length: 36,
     tones: 4,
     repeatChance: 0.45,
@@ -728,7 +734,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     hint: 'switch',
   }),
   volcano(2, {
-    track: forked(3, 0, 1),
+    track: forked(3, 1),
     length: 38,
     tones: 4,
     repeatChance: 0.45,
@@ -753,7 +759,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     speed: 48,
   }),
   volcano(5, {
-    track: forked(4, 0, 2),
+    track: forked(4, 1, 2),
     length: 48,
     tones: 5,
     repeatChance: 0.4,
@@ -761,14 +767,14 @@ const VOLCANO: readonly CampaignLevel[] = [
     hazards: { weather: ['solar'] },
   }),
   volcano(6, {
-    track: forked(3, 0, 1),
+    track: forked(3, 1),
     length: 36,
     tones: 4,
     repeatChance: 0.45,
     speed: 40,
   }),
   volcano(7, {
-    track: forked(3, 0),
+    track: forked(3, 1),
     mirrors: SIDE_WALLS,
     length: 42,
     tones: 5,
@@ -776,7 +782,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     speed: 46,
   }),
   volcano(8, {
-    track: forked(4, 0, 1, 2),
+    track: forked(4, 1, 2),
     length: 46,
     tones: 5,
     repeatChance: 0.4,
@@ -801,7 +807,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     hazards: { meteors: 9, arrhythmia: 0.2 },
   }),
   volcano(11, {
-    track: forked(4, 0, 1, 2),
+    track: forked(4, 1, 2),
     length: 46,
     tones: 5,
     repeatChance: 0.38,
@@ -809,7 +815,7 @@ const VOLCANO: readonly CampaignLevel[] = [
     hazards: { weather: ['solar'], arrhythmia: 0.2 },
   }),
   volcano(12, {
-    track: forked(3, 0, 1),
+    track: forked(3, 1),
     length: 30,
     tones: 5,
     repeatChance: 0.4,
@@ -984,16 +990,21 @@ export function colossusName(world: WorldId, young = false): string {
 }
 
 /**
- * Scores for two and three stars; one star is earned by finishing the level.
- * Calibrated level by level on a bot that plays like a careful person
- * (src/levels/calibration.ts): about 30 % of its wins reach the third star.
+ * Scores for two and three stars at a seat; one star is earned by finishing
+ * the level. Calibrated level by level and seat by seat on careful newcomers
+ * (src/levels/calibration.ts): about 30 % of their wins reach the third star.
  */
-export function starThresholds(level: CampaignLevel): readonly [number, number] {
-  return calibratedStars(level);
+export function starThresholds(level: CampaignLevel, seat: Seat): readonly [number, number] {
+  return calibratedStars(level, seat);
 }
 
-export function starsFor(level: CampaignLevel, score: number, won: boolean): number {
-  if (!won) return 0;
-  const [two, three] = starThresholds(level);
-  return score >= three ? 3 : score >= two ? 2 : 1;
+/** The stars a game earned: none for a defeat, then by its score at its seat. */
+export function starsFor(
+  level: CampaignLevel,
+  seat: Seat,
+  game: { readonly score: number; readonly won: boolean },
+): number {
+  if (!game.won) return 0;
+  const [two, three] = starThresholds(level, seat);
+  return game.score >= three ? 3 : game.score >= two ? 2 : 1;
 }

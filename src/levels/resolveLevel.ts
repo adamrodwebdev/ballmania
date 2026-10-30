@@ -7,7 +7,9 @@ import type { CampaignLevel, MirrorRecipe } from './campaign';
 import { LEVEL_DEFAULTS, type LevelDefinition, type ReflectorDefinition } from './LevelDefinition';
 import { DIFFICULTY_RULES, type Difficulty } from './difficulty';
 import { graceOf } from './grace';
+import type { Aiming, Seat } from './seat';
 import { buildTrack, type Frame } from './tracks';
+import { paceAt } from './tuning';
 
 /** Pull of the black hole at strength 1 (units³/s²), tuned so curves read clearly. */
 export const BASE_GRAVITY = 6e7;
@@ -61,13 +63,26 @@ function hazardsOf(level: CampaignLevel, factor: number): HazardSetup | undefine
   };
 }
 
-/** Turns a campaign level into the geometry of one board shape, at a difficulty. */
+/** How a level is played besides its board: the difficulty, and the hand that aims. */
+export interface PlayedAs {
+  readonly difficulty?: Difficulty;
+  /** The finger unless told: the phones' hand, the harder one (spec § 3.17). */
+  readonly aiming?: Aiming;
+}
+
+/**
+ * Turns a campaign level into the geometry of one board shape, at the pace
+ * and with the time bonus of its seat (v1.8.1), at a difficulty.
+ */
 export function resolveLevel(
   level: CampaignLevel,
   frame: Frame,
-  difficulty: Difficulty = 'pilot',
+  { difficulty = 'pilot', aiming = 'touch' }: PlayedAs = {},
 ): LevelDefinition {
   const rule = DIFFICULTY_RULES[difficulty];
+  const seat: Seat = { board: frame.kind, aiming };
+  // The pace the tuning tool found for this board and hand (v1.8.1), else the level's own.
+  const pace = paceAt(level, seat);
   const hazards = hazardsOf(level, rule.hazards);
   const grace = graceOf(level.world, difficulty);
   const track = buildTrack(level.track, frame);
@@ -101,17 +116,17 @@ export function resolveLevel(
       path: track.routes?.[chain]
         ? { kind: 'forked' as const, parts: track.routes[chain] }
         : { kind: 'points' as const, points },
-      length: level.length,
+      length: pace.length,
       tones: level.palette?.length ?? level.tones,
       repeatChance: level.repeatChance,
       ...(level.palette ? { palette: level.palette } : {}),
       ...(level.sequence ? { sequence: level.sequence } : {}),
     })),
-    speed: level.speed * rule.speed,
+    speed: pace.speed * rule.speed,
     rushSpeed: 420,
     rushDistance: Math.min(900, longest * 0.3),
-    // Each second saved under it earns the time bonus (v1.7.3, calibrated on a careful player).
-    parTime: referenceTime(level),
+    // Each second saved under it earns the time bonus (v1.7.3), calibrated seat by seat (v1.8.1).
+    parTime: referenceTime(level, seat),
     ...(colossus ? { colossus } : {}),
     ...(level.gift ? { gift: level.gift } : {}),
     ...(level.opening ? { opening: level.opening } : {}),

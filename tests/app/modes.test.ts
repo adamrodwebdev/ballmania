@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { AppServices } from '@/app/AppServices';
-import { createMode, type Settlement } from '@/app/modes';
+import { createMode, type PlayedGame, type Settlement } from '@/app/modes';
 import type { GameReport } from '@/engine/Game';
 import { PUZZLES } from '@/levels/arcade/puzzles';
 import { SONGS } from '@/levels/arcade/rhythm';
 import { CAMPAIGN, findLevel, starThresholds } from '@/levels/campaign';
 import type { Difficulty } from '@/levels/difficulty';
+import type { Seat } from '@/levels/seat';
 import { FRAMES } from '@/levels/tracks';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { PlayerProfile } from '@/player/PlayerProfile';
@@ -29,13 +30,17 @@ const play = (assisted: boolean, difficulty: Difficulty) => ({
   assisted,
   difficulty,
   upgrades: {},
+  aiming: 'touch' as const,
 });
+
+/** A phone's seat: a square board, at the finger. */
+const SEAT: Seat = { board: 'square', aiming: 'touch' };
 
 /** Shards a game paid, without those of the achievements it reached. */
 const paid = ({ rewards }: Settlement) =>
   rewards.shards - rewards.achievements.reduce((sum, achievement) => sum + achievement.reward, 0);
 
-const report = (overrides: Partial<GameReport> = {}): GameReport => ({
+const report = (overrides: Partial<GameReport> = {}): PlayedGame => ({
   outcome: 'won',
   score: 2000,
   seconds: 60,
@@ -58,6 +63,7 @@ const report = (overrides: Partial<GameReport> = {}): GameReport => ({
   fragments: 0,
   danger: 0.5,
   colossusDefeated: false,
+  seat: SEAT,
   ...overrides,
 });
 
@@ -67,7 +73,7 @@ describe('play modes', () => {
     const level = findLevel('nebula-01')!;
     const mode = createMode({ kind: 'campaign', level });
     expect(mode.label).toEqual({ key: 'campaign.levelShort', params: { world: 1, number: 1 } });
-    expect(mode.stars).toEqual(starThresholds(level));
+    expect(mode.stars(SEAT)).toEqual(starThresholds(level, SEAT));
     expect(mode.home).toBe('campaign');
     expect(mode.hint).toBe('match');
     expect(mode.next(app)).toBeNull();
@@ -124,7 +130,7 @@ describe('play modes', () => {
     const app = services();
     const mode = createMode({ kind: 'endless' });
     expect(mode.home).toBe('arcade');
-    expect(mode.stars).toBeNull();
+    expect(mode.stars(SEAT)).toBeNull();
     expect(mode.outcome(false)).toEqual({ key: 'arcade.endless.over' });
     const settled = mode.settle(report({ outcome: 'lost', score: 12_345, stage: 3 }), app);
     expect(settled.stars).toBeNull();
@@ -252,7 +258,7 @@ describe('the training (v1.8.0)', () => {
   it('shows its place among the showcases, and nothing of the campaign', () => {
     const mode = createMode({ kind: 'training', step: 2 });
     expect(mode.training).toMatchObject({ step: 2, of: 3 });
-    expect(mode.stars).toBeNull();
+    expect(mode.stars(SEAT)).toBeNull();
     expect(mode.ranked).toBe(false);
     expect(mode.continuable).toBe(false);
     expect(mode.assistLevel).toBeNull();

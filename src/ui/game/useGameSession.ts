@@ -13,6 +13,7 @@ import { useServices } from '@/app/AppServices';
 import type { PlayMode } from '@/app/modes';
 import type { Silence } from '@/platform/AdService';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
+import type { Aiming, Seat } from '@/levels/seat';
 import type { Frame, FrameKind } from '@/levels/tracks';
 import { chooseFrame, contentBounds, NO_INSETS, type Insets } from '@/play/BoardView';
 import { pixelRatioFor } from '@/play/canvas';
@@ -37,11 +38,13 @@ export interface SessionElements {
   readonly bars: () => readonly (HTMLElement | null | undefined)[];
 }
 
-/** What a game is: its mode, the look it wears, and whether the assistance is on. */
+/** What a game is: its mode, the look it wears, whether the assistance is on, the hand. */
 export interface SessionGame {
   readonly mode: PlayMode;
   readonly look: Look;
   readonly assisted: Ref<boolean>;
+  /** A finger or a mouse, read as each game starts: its seat's pace and stars (v1.8.1). */
+  readonly aiming: () => Aiming;
 }
 
 /**
@@ -103,15 +106,17 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
     else gameplay.stop();
   });
 
-  let frame: Frame | null = null;
   /** The board shape the screen chose, shown on the game screen for tests (v1.8.1). */
   const board = shallowRef<FrameKind | null>(null);
-  /** The level for a board shape, slowed down when the assistance is on. */
-  const definitionOn = (shape: Frame): LevelDefinition =>
+  /** Where the game in progress is played: its board and the hand that aims (v1.8.1). */
+  const seat = shallowRef<Seat | null>(null);
+  /** The level for a board shape and a hand, slowed down when the assistance is on. */
+  const definitionOn = (shape: Frame, aiming: Aiming): LevelDefinition =>
     mode.definition(shape, {
       assisted: assisted.value,
       difficulty: settings.current.difficulty,
       upgrades: player.upgrades,
+      aiming,
     });
 
   /**
@@ -150,10 +155,10 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
    * The board shape that shows this level largest on the screen as it is now:
    * at the start, and again at each restart, the phone may have been turned.
    */
-  const chooseShape = (): Frame => {
+  const chooseShape = (aiming: Aiming): Frame => {
     const box = elements.surface.value?.getBoundingClientRect();
     return chooseFrame(
-      (shape) => contentBounds(toLevelSetup(definitionOn(shape))),
+      (shape) => contentBounds(toLevelSetup(definitionOn(shape, aiming))),
       box?.width ?? window.innerWidth,
       box?.height ?? window.innerHeight,
       measureInsets(),
@@ -162,11 +167,18 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
 
   const focusBoard = () => elements.canvas.value?.focus();
 
+  /** The level of a new game, at its seat: the board the screen asks for now, the hand it has. */
+  const seatedLevel = (): LevelDefinition => {
+    const aiming = game.aiming();
+    const shape = chooseShape(aiming);
+    board.value = shape.kind;
+    seat.value = { board: shape.kind, aiming };
+    return definitionOn(shape, aiming);
+  };
+
   /** A new game of the level, on the board shape the screen asks for now. */
   const newGame = () => {
-    frame = chooseShape();
-    board.value = frame.kind;
-    session.value?.restart(definitionOn(frame));
+    session.value?.restart(seatedLevel());
     focusBoard();
   };
 
@@ -175,14 +187,13 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
   onMounted(() => {
     const { canvas, surface, root, overlay } = elements;
     if (!canvas.value || !surface.value || !root.value) return;
-    frame = chooseShape();
-    board.value = frame.kind;
+    const level = seatedLevel();
     const seed = mode.seed;
     const frameRate = frameRateCap();
     const play = new PlaySession({
       canvas: canvas.value,
       distortion: overlay.value ? DistortionLayer.create(overlay.value) : null,
-      level: definitionOn(frame),
+      level,
       palette: readPalette(),
       profile: profile(),
       feedback,
@@ -285,5 +296,5 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
     for (const cleanup of cleanups) cleanup();
   });
 
-  return { session, hud, feedback, reducedMotion, silence, newGame, focusBoard, board };
+  return { session, hud, feedback, reducedMotion, silence, newGame, focusBoard, board, seat };
 }

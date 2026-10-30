@@ -3,6 +3,7 @@ import type { HintId, WorldId } from '@/levels/campaign';
 import type { UpgradeRanks } from '@/engine/upgrades/Upgrades';
 import type { Difficulty } from '@/levels/difficulty';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
+import type { Seat } from '@/levels/seat';
 import type { Frame } from '@/levels/tracks';
 import type { TrainingStep } from '@/levels/training';
 import type { DailyChallenge } from '@/player/DailyChallenge';
@@ -35,11 +36,18 @@ export interface NextGame {
   readonly detail?: Message;
 }
 
-/** What the player brings to a game: the assistance, the difficulty, the upgrades. */
+/** What the player brings to a game: the assistance, the difficulty, the upgrades, the hand. */
 export interface PlayOptions {
   readonly assisted: boolean;
   readonly difficulty: Difficulty;
   readonly upgrades: UpgradeRanks;
+  /** A finger or a mouse: with the board, the seat whose pace and stars the level takes (v1.8.1). */
+  readonly aiming: Aiming;
+}
+
+/** A finished game, and the seat it was played at: its stars are the seat's (v1.8.1). */
+export interface PlayedGame extends GameReport {
+  readonly seat: Seat;
 }
 
 /** What a finished game earned, for the end dialog. */
@@ -78,10 +86,11 @@ export interface PlayMode {
   /** Short name in the top bar ("3-7", "Endless"…). */
   readonly label: Message;
   /**
-   * Points of the second and third stars, for the gauge under the score (the
-   * first star is the win itself); null where stars don't come from points.
+   * Points of the second and third stars at a seat, for the gauge under the
+   * score (the first star is the win itself); null where stars don't come
+   * from points.
    */
-  readonly stars: readonly [number, number] | null;
+  stars(seat: Seat): readonly [number, number] | null;
   /**
    * After a defeat, the player may continue once with a rewarded ad (§ 3.7):
    * the campaign and Endless, never a game that is compared (daily challenge,
@@ -124,12 +133,13 @@ export interface PlayMode {
   /** Title of the end dialog. */
   outcome(won: boolean): Message;
   /**
-   * The level for this board shape: slowed down when assisted, at the
-   * campaign difficulty, with the player's upgrades (the campaign only).
+   * The level for this board shape and the hand that aims, at their seat's
+   * pace (v1.8.1): slowed down when assisted, at the campaign difficulty,
+   * with the player's upgrades (the campaign only).
    */
   definition(frame: Frame, options: PlayOptions): LevelDefinition;
   /** Saves the finished game and pays its rewards. */
-  settle(report: GameReport, services: AppServices): Settlement;
+  settle(game: PlayedGame, services: AppServices): Settlement;
   /**
    * A lost game as the defeat screen tells it (v1.8.1): how close it came and
    * a tip, for a level lost to the chain; null where a defeat means something

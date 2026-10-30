@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { ingredients, isPrimary, mix, PRIMARIES, SECONDARIES } from '@/engine/chain/Alchemy';
+import {
+  FUSE_REACH,
+  ingredients,
+  isPrimary,
+  mix,
+  offCentre,
+  PRIMARIES,
+  SECONDARIES,
+} from '@/engine/chain/Alchemy';
 import { ChainGenerator } from '@/engine/chain/ChainGenerator';
 import { SeededRandom } from '@/engine/core/Random';
 import { Game, type LevelSetup } from '@/engine/Game';
@@ -25,6 +33,13 @@ describe('Alchemy', () => {
       expect(mix(a, b)).toBe(secondary);
     }
     expect(ingredients(0)).toBeNull();
+  });
+
+  it('measures how far a flight passes from a centre, whatever its speed', () => {
+    const centre = new Vec2(100, 0);
+    expect(offCentre(centre, new Vec2(100, 300), new Vec2(0, -900))).toBeCloseTo(0);
+    expect(offCentre(centre, new Vec2(106, 300), new Vec2(0, -900))).toBeCloseTo(6);
+    expect(offCentre(centre, new Vec2(94, 300), new Vec2(0, -1))).toBeCloseTo(6);
   });
 });
 
@@ -75,13 +90,17 @@ describe('Game with alchemy', () => {
     alchemy,
   });
 
-  const shootAtHead = (game: Game) => {
+  /** Aims at the head, `aside` units off its centre along the track, then shoots. */
+  const shootAtHead = (game: Game, aside = 0) => {
     for (let i = 0; i < 120; i++) game.update(1 / 60);
     const chain = game.chains[0]!;
     const head = chain.balls[chain.balls.length - 1]!;
-    game.aimAt(chain.positionOf(head));
+    game.aimAt(chain.positionOf(head).add(new Vec2(aside, 0)));
+    const centred = game.aimTarget()?.centred;
+    const preview = game.preview();
     game.fire();
     for (let i = 0; i < 40; i++) game.update(1 / 60);
+    return { centred, preview };
   };
 
   it('loads only primaries', () => {
@@ -101,6 +120,22 @@ describe('Game with alchemy', () => {
     expect(fused).toEqual(['0+4=5']);
     expect(game.chains[0]!.balls.map((ball) => ball.tone)).toEqual([0, 5]);
     expect(game.summary().fusions).toBe(1);
+  });
+
+  it('slips an off-centre shot in beside the ball, and says so before the shot (v1.8.1)', () => {
+    const near = new Game(level(true), new FixedRandom(0));
+    const centred = shootAtHead(near, 0.4 * FUSE_REACH * PARAMS.ballRadius);
+    expect(centred.centred).toBe(true);
+    // A fusion has no ghost marble: the ring of the mix shows instead.
+    expect(centred.preview).toBeNull();
+    expect(near.summary().fusions).toBe(1);
+
+    const off = new Game(level(true), new FixedRandom(0));
+    const glancing = shootAtHead(off, 1.4 * FUSE_REACH * PARAMS.ballRadius);
+    expect(glancing.centred).toBe(false);
+    expect(glancing.preview).not.toBeNull();
+    expect(off.summary().fusions).toBe(0);
+    expect(off.chains[0]!.balls.map((ball) => ball.tone)).toEqual([0, 4, 0]);
   });
 
   it('inserts as usual outside the Jewel world', () => {

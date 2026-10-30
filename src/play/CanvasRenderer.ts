@@ -121,8 +121,12 @@ export interface AimPreview {
 export interface AimLine {
   readonly points: readonly Vec2[];
   readonly rebounds: readonly Vec2[];
-  /** The ball the line meets first, by its chain and index. */
-  readonly target: { readonly chain: number; readonly index: number } | null;
+  /** The ball the line meets first, by its chain and index, and whether near its centre. */
+  readonly target: {
+    readonly chain: number;
+    readonly index: number;
+    readonly centred: boolean;
+  } | null;
 }
 
 /** Canvas 2D renderer: tracks, hole, chains, shots, shooter and effects. */
@@ -212,6 +216,11 @@ export class CanvasRenderer implements Renderer {
           this.content.right,
           this.content.bottom,
         ].join(' '),
+        // The levers of the switches, in board units: "x y,x y".
+        switches: this.game
+          .switches()
+          .map(({ position }) => `${position.x} ${position.y}`)
+          .join(','),
       });
     }
     this.rebuildSprites();
@@ -980,10 +989,11 @@ export class CanvasRenderer implements Renderer {
       ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
       ctx.fill();
     }
-    // Jewel world: the touched ball would turn into the mix; show its colour.
+    // Jewel world: the touched ball would turn into the mix, met near its centre; show its colour.
+    // Off-centre, the shot slips in beside it, and the ghost of the preview says so.
     const end = aim.points[aim.points.length - 1];
-    if (!magnet && end && this.game.setup.alchemy) {
-      const target = aim.target && this.game.chains[aim.target.chain]?.balls[aim.target.index];
+    if (!magnet && end && this.game.setup.alchemy && aim.target?.centred) {
+      const target = this.game.chains[aim.target.chain]?.balls[aim.target.index];
       const mixed = target ? mix(this.game.shooter.current, target.tone) : null;
       if (mixed !== null) {
         ctx.setLineDash([]);

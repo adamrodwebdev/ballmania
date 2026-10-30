@@ -192,7 +192,7 @@
     "spin": "Ces prismes tournent\u00a0: attendez le bon angle avant de tirer.",
     "magnet": "Touchez «\u00a0Aimant\u00a0» (ou M), puis visez une bille\u00a0: elle quitte la chaîne et rejoint votre lanceur.",
     "magnetCombo": "Aspirez la bille qui sépare deux groupes de même couleur\u00a0: ils se rejoignent et explosent.",
-    "alchemy": "La lumière se mélange\u00a0: rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose. Tirez une couleur sur une autre pour les fusionner.",
+    "alchemy": "La lumière se mélange\u00a0: rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose. Tirez une couleur au centre d’une autre pour les fusionner\u00a0; décentrée, elle se glisse à côté.",
     "alchemySecondary": "Les couleurs mélangées ne se tirent pas\u00a0: fusionnez-en trois côte à côte pour les faire exploser.",
     "switch": "Touchez un aiguillage (ou appuyez sur S) pour envoyer la lave dans le détour\u00a0: plus long, il vous donne du temps. Il se verrouille dès que la chaîne l’atteint.",
     "hot": "Sur le raccourci, la lave est en fusion\u00a0: les billes qui y explosent valent double. À vous de choisir entre points et temps.",

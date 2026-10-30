@@ -418,18 +418,18 @@ test('flips the switches of the Volcano world by touch and by keyboard', async (
   await page.getByTestId('play').click();
   await page.getByTestId('level-volcano-01').click();
   const board = page.getByTestId('board');
-  // Where the board is drawn, as the renderer fitted it to this screen (any board shape).
-  await expect(board).toHaveAttribute('data-scale', /\d/);
-  const [scale, left, top, width, height] = await Promise.all(
-    ['data-scale', 'data-offset-x', 'data-offset-y', 'data-board-width', 'data-board-height'].map(
-      async (name) => Number(await board.getAttribute(name)),
+  // Where the board is drawn, as the renderer fitted it to this screen (any board shape), and
+  // where the lever of the first switch stands: off the first row since v1.8.1.
+  await expect(board).toHaveAttribute('data-switches', /\d/);
+  const [scale, left, top] = await Promise.all(
+    ['data-scale', 'data-offset-x', 'data-offset-y'].map(async (name) =>
+      Number(await board.getAttribute(name)),
     ),
   );
-  // The first fork starts 30 % along the first row (y = 110).
-  const turn = Math.min(300, (height * 0.62 - 110) / 2) / 2;
-  const forkX = 90 + (width - 90 - turn - 90) * 0.3;
+  const switches = (await board.getAttribute('data-switches')) ?? '';
+  const [leverX, leverY] = switches.split(',')[0].split(' ').map(Number);
   const live = page.locator('[aria-live="polite"]');
-  await board.click({ position: { x: left + forkX * scale, y: top + 110 * scale } });
+  await board.click({ position: { x: left + leverX * scale, y: top + leverY * scale } });
   await expect(live).toHaveText('Switch set to the detour');
   await board.focus();
   await page.keyboard.press('KeyS');

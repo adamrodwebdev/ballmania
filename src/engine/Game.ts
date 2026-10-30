@@ -1,4 +1,4 @@
-import { ingredients, mix, PRIMARIES, SECONDARIES } from './chain/Alchemy';
+import { FUSE_REACH, ingredients, mix, offCentre, PRIMARIES, SECONDARIES } from './chain/Alchemy';
 import { BallFactory, MAX_TONES, type BallView, type Tone } from './chain/Ball';
 import { Chain, type ChainParams, type Explosion, type ExplosionCause } from './chain/Chain';
 import { ChainGenerator, type ChainRecipe } from './chain/ChainGenerator';
@@ -63,11 +63,15 @@ export interface ChainSetup {
 export interface AimLine {
   readonly points: Vec2[];
   readonly rebounds: Vec2[];
-  /** The ball met, by its chain and index, and the side where the shot would land. */
+  /**
+   * The ball met, by its chain and index, the side where the shot would land,
+   * and whether it would meet it near its centre (Jewel world: it fuses then).
+   */
   readonly target: {
     readonly chain: number;
     readonly index: number;
     readonly after: boolean;
+    readonly centred: boolean;
   } | null;
 }
 
@@ -79,6 +83,8 @@ export interface SwitchView {
   /** The chain has reached it: it can no longer be flipped. */
   readonly locked: boolean;
   readonly position: Vec2;
+  /** How far along its chain's track the fork begins. */
+  readonly start: number;
 }
 
 /** Explosions on the short branch of a fork are worth this much more (Volcano world). */
@@ -674,7 +680,8 @@ export class Game {
       return { position, group, reaction: [] };
     }
     const tone = special === 'wild' ? touched.tone : this.shooter.current;
-    if (special !== 'wild' && this.setup.alchemy && mix(tone, touched.tone) !== null) return null;
+    const fuses = this.setup.alchemy && target.centred && mix(tone, touched.tone) !== null;
+    if (special !== 'wild' && fuses) return null;
     const touching = (a: number, b: number) =>
       Math.abs(balls[b]!.s - balls[a]!.s) <= diameter + 1e-6;
     /** Indexes of the touching balls of `colour` from `from`, going one way. */
@@ -729,6 +736,7 @@ export class Game {
           branch: state.choices[fork]!,
           locked: this.isLocked(chain, fork),
           position: track.path.pointAt(span.start),
+          start: span.start,
         });
       });
     });
@@ -767,8 +775,16 @@ export class Game {
     );
   }
 
-  /** The ball the aim line meets first (rebounds included), or null. */
-  aimTarget(): { readonly chain: number; readonly index: number; readonly ball: BallView } | null {
+  /**
+   * The ball the aim line meets first (rebounds included), and whether the
+   * shot takes it near its centre (a fusion, in the Jewel world), or null.
+   */
+  aimTarget(): {
+    readonly chain: number;
+    readonly index: number;
+    readonly ball: BallView;
+    readonly centred: boolean;
+  } | null {
     const target = this.trace(2).target;
     if (!target) return null;
     return { ...target, ball: this.chains[target.chain]!.balls[target.index]! };
@@ -841,7 +857,8 @@ export class Game {
         const hit = this.chains[chain]!.hitTest(position);
         if (!hit) continue;
         points.push(position);
-        return { points, rebounds, target: { chain, index: hit.index, after: hit.after } };
+        const centred = this.centred(this.chains[chain]!, hit.index, position, velocity);
+        return { points, rebounds, target: { chain, index: hit.index, after: hit.after, centred } };
       }
     }
     points.push(position);
@@ -1240,9 +1257,19 @@ export class Game {
     return true;
   }
 
-  /** Jewel world: a primary shot onto another primary fuses with it. True if it did. */
+  /** A flight meets a ball near its centre: in the Jewel world, it fuses with it. */
+  private centred(chain: Chain, ballIndex: number, position: Vec2, velocity: Vec2): boolean {
+    const centre = chain.positionOf(chain.balls[ballIndex]!);
+    return offCentre(centre, position, velocity) <= FUSE_REACH * this.setup.chain.ballRadius;
+  }
+
+  /**
+   * Jewel world: a primary shot onto another primary, near its centre, fuses
+   * with it; off-centre, it slips in beside it. True if it fused.
+   */
   private fuse(index: number, chain: Chain, ballIndex: number, projectile: Projectile): boolean {
     if (!this.setup.alchemy) return false;
+    if (!this.centred(chain, ballIndex, projectile.position, projectile.velocity)) return false;
     const touched = chain.balls[ballIndex]!;
     const mixed = mix(projectile.tone, touched.tone);
     if (mixed === null) return false;

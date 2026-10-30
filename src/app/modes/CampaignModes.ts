@@ -11,13 +11,14 @@ import {
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { noveltyOf, type Novelty } from '@/levels/novelty';
 import { resolveLevel } from '@/levels/resolveLevel';
+import type { Seat } from '@/levels/seat';
 import type { Frame } from '@/levels/tracks';
 import type { DailyChallenge } from '@/player/DailyChallenge';
 import { assistanceOf, type Assistance } from '@/player/rewards';
 import type { AppServices } from '../AppServices';
 import { DefeatSummary, type Aiming } from '../DefeatSummary';
 import type { PlayRequest } from '../PlayRequest';
-import type { Message, NextGame, PlayMode, PlayOptions, Settlement } from './PlayMode';
+import type { Message, NextGame, PlayedGame, PlayMode, PlayOptions, Settlement } from './PlayMode';
 
 /** Seconds between two star fragments, on average, without the Attrape-étoiles upgrade. */
 export const FRAGMENT_EVERY = 9;
@@ -120,8 +121,8 @@ export class CampaignMode implements PlayMode {
     return shortName(this.level);
   }
 
-  get stars(): readonly [number, number] {
-    return starThresholds(this.level);
+  stars(seat: Seat): readonly [number, number] {
+    return starThresholds(this.level, seat);
   }
 
   outcome(won: boolean): Message {
@@ -136,8 +137,11 @@ export class CampaignMode implements PlayMode {
     return DefeatSummary.of(report, aiming, this.hint);
   }
 
-  definition(frame: Frame, { assisted, difficulty, upgrades }: PlayOptions): LevelDefinition {
-    const resolved = resolveLevel(this.level, frame, difficulty);
+  definition(
+    frame: Frame,
+    { assisted, difficulty, upgrades, aiming }: PlayOptions,
+  ): LevelDefinition {
+    const resolved = resolveLevel(this.level, frame, { difficulty, aiming });
     return {
       ...resolved,
       speed: resolved.speed * (assisted ? this.assistance.speed : 1),
@@ -146,9 +150,9 @@ export class CampaignMode implements PlayMode {
     };
   }
 
-  settle(report: GameReport, { progress, player }: AppServices): Settlement {
+  settle(report: PlayedGame, { progress, player }: AppServices): Settlement {
     const won = report.outcome === 'won';
-    const stars = starsFor(this.level, report.score, won);
+    const stars = starsFor(this.level, report.seat, { score: report.score, won });
     const result = won ? progress.record(this.level.id, report.score, stars) : null;
     const world = won ? worldFinished(this.level) : undefined;
     const rewards = player.recordGame(report, {
@@ -229,8 +233,8 @@ export class DailyMode implements PlayMode {
     return { key: 'daily.short' };
   }
 
-  get stars(): readonly [number, number] {
-    return starThresholds(this.challenge.level);
+  stars(seat: Seat): readonly [number, number] {
+    return starThresholds(this.challenge.level, seat);
   }
 
   outcome(won: boolean): Message {
@@ -246,12 +250,15 @@ export class DailyMode implements PlayMode {
     return null;
   }
 
-  definition(frame: Frame): LevelDefinition {
-    return resolveLevel(this.challenge.level, frame);
+  definition(frame: Frame, { aiming }: PlayOptions): LevelDefinition {
+    return resolveLevel(this.challenge.level, frame, { aiming });
   }
 
-  settle(report: GameReport, { progress, player }: AppServices): Settlement {
-    const stars = starsFor(this.challenge.level, report.score, report.outcome === 'won');
+  settle(report: PlayedGame, { progress, player }: AppServices): Settlement {
+    const stars = starsFor(this.challenge.level, report.seat, {
+      score: report.score,
+      won: report.outcome === 'won',
+    });
     const rewards = player.recordGame(report, {
       kind: 'daily',
       levelId: this.challenge.level.id,

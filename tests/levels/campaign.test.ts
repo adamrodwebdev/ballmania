@@ -118,14 +118,22 @@ describe('campaign', () => {
     expect(adult.young).toBeUndefined();
   });
 
-  it('awards stars from the score, one for finishing', () => {
+  it('puts no lava switch on a first row, which the opening rush passes in a second', () => {
+    for (const level of CAMPAIGN) {
+      if (level.track.kind !== 'serpentine') continue;
+      expect(level.track.forks ?? [], level.id).not.toContain(0);
+    }
+  });
+
+  it('awards stars from the score at the seat, one for finishing', () => {
     const level = findLevel('nebula-04')!;
-    const [two, three] = starThresholds(level);
+    const seat = { board: 'portrait', aiming: 'touch' } as const;
+    const [two, three] = starThresholds(level, seat);
     expect(two).toBeLessThan(three);
-    expect(starsFor(level, 10_000, false)).toBe(0);
-    expect(starsFor(level, 0, true)).toBe(1);
-    expect(starsFor(level, two, true)).toBe(2);
-    expect(starsFor(level, three, true)).toBe(3);
+    expect(starsFor(level, seat, { score: 10_000, won: false })).toBe(0);
+    expect(starsFor(level, seat, { score: 0, won: true })).toBe(1);
+    expect(starsFor(level, seat, { score: two, won: true })).toBe(2);
+    expect(starsFor(level, seat, { score: three, won: true })).toBe(3);
   });
 });
 

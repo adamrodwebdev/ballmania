@@ -1,22 +1,25 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
+import { resolveLevel } from '@/levels/resolveLevel';
 import { FRAMES, type FrameKind } from '@/levels/tracks';
+import { assistanceOf } from '@/player/rewards';
+import { CRAWL } from './bands';
 import { boardOn, SCREENS, SURVEYED_IDS, type Screen } from './boards';
-import { playRobot, robotOf, type BotResult, type Newcomer } from './bot';
+import { AIMING, playRobotOn, robotOf, type BotResult, type Newcomer } from './bot';
 
 /**
  * Each level as phone and desktop players meet it (v1.8.1, spec § 3.17): the
  * newcomers on each screen, on the board the game gives that level there
- * (`boards.ts`), 24 sequences of colours each played by three hands, 72
- * games a robot; the typical newcomer on every screen, the slow one at the
- * finger too.
+ * (`boards.ts`), 96 sequences of colours the tuning tool never plays, one
+ * hand each, so that it checks the tool on games it has not seen; the typical
+ * newcomer on every screen, the slow one at the finger too, then with the
+ * help its world offers after repeated defeats. No level may crawl there.
  *
  * `DEVICES=nebula npx vitest run tests/levels/devices.test.ts` writes the
  * tables of a world to `reports/appareils-nebula.md`; `DEVICES=all`, of every world.
  */
-const COLOURS = Array.from({ length: 24 }, (_, i) => `tension-${i}`);
-const HANDS = 3;
+const COLOURS = Array.from({ length: 96 }, (_, i) => `screen-${i}`);
 /** Past this share of its track, the head of a chain makes a near miss. */
 const NEAR_MISS = 0.8;
 const BOARD_NAMES: Readonly<Record<FrameKind, string>> = {
@@ -27,13 +30,18 @@ const BOARD_NAMES: Readonly<Record<FrameKind, string>> = {
   wide: 'large',
 };
 
-const play = (level: CampaignLevel, screen: Screen, newcomer: Newcomer): BotResult[] => {
-  const robot = robotOf(newcomer, SCREENS[screen].device);
-  const frame = FRAMES[boardOn(level, screen)];
-  return COLOURS.flatMap((seed) =>
-    Array.from({ length: HANDS }, (_, hand) =>
-      playRobot(level, frame, seed, robot, `${seed}/${hand}`),
-    ),
+/** A newcomer's games on a screen, with or without the assistance (the chain slowed, § 3.2). */
+const play = (
+  level: CampaignLevel,
+  screen: Screen,
+  { newcomer, assisted = false }: { readonly newcomer: Newcomer; readonly assisted?: boolean },
+): BotResult[] => {
+  const device = SCREENS[screen].device;
+  const robot = robotOf(newcomer, device);
+  const resolved = resolveLevel(level, FRAMES[boardOn(level, screen)], { aiming: AIMING[device] });
+  const speed = resolved.speed * (assisted ? assistanceOf(level.world).speed : 1);
+  return COLOURS.map((seed) =>
+    playRobotOn({ ...resolved, speed }, seed, { robot, handSeed: `${seed}/hand` }),
   );
 };
 
@@ -54,32 +62,47 @@ const wins = (games: readonly BotResult[]): number =>
 const label = (level: CampaignLevel): string =>
   `${WORLDS.findIndex((world) => world.id === level.world) + 1}-${level.number}`;
 
+/** A world as one screen's newcomers play it. */
+interface Table {
+  /** The Markdown table. */
+  readonly text: string;
+  /** The levels at which the typical newcomer crawls on this screen. */
+  readonly crawling: readonly string[];
+}
+
 /** A world as one screen's newcomers play it, as a Markdown table. */
-function table(levels: readonly CampaignLevel[], screen: Screen): string {
+function table(levels: readonly CampaignLevel[], screen: Screen): Table {
   const finger = SCREENS[screen].device === 'finger';
   const lines = [
-    `${SCREENS[screen].name} : ${COLOURS.length} suites de couleurs × ${HANDS} mains par robot.`,
+    `${SCREENS[screen].name} : ${COLOURS.length} suites de couleurs, une main chacune, par robot.`,
     '',
-    `| Niveau | Plateau | Victoires typique |${finger ? ' lent |' : ''} Durée typique | Pointe typique | Quasi-défaites typique | Sous pression typique |`,
-    `| ------ | ------- | ----------------- |${finger ? ' ---- |' : ''} ------------- | -------------- | ---------------------- | --------------------- |`,
+    `| Niveau | Plateau | Victoires typique |${finger ? ' lent | lent aidé |' : ''} Durée typique | Pointe typique | Quasi-défaites typique | Sous pression typique | En jeu à 5 min typique |`,
+    `| ------ | ------- | ----------------- |${finger ? ' ---- | --------- |' : ''} ------------- | -------------- | ---------------------- | --------------------- | ---------------------- |`,
   ];
+  const crawling: string[] = [];
   for (const level of levels) {
-    const typical = play(level, screen, 'typical');
-    const slow = finger ? play(level, screen, 'slow') : null;
+    const typical = play(level, screen, { newcomer: 'typical' });
+    const slow = finger ? play(level, screen, { newcomer: 'slow' }) : null;
+    const helped = finger ? play(level, screen, { newcomer: 'slow', assisted: true }) : null;
+    const running = typical.filter((game) => game.outcome === 'timeout').length;
+    if (running > CRAWL * typical.length) {
+      crawling.push(`${label(level)} (${BOARD_NAMES[boardOn(level, screen)]})`);
+    }
     lines.push(
       `| ${[
         label(level),
         BOARD_NAMES[boardOn(level, screen)],
         share(wins(typical)),
-        ...(slow ? [share(wins(slow))] : []),
+        ...(slow && helped ? [share(wins(slow)), share(wins(helped))] : []),
         clock(median(typical.filter((game) => game.outcome === 'won').map((game) => game.elapsed))),
         share(median(typical.map((game) => game.danger))),
         `${typical.filter((game) => game.danger >= NEAR_MISS).length}/${typical.length}`,
         share(median(typical.map((game) => game.pressure / Math.max(1, game.elapsed)))),
+        `${running}/${typical.length}`,
       ].join(' | ')} |`,
     );
   }
-  return lines.join('\n');
+  return { text: lines.join('\n'), crawling };
 }
 
 describe('levels on the phone and on the desktop (v1.8.1)', () => {
@@ -100,11 +123,17 @@ describe('levels on the phone and on the desktop (v1.8.1)', () => {
       expect(worlds.length, `DEVICES=${selected ?? ''}`).toBeGreaterThan(0);
       mkdirSync('reports', { recursive: true });
       for (const world of worlds) {
-        const text = (Object.keys(SCREENS) as Screen[])
-          .map((screen) => table(world.levels, screen))
-          .join('\n\n');
+        const tables = (Object.keys(SCREENS) as Screen[]).map((screen) =>
+          table(world.levels, screen),
+        );
+        const text = tables.map((found) => found.text).join('\n\n');
         writeFileSync(`reports/appareils-${world.id}.md`, `${text}\n`);
         console.log(`\n${text}\n`);
+        // The tables first, so that a level that crawls is seen in its figures.
+        expect(
+          tables.flatMap((found) => found.crawling),
+          `${world.id}: levels that crawl`,
+        ).toEqual([]);
       }
     },
     10_800_000,
