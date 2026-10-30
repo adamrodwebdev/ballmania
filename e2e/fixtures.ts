@@ -1,4 +1,4 @@
-import { test as base, type Page } from '@playwright/test';
+import { expect, test as base, type Page } from '@playwright/test';
 
 /**
  * The journeys start where players land after the studio intro: it plays
@@ -40,4 +40,24 @@ export const overflowOf = (page: Page): Promise<number> =>
     );
   });
 
-export { expect, type Page } from '@playwright/test';
+/**
+ * Spends a puzzle's shots from the keyboard, Space pressed again until the
+ * shots badge counts each one: a press while the launcher reloads is no shot,
+ * and on a loaded machine the game's clock falls behind the test's (30/10/2026:
+ * three shots out of four, pressed 250 ms apart, under four workers). The badge
+ * counts a shot in the same task as the key that fired it, so no press is ever
+ * a shot too many.
+ */
+export async function spendShots(page: Page): Promise<void> {
+  const badge = page.getByTestId('shots');
+  const left = async (): Promise<number> =>
+    Number(/\d+/.exec((await badge.textContent()) ?? '')?.[0]);
+  for (let count = await left(); count > 0; count--) {
+    await expect(async () => {
+      if ((await left()) === count) await page.keyboard.press('Space');
+      expect(await left()).toBe(count - 1);
+    }).toPass({ intervals: [250] });
+  }
+}
+
+export { expect, type Page };

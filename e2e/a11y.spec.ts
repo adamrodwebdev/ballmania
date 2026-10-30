@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from './fixtures';
+import { expect, spendShots, test, type Page } from './fixtures';
 
 /**
  * The languages audited, with the names the journeys click: English, and Russian for its
@@ -91,10 +91,7 @@ for (const locale of Object.keys(NAMES) as Audited[]) {
         await page.getByTestId('puzzle-1').click();
         const board = page.getByTestId('board');
         await expect(board).toBeFocused();
-        for (let shot = 0; shot < 4; shot++) {
-          await page.keyboard.press('Space');
-          await page.waitForTimeout(250);
-        }
+        await spendShots(page);
         await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 });
         await audit(page, 'result');
       });
