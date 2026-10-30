@@ -1,4 +1,13 @@
-import { eventsAt, stepSeconds, THEMES, type MusicThemeId, type StepEvents } from './score';
+import { tensionTier } from '@/play/dangerCues';
+import {
+  easeTempo,
+  eventsAt,
+  stepSeconds,
+  tempoTarget,
+  THEMES,
+  type MusicThemeId,
+  type StepEvents,
+} from './score';
 
 /** How far ahead notes are scheduled, in seconds, and how often the scheduler wakes. */
 const LOOKAHEAD = 0.15;
@@ -21,7 +30,11 @@ export class MusicPlayer {
   private step = 0;
   private nextTime = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
-  private intensity = 0;
+  /** How far the chain's head has gone along its track, 0 to 1. */
+  private danger = 0;
+  /** The tier of tension playing (0 to 3), and the tempo, as a share of the theme's own. */
+  private tier = 0;
+  private tempo = 1;
 
   constructor(
     private readonly ctx: AudioContext,
@@ -47,14 +60,16 @@ export class MusicPlayer {
     bus.connect(this.output);
     this.bus = bus;
     this.step = 0;
+    this.tier = 0;
+    this.tempo = 1;
     this.nextTime = now + 0.05;
     this.timer ??= setInterval(() => this.schedule(), TICK_MS);
     this.schedule();
   }
 
-  /** Tension, 0 to 1 (the chain nearing the hole): calmer themes gain drums. */
-  setIntensity(intensity: number): void {
-    this.intensity = intensity;
+  /** How far the chain's head has gone along its track (0 to 1): the music tenses by tiers. */
+  setDanger(share: number): void {
+    this.danger = share;
   }
 
   stop(): void {
@@ -87,32 +102,30 @@ export class MusicPlayer {
     // A suspended context (pause, ad) does not move: nothing piles up meanwhile.
     if (this.nextTime < this.ctx.currentTime) this.nextTime = this.ctx.currentTime + 0.05;
     while (this.nextTime < this.ctx.currentTime + LOOKAHEAD) {
-      this.render(eventsAt(theme, this.step, this.intensity), this.nextTime, bus, theme);
-      this.nextTime += stepSeconds(theme);
+      // Once a step, never once a frame: the tier and the tempo follow the danger.
+      this.tier = tensionTier(this.tier, this.danger);
+      const step = stepSeconds(theme) / this.tempo;
+      this.tempo = easeTempo(this.tempo, tempoTarget(this.danger), step);
+      this.render(eventsAt(theme, this.step, this.tier), this.nextTime, bus, theme, step);
+      this.nextTime += step;
       this.step++;
     }
   }
 
+  /** Plays one step's notes at `at`; `step` is its length at the tempo playing. */
   private render(
     events: StepEvents,
     at: number,
     bus: GainNode,
     theme: (typeof THEMES)[MusicThemeId],
+    step: number,
   ): void {
     if (events.pad) {
+      const bar = events.pad.seconds * (step / stepSeconds(theme));
       for (const note of events.pad.notes) {
-        this.pad(
-          bus,
-          at,
-          note,
-          events.pad.seconds,
-          theme.pad.wave,
-          theme.pad.level,
-          theme.pad.bright,
-        );
+        this.pad(bus, at, note, bar, theme.pad.wave, theme.pad.level, theme.pad.bright);
       }
     }
-    const step = stepSeconds(theme);
     if (events.bass) {
       this.tone(
         bus,

@@ -6,6 +6,8 @@
  * with Web Audio. Pure, so it can be tested without a sound card.
  */
 
+import { ALARM_FROM, rise } from '@/play/dangerCues';
+
 export type MusicThemeId =
   'title' | 'nebula' | 'neon' | 'abyss' | 'jewel' | 'volcano' | 'singularity';
 
@@ -219,6 +221,66 @@ export const THEMES: Readonly<Record<MusicThemeId, MusicTheme>> = {
   },
 };
 
+const REST = p(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _);
+/** A bass on every eighth, the beats stronger. */
+const DRIVE = p(x, _, o, _, x, _, o, _, x, _, o, _, x, _, o, _);
+const SIXTEENTHS = p(s, s, o, s, s, s, o, s, s, s, o, s, s, s, o, s);
+
+/** What a tier of tension adds to a theme's own parts; each tier holds the ones below it. */
+interface TensionLayer {
+  readonly bass: Pattern;
+  readonly kick: Pattern;
+  readonly snare: Pattern;
+  readonly hat: Pattern;
+}
+
+/**
+ * The tension music (v1.8.1, spec § 3.17), tier by tier as the chain nears
+ * the hole (`TENSION_TIERS`), laid over every theme, the calm ones included.
+ */
+export const TENSION_LAYERS: readonly TensionLayer[] = [
+  // Calm: the theme as written.
+  { bass: REST, kick: REST, snare: REST, hat: REST },
+  // From half the track: a bass that pushes, and the hi-hat between the beats.
+  {
+    bass: DRIVE,
+    kick: REST,
+    snare: REST,
+    hat: p(_, _, o, _, _, _, o, _, _, _, o, _, _, _, o, _),
+  },
+  // From the alarm: the strong beat, the backbeat, sixteenths (and the tempo rises).
+  {
+    bass: DRIVE,
+    kick: p(x, _, _, _, x, _, _, _, x, _, _, _, x, _, _, _),
+    snare: p(_, _, _, _, o, _, _, _, _, _, _, _, o, _, _, _),
+    hat: SIXTEENTHS,
+  },
+  // Near the hole: the kick doubled and a roll into every bar, with the heart.
+  {
+    bass: DRIVE,
+    kick: p(x, _, o, _, x, _, o, _, x, _, o, _, x, _, o, _),
+    snare: p(_, _, _, _, o, _, _, _, _, _, _, _, o, s, o, x),
+    hat: SIXTEENTHS,
+  },
+];
+
+/** How much faster the music plays at the hole than at rest: about 15 %. */
+export const TEMPO_RISE = 0.15;
+/** Seconds the tempo takes to follow the danger: it relaxes slower than it rises. */
+const TEMPO_LAG = { up: 2, down: 4 } as const;
+
+/** The tempo the music heads for, as a share of its own: it rises from the alarm on, gently first. */
+export function tempoTarget(share: number): number {
+  const risen = rise(share, ALARM_FROM);
+  return 1 + TEMPO_RISE * risen * risen * (3 - 2 * risen);
+}
+
+/** The tempo `seconds` later, heading for `target` without a jolt. */
+export function easeTempo(current: number, target: number, seconds: number): number {
+  const lag = target > current ? TEMPO_LAG.up : TEMPO_LAG.down;
+  return target + (current - target) * Math.exp(-seconds / lag);
+}
+
 /** What one step of a theme plays. Frequencies in hertz, loudness 0 to 1. */
 export interface StepEvents {
   /** A new chord starts (first step of a bar): the pad notes and the bar's length. */
@@ -274,19 +336,18 @@ export function defeatMotif(root: number, minor = true): readonly MotifNote[] {
 
 /**
  * The notes of step `step` (counted from the start of the loop; the loop
- * repeats). `intensity` (0 to 1) brings in the drums of calmer themes when
- * the chain nears the hole.
+ * repeats), with the layers of tension `tier` (0 to 3) over the theme's own.
  */
-export function eventsAt(theme: MusicTheme, step: number, intensity = 0): StepEvents {
+export function eventsAt(theme: MusicTheme, step: number, tier = 0): StepEvents {
   const inBar = ((step % STEPS_PER_BAR) + STEPS_PER_BAR) % STEPS_PER_BAR;
   const bar = Math.floor(step / STEPS_PER_BAR);
   const chord =
     theme.chords[((bar % theme.chords.length) + theme.chords.length) % theme.chords.length]!;
-  const bassLevel = theme.bass.pattern[inBar] ?? 0;
+  const layer = TENSION_LAYERS[Math.max(0, Math.min(TENSION_LAYERS.length - 1, tier))]!;
+  const bassLevel = Math.max(theme.bass.pattern[inBar] ?? 0, layer.bass[inBar] ?? 0);
   const arpLevel = theme.arp.pattern[inBar] ?? 0;
   // The arpeggio climbs the chord tones, one per step it plays.
   const arpIndex = theme.arp.pattern.slice(0, inBar).filter((level) => level > 0).length;
-  const tension = Math.max(0, Math.min(1, intensity));
   return {
     pad:
       inBar === 0
@@ -303,9 +364,9 @@ export function eventsAt(theme: MusicTheme, step: number, intensity = 0): StepEv
             level: arpLevel,
           }
         : null,
-    kick: Math.max(theme.kick[inBar] ?? 0, tension > 0.5 && inBar % 4 === 0 ? tension * 0.7 : 0),
-    snare: theme.snare[inBar] ?? 0,
-    hat: Math.max(theme.hat[inBar] ?? 0, tension > 0 && inBar % 2 === 1 ? tension * 0.4 : 0),
+    kick: Math.max(theme.kick[inBar] ?? 0, layer.kick[inBar] ?? 0),
+    snare: Math.max(theme.snare[inBar] ?? 0, layer.snare[inBar] ?? 0),
+    hat: Math.max(theme.hat[inBar] ?? 0, layer.hat[inBar] ?? 0),
     tom: theme.tom?.[inBar] ?? 0,
   };
 }

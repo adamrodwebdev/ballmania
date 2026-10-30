@@ -13,12 +13,24 @@ const engine = (volume = 0.7, music = 0.6) => {
   return { ctx, sound };
 };
 
-/** Oscillators the music makes over the next second of audio. */
+/** Oscillators the music makes over the next seconds of audio, the clock moving tick by tick. */
 const musicOver = (ctx: FakeAudioContext, seconds = 1) => {
   const before = ctx.oscillators.length;
-  ctx.currentTime += seconds;
-  vi.advanceTimersByTime(seconds * 1000);
+  for (let t = 0; t < seconds; t += 0.025) {
+    ctx.currentTime += 0.025;
+    vi.advanceTimersByTime(25);
+  }
   return ctx.oscillators.length - before;
+};
+
+/** The Nebula's arpeggio notes (glass, high) played over the next seconds: its tempo. */
+const arpeggioOver = (ctx: FakeAudioContext, seconds: number) => {
+  const before = ctx.oscillators.length;
+  musicOver(ctx, seconds);
+  return ctx.oscillators
+    .slice(before)
+    .filter((oscillator) => oscillator.type === 'sine' && (oscillator.frequency.first ?? 0) >= 500)
+    .length;
 };
 
 /** The defeat's sound (v1.8.1, spec § 3.17). */
@@ -86,5 +98,26 @@ describe('a defeat', () => {
     sound.restoreMusic();
     musicOver(ctx, 2);
     expect(ctx.oscillators.length).toBe(before);
+  });
+});
+
+/** The tension music (v1.8.1, spec § 3.17): its tempo, followed once a step. */
+describe('the tension music', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('plays faster near the hole, and calms down as the chain goes back', () => {
+    const { ctx, sound } = engine();
+    const calm = arpeggioOver(ctx, 10);
+    sound.setDanger(1);
+    expect(arpeggioOver(ctx, 10)).toBeGreaterThan(calm * 1.08);
+    sound.setDanger(0);
+    musicOver(ctx, 30);
+    expect(arpeggioOver(ctx, 10)).toBeLessThan(calm * 1.02);
   });
 });
