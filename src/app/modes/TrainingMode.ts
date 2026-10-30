@@ -32,7 +32,6 @@ const NOTHING: Settlement = {
 export class TrainingMode implements PlayMode {
   readonly boss = null;
   readonly alchemy = false;
-  readonly stars = null;
   readonly continuable = false;
   readonly home = 'home';
   readonly daily = null;
@@ -44,6 +43,7 @@ export class TrainingMode implements PlayMode {
   readonly hintable = false;
   readonly par = null;
   readonly assistLevel = null;
+  readonly assistance = null;
   readonly finale = false;
   readonly training: TrainingStepView;
   private readonly level: TrainingLevel;
@@ -87,6 +87,11 @@ export class TrainingMode implements PlayMode {
 
   celebrates(won: boolean): boolean {
     return won && this.last;
+  }
+
+  /** No stars in the training: nothing on screen but the game. */
+  stars(): null {
+    return null;
   }
 
   /** No defeat in the training: its chain stops before the hole. */

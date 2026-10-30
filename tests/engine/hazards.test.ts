@@ -130,8 +130,8 @@ describe('hazards', () => {
 
   it('scale everything with the difficulty', () => {
     const volcano = findLevel('volcano-03')!;
-    const explorer = resolveLevel(volcano, FRAMES.square, 'explorer');
-    const legend = resolveLevel(volcano, FRAMES.square, 'legend');
+    const explorer = resolveLevel(volcano, FRAMES.square, { difficulty: 'explorer' });
+    const legend = resolveLevel(volcano, FRAMES.square, { difficulty: 'legend' });
     expect(legend.speed).toBeGreaterThan(explorer.speed);
     expect(legend.hazards!.weather!.every).toBeLessThan(explorer.hazards!.weather!.every);
     expect(legend.hazards!.weather!.strength).toBeGreaterThan(1);

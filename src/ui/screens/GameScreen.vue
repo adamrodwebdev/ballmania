@@ -87,9 +87,9 @@ onBeforeUnmount(() => {
   settleNow();
   endOfGame.dispose();
 });
-const { session, hud, feedback, reducedMotion, silence, newGame, focusBoard, board } =
+const { session, hud, feedback, reducedMotion, silence, newGame, focusBoard, board, seat } =
   useGameSession(
-    { mode, look, assisted },
+    { mode, look, assisted, aiming },
     {
       root,
       surface,
@@ -180,7 +180,9 @@ const settle = () => {
   const play = session.value;
   if (!play) return;
   const report = play.summary();
-  const result = mode.settle(report, services);
+  const at = seat.value;
+  if (!at) return;
+  const result = mode.settle({ ...report, seat: at }, services);
   platform.levelEnded(report.outcome === 'won');
   settlement.value = result;
   if (endOfGame.celebrates(report, result)) platform.celebrate();
@@ -198,7 +200,9 @@ watch(
     const play = session.value;
     if (state === 'playing') defeat.value = null;
     if (!play || state === undefined || state === 'playing') return;
-    if (state === 'lost') defeat.value = mode.defeat(play.summary(), aiming());
+    // The tip names the gesture of the hand the game was played with.
+    if (state === 'lost')
+      defeat.value = mode.defeat(play.summary(), seat.value?.aiming ?? aiming());
     if (state === 'lost' && endOfGame.holdDefeat(play.revivable)) return;
     settle();
   },
@@ -359,6 +363,7 @@ const leaveToMenu = () => {
     <GameHud
       ref="hudPart"
       :mode="mode"
+      :stars="seat && mode.stars(seat)"
       :hud="hud"
       :assisted="assisted"
       :extra-row="extraRow"

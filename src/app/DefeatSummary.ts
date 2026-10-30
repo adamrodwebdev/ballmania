@@ -1,8 +1,9 @@
 import type { GameReport } from '@/engine/Game';
 import type { HintId } from '@/levels/campaign';
+import type { Aiming } from '@/levels/seat';
 
 /** How the player aims: a gesture is told differently to a finger and to a mouse (v1.8.1). */
-export type Aiming = 'touch' | 'mouse';
+export type { Aiming };
 
 /** From this share of the level destroyed, a defeat reads "So close!" (decided on 28/10/2026). */
 export const CLOSE_SHARE = 0.7;

@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                               |
-| ------- | ---------- | ------------------------------------ |
-| 1.21    | 28/10/2026 | Tableaux des mondes (étape 9 sur 11) |
+| Version | Date       | Statut                                   |
+| ------- | ---------- | ---------------------------------------- |
+| 1.22    | 30/10/2026 | Réglage des 72 niveaux (étape 10 sur 11) |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -168,7 +168,8 @@ Deux portes d'entrée depuis l'accueil :
   **Livrée au lot 5** : après 3 défaites d'affilée sur un niveau de campagne, l'écran de fin
   propose « Réessayer avec de l'aide » (chaîne 15 % moins rapide pour cet essai, signalée
   par « Aide active »). Les étoiles restent attribuées normalement : l'aide est visible et
-  choisie, elle ne triche pas. Pas d'aide sur le défi du jour (classement équitable).
+  choisie, elle ne triche pas. Pas d'aide sur le défi du jour (classement équitable). Au monde 1
+  (v1.8.1, § 3.17), elle s'offre dès la deuxième défaite et ralentit la chaîne de 25 %.
 
 #### Monde 1 « Nébuleuse », livré au lot 4
 
@@ -321,9 +322,12 @@ Deux portes d'entrée depuis l'accueil :
 - **Décision : les couleurs se mélangent comme la lumière** (synthèse additive), ce qui
   utilise exactement les six couleurs du jeu : trois **primaires** (rubis, lime, violet) et
   trois **mélanges** (rubis + lime = ambre, lime + violet = cyan, rubis + violet = rose).
-- Une primaire tirée sur une **autre primaire fusionne** avec elle au lieu de s'insérer ;
-  sur la même primaire ou sur un mélange, elle s'insère comme d'habitude. Les mélanges ne
-  se tirent pas : on les fait exploser en en créant trois côte à côte.
+- Une primaire tirée sur une **autre primaire fusionne** avec elle au lieu de s'insérer,
+  quand le tir la prend **près de son centre** : la ligne du tir passe à moins de 0,7 rayon
+  de son centre (v1.8.1, décidé le 29/10/2026). Décentrée, elle se glisse à côté comme
+  ailleurs : une visée un peu à côté ne crée jamais de mélange par accident. Sur la même
+  primaire ou sur un mélange, elle s'insère comme d'habitude. Les mélanges ne se tirent
+  pas : on les fait exploser en en créant trois côte à côte.
 - Le lanceur ne propose que des primaires **utiles** : celles présentes sur le tracé et
   celles dont sont faits les mélanges présents (la règle « jamais de couleur inutile »).
 - Les mélanges arrivent **toujours par paires** : une seule fusion bien placée à côté
@@ -331,23 +335,32 @@ Deux portes d'entrée depuis l'accueil :
   ingrédient, il faut un coup en deux temps (tirer un ingrédient sur la paire pour
   l'insérer à côté, puis le fusionner).
 - **Aides** : légende des trois mélanges en permanence dans le bandeau ; la ligne de visée
-  se termine par un anneau de la couleur que prendra la bille touchée ; effet de fusion
+  se termine par un anneau de la couleur que prendra la bille touchée, si le tir la prend
+  près de son centre, et sinon la bille fantôme de l'aide à la visée montre où la bille se
+  glissera ; effet de fusion
   (anneau du nouveau mélange, étincelles des deux couleurs d'origine) et son de deux notes
   qui se rejoignent.
-- **Rythme** : c'est le monde de la réflexion. Une fusion ratée transforme une bonne bille
-  en mélange ; les vitesses sont donc plus basses que dans les mondes précédents.
+- **Rythme** : c'est le monde de la réflexion ; les vitesses sont plus basses que dans les
+  mondes précédents, et le réglage peut y descendre à 0,45 fois la vitesse d'un niveau
+  (ailleurs, 0,6). Au plus un mélange par niveau, aucun dans les deux respirations (4-4 et
+  4-8), deux au frisson 4-7 (ambre et cyan) et les trois au pic du monde, 4-11 ; le rose arrive
+  seul en 4-10 (v1.8.1, décidé le 29/10/2026 : avec deux mélanges, 4-5, 4-8 et 4-9 n'étaient
+  gagnés que 40 à 67 % du temps, et même à 0,45 fois la vitesse les respirations restaient de 10
+  à 17 points sous leur bande, 4-7 avec ses trois mélanges de 11 à 14 points). Jusqu'à la
+  1.8.1, une visée un peu à côté transformait une bonne bille en mélange : la règle du centre
+  l'a corrigé (§ 3.17, étape 10).
 
 | Niveau | Tracé                                    | Mélanges présents | Billes        | Vitesse | Conseil                    |
 | ------ | ---------------------------------------- | ----------------- | ------------- | ------- | -------------------------- |
 | 1      | Spirale 1,3 tour                         | aucun (primaires) | 30            | 26      | Les mélanges               |
 | 2      | Serpentin 3 rangées                      | ambre             | 30            | 28      | Trois mélanges côte à côte |
 | 3      | Spirale arrondie, sens inverse           | cyan              | 36            | 30      | —                          |
-| 4      | Double spirale                           | rose              | 2 × 20        | 30      | —                          |
-| 5      | Serpentin 4 rangées                      | ambre, cyan       | 36            | 30      | —                          |
+| 4      | Double spirale                           | aucun (primaires) | 2 × 20        | 30      | —                          |
+| 5      | Serpentin 4 rangées                      | cyan              | 36            | 30      | —                          |
 | 6      | Spirale 1,4 tour (respiration)           | ambre             | 34            | 28      | —                          |
-| 7      | Spirale carrée, sens inverse             | les trois         | 38            | 36      | —                          |
-| 8      | Serpentin 3 rangées                      | cyan, rose        | 34            | 36      | —                          |
-| 9      | Double spirale                           | ambre, rose       | 2 × 24        | 36      | —                          |
+| 7      | Spirale carrée, sens inverse             | ambre, cyan       | 38            | 36      | —                          |
+| 8      | Serpentin 3 rangées                      | aucun (primaires) | 34            | 36      | —                          |
+| 9      | Double spirale                           | ambre             | 2 × 24        | 36      | —                          |
 | 10     | Spirale arrondie (respiration)           | rose              | 38            | 32      | —                          |
 | 11     | Spirale 1,75 tour                        | les trois         | 42            | 42      | —                          |
 | 12     | Spirale + **Colosse de cristal** (56 PV) | ambre             | 24 + renforts | 20      | Blesser le Colosse         |
@@ -370,6 +383,9 @@ Deux portes d'entrée depuis l'accueil :
 - On bascule un aiguillage en touchant son levier (ou avec S, qui bascule le prochain
   aiguillage libre) **tant que la tête de la chaîne ne l'a pas atteint** ; ensuite il est
   verrouillé (son sourd si l'on insiste). Par défaut, la lave prend le raccourci.
+- **Jamais d'aiguillage sur la première rangée** (v1.8.1, décidé le 29/10/2026) : la ruée
+  du départ l'atteignait en 0,8 à 1,1 s, avant tout geste possible, et le 5-1, qui enseigne
+  l'aiguillage, n'en avait pas d'autre. Le premier aiguillage vient vers 7 s.
 - Rendu : la branche non empruntée en pointillés, le raccourci actif qui rougeoie, un
   levier avec une flèche vers la branche choisie (grisé une fois verrouillé), « ×2 » couleur
   magma sur les explosions du raccourci, claquement mécanique, annonce aux lecteurs d'écran.
@@ -379,20 +395,20 @@ Deux portes d'entrée depuis l'accueil :
 - Les niveaux suivants mêlent les mécaniques des mondes précédents (aimant aux niveaux 4
   et 10, miroirs aux niveaux 7 et 9).
 
-| Niveau | Tracé (rangées / aiguillages)                    | Autre mécanique          | Billes        | Vitesse | Conseil             |
-| ------ | ------------------------------------------------ | ------------------------ | ------------- | ------- | ------------------- |
-| 1      | 3 / rangée 1                                     | —                        | 36            | 40      | Aiguillages         |
-| 2      | 3 / rangées 1 et 2                               | —                        | 38            | 44      | Raccourci en fusion |
-| 3      | 4 / rangée 2                                     | —                        | 44            | 46      | —                   |
-| 4      | 3 / rangée 2                                     | Aimant                   | 40            | 48      | —                   |
-| 5      | 4 / rangées 1 et 3                               | —                        | 48            | 42      | —                   |
-| 6      | 3 / rangées 1 et 2 (respiration)                 | —                        | 36            | 40      | —                   |
-| 7      | 3 / rangée 1                                     | Murs latéraux            | 42            | 46      | —                   |
-| 8      | 4 / rangées 1, 2 et 3                            | —                        | 46            | 40      | —                   |
-| 9      | 3 / rangée 2                                     | Murs + prismes tournants | 40            | 42      | —                   |
-| 10     | 4 / rangées 2 et 3 (respiration)                 | Aimant                   | 44            | 46      | —                   |
-| 11     | 4 / rangées 1, 2 et 3                            | —                        | 46            | 46      | —                   |
-| 12     | 3 / rangées 1 et 2 + **Colosse de lave** (44 PV) | —                        | 30 + renforts | 20      | Blesser le Colosse  |
+| Niveau | Tracé (rangées / aiguillages)              | Autre mécanique          | Billes        | Vitesse | Conseil             |
+| ------ | ------------------------------------------ | ------------------------ | ------------- | ------- | ------------------- |
+| 1      | 3 / rangée 2                               | —                        | 36            | 40      | Aiguillages         |
+| 2      | 3 / rangée 2                               | —                        | 38            | 44      | Raccourci en fusion |
+| 3      | 4 / rangée 2                               | —                        | 44            | 46      | —                   |
+| 4      | 3 / rangée 2                               | Aimant                   | 40            | 48      | —                   |
+| 5      | 4 / rangées 2 et 3                         | —                        | 48            | 42      | —                   |
+| 6      | 3 / rangée 2 (respiration)                 | —                        | 36            | 40      | —                   |
+| 7      | 3 / rangée 2                               | Murs latéraux            | 42            | 46      | —                   |
+| 8      | 4 / rangées 2 et 3                         | —                        | 46            | 40      | —                   |
+| 9      | 3 / rangée 2                               | Murs + prismes tournants | 40            | 42      | —                   |
+| 10     | 4 / rangées 2 et 3 (respiration)           | Aimant                   | 44            | 46      | —                   |
+| 11     | 4 / rangées 2 et 3                         | —                        | 46            | 46      | —                   |
+| 12     | 3 / rangée 2 + **Colosse de lave** (44 PV) | —                        | 30 + renforts | 20      | Blesser le Colosse  |
 
 - **Équilibrage** : le robot, prudent, envoie la lave dans chaque détour libre. Il gagne
   chaque niveau au moins 4 fois sur 6 ; pression de 40 à 82 %, la plus forte du jeu, comme
@@ -1734,10 +1750,16 @@ suivent leurs rangées. Les jumeaux des Abysses (3-4, 3-9), plus durs sur le pla
 plus de place, et les spirales à portail de la Singularité (6-6, 6-9) sont vérifiés plateau par
 plateau, et la cause de leur écart corrigée.
 
-**Porte de dépôt CrazyGames** (décidée le 27/10/2026, à la place du test sur inconnus) : les
-bandes tenues par les joueurs-robots des deux appareils ; au moins 50 nouvelles parties de la
-1.8.1 dans le bac à sable Playgama, dont un tiers au-delà de 2 minutes et une sur dix au-delà de
-5 minutes (22 % et 5 % le 21/10/2026, sur la 1.4) ; puis la revue de modérateur complète.
+**Porte de dépôt CrazyGames** (décidée le 27/10/2026, à la place du test sur inconnus,
+assouplie le 29/10/2026, précisée le 30/10/2026) : pour les joueurs-robots des deux appareils,
+sur le relevé des écrans (des parties que l'outil de réglage ne joue jamais), le monde 1 dans
+ses bandes, aucun niveau plus dur que la sienne au-delà de deux erreurs types et aucun niveau
+qui traîne (plus d'une partie sur vingt encore en cours au bout de cinq minutes) ; un niveau
+resté trop facile au rythme le plus vif permis attend les vrais joueurs de la 1.10.0, comme les
+niveaux où les couleurs fusionnent (la Joaillerie et 6-10), dont l'écart est la limite du robot
+(étape 10) ; au moins 50 nouvelles parties de la 1.8.1 dans le bac à sable Playgama, dont un
+tiers au-delà de 2 minutes et une sur dix au-delà de 5 minutes (22 % et 5 % le 21/10/2026, sur
+la 1.4) ; puis la revue de modérateur complète.
 
 **Tables de départ** (27/10/2026, version 1.8.0) : le robot nouveau venu de la 1.8.0, 24 parties
 par plateau. Haut : un téléphone en portrait ; large : un ordinateur en 16:9 ; place : les billes
@@ -2036,20 +2058,20 @@ monde, et le robot d'aujourd'hui, avant tout réglage : victoires du typique sur
 
 **Monde 4 — Joaillerie**
 
-| Niveau | Rôle                 | Nouveauté                               | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
-| ------ | -------------------- | --------------------------------------- | ------- | ------------------ | ----------- | ------- | ------------ |
-| 4-1    | Calme                | L’alchimie, trois primaires             | ≥ 90 %  | 90 %               | 81 % ↓      | 88 % ↓  | 13 %         |
-| 4-2    | Montée               | Les couleurs secondaires                | 75–85 % | 76 %               | 82 %        | 64 % ↓  | 4 %          |
-| 4-3    | Frisson              | Le froid                                | 55–65 % | 86 % ↑             | 75 % ↑      | 61 %    | 6 %          |
-| 4-4    | Respiration          | Court, 20 billes                        | 85–95 % | 49 % ↓             | 49 % ↓      | 64 % ↓  | 0 %          |
-| 4-5    | Montée               | Cinq couleurs, serpentin à quatre rangs | 75–85 % | 47 % ↓             | 63 % ↓      | 69 % ↓  | 0 %          |
-| 4-6    | Montée               | Sans nouveauté                          | 75–85 % | 85 %               | 69 % ↓      | 88 % ↑  | 14 %         |
-| 4-7    | Frisson              | Six couleurs, le froid                  | 55–65 % | 57 %               | 53 % ↓      | 67 % ↑  | 0 %          |
-| 4-8    | Respiration          | Cinq couleurs, serpentin                | 85–95 % | 51 % ↓             | 38 % ↓      | 57 % ↓  | 1 %          |
-| 4-9    | Montée               | Court, cinq couleurs                    | 75–85 % | 38 % ↓             | 38 % ↓      | 31 % ↓  | 0 %          |
-| 4-10   | Montée               | Sans nouveauté                          | 75–85 % | 76 %               | 56 % ↓      | 65 % ↓  | 1 %          |
-| 4-11   | Frisson, le plus dur | Six couleurs, froid et arythmie         | 40–50 % | 79 % ↑             | 44 %        | 89 % ↑  | 0 %          |
-| 4-12   | Colosse              | Le Colosse de cristal                   | 55–65 % | 82 % ↑             | 78 % ↑      | 75 % ↑  | 1 %          |
+| Niveau | Rôle                 | Nouveauté                       | Visée   | Téléphone (barres) | Plein écran | Portail | Lent, barres |
+| ------ | -------------------- | ------------------------------- | ------- | ------------------ | ----------- | ------- | ------------ |
+| 4-1    | Calme                | L’alchimie, trois primaires     | ≥ 90 %  | 90 %               | 81 % ↓      | 88 % ↓  | 13 %         |
+| 4-2    | Montée               | Les couleurs secondaires        | 75–85 % | 76 %               | 82 %        | 64 % ↓  | 4 %          |
+| 4-3    | Frisson              | Le froid                        | 55–65 % | 86 % ↑             | 75 % ↑      | 61 %    | 6 %          |
+| 4-4    | Respiration          | Court, sans mélange             | 85–95 % | 49 % ↓             | 49 % ↓      | 64 % ↓  | 0 %          |
+| 4-5    | Montée               | Le serpentin à quatre rangs     | 75–85 % | 47 % ↓             | 63 % ↓      | 69 % ↓  | 0 %          |
+| 4-6    | Montée               | Sans nouveauté                  | 75–85 % | 85 %               | 69 % ↓      | 88 % ↑  | 14 %         |
+| 4-7    | Frisson              | Deux mélanges, le froid         | 55–65 % | 57 %               | 53 % ↓      | 67 % ↑  | 0 %          |
+| 4-8    | Respiration          | Serpentin, sans mélange         | 85–95 % | 51 % ↓             | 38 % ↓      | 57 % ↓  | 1 %          |
+| 4-9    | Montée               | Court, sur deux spirales        | 75–85 % | 38 % ↓             | 38 % ↓      | 31 % ↓  | 0 %          |
+| 4-10   | Montée               | Le rose                         | 75–85 % | 76 %               | 56 % ↓      | 65 % ↓  | 1 %          |
+| 4-11   | Frisson, le plus dur | Six couleurs, froid et arythmie | 40–50 % | 79 % ↑             | 44 %        | 89 % ↑  | 0 %          |
+| 4-12   | Colosse              | Le Colosse de cristal           | 55–65 % | 82 % ↑             | 78 % ↑      | 75 % ↑  | 1 %          |
 
 **Monde 5 — Volcan**
 
@@ -2109,6 +2131,128 @@ monde, et le robot d'aujourd'hui, avant tout réglage : victoires du typique sur
 après deux défaites d'affilée au lieu de trois, et ralentit la chaîne de 25 % au lieu de 15 % ;
 elle reste visible et choisie, et le nouveau venu typique garde ses victoires de justesse. Le
 lent se remesure après le réglage de l'étape 10, aide comprise.
+
+**Le réglage** (étape 10, décidé du 28 au 30/10/2026) :
+
+- **Le siège.** Un niveau se joue à un siège : le plateau que l'écran lui donne et la main qui
+  vise, le doigt sur un écran tactile, la souris ailleurs, lue au début de chaque partie. Le
+  rythme (vitesse, puis longueur), les étoiles et le bonus de temps se règlent siège par siège.
+  Un siège sans réglage prend celui du même plateau avec l'autre main, puis le rythme propre du
+  niveau ; pour les étoiles, le siège calibré le plus proche. Sur les écrans relevés, aucun
+  niveau ne partage un plateau entre un téléphone et un ordinateur : la main ne change pas encore
+  le rythme, elle départage les étoiles et le bonus de temps, et servira dès qu'un écran nouveau
+  (téléphone couché, tablette) partagera un plateau.
+- **L'outil de réglage** (`tests/levels/tune.test.ts`) : pour chaque siège, la vitesse puis la
+  longueur qui placent le nouveau venu typique au milieu de sa bande (à un quart de bande près ;
+  une bande qui monte à 100 % ne veut aucune défaite, et tout point de la bande convient), sans
+  jamais sortir de 0,6 à 1,6 fois la vitesse propre du niveau (0,45 là où les couleurs
+  fusionnent) : au-delà, les hypothèses du robot sur les gens décideraient plus que le niveau.
+  Un niveau où le nouveau venu joue encore plus d'une partie sur vingt au bout de cinq minutes
+  traîne : la chaîne n'y menace plus, le niveau ne fait que durer (pas d'attente pour allonger
+  un niveau, § 3.15 ; décidé le 30/10/2026). L'outil refuse tout rythme au-delà d'une partie
+  sur quarante, pour que des parties qu'il n'a pas vues restent sous la limite (4-7, à 4
+  parties sur 96 pour lui, en faisait 7 au relevé) ; là où ce garde-fou arrête le
+  ralentissement, la chaîne raccourcit d'un cinquième, comme au rythme le plus lent. L'outil
+  écrit lui-même `src/levels/tuning.data.ts` (`TUNE=write`), le dernier réglage d'un niveau
+  d'abord.
+- **La précision.** L'outil rejouait 24 suites de couleurs, chacune par quatre mains, et le
+  relevé des écrans les mêmes 24 suites, par trois autres mains : les deux mesures se
+  confirmaient l'une l'autre, mais sur 96 suites qu'aucune n'avait jouées, 4-2 et 4-5 sur grand
+  écran tombaient de 66–68 % à 57 %, quand 6-9 montait de 68 à 82 % : une partie doit plus à ses
+  couleurs qu'à sa main, et le chiffre d'un niveau ne valait qu'à 7 points près, plus de la
+  moitié d'une bande. **Décision** (29/10/2026) : l'outil joue ses propres suites, une main
+  chacune ; le relevé des écrans, 96 autres suites que l'outil ne joue jamais, sur les quatre
+  écrans (la fenêtre agrandie de notre site, 1920 × 947, en plus). Un siège plus d'une erreur
+  type (celle de 96 parties, au bord de sa bande) sous sa bande, ou hors de la sienne au monde 1,
+  est réglé de nouveau : 1-11, 2-8, 3-8, 4-5, 4-6, 4-10, 4-11, 5-1, 6-8 et 6-10 (4-4, 4-7 et 4-8
+  venaient de l'être, après leurs mélanges). Sur 96 suites, l'outil voyait encore 2-8 au
+  téléphone à 68–69 % ; le relevé et 192 suites qu'aucun des deux ne joue l'ont mis à 54–60 % :
+  l'outil en joue désormais 192 (30/10/2026), et 2-8, réglé de nouveau, tient sa bande sur les
+  quatre écrans (65 à 70 %). Les suites et les mains de l'outil ne sont pas plus faciles que
+  les autres : au même rythme, cinq familles de 192 parties donnent de 62 à 72 %, l'écart
+  qu'on attend du hasard. **La porte** compte donc un siège plus dur que sa bande au-delà de
+  deux erreurs types : à une seule, un siège sur six au bord de sa bande échouerait par hasard,
+  sur quelque 250 sièges. 6-8 à l'ordinateur, à 73 % au relevé, gagne 81 % sur les 192 autres
+  suites : dans sa bande.
+- **Les outils des mondes, en nouveau venu.** Le premier réglage (28/10) accélérait 111 des 217
+  rythmes des mondes 2 à 6 de 1,5 à 1,9 fois, et ralentissait la Joaillerie à 0,5–0,7 fois : le
+  robot jouait les outils en expert (l'aimant sur la meilleure bille à chaque charge, chaque
+  aiguillage surveillé deux fois par seconde et sans coût, le laser essayé sous 180 angles).
+  Désormais le nouveau venu garde ses charges d'aimant tant que la tête de la chaîne n'a pas
+  passé la moitié de sa piste, puis tire, autant de fois sur dix qu'il échange, le séparateur le
+  plus avancé de ceux qu'il regarde ; bascule un aiguillage quand la lave en est à moins de 3 s
+  et qu'il y pense, aussi souvent, à la place d'un tir ; vise le laser et la bille arc-en-ciel
+  parmi les billes qu'il regarde ; pèse un mélange de couleurs comme un regard de plus, à côté
+  des paires de même couleur que l'œil saisit d'emblée. Ce sont des hypothèses, comme le regard
+  et l'échange, que les premiers joueurs recaleront.
+- **Ce que le rythme ne peut pas.** Aux Abysses, bien des sièges restent trop faciles à 1,6 fois
+  la vitesse : l'aimant y pèse 23 points (3-2 : 96 % avec l'aimant du niveau, 88 % avec une
+  charge toutes les 8 explosions, 73 % sans aimant), et la répétition des couleurs n'y change
+  rien (3-2 entre 85 et 100 %, de 0,27 à 0,57). Là où les couleurs fusionnent (la Joaillerie,
+  6-10), le nouveau venu reste sous sa bande : ralentir aide 6-10 (de 16 à 27 points), à peine la
+  Joaillerie (de −10 à +13). Le robot y perd sur ses propres fusions accidentelles, et une partie
+  plus longue, ce sont plus de tirs, donc plus d'accidents ; il ne vise pas mieux quand la chaîne
+  ralentit, une personne si. À 0,5 fois la vitesse, sept sièges de la Joaillerie traînaient même :
+  jusqu'à 47 parties sur 96 encore en cours au bout de cinq minutes, souvent sans une défaite.
+  Comptées comme des défaites, l'outil ne les voyait pas : d'où le garde-fou, avec lequel les
+  cinq niveaux en cause (4-2, 4-5, 4-7, 4-11 et 4-12) ont été réglés de nouveau. **Décision** (29 et
+  30/10/2026) : un niveau trop facile garde le rythme le plus vif permis ; l'écart des niveaux
+  qui fusionnent est la limite du robot, pas celle des niveaux. La porte de dépôt CrazyGames
+  demande le monde 1 dans ses bandes, aucun niveau plus dur que la sienne hors des niveaux qui
+  fusionnent, et aucun niveau qui traîne ; les vrais joueurs de la 1.10.0 recaleront le reste.
+- **Les défaites de la Joaillerie expliquées : la règle, puis les mélanges.** Une visée un peu à
+  côté fusionnait deux primaires en un mélange que le lanceur ne propose jamais : chaque erreur
+  laissait un problème en deux coups. **Décision** : la fusion demande un tir à moins de 0,7
+  rayon du centre (règle de la Joaillerie, § 3.2 ; 45 victoires sur 100 en moyenne sur quatre
+  niveaux, contre 41 avec l'ancienne règle, 38 à 0,5 rayon, 46 à 0,8 où les fusions voulues
+  ratent moins mais les accidentelles reviennent). Restaient les mélanges : à 0,45 fois la
+  vitesse, plus lent encore, plus court ou avec des couleurs plus répétées, 4-4 restait entre 70
+  et 80 %, 4-7 entre 49 et 55 % ; sans mélange, 89 % tous deux (75 % pour 4-7 avec un seul).
+  **Décision** : 4-5, 4-8 et 4-9 perdent un mélange, puis les deux respirations n'en ont plus
+  aucun et 4-7 garde l'ambre et le cyan (règle de la Joaillerie, § 3.2) ; une paire de mélange
+  toujours bordée d'un de ses ingrédients n'aidait pas (4-7 : 41 % au lieu de 53 %). La fusion
+  reste possible dans les respirations : une erreur y fait encore un mélange, et 4-8 reste sous
+  sa bande hors du carré.
+- **Les aiguillages du Volcan** : la ruée du départ verrouillait ceux de la première rangée en
+  0,8 à 1,1 s ; plus aucun aiguillage sur cette rangée (§ 3.2).
+- **Les étoiles** : calibrées siège par siège sur le nouveau venu vif, 32 parties par siège ; la
+  troisième pour environ 30 % de ses victoires, la deuxième pour 80 %, au téléphone comme à
+  l'ordinateur. La garde du monde 1 le vérifie sur des parties nouvelles, les deux mains à moins
+  de 15 points l'une de l'autre. Le nouveau venu typique a une ou deux étoiles, rarement trois.
+  Avant, un seul seuil par niveau donnait la troisième étoile deux fois plus souvent à
+  l'ordinateur (65 % des parties du nouveau venu vif contre 35 %).
+
+**Résultats du réglage** (30/10/2026 ; relevé des écrans : 96 suites que l'outil ne joue jamais,
+quatre écrans, le nouveau venu typique ; « au-delà » : plus d'une erreur type sous la bande) :
+
+| Monde          | Sièges | Dans la bande | Plus faciles | Plus durs | Au-delà d'une erreur type   | Qui traînent |
+| -------------- | ------ | ------------- | ------------ | --------- | --------------------------- | ------------ |
+| 1, Nébuleuse   | 41     | 38            | 0            | 3         | 0                           | 0            |
+| 2, Néon        | 43     | 24            | 15           | 4         | 0                           | 0            |
+| 3, Abysses     | 42     | 17            | 24           | 1         | 0                           | 0            |
+| 4, Joaillerie  | 40     | 19            | 1            | 20        | 14, exemptés                | 0            |
+| 5, Volcan      | 48     | 20            | 23           | 5         | 0                           | 0            |
+| 6, Singularité | 44     | 20            | 15           | 9         | 4 : 6-10 (3, exemptés), 6-8 | 0            |
+
+**Lecture** :
+
+- **La porte passe.** Le monde 1 tient ses bandes (trois sièges un peu dessous, à moins d'une
+  erreur type). Hors des niveaux qui fusionnent, aucun siège n'est plus dur que sa bande
+  au-delà de deux erreurs types : 6-8 à l'ordinateur (73 %) est à moins de deux, et gagne
+  81 % sur 192 autres suites. Aucun niveau ne traîne : au plus 4 parties sur 96 encore en
+  cours au bout de cinq minutes.
+- **Aucun niveau hors de portée** : le nouveau venu vif, au doigt, sur le plateau du
+  téléphone, gagne au moins la moitié de ses parties à chaque niveau (48 parties par niveau,
+  à deux erreurs types près ; 61 % au plus dur, 6-11). Sur douze parties, le test échouait au
+  hasard des couleurs : 4-10 et 6-11 y tombaient sous la moitié, gagnés 77 et 61 fois sur 100.
+- **Les sièges trop faciles** sont au rythme le plus vif permis, surtout à l'ordinateur.
+  L'écart entre le téléphone et l'ordinateur reste de 2 à 6 points en médiane selon le
+  monde, mais dépasse 10 points sur 15 niveaux, où l'ordinateur reste trop facile à 1,4–1,6
+  fois la vitesse (sauf 3-11, 35 à 57 % pour une bande de 40–50 %, et 4-5, qui fusionne).
+- **La Joaillerie** : 4-11 et 4-12 tiennent désormais leur bande ; ses autres niveaux restent
+  de 5 à 25 points dessous, la limite du robot (ci-dessus).
+- **Le nouveau venu lent, au doigt, avec l'aide**, au téléphone aux barres : 82 % en médiane
+  au monde 1, de 64 % (1-11) à 100 %, sept niveaux sur douze à 80 % ou plus.
 
 ## 4. Exigences non fonctionnelles
 
@@ -2744,3 +2888,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.19    | 28/10/2026 | Version 1.8.1, étape 4 : au toucher, la visée d'avant le lever du doigt, la charge qui tient sous le doigt, le Ralenti qui garde les couleurs (§ 3.17).                                                                                                            |
 | 1.20    | 28/10/2026 | Version 1.8.1, étape 6 : l'écran de la défaite, ce qui manquait en vrai, une astuce et « Rejouer » d'abord (§ 3.17).                                                                                                                                               |
 | 1.21    | 28/10/2026 | Version 1.8.1, étape 9 : le plateau de chaque écran relevé dans le jeu, les tableaux des six mondes validés, la règle du lent au doigt (§ 3.17).                                                                                                                   |
+| 1.22    | 30/10/2026 | Version 1.8.1, étape 10 : les 72 niveaux réglés siège par siège, les outils des mondes en nouveau venu, la règle du centre et les mélanges de la Joaillerie, les aiguillages du Volcan, le garde-fou des parties qui traînent, la porte précisée (§ 3.2, 3.17).    |

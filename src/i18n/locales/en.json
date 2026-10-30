@@ -192,7 +192,7 @@
     "spin": "These prisms turn: wait for the right angle before you shoot.",
     "magnet": "Tap “Magnet” (or press M), then aim at a marble: it leaves the chain and loads into your launcher.",
     "magnetCombo": "Pull out the marble that separates two groups of the same colour: they meet and explode.",
-    "alchemy": "Light mixes: ruby + lime = amber, lime + violet = cyan, ruby + violet = rose. Shoot one colour onto another to fuse them.",
+    "alchemy": "Light mixes: ruby + lime = amber, lime + violet = cyan, ruby + violet = rose. Shoot a colour at the centre of another to fuse them; off-centre, it slips in beside it.",
     "alchemySecondary": "Mixed colours cannot be shot: fuse three of them side by side to blow them up.",
     "switch": "Tap a switch (or press S) to send the lava down the detour: it’s longer and buys you time. A switch locks once the chain reaches it.",
     "hot": "On the shortcut, the lava is molten: marbles blown up there are worth double. Points or time: your call.",
@@ -485,7 +485,7 @@
   },
   "assist": {
     "retry": "Retry with help",
-    "detail": "The chain moves 15% slower for this attempt.",
+    "detail": "The chain moves {percent} slower for this attempt.",
     "active": "Help on"
   },
   "magnet": {

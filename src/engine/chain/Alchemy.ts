@@ -1,3 +1,4 @@
+import type { Vec2 } from '../geometry/Vec2';
 import type { Tone } from './Ball';
 
 /**
@@ -23,6 +24,23 @@ export function isPrimary(tone: Tone): boolean {
 export function mix(a: Tone, b: Tone): Tone | null {
   if (a === b) return null;
   return MIXES[a < b ? `${a}+${b}` : `${b}+${a}`] ?? null;
+}
+
+/**
+ * A shot fuses only when its flight passes this close to the centre of the
+ * ball it touches, in ball radii (v1.8.1, decided on 29/10/2026): farther off,
+ * it slips in beside it, as in every other world, so that a near miss never
+ * makes a colour by accident.
+ */
+export const FUSE_REACH = 0.7;
+
+/** How far a flight's line passes from a ball's centre: 0 for a shot dead on it. */
+export function offCentre(centre: Vec2, position: Vec2, velocity: Vec2): number {
+  const towards = centre.sub(position);
+  const length = velocity.length();
+  return length === 0
+    ? towards.length()
+    : Math.abs(velocity.x * towards.y - velocity.y * towards.x) / length;
 }
 
 /** The two primaries that make a secondary, or null for a primary. */

@@ -4,7 +4,14 @@ import { CampaignMode, DailyMode } from './CampaignModes';
 import type { PlayMode } from './PlayMode';
 import { TrainingMode } from './TrainingMode';
 
-export type { Message, NextGame, PlayMode, Settlement, TrainingStepView } from './PlayMode';
+export type {
+  Message,
+  NextGame,
+  PlayedGame,
+  PlayMode,
+  Settlement,
+  TrainingStepView,
+} from './PlayMode';
 
 /** The mode that plays a request. */
 export function createMode(request: PlayRequest): PlayMode {

@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { SeededRandom } from '@/engine/core/Random';
 import { findLevel } from '@/levels/campaign';
-import { FRAMES } from '@/levels/tracks';
-import { BOARD_OF, NewcomerBrain, playRobot, robotOf, type Device, type Newcomer } from './bot';
+import { FRAMES, type FrameKind } from '@/levels/tracks';
+import {
+  BOARD_OF,
+  MIX_LOOKS,
+  NewcomerBrain,
+  playRobot,
+  PRESSURE_FROM,
+  robotOf,
+  type Device,
+  type Newcomer,
+  type Option,
+} from './bot';
 
 /** A marble's width on every board, in board units. */
 const MARBLE = 52;
@@ -95,6 +105,41 @@ describe('robot players (v1.8.1)', () => {
       expect(swaps / DRAWS, newcomer).toBeCloseTo(rate, 1);
     }
   });
+
+  it("use the worlds' tools as newcomers: magnet charges kept until the chain presses", () => {
+    for (const [newcomer, rate] of [
+      ['quick', 0.9],
+      ['typical', 0.7],
+      ['slow', 0.4],
+    ] as const) {
+      const brain = brainOf(newcomer, 'finger');
+      expect(Array.from({ length: 50 }, () => brain.pulls(PRESSURE_FROM - 0.01))).not.toContain(
+        true,
+      );
+      const pulls = Array.from({ length: DRAWS }, () => brain.pulls(0.8)).filter(Boolean).length;
+      expect(pulls / DRAWS, newcomer).toBeCloseTo(rate, 1);
+      const flips = Array.from({ length: DRAWS }, () => brain.flips()).filter(Boolean).length;
+      expect(flips / DRAWS, newcomer).toBeCloseTo(rate, 1);
+    }
+  });
+
+  it('weigh a colour mix as one look more than the same-colour targets', () => {
+    const plain: Option[] = Array.from({ length: 20 }, (_, i) => ({ score: i }));
+    const mixes: Option[] = Array.from({ length: 20 }, (_, i) => ({ score: 100 + i, mix: true }));
+    const weighed = brainOf('typical', 'mouse').weigh([...plain, ...mixes]);
+    expect(weighed.filter((option) => !option.mix)).toHaveLength(4);
+    expect(weighed.filter((option) => option.mix)).toHaveLength(MIX_LOOKS);
+  });
+
+  it('flip lava switches and pull with the magnet only when they think of it', () => {
+    const robot = robotOf('typical', 'finger');
+    const tools = (id: string, board: FrameKind, chance: number) =>
+      playRobot(findLevel(id)!, FRAMES[board], 'tools', { ...robot, tools: chance }, 'a').report;
+    expect(tools('volcano-03', 'portrait', 0).switches).toBe(0);
+    expect(tools('volcano-03', 'portrait', 1).switches).toBeGreaterThan(0);
+    expect(tools('abyss-07', 'portrait', 0).pulls).toBe(0);
+    expect(tools('abyss-07', 'portrait', 1).pulls).toBeGreaterThan(0);
+  }, 60_000);
 
   it('play each device on its own board, one sequence of colours with several hands', () => {
     expect(BOARD_OF).toEqual({ mouse: 'wide', finger: 'tall' });

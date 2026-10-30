@@ -1,29 +1,30 @@
 import type { CampaignLevel } from '@/levels/campaign';
+import { seatKey, type SeatKey } from '@/levels/seat';
 import type { FrameKind } from '@/levels/tracks';
-import type { Device } from './bot';
+import { AIMING, type Device } from './bot';
 
 /**
  * The screens the robots play on (v1.8.1, spec § 3.17), each with its hand:
- * a phone with its browser's bars showing, the same phone full screen, and a
+ * a phone with its browser's bars showing, the same phone full screen, a
  * portal's 16:9 frame on a desktop, where moderators and most portal players
- * meet the game. A desktop window of our site is surveyed too, for the record.
+ * meet the game, and a maximized desktop window of our site.
  */
-export type Screen = 'phone' | 'phoneFull' | 'desktop';
+export type Screen = 'phone' | 'phoneFull' | 'desktop' | 'window';
 
 export const SCREENS: Readonly<Record<Screen, { readonly device: Device; readonly name: string }>> =
   {
     phone: { device: 'finger', name: 'Téléphone, barres du navigateur visibles (393 × 659)' },
     phoneFull: { device: 'finger', name: 'Téléphone en plein écran (390 × 844)' },
     desktop: { device: 'mouse', name: 'Ordinateur, cadre de portail (1280 × 720)' },
+    window: { device: 'mouse', name: 'Ordinateur, fenêtre agrandie de notre site (1920 × 947)' },
   };
 
 /**
  * The board each campaign level gets on each screen, read in the game
  * (`data-board`) on 28/10/2026: the game picks the shape that shows a level
  * largest on the screen, so it changes with the level and the screen.
- * `window`: a maximized desktop window of our site (1920 × 947).
  */
-const SURVEYED: Readonly<Record<string, Readonly<Record<Screen | 'window', FrameKind>>>> = {
+const SURVEYED: Readonly<Record<string, Readonly<Record<Screen, FrameKind>>>> = {
   'nebula-01': { phone: 'square', phoneFull: 'portrait', desktop: 'wide', window: 'wide' },
   'nebula-02': { phone: 'square', phoneFull: 'portrait', desktop: 'wide', window: 'wide' },
   'nebula-03': { phone: 'square', phoneFull: 'tall', desktop: 'landscape', window: 'wide' },
@@ -101,9 +102,29 @@ const SURVEYED: Readonly<Record<string, Readonly<Record<Screen | 'window', Frame
 /** The levels surveyed. */
 export const SURVEYED_IDS: readonly string[] = Object.keys(SURVEYED);
 
-/** The board a level gets on a screen (a desktop window: `window`). */
-export function boardOn(level: Pick<CampaignLevel, 'id'>, screen: Screen | 'window'): FrameKind {
+/** The board a level gets on a screen. */
+export function boardOn(level: Pick<CampaignLevel, 'id'>, screen: Screen): FrameKind {
   const board = SURVEYED[level.id]?.[screen];
   if (!board) throw new Error(`No board surveyed for ${level.id}`);
   return board;
+}
+
+/** A seat a level is played at (spec § 3.17): the board, and the device that aims on it. */
+export interface PlayedSeat {
+  readonly board: FrameKind;
+  readonly device: Device;
+}
+
+/**
+ * The seats a level's screens give it, in the order of the screens: a phone's
+ * boards at the finger, a desktop's and a window's with a mouse.
+ */
+export function seatsOf(level: Pick<CampaignLevel, 'id'>): Map<SeatKey, PlayedSeat> {
+  const seats = new Map<SeatKey, PlayedSeat>();
+  for (const screen of Object.keys(SCREENS) as Screen[]) {
+    const board = boardOn(level, screen);
+    const { device } = SCREENS[screen];
+    seats.set(seatKey({ board, aiming: AIMING[device] }), { board, device });
+  }
+  return seats;
 }

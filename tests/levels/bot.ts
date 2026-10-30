@@ -5,6 +5,7 @@ import { Game, type GameReport } from '@/engine/Game';
 import type { CampaignLevel } from '@/levels/campaign';
 import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
+import type { Aiming } from '@/levels/seat';
 import type { Frame, FrameKind } from '@/levels/tracks';
 
 export interface BotResult {
@@ -72,26 +73,33 @@ export const DEVICES = {
 
 export type Device = keyof typeof DEVICES;
 
+/** Each device's hand as the game names it, for its seat (spec § 3.17). */
+export const AIMING: Readonly<Record<Device, Aiming>> = { finger: 'touch', mouse: 'mouse' };
+
 /** The board each device shows (spec § 3.17): a phone held upright, a 16:9 desktop screen. */
 export const BOARD_OF: Readonly<Record<Device, FrameKind>> = { mouse: 'wide', finger: 'tall' };
 
 /**
  * Three newcomers on each device (spec § 3.17): the median time between two
  * shots, how many targets they weigh, how often they swap for a better next
- * ball, and their hand against the device's. Looks and swaps are assumptions
- * no study has measured, for the first portal players to correct.
+ * ball, how often they think of a world's tool (the magnet, a lava switch)
+ * when it would help, and their hand against the device's. Looks, swaps and
+ * tools are assumptions no study has measured, for the first portal players
+ * to correct; a tool is thought of as often as a swap.
  */
 export const NEWCOMERS = {
-  quick: { cadence: 1.2, looks: 6, swaps: 0.9, hand: { mouse: 0.8, finger: 0.8 } },
-  typical: { cadence: 1.6, looks: 4, swaps: 0.7, hand: { mouse: 1, finger: 1 } },
+  quick: { cadence: 1.2, looks: 6, swaps: 0.9, tools: 0.9, hand: { mouse: 0.8, finger: 0.8 } },
+  typical: { cadence: 1.6, looks: 4, swaps: 0.7, tools: 0.7, hand: { mouse: 1, finger: 1 } },
   /** Players over 60: twice as slow with a mouse, more scattered with a finger. */
-  slow: { cadence: 2.4, looks: 2, swaps: 0.4, hand: { mouse: 1, finger: 1.5 } },
+  slow: { cadence: 2.4, looks: 2, swaps: 0.4, tools: 0.4, hand: { mouse: 1, finger: 1.5 } },
 } as const;
 
 export type Newcomer = keyof typeof NEWCOMERS;
 
 /** One newcomer on one device, as the robot plays them. */
 export interface RobotPlayer {
+  /** The hand it aims with: its seat takes this hand's pace and stars. */
+  readonly device: Device;
   /** Median seconds between two shots. */
   readonly cadence: number;
   /** Seconds each shot costs on top (aiming on release). */
@@ -100,6 +108,8 @@ export interface RobotPlayer {
   readonly looks: number;
   /** Chance of swapping when the next ball has a clearly better target. */
   readonly swaps: number;
+  /** Chance of thinking of a world's tool at a decision where it would help. */
+  readonly tools: number;
   /** Standard deviation of the aim, in marble widths. */
   readonly spread: number;
 }
@@ -107,10 +117,12 @@ export interface RobotPlayer {
 export const robotOf = (newcomer: Newcomer, device: Device): RobotPlayer => {
   const profile = NEWCOMERS[newcomer];
   return {
+    device,
     cadence: profile.cadence,
     extra: DEVICES[device].extra,
     looks: profile.looks,
     swaps: profile.swaps,
+    tools: profile.tools,
     spread: DEVICES[device].spread * profile.hand[device],
   };
 };
@@ -119,27 +131,49 @@ export const robotOf = (newcomer: Newcomer, device: Device): RobotPlayer => {
 const CADENCE_SPREAD = 0.25;
 /** A bank shot scatters three times as much (Puzzle Bobble, Isaksen et al. 2017). */
 const BANK_SPREAD = 3;
+/** A colour mix is one look more: the eye finds same-colour pairs at a glance, a mix takes thought. */
+export const MIX_LOOKS = 1;
+/** Seconds before the lava reaches a fork when its switch catches a newcomer's eye. */
+export const NOTICE = 3;
 
-/** How a robot paces its decisions, weighs its targets and aims. */
+/** A target, a ball to pull or a line to fire along; a colour mix of the Jewel world is marked. */
+export interface Option {
+  readonly score: number;
+  readonly mix?: boolean;
+}
+
+/** How a robot paces its decisions, weighs its targets, uses the worlds' tools and aims. */
 export interface Brain {
+  /**
+   * It takes in the whole board at once, the balancing players up to v1.8.0:
+   * every lava switch watched and flipped at no cost, every angle of a laser tried.
+   */
+  readonly omniscient: boolean;
   /** Whether the robot decides at this frame, once the shooter is ready. */
   due(frame: number): boolean;
   /** The robot has just decided: it waits before the next decision. */
   decided(frame: number): void;
-  /** The targets it weighs, best first. */
-  weigh<T extends { readonly score: number }>(list: readonly T[]): T[];
+  /** The options it weighs, best first. */
+  weigh<T extends Option>(list: readonly T[]): T[];
   /** Whether it swaps for a next ball with a clearly better target. */
   swaps(): boolean;
+  /** Whether it pulls a ball with the magnet now, the chain's head this far along its track. */
+  pulls(ahead: number): boolean;
+  /** Whether it flips a lava switch the chain is about to reach, instead of a shot. */
+  flips(): boolean;
   /** Aim error, in board units along the track; `bank` tells whether the shot rebounds. */
   error(bank: () => boolean): number;
 }
 
-/** The balancing players up to v1.8.0: a fixed cadence, a uniform error, every target weighed. */
+/** The balancing players up to v1.8.0: a fixed cadence, a uniform error, every option weighed. */
 const steadyBrain = (cadence: number, sloppiness: number, hand: SeededRandom): Brain => ({
+  omniscient: true,
   due: (frame) => frame % cadence === 0,
   decided: () => undefined,
   weigh: (list) => [...list],
   swaps: () => true,
+  pulls: () => true,
+  flips: () => true,
   error: () => (hand.next() - 0.5) * 2 * sloppiness,
 });
 
@@ -151,8 +185,13 @@ const normal = (random: SeededRandom): number =>
  * A newcomer's mind (v1.8.1, spec § 3.17): uneven times between shots, a few
  * targets weighed at random rather than all, a swap sometimes forgotten, and
  * a hand that scatters like a person's, three times as much on a bank shot.
+ * The worlds' tools as a newcomer uses them: magnet charges kept for when the
+ * chain presses, a lava switch flipped when the lava comes near and if it
+ * comes to mind, and a colour mix weighed as one look more, besides the
+ * same-colour targets the eye picks at a glance.
  */
 export class NewcomerBrain implements Brain {
+  readonly omniscient = false;
   private next: number;
 
   constructor(
@@ -180,17 +219,40 @@ export class NewcomerBrain implements Brain {
     this.next = frame + this.pause();
   }
 
-  weigh<T extends { readonly score: number }>(list: readonly T[]): T[] {
-    const pool = [...list];
-    const seen: T[] = [];
-    while (seen.length < this.robot.looks && pool.length > 0) {
-      seen.push(pool.splice(Math.floor(this.random.next() * pool.length), 1)[0]!);
-    }
+  weigh<T extends Option>(list: readonly T[]): T[] {
+    const seen = [
+      ...this.draw(
+        list.filter((option) => !option.mix),
+        this.robot.looks,
+      ),
+      ...this.draw(
+        list.filter((option) => option.mix),
+        MIX_LOOKS,
+      ),
+    ];
     return seen.sort((a, b) => b.score - a.score);
   }
 
   swaps(): boolean {
     return this.random.next() < this.robot.swaps;
+  }
+
+  pulls(ahead: number): boolean {
+    return ahead >= PRESSURE_FROM && this.random.next() < this.robot.tools;
+  }
+
+  flips(): boolean {
+    return this.random.next() < this.robot.tools;
+  }
+
+  /** Some options drawn at random among the possible ones. */
+  private draw<T>(list: readonly T[], count: number): T[] {
+    const pool = [...list];
+    const seen: T[] = [];
+    while (seen.length < count && pool.length > 0) {
+      seen.push(pool.splice(Math.floor(this.random.next() * pool.length), 1)[0]!);
+    }
+    return seen;
   }
 
   error(bank: () => boolean): number {
@@ -229,8 +291,21 @@ export function playRobot(
   robot: RobotPlayer,
   handSeed = seed,
 ): BotResult {
+  // The level at the robot's seat: this board, and its hand's pace and time bonus.
+  return playRobotOn(resolveLevel(level, frame, { aiming: AIMING[robot.device] }), seed, {
+    robot,
+    handSeed,
+  });
+}
+
+/** A newcomer on a level given as data: a campaign level slowed by the assistance, say. */
+export function playRobotOn(
+  definition: LevelDefinition,
+  seed: string,
+  { robot, handSeed = seed }: { readonly robot: RobotPlayer; readonly handSeed?: string },
+): BotResult {
   return run(
-    resolveLevel(level, frame),
+    definition,
     seed,
     handSeed,
     false,
@@ -290,8 +365,7 @@ function run(
   let thinFrames = 0;
   let bonus = 0;
   game.events.on('ended', (event) => (bonus = event.bonus));
-  interface Candidate {
-    readonly score: number;
+  interface Candidate extends Option {
     readonly chain: number;
     readonly s: number;
     readonly id: number;
@@ -318,6 +392,7 @@ function run(
             chain: index,
             s: ball.s,
             id: ball.id,
+            mix: true,
           });
           return;
         }
@@ -333,6 +408,7 @@ function run(
           chain: index,
           s: ball.s,
           id: ball.id,
+          ...(becomes === null ? {} : { mix: true }),
         });
       });
     });
@@ -392,8 +468,7 @@ function run(
    * shots may curve (gravity, wind), and in the Jewel world what is touched
    * matters. Without any reachable candidate, the best one anyway.
    */
-  const target = (tone: number): Candidate | null => {
-    const list = brain.weigh(candidates(tone));
+  const firstInReach = (list: readonly Candidate[]): Candidate | null => {
     if (curving()) return list.find((candidate) => reach.has(candidate.id)) ?? null;
     const saved = game.shooter.angle;
     for (const candidate of list.slice(0, 8)) {
@@ -406,6 +481,8 @@ function run(
     game.shooter.aim(saved);
     return alchemy ? null : (list[0] ?? null);
   };
+  /** The target for a colour, among the ones the player weighs. */
+  const target = (tone: number) => firstInReach(brain.weigh(candidates(tone)));
 
   /**
    * Nothing useful to shoot at: aim where the ball lands next to a mixed colour,
@@ -423,9 +500,12 @@ function run(
     return false;
   };
 
-  /** A ball between two balls of one same colour: pulling it out makes them meet. */
-  const separator = () => {
-    let best: { chain: number; s: number; id: number } | null = null;
+  /**
+   * A ball between two balls of one same colour: pulling it out makes them
+   * meet. The frontmost of those the player looks at.
+   */
+  const separator = (): Candidate | null => {
+    const found: Candidate[] = [];
     game.chains.forEach((chain, index) => {
       const balls = chain.balls;
       for (let i = 1; i + 1 < balls.length; i++) {
@@ -433,17 +513,45 @@ function run(
         if (ball.s < 0 || balls[i - 1]!.tone !== balls[i + 1]!.tone) continue;
         if (ball.tone === balls[i - 1]!.tone) continue;
         if (curving() && !reach.has(ball.id)) continue;
-        if (!best || ball.s > best.s) best = { chain: index, s: ball.s, id: ball.id };
+        found.push({ score: ball.s, chain: index, s: ball.s, id: ball.id });
       }
     });
-    return best as { chain: number; s: number; id: number } | null;
+    return brain.weigh(found)[0] ?? null;
   };
 
-  /** A laser flies straight through four balls: the player aims it where it takes the most. */
+  /** How far the foremost head has come along its track, from 0 to 1 (the hole). */
+  const headway = () => Math.max(0, ...game.chains.map((chain) => chain.front / chain.path.length));
+
+  /** A free switch the lava will take the short way within a few seconds (Volcano world). */
+  const nearSwitch = () =>
+    game
+      .switches()
+      .find(
+        (view) =>
+          !view.locked &&
+          view.branch === 'short' &&
+          view.start - game.chains[view.chain]!.front <= game.setup.chain.speed * NOTICE,
+      ) ?? null;
+
+  /**
+   * A laser flies straight through four balls: the player aims it where it
+   * takes the most, among the balls it looks at (every angle, for the
+   * balancing players up to v1.8.0).
+   */
   const aimLaser = (): boolean => {
+    const angles = brain.omniscient
+      ? Array.from({ length: 180 }, (_, k) => (k / 180) * Math.PI * 2)
+      : brain
+          .weigh(
+            game.chains.flatMap((chain) =>
+              chain.balls
+                .filter((ball) => ball.s >= 0)
+                .map((ball) => ({ score: 0, point: chain.positionOf(ball) })),
+            ),
+          )
+          .map(({ point }) => point.sub(game.shooter.position).angle());
     let best: { angle: number; balls: number } | null = null;
-    for (let k = 0; k < 180; k++) {
-      const angle = (k / 180) * Math.PI * 2;
+    for (const angle of angles) {
       game.shooter.aim(angle);
       const balls = game.laserPath()?.targets.length ?? 0;
       if (balls > 0 && (!best || balls > best.balls)) best = { angle, balls };
@@ -452,13 +560,13 @@ function run(
     return best !== null;
   };
 
-  /** A rainbow ball takes the colour it touches: the player looks for the best pair of any colour. */
+  /**
+   * A rainbow ball takes the colour it touches: the player looks for the best
+   * pair of any colour, among the ones it weighs.
+   */
   const aimWild = (): boolean => {
     const tones = new Set(game.chains.flatMap((chain) => chain.balls.map((ball) => ball.tone)));
-    const best = [...tones]
-      .map((tone) => target(tone))
-      .filter((candidate): candidate is Candidate => candidate !== null)
-      .sort((a, b) => b.score - a.score)[0];
+    const best = firstInReach(brain.weigh([...tones].flatMap((tone) => candidates(tone))));
     if (!best) return false;
     const angle = reach.get(best.id);
     if (angle === undefined) game.aimAt(game.chains[best.chain]!.path.pointAt(best.s + 6));
@@ -476,8 +584,8 @@ function run(
       if (onBoard === 0) idleFrames++;
       if (onBoard < 3) thinFrames++;
     }
-    // Volcano world: a cautious player sends the lava into every free detour.
-    if (frameIndex % 30 === 0) {
+    // Volcano world: the balancing players up to v1.8.0 send the lava into every free detour.
+    if (brain.omniscient && frameIndex % 30 === 0) {
       for (const view of game.switches()) {
         if (!view.locked && view.branch === 'short') game.toggleSwitch(view.chain, view.fork);
       }
@@ -488,7 +596,15 @@ function run(
       brain.decided(frameIndex);
       sweep();
     }
-    if (decide && magnet && magnet.charges > 0) {
+    // A newcomer flips a switch when the lava comes near it, if it thinks of it, instead of a shot.
+    if (decide && !brain.omniscient) {
+      const near = nearSwitch();
+      if (near && brain.flips() && game.toggleSwitch(near.chain, near.fork)) {
+        game.update(1 / 60);
+        continue;
+      }
+    }
+    if (decide && magnet && magnet.charges > 0 && brain.pulls(headway())) {
       const target = separator();
       if (target) {
         const angle = reach.get(target.id);

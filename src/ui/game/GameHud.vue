@@ -18,6 +18,8 @@ import { useMessage } from './useMessage';
  */
 const props = defineProps<{
   mode: PlayMode;
+  /** Points of the second and third stars at the game's seat, or null without stars (v1.8.1). */
+  stars: readonly [number, number] | null;
   hud: HudState | null;
   assisted: boolean;
   /** The second line is kept from the start, so that the board never moves. */
@@ -83,9 +85,9 @@ defineExpose({ bar, extra });
       <span class="label">{{ t('game.score') }}</span>
       <span class="value" data-testid="score">{{ number.format(hud?.score ?? 0) }}</span>
       <StarGauge
-        v-if="props.mode.stars"
+        v-if="props.stars"
         :score="hud?.score ?? 0"
-        :thresholds="props.mode.stars"
+        :thresholds="props.stars"
         @reached="(stars) => emit('reached', stars)"
       />
       <span v-if="(hud?.streak ?? 0) >= 2" class="streak">

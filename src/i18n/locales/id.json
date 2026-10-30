@@ -192,7 +192,7 @@
     "spin": "Prisma ini berputar: tunggu sudut yang tepat sebelum menembak.",
     "magnet": "Sentuh “Magnet” (atau M), lalu bidik sebuah bola: bola itu keluar dari rantai dan masuk ke penembakmu.",
     "magnetCombo": "Sedot bola yang memisahkan dua warna sama: keduanya bertemu dan meledak.",
-    "alchemy": "Cahaya bercampur: rubi + limau = amber, limau + ungu = sian, rubi + ungu = merah muda. Tembakkan satu warna ke warna lain untuk menyatukannya.",
+    "alchemy": "Cahaya bercampur: rubi + limau = amber, limau + ungu = sian, rubi + ungu = merah muda. Tembakkan satu warna tepat ke tengah warna lain untuk menyatukannya; di luar tengah, bola menyelip di sampingnya.",
     "alchemySecondary": "Warna campuran tidak bisa ditembakkan: satukan tiga berdampingan untuk meledakkannya.",
     "switch": "Sentuh persimpangan (atau tekan S) untuk mengalirkan lava ke jalan memutar: lebih panjang, memberimu waktu. Tidak bisa diubah lagi setelah rantai sampai.",
     "hot": "Di jalan pintas lava sedang membara: bola yang meledak di sana bernilai dua kali lipat. Poin atau waktu, kamu yang pilih.",
@@ -485,7 +485,7 @@
   },
   "assist": {
     "retry": "Coba lagi dengan bantuan",
-    "detail": "Rantai bergerak 15% lebih lambat untuk percobaan ini.",
+    "detail": "Rantai bergerak {percent} lebih lambat untuk percobaan ini.",
     "active": "Bantuan aktif"
   },
   "magnet": {

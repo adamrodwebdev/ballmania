@@ -21,7 +21,10 @@ abstract class ArcadeMode implements PlayMode {
   readonly seed: string | null = null;
   readonly continuable: boolean = false;
   /** No points toward stars in the Arcade: records, stages, wins, or shots for puzzles. */
-  readonly stars = null;
+  stars(): null {
+    return null;
+  }
+
   /** No Colossus in the Arcade. */
   readonly boss = null;
   readonly daily = null;
@@ -31,6 +34,7 @@ abstract class ArcadeMode implements PlayMode {
   readonly swapLabel: Message = { key: 'game.swap' };
   readonly hintable: boolean = false;
   readonly assistLevel = null;
+  readonly assistance = null;
   readonly finale = false;
   readonly training = null;
 

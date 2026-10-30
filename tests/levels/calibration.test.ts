@@ -4,38 +4,45 @@ import { CLEAR_BONUS, SPEED_BONUS } from '@/engine/Scoring';
 import { CAMPAIGN, starThresholds, type CampaignLevel } from '@/levels/campaign';
 import { referenceTime } from '@/levels/calibration';
 import { CALIBRATION } from '@/levels/calibration.data';
-import { FRAMES, type FrameKind } from '@/levels/tracks';
-import { PLAYERS, playLevel, type BotResult } from './bot';
+import { seatKey, type Seat, type SeatKey } from '@/levels/seat';
+import { FRAMES } from '@/levels/tracks';
+import { seatsOf, type PlayedSeat } from './boards';
+import { AIMING, playRobot, robotOf, type BotResult } from './bot';
 
 /**
  * The stars and the time bonus of each campaign level (specification § 3.2),
- * calibrated on a human-like bot (it decides every 1.5 s, shoots true and
- * sets up chain reactions), 24 games on each of the three boards (72 games
- * since v1.8.0; 36 before): the reference time is 1.2 × its median time, the
- * third star is reached by about 30 % of its wins, the second by about 80 %,
- * and stays at most 85 % of the third so that the gauge keeps them apart.
- * Thresholds are rounded down to 50 points.
+ * calibrated seat by seat (v1.8.1, spec § 3.17) on careful players: the quick
+ * newcomer of the robots, at the finger on the boards phones give each level
+ * and with a mouse on a desktop's, 32 games at each seat, so that a phone and
+ * a desktop reach the stars as often. The reference time is 1.2 × its median
+ * time, the third star is reached by about 30 % of its wins, the second by
+ * about 80 %, and stays at most 85 % of the third so that the gauge keeps them
+ * apart. Thresholds are rounded down to 50 points.
  *
  * `CALIBRATE=1 npx vitest run tests/levels/calibration.test.ts` writes the
  * values again into src/levels/calibration.data.ts, after a level was changed;
  * `CALIBRATE=nebula-01,neon-02` recalibrates only the levels it lists.
  */
-const FRAME_KINDS: readonly FrameKind[] = ['square', 'tall', 'wide'];
-const SEEDS = Array.from({ length: 24 }, (_, i) => `star-${i}`);
-/** Games the calibration never saw: the guard checks what new players will meet (v1.8.0). */
-const FRESH = Array.from({ length: 8 }, (_, i) => `guard-${i}`);
+const SEEDS = Array.from({ length: 32 }, (_, i) => `star-${i}`);
+/** Games the calibration never saw, 16 at each seat: the guard checks what new players will meet. */
+const FRESH = Array.from({ length: 16 }, (_, i) => `guard-${i}`);
 const MARGIN = 1.2;
 const THIRD_STAR = 0.7;
 const SECOND_STAR = 0.2;
 const SPACING = 0.85;
 
-type Player = keyof typeof PLAYERS;
+type Calibration = readonly [number, number, number];
 
-const games = (level: CampaignLevel, player: Player, seeds: readonly string[]): BotResult[] => {
-  const { cadence, sloppiness, insight } = PLAYERS[player];
-  return FRAME_KINDS.flatMap((kind) =>
-    seeds.map((seed) => playLevel(level, FRAMES[kind], seed, cadence, sloppiness, insight)),
-  ).filter((game) => game.outcome === 'won');
+/** The careful player's wins at a seat, one game a seed. */
+const games = (
+  level: CampaignLevel,
+  { board, device }: PlayedSeat,
+  seeds: readonly string[],
+): BotResult[] => {
+  const careful = robotOf('quick', device);
+  return seeds
+    .map((seed) => playRobot(level, FRAMES[board], seed, careful, `${seed}/careful`))
+    .filter((game) => game.outcome === 'won');
 };
 
 const quantile = (values: readonly number[], q: number): number => {
@@ -53,44 +60,56 @@ const rescored = (game: BotResult, reference: number): number =>
 /** Down to 50 points: a threshold never asks for more than its share of games. */
 const floor = (value: number) => Math.floor(value / 50) * 50;
 
-function calibrate(level: CampaignLevel): readonly [number, number, number] {
-  const human = games(level, 'human', SEEDS);
+function calibrate(level: CampaignLevel, seat: PlayedSeat): Calibration {
+  const won = games(level, seat, SEEDS);
   const reference = Math.ceil(
     MARGIN *
       quantile(
-        human.map((game) => game.elapsed),
+        won.map((game) => game.elapsed),
         0.5,
       ),
   );
-  const scores = human.map((game) => rescored(game, reference));
+  const scores = won.map((game) => rescored(game, reference));
   const three = floor(quantile(scores, THIRD_STAR));
   const two = Math.min(floor(SPACING * three), floor(quantile(scores, SECOND_STAR)));
   return [reference, two, three];
 }
 
 /** Every level for `CALIBRATE=1`, else only the ones listed; the others keep their values. */
-function recalibrated(level: CampaignLevel): readonly [number, number, number] {
+function recalibrated(level: CampaignLevel): Partial<Record<SeatKey, Calibration>> {
   const listed = process.env.CALIBRATE?.split(',') ?? [];
   const kept = CALIBRATION[level.id];
-  return process.env.CALIBRATE === '1' || listed.includes(level.id) || !kept
-    ? calibrate(level)
-    : kept;
+  if (process.env.CALIBRATE !== '1' && !listed.includes(level.id) && kept) return kept;
+  return Object.fromEntries(
+    [...seatsOf(level)].map(([key, seat]) => [key, calibrate(level, seat)]),
+  );
 }
+
+/** A seat as the game names it. */
+const seatOf = ({ board, device }: PlayedSeat): Seat => ({ board, aiming: AIMING[device] });
 
 describe('calibration of the stars and the time bonus', () => {
   it.runIf(process.env.CALIBRATE)(
-    'writes the calibration of every campaign level',
+    'writes the calibration of every campaign level, seat by seat',
     () => {
-      const rows = CAMPAIGN.map((level) => `  '${level.id}': [${recalibrated(level).join(', ')}],`);
+      const rows = CAMPAIGN.flatMap((level) => [
+        `  '${level.id}': {`,
+        ...Object.entries(recalibrated(level)).map(
+          ([seat, values]) => `    '${seat}': [${values.join(', ')}],`,
+        ),
+        '  },',
+      ]);
       const source = [
         '// Generated by `CALIBRATE=1 npx vitest run tests/levels/calibration.test.ts`:',
         '// run it again after changing a level, rather than editing these values.',
+        "import type { SeatTable } from './seat';",
         '',
         '/**',
-        ' * For each campaign level (specification § 3.2): the reference time of its',
-        ' * time bonus, in seconds, then the points of its second and third stars.',
+        ' * For each campaign level (specification § 3.2), seat by seat: the reference',
+        ' * time of its time bonus, in seconds, then the points of its second and third',
+        ' * stars.',
         ' */',
-        'export const CALIBRATION: Readonly<Record<string, readonly [number, number, number]>> = {',
+        'export const CALIBRATION: Readonly<Record<string, SeatTable<readonly [number, number, number]>>> = {',
         ...rows,
         '};',
         '',
@@ -100,33 +119,44 @@ describe('calibration of the stars and the time bonus', () => {
     3_600_000,
   );
 
-  it('calibrates every campaign level', () => {
+  it('calibrates every campaign level at each seat its screens give it', () => {
     for (const level of CAMPAIGN) {
-      const entry = CALIBRATION[level.id];
-      expect(entry, level.id).toBeDefined();
-      const [reference, two, three] = entry!;
-      expect(reference, level.id).toBeGreaterThan(5);
-      expect(two, level.id).toBeLessThan(three);
+      for (const [key, seat] of seatsOf(level)) {
+        const entry = CALIBRATION[level.id]?.[key];
+        expect(entry, `${level.id} ${key}`).toBeDefined();
+        const [two, three] = starThresholds(level, seatOf(seat));
+        expect(referenceTime(level, seatOf(seat)), `${level.id} ${key}`).toBeGreaterThan(5);
+        expect(two, `${level.id} ${key}`).toBeLessThan(three);
+      }
     }
   });
 
   // A guard on world 1, the one newcomers play, on games the calibration never saw.
-  it('keeps world 1 on target: three stars for some careful games, two for most', () => {
-    let careful = 0;
-    let third = 0;
+  it('keeps world 1 on target: three stars now and then, two for most, on a phone as on a desktop', () => {
+    const third = { touch: 0, mouse: 0 };
+    const played = { touch: 0, mouse: 0 };
     for (const level of CAMPAIGN.filter((candidate) => candidate.id.startsWith('nebula-'))) {
-      const [two, three] = starThresholds(level);
-      const reference = referenceTime(level);
-      const reaching = (played: readonly BotResult[], points: number) =>
-        played.filter((game) => rescored(game, reference) >= points).length;
-      const human = games(level, 'human', FRESH);
-      careful += human.length;
-      third += reaching(human, three);
-      expect(reaching(human, two) / human.length, level.id).toBeGreaterThan(0.5);
-      // Within reach: an applied player gets the third star now and then on every level.
-      expect(reaching(games(level, 'applied', FRESH), three), level.id).toBeGreaterThan(0);
+      let reached = 0;
+      for (const seat of seatsOf(level).values()) {
+        const at = seatOf(seat);
+        const [two, three] = starThresholds(level, at);
+        const reference = referenceTime(level, at);
+        const won = games(level, seat, FRESH);
+        const reaching = (points: number) =>
+          won.filter((game) => rescored(game, reference) >= points).length;
+        expect(reaching(two) / won.length, `${level.id} ${seatKey(at)}`).toBeGreaterThan(0.5);
+        reached += reaching(three);
+        third[at.aiming] += reaching(three);
+        played[at.aiming] += won.length;
+      }
+      // Within reach: a careful player gets the third star now and then on every level.
+      expect(reached, level.id).toBeGreaterThan(0);
     }
-    expect(third / careful).toBeGreaterThan(0.15);
-    expect(third / careful).toBeLessThan(0.45);
-  }, 120_000);
+    const share = (aiming: keyof typeof third) => third[aiming] / played[aiming];
+    for (const aiming of ['touch', 'mouse'] as const) {
+      expect(share(aiming), aiming).toBeGreaterThan(0.15);
+      expect(share(aiming), aiming).toBeLessThan(0.45);
+    }
+    expect(Math.abs(share('touch') - share('mouse'))).toBeLessThan(0.15);
+  }, 300_000);
 });

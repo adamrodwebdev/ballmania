@@ -83,7 +83,7 @@ describe('the shooting module', () => {
     const game = new Game(level([0, 0, 1, 2]), new FixedRandom(0));
     game.aimAt(new Vec2(325, 100));
     const line = game.aimLine();
-    expect(line.target).toEqual({ chain: 0, index: 1, after: true });
+    expect(line.target).toMatchObject({ chain: 0, index: 1, after: true });
     expect(game.aimTarget()?.index).toBe(line.target?.index);
     expect(game.preview(false, line)).toEqual(game.preview());
   });
