@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import type { Aiming, DefeatSummary } from '@/app/DefeatSummary';
+import type { Lesson } from '@/levels/LevelDefinition';
 import { EndOfGame } from '@/app/EndOfGame';
 import { createMode, type Message, type Settlement } from '@/app/modes';
 import { shortName } from '@/app/modes/CampaignModes';
@@ -115,7 +116,29 @@ onMounted(() => {
     window.setTimeout(() => (hintVisible.value = false), 6000);
   }
 });
-// The training's hint goes once the hand's gesture is done.
+/**
+ * The line of a lesson of the training's hand (v1.8.1), as the player aims
+ * (a finger or a mouse); a shot's lesson says its showcase's own hint.
+ */
+const LESSON_LINES: Readonly<
+  Record<Lesson, ((aiming: Aiming, charged: boolean) => string) | null>
+> = {
+  shot: null,
+  bank: null,
+  curve: null,
+  swap: (how) => `training.lessons.swap.${how}`,
+  charge: (how, charged) =>
+    charged ? 'training.lessons.release' : `training.lessons.charge.${how}`,
+};
+const hintKey = computed(() => {
+  const lesson = hud.value?.lesson;
+  const line = lesson ? LESSON_LINES[lesson] : null;
+  return line ? line(aiming(), hud.value?.charged ?? false) : `hints.${mode.hint}`;
+});
+/** The training shows a lesson's line while the hand teaches it: a swap, only at its moment. */
+const lessonShown = computed(() => !training || !hud.value || hud.value.lesson !== null);
+
+// The training's hint goes once the hand's gestures are all done.
 watch(
   () => hud.value?.taught,
   (taught) => {
@@ -316,13 +339,14 @@ const leaveToMenu = () => {
       <canvas ref="overlay" class="overlay" aria-hidden="true" hidden></canvas>
       <p v-if="cheer" :key="cheer.serial" class="cheer" aria-hidden="true">{{ cheer.word }}</p>
       <p
-        v-if="hintVisible && mode.hint"
+        v-if="hintVisible && mode.hint && lessonShown"
+        :key="hintKey"
         class="hint"
         :class="{ lasting: training }"
         role="status"
         data-testid="hint"
       >
-        {{ t(`hints.${mode.hint}`) }}
+        {{ t(hintKey) }}
       </p>
       <TrainingCard
         v-if="card && training"

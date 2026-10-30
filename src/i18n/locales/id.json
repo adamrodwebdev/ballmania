@@ -214,6 +214,18 @@
     "powerLaser": "Bola petir mengubah tembakan berikutnya menjadi laser yang menembus 4 bola."
   },
   "training": {
+    "lessons": {
+      "swap": {
+        "touch": "Bola berikutnya lebih cocok di sini: sentuh penembak untuk menukar.",
+        "mouse": "Klik kanan, atau tekan X: tukar, bola berikutnya lebih cocok di sini."
+      },
+      "charge": {
+        "touch": "Tahan jari tanpa bergerak: cincin terisi…",
+        "mouse": "Tahan klik, atau Spasi: tembakan terisi daya…"
+      },
+      "release": "…lepaskan: tembakan bermuatan melesat dua kali lebih cepat!",
+      "charged": "Terisi penuh!"
+    },
     "step": "Tahap {step} dari {of}",
     "home": "Latihan",
     "skip": "Lewati",

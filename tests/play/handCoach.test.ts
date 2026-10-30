@@ -28,7 +28,7 @@ const FRAME = 1 / 60;
 /** A level as the game screen plays it: the same seed as its mode gives. */
 function play(level: LevelDefinition): { game: Game; coach: HandCoach } {
   const game = new Game(toLevelSetup(level), SeededRandom.fromString(level.id));
-  return { game, coach: new HandCoach(game, level.lesson!, level.nudge ?? null) };
+  return { game, coach: new HandCoach(game, level.lessons!, level.nudge ?? null) };
 }
 
 const showcase = (step: TrainingStep) =>
@@ -82,22 +82,122 @@ describe('bestWindow', () => {
   });
 });
 
+/** A still chain along the top, tail first, and the shooter below it, loaded as `opening` says. */
+const strip = (tones: readonly number[], opening: readonly number[]): Game =>
+  new Game(
+    {
+      board: { width: 1000, height: 1000 },
+      shooter: new Vec2(500, 700),
+      chains: [
+        {
+          path: Path.fromPoints([new Vec2(0, 100), new Vec2(1000, 100)]),
+          recipe: { length: tones.length, tones: 3, repeatChance: 0 },
+          tones,
+          tail: 300,
+        },
+      ],
+      chain: { ...PARAMS, speed: 0, rushSpeed: 0 },
+      projectileSpeed: 1000,
+      fireCooldown: 0,
+      opening,
+    },
+    new FixedRandom(0),
+  );
+
 describe('HandCoach', () => {
-  it('shows E1 a shot at the chain, until the Nova bursts, then again after a wait', () => {
+  it('teaches E1 every control in turn: the Nova, a swap, then a charged shot', () => {
     const { game, coach } = showcase(1);
     run(game, coach, 1.5);
+    expect(coach.teaching).toBe('shot');
     const gesture = coach.gesture!;
+    expect(gesture.kind).toBe('drag');
     expect(gesture.from).toEqual(game.shooter.position);
     expect(gesture.path).toHaveLength(2);
     let bombs = 0;
     game.events.on('bomb', () => bombs++);
     copy(game, coach);
     expect(bombs).toBe(1);
+    expect(coach.done).toEqual(['shot']);
+    // The next ball sets the cascade off: the hand taps the launcher, nothing to aim.
+    run(game, coach, 1.5);
+    expect(coach.teaching).toBe('swap');
+    expect(coach.gesture).toMatchObject({ kind: 'tap', from: game.shooter.position, path: [] });
+    game.swap();
+    expect(coach.done).toEqual(['shot', 'swap']);
+    // Then the charge: the finger presses on the target and holds still there.
+    run(game, coach, 1.5);
+    const hold = coach.gesture!;
+    expect(coach.teaching).toBe('charge');
+    expect(hold.kind).toBe('hold');
+    expect(hold.from).toEqual(hold.to);
+    expect(hold.path[0]).toEqual(game.shooter.position);
+    game.aimAt(hold.to);
+    expect(game.fire(true)).toBe(true);
     expect(coach.learnt).toBe(true);
+    expect(coach.teaching).toBeNull();
+    // Its lessons done, the training's hand comes back to a player who waits.
+    for (let i = 0; i < 600 && game.projectiles.length > 0; i++) run(game, coach, FRAME);
     run(game, coach, TRAINING_NUDGE - 1);
     expect(coach.gesture).toBeNull();
     run(game, coach, 1.5);
-    expect(coach.gesture).not.toBeNull();
+    expect(coach.gesture?.kind).toBe('drag');
+  });
+
+  it('shows a swap while the next ball does clearly better, and sets such a moment up', () => {
+    // Tail first: a pair of b, a lone c, a lone a. A b makes a group; an a, a pair at most.
+    const better = strip([1, 1, 2, 0], [0, 1]);
+    const coach = new HandCoach(better, ['swap'], null);
+    run(better, coach, 1.5);
+    expect(coach.teaching).toBe('swap');
+    expect(coach.gesture?.kind).toBe('tap');
+    // A shot instead of the swap: the moment is gone with the loaded ball, not the lesson.
+    better.aimAt(new Vec2(500, 0));
+    better.fire();
+    run(better, coach, 0.1);
+    expect(coach.done).toEqual([]);
+    // Loaded with the b already: the hand loads a colour that makes nothing, the b after it.
+    const worse = strip([1, 1, 2, 0], [1, 0]);
+    const staged = new HandCoach(worse, ['swap'], null);
+    run(worse, staged, 1.5);
+    expect(worse.shooter.next).toBe(1);
+    expect([0, 2]).toContain(worse.shooter.current);
+    expect(staged.teaching).toBe('swap');
+    // Neither that nor a puzzle hint's load is the player's swap; theirs is.
+    worse.loadTone(1);
+    expect(staged.done).toEqual([]);
+    worse.swap();
+    expect(staged.done).toEqual(['swap']);
+  });
+
+  it('keeps a moment it set up until the swap, and waits when every colour does as well', () => {
+    // Tail first: a pair of each colour, any of which makes a group: nothing to swap for.
+    const even = strip([0, 0, 1, 1, 2, 2], [0, 1]);
+    const waiting = new HandCoach(even, ['swap'], null);
+    run(even, waiting, 3);
+    expect(waiting.teaching).toBeNull();
+    expect([even.shooter.current, even.shooter.next]).toEqual([0, 1]);
+    // A moment set up by the hand stays, sweep after sweep, while the player waits.
+    const worse = strip([1, 1, 2, 0], [1, 0]);
+    const staged = new HandCoach(worse, ['swap'], null);
+    run(worse, staged, 6);
+    expect(staged.teaching).toBe('swap');
+    expect(staged.gesture?.kind).toBe('tap');
+  });
+
+  it('learns the charge from a charged shot only', () => {
+    const game = strip([1, 1, 2, 0], [1, 1, 1]);
+    const coach = new HandCoach(game, ['charge'], null);
+    run(game, coach, 1.5);
+    const hold = coach.gesture!;
+    expect(hold.kind).toBe('hold');
+    game.aimAt(hold.to);
+    game.fire();
+    run(game, coach, 0.5);
+    expect(coach.learnt).toBe(false);
+    run(game, coach, 1.5);
+    game.aimAt(coach.gesture!.to);
+    game.fire(true);
+    expect(coach.learnt).toBe(true);
   });
 
   it('shows E2 bank shots, and is done once one explodes', () => {
@@ -143,7 +243,7 @@ describe('HandCoach', () => {
     };
     const board = () => {
       const game = new Game(setup, new FixedRandom(0));
-      const coach = new HandCoach(game, 'curve', null);
+      const coach = new HandCoach(game, ['curve'], null);
       run(game, coach, 3);
       return { game, coach };
     };

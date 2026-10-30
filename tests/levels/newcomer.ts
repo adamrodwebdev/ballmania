@@ -1,6 +1,6 @@
 import { SeededRandom } from '@/engine/core/Random';
 import { Game } from '@/engine/Game';
-import { toLevelSetup, type LevelDefinition } from '@/levels/LevelDefinition';
+import { toLevelSetup, type Lesson, type LevelDefinition } from '@/levels/LevelDefinition';
 import { HandCoach, LESSON_BEND } from '@/play/HandCoach';
 
 const FRAME = 1 / 60;
@@ -11,8 +11,10 @@ export interface ShowcaseRun {
   /** Seconds until the win, or until the bot gave up. */
   readonly seconds: number;
   readonly shots: number;
-  /** When the hand's lesson was done, or null. */
+  /** When the hand's lessons were all done, or null. */
   readonly learntAt: number | null;
+  /** When each of the hand's lessons was done, in seconds (v1.8.1); missing if never. */
+  readonly lessons: Readonly<Partial<Record<Lesson, number>>>;
   /** Deepest chain reaction of the game. */
   readonly bestDepth: number;
   /** The player's explosions that showed the lesson: after a rebound, or a curve. */
@@ -24,15 +26,18 @@ export interface ShowcaseRun {
 /**
  * A newcomer in the training (v1.8.0), for its simulations: the first shot
  * goes anywhere on the chain (they shoot before they understand); then they
- * copy the hand when it shows, once they have watched its drag, roughly,
- * nudging the aim until the preview lights a group; without it, they move
- * the aim about and take the biggest group the preview shows, else put
- * their colour beside its own. `seed` makes their hesitations and errors.
+ * copy the hand when it shows, once they have watched its gesture: its drag,
+ * roughly, nudging the aim until the preview lights a group; its tap on the
+ * launcher, a swap; its press held still, a charged shot (v1.8.1). Without
+ * it, they move the aim about and take the biggest group the preview shows,
+ * else put their colour beside its own. `seed` makes their hesitations and
+ * errors.
  */
 export function playShowcase(level: LevelDefinition, seed: number, cap = 180): ShowcaseRun {
   const setup = toLevelSetup(level);
   const game = new Game(setup, SeededRandom.fromString(level.id));
-  const coach = new HandCoach(game, level.lesson!, level.nudge ?? null);
+  const coach = new HandCoach(game, level.lessons!, level.nudge ?? null);
+  const lessons: Partial<Record<Lesson, number>> = {};
   const random = SeededRandom.fromString(`newcomer-${seed}`);
   let shots = 0;
   let learntAt: number | null = null;
@@ -50,9 +55,9 @@ export function playShowcase(level: LevelDefinition, seed: number, cap = 180): S
   /** Seconds before the next shot of their own, and before copying the gesture shown. */
   let thinking = 1 + random.next();
   let watching = 0.9 + random.next() * 0.6;
-  const fireAt = (angle: number, error: number) => {
+  const fireAt = (angle: number, error: number, power = false) => {
     game.shooter.aim(angle + (random.next() - 0.5) * 2 * error);
-    if (game.fire()) shots++;
+    if (game.fire(power)) shots++;
     thinking = 0.8 + random.next() * 0.6;
     watching = 0.9 + random.next() * 0.6;
   };
@@ -63,6 +68,7 @@ export function playShowcase(level: LevelDefinition, seed: number, cap = 180): S
     const flying = game.projectiles.some((projectile) => projectile.by === 'player');
     coach.update(FRAME, !flying);
     if (learntAt === null && coach.learnt) learntAt = t;
+    for (const lesson of coach.done) lessons[lesson] ??= t;
     const chain = game.chains[0]!;
     const head = chain.balls[chain.balls.length - 1];
     if (head) danger = Math.max(danger, head.s / chain.path.length);
@@ -80,14 +86,21 @@ export function playShowcase(level: LevelDefinition, seed: number, cap = 180): S
     const gesture = coach.gesture;
     if (gesture) {
       if (gesture.time < watching) continue;
+      if (gesture.kind === 'tap') {
+        // The hand taps the launcher: so do they, a swap.
+        game.swap();
+        watching = 0.9 + random.next() * 0.6;
+        continue;
+      }
       // Copying the hand roughly, they nudge the aim until the preview lights a group.
-      const shown = gesture.to.sub(gesture.from).angle();
+      const shown = gesture.to.sub(game.shooter.position).angle();
       let angle = shown + (random.next() - 0.5) * 0.07;
       for (let nudge = 0; nudge < 4; nudge++) {
         if ((game.preview(false, game.aimLineAt(angle))?.group.length ?? 0) > 0) break;
         angle = shown + (random.next() - 0.5) * 0.035;
       }
-      fireAt(angle, 0.005);
+      // A press held still, as the hand's: the shot leaves charged.
+      fireAt(angle, 0.005, gesture.kind === 'hold');
       continue;
     }
     if (thinking > 0) continue;
@@ -113,6 +126,7 @@ export function playShowcase(level: LevelDefinition, seed: number, cap = 180): S
     seconds: t,
     shots,
     learntAt,
+    lessons,
     bestDepth: game.bestDepth,
     lessonShots,
     danger,

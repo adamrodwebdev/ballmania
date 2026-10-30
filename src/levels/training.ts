@@ -19,20 +19,23 @@ export const TRAINING_NUDGE = 5;
 /**
  * A showcase of the training (v1.8.0): a short level of its world, made to
  * hook a new player, apart from the campaign (its own content and progress).
- * Its hand teaches one gesture; it ends on a short burst, or on the promise.
+ * Its hand teaches its gestures in turn; it ends on a short burst, or on the
+ * promise.
  */
 export interface TrainingLevel extends CampaignLevel {
   readonly step: TrainingStep;
-  readonly lesson: Lesson;
+  readonly lessons: readonly Lesson[];
   readonly victory: Victory;
 }
 
 /**
  * E1, the Nova (the Nebula's showcase, once level 1-1): the chain is laid out
  * by hand, head first: the gift Nova clears the head; behind it, pairs nested
- * around a pair of the launcher's next colour, so one shot sets off a
- * three-step cascade; a Laser rides in the pair behind; then a second
- * cascade, and a tail.
+ * around a pair of a colour the launcher deals second, so one shot sets off
+ * a three-step cascade; a Laser rides in the pair behind; then a second
+ * cascade, and a tail. After the Nova (v1.8.1), the ball loaded makes no more
+ * than a group, the next one the cascade: the hand teaches the swap, then the
+ * charged shot on that very ball.
  */
 const SHOWCASE = [
   ...[2, 2, 1, 1, 0, 0], // the head, for the Nova
@@ -77,12 +80,13 @@ export const TRAINING: readonly TrainingLevel[] = [
     repeatChance: 0.55,
     speed: 30,
     hint: 'aim',
-    lesson: 'shot',
+    lessons: ['shot', 'swap', 'charge'],
     victory: 'short',
     gift: 'bomb',
     sequence: [...SHOWCASE].reverse(),
-    // The Nova's own colour, then two of the cascade's middle colour.
-    opening: [1, 2, 2],
+    // The Nova's own colour; one that only makes a group, before two of the cascade's middle
+    // colour: the swap brings the cascade forward.
+    opening: [1, 0, 2, 2],
     powers: { kinds: ['laser'], every: 99, first: 'laser', lead: SHOWCASE_LEAD },
   },
   // E2, the mirrors (Neon): a short spiral within the corner walls, three
@@ -99,7 +103,7 @@ export const TRAINING: readonly TrainingLevel[] = [
     repeatChance: 0.5,
     speed: 26,
     hint: 'bank',
-    lesson: 'bank',
+    lessons: ['bank'],
     victory: 'short',
     sequence: [...MIRRORS].reverse(),
     opening: [2, 0, 1],
@@ -119,7 +123,7 @@ export const TRAINING: readonly TrainingLevel[] = [
     repeatChance: 0.5,
     speed: 22,
     hint: 'curve',
-    lesson: 'curve',
+    lessons: ['curve'],
     victory: 'promise',
     sequence: [...BLACK_HOLE].reverse(),
     opening: [2, 1, 0],

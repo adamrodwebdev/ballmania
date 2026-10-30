@@ -9,6 +9,7 @@ import {
   watchEffect,
   type Ref,
 } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import type { PlayMode } from '@/app/modes';
 import type { Silence } from '@/platform/AdService';
@@ -53,6 +54,7 @@ export interface SessionGame {
  */
 export function useGameSession(game: SessionGame, elements: SessionElements) {
   const { theme, settings, player, platform, gameplay } = useServices();
+  const { t } = useI18n();
   const { mode, look, assisted } = game;
   const session = shallowRef<PlaySession | null>(null);
   const hud = computed(() => session.value?.hud ?? null);
@@ -191,6 +193,7 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
       ...(mode.root === null ? {} : { root: mode.root }),
       aimAssist: settings.current.aimAssist,
       ...(frameRate === null ? {} : { frameRate }),
+      words: { charged: t('training.lessons.charged') },
     });
     session.value = play;
 

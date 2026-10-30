@@ -5,7 +5,7 @@ import { Vec2 } from '@/engine/geometry/Vec2';
 import { BallSprites } from './BallSprites';
 import { BlackHole } from './BlackHole';
 import { ColossusPainter } from './ColossusPainter';
-import { GESTURE_LOOP, type Gesture } from './HandCoach';
+import { GESTURE_LOOP, type Gesture, type GestureKind } from './HandCoach';
 import { COUNTDOWN_REACH, LASER_GLOW, PowerPainter } from './PowerPainter';
 import {
   contentBounds,
@@ -102,9 +102,20 @@ export interface Scene {
   readonly colossusFlash: number;
   /** Puzzle hint (§ 3.7): the ball to shoot at, circled; null without. */
   readonly hint?: Vec2 | null;
-  /** The hand's gesture (the first level, the training): it shows a shot; null without. */
+  /** The hand's gesture (the first level, the training): a shot, a swap, a charge; null without. */
   readonly tutorial?: Gesture | null;
+  /**
+   * The badge by the launcher once the held shot is charged, in the player's
+   * language (the training's lesson, v1.8.1); null without.
+   */
+  readonly charged?: string | null;
 }
+
+/** The charged shot's badge: its letters' size, in board units (v1.8.1). */
+const BADGE_SIZE = 36;
+
+/** How visible the hand is, `t` into its loop (0 to 1): it fades in, then out at the end. */
+const gestureFade = (t: number) => (t > 0.85 ? 1 - (t - 0.85) / 0.15 : t < 0.06 ? t / 0.06 : 1);
 
 /** Length of the aim guide without aim assistance, in board units. */
 const GUIDE = 160;
@@ -392,7 +403,8 @@ export class CanvasRenderer implements Renderer {
     this.drawRival(radius);
     this.drawShooter(radius, scene);
     scene.destruction.draw(ctx, palette, this.sprites);
-    if (scene.tutorial) this.drawTutorial(scene.tutorial, scene.reducedMotion);
+    if (scene.tutorial) this.gestures[scene.tutorial.kind](scene.tutorial, scene.reducedMotion);
+    if (scene.charged) this.drawBadge(scene.charged, scene.reducedMotion);
     if (victory) this.drawNova(victory, radius);
     if (victory && promise) this.drawPromise(victory.at, promise, victory.elapsed, scene.time);
     const flash = scene.destruction.flash;
@@ -829,54 +841,152 @@ export class CanvasRenderer implements Renderer {
     ctx.stroke();
   }
 
+  /** The hand's gestures, a picture rather than a sentence, each drawn its own way. */
+  private readonly gestures: Readonly<
+    Record<GestureKind, (gesture: Gesture, still: boolean) => void>
+  > = {
+    drag: (gesture, still) => this.drawDrag(gesture, still),
+    tap: (gesture, still) => this.drawTap(gesture, still),
+    hold: (gesture, still) => this.drawHold(gesture, still),
+  };
+
   /**
-   * The hand's gesture, a picture rather than a sentence: a hand presses on
-   * the shooter, drags to where it lets go, drawing the way the shot will go
-   * (its rebounds, its curve), and lets go: a ripple there, and one where the
-   * shot lands. With reduced motion, the hand rests where it lets go, the
-   * whole way dotted.
+   * A shot: the hand presses on the shooter, drags to where it lets go,
+   * drawing the way the shot will go (its rebounds, its curve), and lets go:
+   * a ripple there, and one where the shot lands. With reduced motion, the
+   * hand rests where it lets go, the whole way dotted.
    */
-  private drawTutorial(gesture: Gesture, still: boolean): void {
-    const { ctx, palette } = this;
+  private drawDrag(gesture: Gesture, still: boolean): void {
+    const { ctx } = this;
     const { from, to, path } = gesture;
     const t = still ? 0.75 : (gesture.time % GESTURE_LOOP) / GESTURE_LOOP;
     const ease = (x: number) => x * x * (3 - 2 * x);
     const drag = ease(Math.min(1, Math.max(0, (t - 0.18) / 0.5)));
-    const at = from.lerp(to, drag);
-    const fade = t > 0.85 ? 1 - (t - 0.85) / 0.15 : t < 0.06 ? t / 0.06 : 1;
-    const pressed = t > 0.1 && t < 0.72;
+    const fade = gestureFade(t);
     ctx.save();
-    ctx.globalAlpha = fade;
     // The way the shot will go, drawn as the finger drags.
+    this.dotted(path, still ? 1 : drag, fade);
+    // Ripples: the press at the start, the release at the end.
+    this.ripple(from, (t - 0.08) / 0.22, fade);
+    this.ripple(to, (t - 0.72) / 0.22, fade);
+    const landing = path[path.length - 1] ?? to;
+    // A rebound or a curve: the shot lands elsewhere than the finger points.
+    if (landing.distanceTo(to) > 1) this.ripple(landing, (t - 0.76) / 0.22, fade);
+    if (still) this.ripple(landing, 0.4, fade);
+    this.drawHand(from.lerp(to, drag), t > 0.1 && t < 0.72, fade);
+    ctx.restore();
+  }
+
+  /**
+   * A swap (v1.8.1): the finger taps the launcher twice, while an arrow turns
+   * over it, the loaded ball and the next one trading places.
+   */
+  private drawTap(gesture: Gesture, still: boolean): void {
+    const { ctx, palette } = this;
+    const at = gesture.from;
+    const t = still ? 0.5 : (gesture.time % GESTURE_LOOP) / GESTURE_LOOP;
+    const fade = gestureFade(t);
+    ctx.save();
+    this.ripple(at, (t - 0.12) / 0.22, fade);
+    this.ripple(at, (t - 0.42) / 0.22, fade);
+    // Half a turn over the launcher, its head at the end.
+    const turn = still ? 1 : Math.min(1, Math.max(0, (t - 0.16) / 0.4));
+    if (turn > 0) {
+      const reach = SHOOTER_RADIUS + 30;
+      const start = -Math.PI * 0.85;
+      const end = start + Math.PI * 0.7 * turn;
+      ctx.globalAlpha = fade * 0.9;
+      ctx.strokeStyle = palette.accent;
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, reach, start, end);
+      ctx.stroke();
+      const tip = at.add(Vec2.fromAngle(end, reach));
+      const along = Vec2.fromAngle(end + Math.PI / 2, 1);
+      const out = Vec2.fromAngle(end, 1);
+      ctx.beginPath();
+      ctx.moveTo(tip.x - along.x * 18 + out.x * 14, tip.y - along.y * 18 + out.y * 14);
+      ctx.lineTo(tip.x, tip.y);
+      ctx.lineTo(tip.x - along.x * 18 - out.x * 14, tip.y - along.y * 18 - out.y * 14);
+      ctx.stroke();
+    }
+    const pressed = (t > 0.1 && t < 0.2) || (t > 0.4 && t < 0.5);
+    this.drawHand(at.add(new Vec2(6, 8)), pressed, fade);
+    ctx.restore();
+  }
+
+  /**
+   * A charged shot (v1.8.1): the finger presses on the target and stays still
+   * while a ring fills round the launcher, as the real charge does; then it
+   * lets go, and the shot leaves along the dotted way.
+   */
+  private drawHold(gesture: Gesture, still: boolean): void {
+    const { ctx, palette } = this;
+    const { to, path } = gesture;
+    const t = still ? 0.6 : (gesture.time % GESTURE_LOOP) / GESTURE_LOOP;
+    const fade = gestureFade(t);
+    const held = still ? 1 : Math.min(1, Math.max(0, (t - 0.16) / 0.42));
+    ctx.save();
+    this.dotted(path, 1, fade);
+    // Still pressed: slow ripples under the finger.
+    this.ripple(to, (t - 0.1) / 0.3, fade);
+    this.ripple(to, (t - 0.36) / 0.3, fade);
+    if (held > 0) {
+      const shooter = this.game.shooter.position;
+      ctx.globalAlpha = fade * (held >= 1 ? 0.95 : 0.7);
+      ctx.strokeStyle = palette.accent;
+      ctx.lineWidth = held >= 1 ? 9 : 7;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(
+        shooter.x,
+        shooter.y,
+        SHOOTER_RADIUS + 10,
+        -Math.PI / 2,
+        -Math.PI / 2 + held * Math.PI * 2,
+      );
+      ctx.stroke();
+    }
+    this.ripple(to, (t - 0.72) / 0.22, fade);
+    this.drawHand(to, t > 0.08 && t < 0.72, fade);
+    ctx.restore();
+  }
+
+  /** The way a shot will go, its first `share` dotted. */
+  private dotted(path: readonly Vec2[], share: number, fade: number): void {
+    const { ctx, palette } = this;
     ctx.strokeStyle = palette.text;
     ctx.lineWidth = 4;
     ctx.setLineDash([4, 14]);
     ctx.lineCap = 'round';
     ctx.globalAlpha = fade * 0.7;
-    this.strokeAlong(path, still ? 1 : drag);
+    this.strokeAlong(path, share);
     ctx.setLineDash([]);
-    // Ripples: the press at the start, the release at the end.
-    const ripple = (centre: Vec2, progress: number) => {
-      if (progress <= 0 || progress >= 1) return;
-      ctx.globalAlpha = fade * (1 - progress);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = palette.accent;
-      ctx.beginPath();
-      ctx.arc(centre.x, centre.y, 18 + progress * 46, 0, Math.PI * 2);
-      ctx.stroke();
-    };
-    ripple(from, (t - 0.08) / 0.22);
-    ripple(to, (t - 0.72) / 0.22);
-    const landing = path[path.length - 1] ?? to;
-    // A rebound or a curve: the shot lands elsewhere than the finger points.
-    if (landing.distanceTo(to) > 1) ripple(landing, (t - 0.76) / 0.22);
-    if (still) ripple(landing, 0.4);
+  }
+
+  /** A ripple spreading from `centre`, `progress` from 0 to 1 (nothing outside). */
+  private ripple(centre: Vec2, progress: number, fade: number): void {
+    if (progress <= 0 || progress >= 1) return;
+    const { ctx, palette } = this;
+    ctx.globalAlpha = fade * (1 - progress);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = palette.accent;
+    ctx.beginPath();
+    ctx.arc(centre.x, centre.y, 18 + progress * 46, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  /** The hand, drawn from rounded shapes, its fingertip on `at`; a little smaller when pressing. */
+  private drawHand(at: Vec2, pressed: boolean, fade: number): void {
+    const { ctx, palette } = this;
+    ctx.save();
     ctx.globalAlpha = fade;
     ctx.translate(at.x, at.y);
     ctx.rotate(-0.35);
     const scale = pressed ? 0.92 : 1.05;
     ctx.scale(scale, scale);
-    // A hand drawn from rounded shapes, the fingertip on the point.
     ctx.shadowColor = 'rgba(0,0,0,0.45)';
     ctx.shadowBlur = 14;
     ctx.shadowOffsetY = 6;
@@ -895,6 +1005,37 @@ export class CanvasRenderer implements Renderer {
     // Stroke, then fill again: the outline stays outside, the seams between parts vanish.
     ctx.stroke(hand);
     ctx.fill(hand);
+    ctx.restore();
+  }
+
+  /**
+   * The charged shot's badge (v1.8.1), under the launcher: the word in a pill
+   * of the accent colour, throbbing with the full ring (still with reduced
+   * motion). The interface's own faces, Russian included.
+   */
+  private drawBadge(word: string, still: boolean): void {
+    const { ctx, palette } = this;
+    const at = this.game.shooter.position.add(new Vec2(0, SHOOTER_RADIUS + 62));
+    ctx.save();
+    ctx.font = `700 ${BADGE_SIZE}px Fredoka, "Ballmania Russian", system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const width = ctx.measureText(word).width + BADGE_SIZE * 1.2;
+    const height = BADGE_SIZE * 1.7;
+    const throb = still ? 1 : 1 + 0.04 * Math.sin(this.time * 20);
+    ctx.translate(at.x, at.y);
+    ctx.scale(throb, throb);
+    ctx.beginPath();
+    ctx.roundRect(-width / 2, -height / 2, width, height, height / 2);
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = palette.board;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = palette.accent;
+    ctx.stroke();
+    ctx.fillStyle = palette.accent;
+    ctx.fillText(word, 0, 1);
     ctx.restore();
   }
 

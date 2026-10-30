@@ -71,6 +71,32 @@ export interface AimLine {
   } | null;
 }
 
+/** Indexes of the touching balls of `colour` from `from` along a chain's balls, going `step`. */
+function runOf(
+  balls: readonly BallView[],
+  diameter: number,
+  { from, step, colour }: { readonly from: number; readonly step: 1 | -1; readonly colour: Tone },
+): number[] {
+  const found: number[] = [];
+  for (let i = from; i >= 0 && i < balls.length && balls[i]!.tone === colour; i += step) {
+    const previous = balls[i - step];
+    if (i !== from && previous && Math.abs(balls[i]!.s - previous.s) > diameter + 1e-6) break;
+    found.push(i);
+  }
+  return found;
+}
+
+/**
+ * Where a shot would land and what it would set off: the slot it takes, the
+ * balls of its colour that would explode with it, and the chain reaction
+ * that would follow (when asked).
+ */
+export interface ShotPreview {
+  readonly position: Vec2;
+  readonly group: readonly Vec2[];
+  readonly reaction: readonly Vec2[];
+}
+
 /** A switch of the board, as the interface needs it. */
 export interface SwitchView {
   readonly chain: number;
@@ -189,6 +215,8 @@ export interface GameReport {
 /** Domain events: rendering, sound and vibrations subscribe; the engine knows none of them. */
 export interface GameEvents {
   fired: { readonly projectile: ProjectileView };
+  /** The player swapped the loaded ball and the next one (v1.8.1); a puzzle hint's load does not. */
+  swapped: { readonly current: Tone };
   /** Rhythm mode: a beat of the music. */
   beat: { readonly index: number };
   /** Rhythm mode: a shot was judged on or off the beat. */
@@ -649,11 +677,7 @@ export class Game {
     power = false,
     line: AimLine = this.aimLine(this.upgrades.aimBounces, power),
     reactions = this.upgrades.reactionPreview,
-  ): {
-    readonly position: Vec2;
-    readonly group: readonly Vec2[];
-    readonly reaction: readonly Vec2[];
-  } | null {
+  ): ShotPreview | null {
     const target = line.target;
     if (!target) return null;
     const chain = this.chains[target.chain]!;
@@ -675,17 +699,8 @@ export class Game {
     }
     const tone = special === 'wild' ? touched.tone : this.shooter.current;
     if (special !== 'wild' && this.setup.alchemy && mix(tone, touched.tone) !== null) return null;
-    const touching = (a: number, b: number) =>
-      Math.abs(balls[b]!.s - balls[a]!.s) <= diameter + 1e-6;
-    /** Indexes of the touching balls of `colour` from `from`, going one way. */
-    const run = (from: number, step: 1 | -1, colour: number): number[] => {
-      const found: number[] = [];
-      for (let i = from; i >= 0 && i < balls.length && balls[i]!.tone === colour; i += step) {
-        if (i !== from && !touching(Math.min(i, i - step), Math.max(i, i - step))) break;
-        found.push(i);
-      }
-      return found;
-    };
+    const run = (from: number, step: 1 | -1, colour: number) =>
+      runOf(balls, diameter, { from, step, colour });
     // The ball before the new one is the touched one when it lands after it.
     const behind = run(target.after ? target.index : target.index - 1, -1, tone);
     const ahead = run(target.after ? target.index + 1 : target.index, 1, tone);
@@ -709,6 +724,36 @@ export class Game {
       }
     }
     return { position, group, reaction };
+  }
+
+  /**
+   * How many balls a plain ball of `tone` would burst along `line`, its whole
+   * chain reaction counted, as the sides meet again and again (v1.8.1): the
+   * training's hand weighs the colours before it shows a swap. Alchemy aside.
+   */
+  reach(tone: Tone, line: AimLine): number {
+    const target = line.target;
+    if (!target) return 0;
+    const { balls, diameter } = this.chains[target.chain]!;
+    const { minMatch } = this.setup.chain;
+    const run = (from: number, step: 1 | -1, colour: number) =>
+      runOf(balls, diameter, { from, step, colour });
+    const behind = run(target.after ? target.index : target.index - 1, -1, tone);
+    const ahead = run(target.after ? target.index + 1 : target.index, 1, tone);
+    if (behind.length + ahead.length + 1 < minMatch) return 0;
+    let burst = behind.length + ahead.length;
+    let low = Math.min(...behind, ...ahead, target.after ? target.index + 1 : target.index) - 1;
+    let high = Math.max(...behind, ...ahead, target.after ? target.index : target.index - 1) + 1;
+    for (;;) {
+      const left = balls[low];
+      const right = balls[high];
+      if (!left || !right || left.tone !== right.tone) return burst;
+      const joined = [...run(low, -1, left.tone), ...run(high, 1, right.tone)];
+      if (joined.length < minMatch) return burst;
+      burst += joined.length;
+      low = Math.min(...joined) - 1;
+      high = Math.max(...joined) + 1;
+    }
   }
 
   /** The ring the shooter glides along, or null when it stands still. */
@@ -887,6 +932,17 @@ export class Game {
     if (this.stateValue !== 'playing') return;
     this.shooter.swap(this.shooterTones());
     this.swaps++;
+    this.events.emit('swapped', { current: this.shooter.current });
+  }
+
+  /**
+   * Loads `current` and deals `next` after it (v1.8.1): the training's hand
+   * sets up a moment where a swap pays, when the game gives none. Neither is
+   * the player's swap; a power shot loaded stays.
+   */
+  stageSwap(current: Tone, next: Tone): void {
+    if (this.stateValue !== 'playing' || this.loadedSpecial !== null) return;
+    this.shooter.stage(current, next);
   }
 
   /**

@@ -20,6 +20,41 @@ const english = async (page: Page, player: object | null = null) => {
 const log = (page: Page) =>
   page.evaluate(() => (window as unknown as { platformLog: string[] }).platformLog);
 
+/** The line over the buttons, or nothing while it is hidden. */
+const lineOf = async (page: Page) => {
+  const hint = page.getByTestId('hint');
+  return (await hint.isVisible()) ? ((await hint.textContent()) ?? '') : '';
+};
+
+/**
+ * Shoots the Nova all around the launcher until it lands (a miss brings it
+ * back): its line goes, the first lesson done.
+ */
+const landTheNova = async (page: Page, shoot: (x: number, y: number) => Promise<void>) => {
+  const box = (await page.getByTestId('board').boundingBox())!;
+  for (let k = 0; k < 12; k++) {
+    const angle = (k / 12) * Math.PI * 2 - Math.PI / 2;
+    await shoot(
+      box.width / 2 + Math.cos(angle) * box.width * 0.3,
+      box.height / 2 + Math.sin(angle) * box.height * 0.3,
+    );
+    const landed = await expect
+      .poll(() => lineOf(page), { timeout: 1500 })
+      .not.toContain('Nova bomb')
+      .then(() => true)
+      .catch(() => false);
+    if (landed) return;
+  }
+  throw new Error('The Nova never landed');
+};
+
+/**
+ * E1 teaches every control, one at a time (v1.8.1): after the Nova, a swap
+ * when the next marble does better, then a charged shot; each line stays
+ * until its gesture is done, as the player aims (a finger, or a mouse).
+ */
+const SWAP = /next marble fits better here/;
+
 test.describe('the training', () => {
   test("opens at a newcomer's first Play on our site, with only what it needs", async ({
     page,
@@ -71,6 +106,72 @@ test.describe('the training', () => {
     await expect(card).toBeHidden({ timeout: 4000 });
     await expect(page.getByTestId('hint')).toContainText('The black hole bends your shots');
     await expect(page.getByTestId('training-steps')).toHaveAttribute('aria-label', 'Step 3 of 3');
+  });
+
+  test("teaches E1's controls one at a time, with the keyboard", async ({ page }) => {
+    test.skip(test.info().project.name !== 'desktop', "a desktop's keys");
+    await english(page);
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    const board = page.getByTestId('board');
+    await expect(board).toBeVisible();
+    await landTheNova(page, (x, y) => board.click({ position: { x, y } }));
+    const hint = page.getByTestId('hint');
+    // The next marble does better: the swap's line, and its button pulses.
+    await expect(hint).toContainText('Right-click, or press X');
+    await expect(page.getByTestId('swap')).toHaveClass(/lesson/);
+    await board.focus();
+    await page.keyboard.press('KeyX');
+    await expect(page.getByTestId('swap')).not.toHaveClass(/lesson/);
+    // Then the charge: held, the line says to let go.
+    await expect(hint).toContainText('Hold the click, or Space');
+    await page.keyboard.down('Space');
+    await expect(hint).toContainText('release: the charged shot flies twice as fast');
+    await page.keyboard.up('Space');
+    // Every control done: the line goes for good.
+    await expect(hint).toBeHidden();
+  });
+
+  test("teaches E1's controls with the mouse", async ({ page }) => {
+    test.skip(test.info().project.name !== 'desktop', 'a desktop mouse');
+    await english(page);
+    await page.goto('./');
+    await page.getByTestId('play').click();
+    const board = page.getByTestId('board');
+    await expect(board).toBeVisible();
+    await landTheNova(page, (x, y) => board.click({ position: { x, y } }));
+    const hint = page.getByTestId('hint');
+    await expect(hint).toContainText(SWAP);
+    await board.click({ button: 'right', position: { x: 12, y: 12 } });
+    await expect(hint).toContainText('Hold the click, or Space');
+    const box = (await board.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.2);
+    await page.mouse.down();
+    await expect(hint).toContainText('release: the charged shot');
+    await page.mouse.up();
+    await expect(hint).toBeHidden();
+  });
+
+  test("teaches E1's controls with a finger", async ({ page }) => {
+    test.skip(test.info().project.name !== 'mobile', 'a touch screen');
+    await english(page);
+    await page.goto('./');
+    await page.getByTestId('play').tap();
+    const board = page.getByTestId('board');
+    await expect(board).toBeVisible();
+    await landTheNova(page, (x, y) => board.tap({ position: { x, y } }));
+    const hint = page.getByTestId('hint');
+    await expect(hint).toContainText(SWAP);
+    await page.getByTestId('swap').tap();
+    await expect(hint).toContainText(/Keep your finger still|Hold the click/);
+    // A finger held still, then lifted: real touches, which the board captures.
+    const box = (await board.boundingBox())!;
+    const point = { x: box.x + box.width / 2, y: box.y + box.height * 0.22 };
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+    await expect(hint).toContainText('release: the charged shot');
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect(hint).toBeHidden();
   });
 
   test('is where a new player lands on a portal, playing from the first frame', async ({
