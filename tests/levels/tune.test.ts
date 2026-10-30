@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { CAMPAIGN, WORLDS, type CampaignLevel } from '@/levels/campaign';
 import { seatKey, type SeatKey } from '@/levels/seat';
 import { FRAMES } from '@/levels/tracks';
+import { TUNING } from '@/levels/tuning.data';
 import { bandOf, CRAWL, type Band } from './bands';
 import { boardOn, seatsOf, type PlayedSeat } from './boards';
 import { playRobot, robotOf, type BotResult } from './bot';
@@ -18,8 +19,9 @@ import { playRobot, robotOf, type BotResult } from './bot';
  * `TUNE=nebula npx vitest run tests/levels/tune.test.ts` writes the world's
  * paces to `reports/tuning-nebula.json`; `LEVELS=6-1,6-2` tunes only those
  * levels (`reports/tuning-singularity-6-1_6-2.json`), to share a slow world
- * between processes or tune a level again. `TUNE=write` then turns every
- * report into `src/levels/tuning.data.ts`, the latest tuning of a level first.
+ * between processes or tune a level again. `TUNE=write` then lays every
+ * report over `src/levels/tuning.data.ts`, a level's latest tuning last, so
+ * that a machine missing some reports never erases the other levels' paces.
  */
 /**
  * 192 sequences of colours, one hand each: a game owes more to its colours
@@ -136,9 +138,24 @@ function tune(level: CampaignLevel, seat: PlayedSeat): Trial {
   return best ?? last!;
 }
 
-type Report = Record<string, Partial<Record<SeatKey, Trial>>>;
+type Report = Record<string, Partial<Record<SeatKey, Pace>>>;
 
-/** The table of the game, from every report: only the seats whose pace moved. */
+/** The table in place, as a report: the one the tool's reports are laid over. */
+function tableInPlace(): Report {
+  return Object.fromEntries(
+    CAMPAIGN.filter((level) => TUNING[level.id]).map((level) => [
+      level.id,
+      Object.fromEntries(
+        Object.entries(TUNING[level.id] ?? {}).map(([seat, pace]) => [
+          seat,
+          { speed: pace.speed, length: pace.length ?? level.length },
+        ]),
+      ),
+    ]),
+  );
+}
+
+/** The table of the game, from reports laid one over the other: only the seats whose pace moved. */
 function tuningSource(reports: readonly Report[]): string {
   const found: Report = Object.assign({}, ...reports);
   const rows = CAMPAIGN.flatMap((level) => {
@@ -213,16 +230,19 @@ describe('the tuning tool (v1.8.1)', () => {
     14_400_000,
   );
 
-  it.runIf(selected === 'write')('writes the tuning table from the reports', () => {
-    const reports = readdirSync('reports')
-      .filter((name) => /^tuning-.+\.json$/.test(name))
-      // Oldest first: a level tuned again keeps its latest paces.
-      .sort((a, b) => statSync(`reports/${a}`).mtimeMs - statSync(`reports/${b}`).mtimeMs)
-      .map((name) => JSON.parse(readFileSync(`reports/${name}`, 'utf8')) as Report);
-    expect(reports.length).toBeGreaterThan(0);
-    writeFileSync(
-      new URL('../../src/levels/tuning.data.ts', import.meta.url),
-      tuningSource(reports),
-    );
-  });
+  it.runIf(selected === 'write')(
+    'writes the tuning table, the reports over the one in place',
+    () => {
+      const reports = readdirSync('reports')
+        .filter((name) => /^tuning-.+\.json$/.test(name))
+        // Oldest first: a level tuned again keeps its latest paces.
+        .sort((a, b) => statSync(`reports/${a}`).mtimeMs - statSync(`reports/${b}`).mtimeMs)
+        .map((name) => JSON.parse(readFileSync(`reports/${name}`, 'utf8')) as Report);
+      expect(reports.length).toBeGreaterThan(0);
+      writeFileSync(
+        new URL('../../src/levels/tuning.data.ts', import.meta.url),
+        tuningSource([tableInPlace(), ...reports]),
+      );
+    },
+  );
 });
