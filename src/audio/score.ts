@@ -238,6 +238,40 @@ export const stepSeconds = (theme: MusicTheme): number => 60 / theme.bpm / 4;
 
 const pitch = (root: number, semitones: number) => root * 2 ** (semitones / 12);
 
+/** A note of a motif: when it starts (seconds from the motif's start), its pitch, how long it rings. */
+export interface MotifNote {
+  readonly at: number;
+  readonly frequency: number;
+  readonly seconds: number;
+}
+
+/** A theme in a minor key (all but the lydian Jewel): its first chord has a minor third. */
+export const isMinor = (theme: MusicTheme): boolean => theme.chords[0]?.[1] === 3;
+
+/** The lowest root of a defeat's motif: it sings in the middle of the keyboard. */
+const MOTIF_FLOOR = 280;
+/** Seconds between the notes of a defeat's motif, and how long its last one rings. */
+const FALL_GAP = 0.2;
+const FALL_LAST = 0.95;
+
+/**
+ * A defeat's motif (v1.8.1, spec § 3.17): four notes falling to the root of
+ * the key, from the fifth through the third (minor or major, as the world's
+ * theme) and the second; an octave between 280 and 560 Hz, whatever the
+ * theme's own; the last note rings on.
+ */
+export function defeatMotif(root: number, minor = true): readonly MotifNote[] {
+  let tonic = root;
+  while (tonic < MOTIF_FLOOR) tonic *= 2;
+  while (tonic >= MOTIF_FLOOR * 2) tonic /= 2;
+  const steps = [7, minor ? 3 : 4, 2, 0];
+  return steps.map((step, index) => ({
+    at: index * FALL_GAP,
+    frequency: pitch(tonic, step),
+    seconds: index === steps.length - 1 ? FALL_LAST : FALL_GAP * 1.6,
+  }));
+}
+
 /**
  * The notes of step `step` (counted from the start of the loop; the loop
  * repeats). `intensity` (0 to 1) brings in the drums of calmer themes when

@@ -1,5 +1,5 @@
-import { MusicPlayer } from './MusicPlayer';
-import type { MusicThemeId } from './score';
+import { HUSH, MusicPlayer } from './MusicPlayer';
+import { defeatMotif, isMinor, THEMES, type MusicThemeId } from './score';
 import type { PowerKind } from '@/engine/powers/Powers';
 
 /** Pentatonic steps (semitones) climbed by the chain reaction: it always sounds right. */
@@ -30,6 +30,8 @@ export class SoundEngine {
   private noise: AudioBuffer | null = null;
   private musicPlayer: MusicPlayer | null = null;
   private theme: MusicThemeId | null = null;
+  /** A defeat silenced the music: it stays silent until the next game, or another screen. */
+  private hushed = false;
   private volume: number;
   private music: number;
 
@@ -88,13 +90,25 @@ export class SoundEngine {
     this.musicGain.connect(glue);
     this.noise = this.whiteNoise(ctx);
     this.musicPlayer = new MusicPlayer(ctx, this.musicGain, this.reverbSend, this.noise);
-    this.musicPlayer.play(this.music > 0 ? this.theme : null);
+    this.musicPlayer.play(this.playable);
+  }
+
+  /** The theme the music player should play now: none while muted or after a defeat. */
+  private get playable(): MusicThemeId | null {
+    return this.music > 0 && !this.hushed ? this.theme : null;
   }
 
   /** The music to play now (a world, the menus) or none; it starts once sound is unlocked. */
   playMusic(theme: MusicThemeId | null): void {
     this.theme = theme;
-    this.musicPlayer?.play(this.music > 0 ? theme : null);
+    this.hushed = false;
+    this.musicPlayer?.play(this.playable);
+  }
+
+  /** The world's music again after a defeat's silence (a new game, a continue). */
+  restoreMusic(): void {
+    this.hushed = false;
+    this.musicPlayer?.play(this.playable);
   }
 
   /** How close the danger is, 0 to 1: the music tightens. */
@@ -104,8 +118,9 @@ export class SoundEngine {
 
   setMusicVolume(volume: number): void {
     // Music off: nothing is scheduled at all, which spares the processor too.
-    if (volume > 0 !== this.music > 0) this.musicPlayer?.play(volume > 0 ? this.theme : null);
+    const was = this.music;
     this.music = volume;
+    if (volume > 0 !== was > 0) this.musicPlayer?.play(this.playable);
     if (this.musicGain && this.context) {
       this.musicGain.gain.setTargetAtTime(volume, this.context.currentTime, 0.05);
     }
@@ -441,10 +456,26 @@ export class SoundEngine {
     });
   }
 
-  lose(): void {
+  /**
+   * A defeat (v1.8.1, spec § 3.17): the music falls silent, a short motif falls
+   * in the world's key, the hole swallows the chain with a long gulp, then
+   * silence until the next game. `root` is the key of a song the music
+   * player does not play (Rhythm mode), in hertz.
+   */
+  lose(root: number | null = null): void {
+    this.hushed = true;
+    this.musicPlayer?.hush();
+    const theme = THEMES[this.theme ?? 'nebula'];
+    const motif = root === null ? defeatMotif(theme.root, isMinor(theme)) : defeatMotif(root);
     this.play((ctx, out, now) => {
-      this.sweep(ctx, out, now, 'sawtooth', 220, 48, 1.1, 0.2, 900);
-      this.noiseBurst(ctx, out, now, 0.9, 300, 0.3);
+      const start = now + HUSH;
+      for (const note of motif) this.sung(ctx, out, start + note.at, note.frequency, note.seconds);
+      // Under the last note, the hole swallows the chain, and closes.
+      const last = motif.at(-1)!;
+      const gulp = start + last.at + 0.12;
+      this.sweep(ctx, out, gulp, 'sine', last.frequency / 2, 30, 0.8, 0.28);
+      this.noiseBurst(ctx, out, gulp, 0.65, 180, 0.1);
+      this.thump(ctx, out, gulp + 0.7, 0.3);
     });
   }
 
@@ -489,6 +520,35 @@ export class SoundEngine {
     osc.connect(target);
     osc.start(at);
     osc.stop(at + duration + 0.05);
+  }
+
+  /** A soft sung note (a defeat's motif): a triangle over a sine an octave down, in the room. */
+  private sung(
+    ctx: AudioContext,
+    out: AudioNode,
+    at: number,
+    frequency: number,
+    seconds: number,
+  ): void {
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 2200;
+    const voice = this.envelope(ctx, out, at, 0.16, seconds);
+    if (this.reverbSend) voice.connect(this.reverbSend);
+    filter.connect(voice);
+    for (const [ratio, type] of [
+      [1, 'triangle'],
+      [0.5, 'sine'],
+    ] as const) {
+      const osc = ctx.createOscillator();
+      osc.type = type;
+      osc.frequency.setValueAtTime(frequency * ratio, at);
+      // Each note sighs: it sags a third of a semitone as it fades.
+      osc.frequency.linearRampToValueAtTime(frequency * ratio * 2 ** (-0.35 / 12), at + seconds);
+      osc.connect(filter);
+      osc.start(at);
+      osc.stop(at + seconds + 0.05);
+    }
   }
 
   private bell(

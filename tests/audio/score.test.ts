@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { eventsAt, stepSeconds, STEPS_PER_BAR, THEMES, type MusicThemeId } from '@/audio/score';
+import {
+  defeatMotif,
+  eventsAt,
+  isMinor,
+  stepSeconds,
+  STEPS_PER_BAR,
+  THEMES,
+  type MusicThemeId,
+} from '@/audio/score';
 import { WORLDS } from '@/levels/campaign';
 
 describe('the score', () => {
@@ -51,5 +59,24 @@ describe('the score', () => {
     const tense = Array.from({ length: STEPS_PER_BAR }, (_, step) => eventsAt(calm, step, 1));
     expect(tense.filter((events) => events.kick > 0)).toHaveLength(4);
     expect(tense.filter((events) => events.hat > 0)).toHaveLength(8);
+  });
+
+  it("falls to the root of each world's key at a defeat, mid-keyboard (v1.8.1)", () => {
+    for (const theme of Object.values(THEMES)) {
+      const motif = defeatMotif(theme.root, isMinor(theme));
+      const pitches = motif.map((note) => note.frequency);
+      expect(pitches).toHaveLength(4);
+      for (let i = 1; i < pitches.length; i++) expect(pitches[i]).toBeLessThan(pitches[i - 1]!);
+      const tonic = pitches.at(-1)!;
+      expect(tonic).toBeGreaterThanOrEqual(280);
+      expect(tonic).toBeLessThan(560);
+      // The root's own note, octaves apart.
+      expect(Math.log2(tonic / theme.root) % 1).toBeCloseTo(0);
+      // The world's third: minor everywhere but in the lydian Jewel.
+      expect(12 * Math.log2(pitches[1]! / tonic)).toBeCloseTo(theme === THEMES.jewel ? 4 : 3);
+      // Over as the defeat screen opens, 1.6 s after the defeat (RESULT_DELAY).
+      const last = motif.at(-1)!;
+      expect(last.at + last.seconds).toBeLessThan(1.6);
+    }
   });
 });
