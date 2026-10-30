@@ -217,7 +217,7 @@
     "lessons": {
       "swap": {
         "touch": "La suivante va mieux ici\u00a0: touchez le lanceur pour échanger.",
-        "mouse": "Clic droit, ou X\u00a0: échangez, la suivante va mieux ici."
+        "mouse": "Clic droit, ou X, pour échanger\u00a0: la suivante va mieux ici."
       },
       "charge": {
         "touch": "Gardez le doigt immobile\u00a0: l’anneau se remplit…",

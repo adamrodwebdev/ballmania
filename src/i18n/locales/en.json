@@ -217,7 +217,7 @@
     "lessons": {
       "swap": {
         "touch": "The next marble fits better here: tap the launcher to swap.",
-        "mouse": "Right-click, or press X: swap, the next marble fits better here."
+        "mouse": "Right-click, or press X, to swap: the next marble fits better here."
       },
       "charge": {
         "touch": "Keep your finger still: the ring fills…",
