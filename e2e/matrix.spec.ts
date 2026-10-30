@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from './fixtures';
+import { expect, spendShots, test, type Page } from './fixtures';
 
 /**
  * The test matrix (v1.7.6): each Playwright project is one size of the
@@ -130,10 +130,7 @@ test.describe('test matrix', () => {
     await page.getByRole('button', { name: 'Puzzles', exact: true }).click();
     await page.getByTestId('puzzle-1').click();
     await expect(page.getByTestId('board')).toBeFocused();
-    for (let shot = 0; shot < 4; shot++) {
-      await page.keyboard.press('Space');
-      await page.waitForTimeout(250);
-    }
+    await spendShots(page);
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 });
     await check(page, 'result');
   });
