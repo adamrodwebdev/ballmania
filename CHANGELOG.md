@@ -3,6 +3,93 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [1.8.1] — 2026-10-30
+
+« Équilibre téléphone et ordinateur ». Un niveau est désormais aussi difficile au téléphone
+qu'à l'ordinateur, et les 72 niveaux suivent la courbe des campagnes mesurées. Faute de
+testeurs, ils sont réglés sur des joueurs-robots tirés d'études publiées (cahier des charges,
+§ 3.17) : le robot classe les niveaux et place les pics, les premiers joueurs des portails en
+fixeront le niveau absolu. Lighthouse mobile, build de production : 100 dans les quatre
+catégories aux trois mesures, en anglais comme en russe (premier affichage simulé 0,6 s, plus
+grand élément 0,9 s), et 100 dans les quatre sur ordinateur dans les deux langues.
+
+### Ajouté
+
+- **Écran de défaite** : une défaite de campagne a son écran à elle. Il dit ce qui manquait,
+  en vrai : « Si près ! » dès 70 % du niveau détruit, « Plus que 9 billes » ou les points de
+  vie du Colosse, la part de la chaîne détruite et la plus grande réaction de la partie. Puis
+  une astuce, d'abord un geste jamais fait dans la partie (l'échange, puis le tir chargé), dit
+  au doigt ou à la souris, sinon l'indice du niveau ; et « Rejouer » en grand, avec le focus,
+  1,9 s après la défaite, puis l'aide, « Continuer » sur les portails et la carte. Le titre de
+  la défaite nomme le dialogue pour les lecteurs d'écran, et tout tient sans défiler de
+  320 × 568 à 1280 × 720, dans les quatre langues.
+- **Le son de la défaite** : la musique se tait en un quart de seconde, un court motif descend
+  vers la tonique du monde, puis le trou avale la chaîne dans un long glissement grave ; le
+  silence tient jusqu'à la partie suivante.
+- **La musique monte avec la tension**, par paliers, aux seuils des signaux de danger : dès la
+  moitié du tracé, une basse qui pousse et le charleston ; dès les deux tiers, les quatre
+  temps, des doubles croches et un tempo qui accélère jusqu'à 15 % ; près du trou, la grosse
+  caisse doublée et un roulement, avec le cœur. Quand la chaîne recule, elle se détend sans
+  à-coups.
+- **E1 enseigne chaque commande**, une à la fois, sans bloquer le jeu : après la Nova,
+  l'échange, au moment où la bille suivante va mieux (la main touche le lanceur, le bouton
+  pulse), puis le tir chargé (l'anneau se remplit, « Chargé ! »), au doigt, à la souris ou au
+  clavier. Chaque geste n'est montré qu'une fois, et revient s'il n'est pas fait ; sur 80
+  parties simulées, premier tir au hasard compris, l'échange et la charge sont faits chaque
+  fois.
+- **Joueurs-robots par appareil** (tests) : une main de souris ou de doigt tirée de mesures
+  publiées, et trois nouveaux venus sur chacune, vif, typique et lent. `TUNE=<monde>` règle
+  les niveaux ; `DEVICES=<monde>` les relève sur quatre écrans, avec des suites de couleurs que
+  l'outil de réglage ne joue jamais.
+
+### Modifié
+
+- **Chaque niveau réglé à son siège** : le plateau que l'écran lui donne et la main qui vise,
+  le doigt sur un écran tactile, la souris ailleurs. La vitesse puis la longueur, les étoiles
+  et le bonus de temps se règlent siège par siège, pour que le nouveau venu typique tienne la
+  bande de son monde : au moins 90 % de victoires au monde 1, 80 à 85 % au Néon, 70 à 80 % aux
+  Abysses et en Joaillerie, 60 à 70 % au Volcan et dans la Singularité, une respiration après
+  chaque pic. Au relevé des écrans, le monde 1 tient ses bandes (38 sièges sur 41, les trois
+  autres à moins d'une erreur type), aucun niveau n'est plus dur que sa bande au-delà de deux
+  erreurs types hors de ceux où les couleurs fusionnent, et aucun ne traîne. Restent trop
+  faciles, au rythme le plus vif permis (1,6 fois la vitesse) et surtout à l'ordinateur, une
+  partie des niveaux des mondes 2, 3, 5 et 6, et la Joaillerie, 4-11 et 4-12 exceptés, reste de
+  5 à 25 points sous sa bande, la limite du robot : les vrais joueurs de la 1.10.0 trancheront.
+- **Étoiles** calibrées siège par siège : la troisième pour environ 30 % des victoires du
+  nouveau venu vif, la deuxième pour 80 %, au téléphone comme à l'ordinateur ; avant,
+  l'ordinateur donnait la troisième deux fois plus souvent.
+- **Même tracé sur chaque plateau** : au téléphone, un serpentin empile autant de rangées
+  qu'il faut pour garder la place de billes du plateau large (87 billes au lieu de 52 sur trois
+  rangs) et remplit l'écran ; sur ordinateur, les jumeaux des Abysses (3-4, 3-9) serpentent en
+  colonnes face au lanceur, au lieu de rangées qui se cachaient l'une l'autre (7 à 13 % de tirs
+  cachés au lieu de 54 à 62 %).
+- **Visée et charge au toucher** : le tir garde la visée d'avant le glissement du doigt qui se
+  lève, et la charge tient sous le doigt jusqu'à 18 px (environ 3 mm) de son point de départ,
+  au lieu de 6 : le tir chargé, presque jamais atteint au téléphone, l'est désormais.
+- **Le Ralenti garde les couleurs** : un liseré de givre autour des billes remplace le voile
+  clair qui les délavait, le cyan d'abord.
+- **L'aide du monde 1 vient plus tôt** : après deux défaites d'affilée au lieu de trois, et
+  elle ralentit la chaîne de 25 % au lieu de 15 %. Avec elle, le nouveau venu lent, au doigt,
+  gagne 82 % de ses parties en médiane au monde 1.
+- **Joaillerie** : une couleur ne fusionne qu'au centre d'une autre, à moins de 0,7 rayon ;
+  décentrée, elle se glisse à côté, au lieu de laisser un mélange que le lanceur ne propose
+  jamais. 4-5 et 4-9 perdent un mélange, les respirations 4-4 et 4-8 n'ont plus que les
+  couleurs primaires, et 4-7 sert l'ambre et le cyan.
+- **Volcan** : plus aucun aiguillage sur la première rangée, que la ruée du départ verrouillait
+  en une seconde.
+- Les seuils d'étoiles de chaque siège arrivent avec les parties, et non plus avec la liste de
+  la campagne que l'écran titre lit au démarrage : ils allongeaient la tâche de démarrage au
+  point de faire tomber Lighthouse mobile à 98 ou 99 (temps de blocage simulé jusqu'à 160 ms,
+  70 ms au plus désormais).
+- Intégration continue : actions/checkout, setup-node et upload-artifact en v7, sur Node 24.
+
+### Corrigé
+
+- Textes de la 1.8.1 revus dans les quatre langues : la leçon d'échange à la souris dit le
+  geste, puis la raison.
+- Parcours d'accessibilité et de la matrice : les tirs de l'énigme y sont comptés un à un ;
+  sous charge, une pression sur quatre tombait pendant le rechargement du lanceur.
+
 ## [1.8.0] — 2026-10-27
 
 « Les cinq premières minutes ». Lighthouse mobile, build de production : 100 dans les quatre

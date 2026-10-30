@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut                                   |
-| ------- | ---------- | ---------------------------------------- |
-| 1.22    | 30/10/2026 | Réglage des 72 niveaux (étape 10 sur 11) |
+| Version | Date       | Statut               |
+| ------- | ---------- | -------------------- |
+| 1.24    | 30/10/2026 | Version 1.8.1 livrée |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -609,8 +609,9 @@ Décisions :
   filet de lumière qui coule vers le trou, trou en petit trou noir, portail d'entrée,
   halo de la couleur chargée sous le lanceur ; l'aide passe au pied du plateau.
 - **Musique** (`src/audio/score.ts`, `MusicPlayer`) : partition en données, un thème
-  pour les menus et un par monde, ordonnancée en avance sur l'horloge audio ; la tension
-  du plateau ajoute des percussions ; rien n'est programmé quand la musique est coupée.
+  pour les menus et un par monde, ordonnancée en avance sur l'horloge audio ; elle monte
+  avec la tension du plateau, par paliers, et se détend quand la chaîne recule (v1.8.1,
+  § 3.17) ; rien n'est programmé quand la musique est coupée.
   Table de mixage : effets et musique séparés, réverbération synthétisée, compresseur.
 - **Premier niveau (v1.3.0)** : le premier tir du niveau 1-1 est une bombe Nova offerte
   (`LevelSetup.gift`, rayon 170, plus large que la Nova à son meilleur rang), pour que
@@ -659,11 +660,11 @@ variantes.
 | 80 → 630 ms    | **Onde de choc** qui courbe l'image avec aberration chromatique (WebGL2), **tremblement** de l'écran                                                                                                                      |
 | Profondeur ≥ 3 | **Ralenti** (×0,3 pendant 120 ms, retour en 250 ms) et **éclair** blanc                                                                                                                                                   |
 | Victoire       | Une lumière court le long de chaque tracé jusqu'au trou, qui la rassemble et éclate en **supernova** (cœur blanc, anneaux néon, onde, poussière d'étoiles) ; résultat sur un panneau de verre (v1.6.0, `effects/Victory`) |
-| Défaite        | Secousse et voile rouge, chaîne avalée par le trou, glissando grave                                                                                                                                                       |
+| Défaite        | Secousse et voile rouge ; la musique se tait, un court motif descend vers la tonique du monde et le trou avale la chaîne dans un long glissement grave, puis le silence (v1.8.1, § 3.17)                                  |
 
 Tout grandit avec la profondeur de la réaction : vitesse des éclats, onde, tremblement, note
 jouée (gamme pentatonique ascendante), vibration. Le cœur bat quand la tête de chaîne passe
-80 % du tracé, de plus en plus vite.
+les deux tiers du tracé (80 % avant la 1.8.0, § 3.15), de plus en plus vite.
 
 | Intensité     | Éclats / bille | Traînées / bille | Arcs, halo | Tremblement | Ralenti | Distorsion | Particules max |
 | ------------- | -------------- | ---------------- | ---------- | ----------- | ------- | ---------- | -------------- |
@@ -1222,7 +1223,8 @@ contenu et leur progression sont à part. Maquettes : rangées « 1.8.0 » du ca
   pour qu'un geste copié à peu près le réussisse ; le doigt se lève sur la bille, avant le
   miroir, ou dans la direction d'une courbe, et la ligne pointillée suit le trajet du tir
   jusqu'à la bille. Elle se cache pendant qu'un tir est tenu ou en vol. Une seule phrase par
-  vitrine, au-dessus des boutons, qui reste jusqu'à ce que le geste soit fait.
+  vitrine, au-dessus des boutons, qui reste jusqu'à ce que le geste soit fait ; E1 en a une par
+  commande depuis la 1.8.1.
 - **Fin d'une vitrine** : quand sa chaîne est détruite, un éclat de victoire court (la
   lumière file plus vite, un cœur blanc et un seul anneau, 1,1 s) pour E1 et E2 ; la
   supernova entière est gardée pour la fin d'E3.
@@ -1250,6 +1252,8 @@ contenu et leur progression sont à part. Maquettes : rangées « 1.8.0 » du ca
   l'écran : les billes qu'elle emporte (rayon 170) sont sur la piste, et son anneau se tient
   dans la place que l'écran laisse autour de l'impact (près d'un bord, il s'élargit moins).
 - **Phrase** : « Votre première bille est une bombe Nova : visez la chaîne et relâchez ! »
+- **Puis les commandes** (v1.8.1, § 3.17) : l'échange, au moment où la bille suivante va
+  mieux, puis le tir chargé, chacun montré une fois par la main et sa phrase.
 
 **E2 — Les miroirs (Néon), 50 à 70 s**
 
@@ -1953,6 +1957,31 @@ dira lequel chaque robot doit jouer, avant les tableaux (étape 5).
 - **Le Ralenti garde les couleurs** (`PowerPainter.frost`) : un liseré de givre autour des
   billes remplace le voile clair qui délavait leurs couleurs pendant 8 s, le cyan d'abord.
 
+**Les commandes au premier niveau** (étape 5, fiches validées le 28/10/2026, fusionnée le
+30/10/2026 : l'accord de l'auteur tient lieu d'essai au téléphone) : la vitrine E1 (§ 3.13)
+apprend au nouveau joueur toutes les commandes, une à la fois, sans bloquer le jeu, après le tir
+de la Nova (`HandCoach` suit une liste de leçons, chacune avec son geste : glisser, toucher,
+appuyer).
+
+- **L'échange** : quand la bille suivante fait clairement mieux que la chargée (`Game.reach`
+  compte toute sa réaction en chaîne), la main touche le lanceur, le bouton Échanger pulse et la
+  ligne dit « La suivante va mieux ici : touchez le lanceur pour échanger. » (à la souris :
+  « Clic droit, ou X, pour échanger : la suivante va mieux ici. »). Si la partie n'offre pas ce
+  moment, la main le prépare, trois fois au plus (`Game.stageSwap`) : la bille chargée prend la
+  couleur du tracé qui fait le moins, la suivante celle qui fait le plus, toujours parmi les
+  couleurs encore sur le tracé.
+- **Le tir chargé**, sur la même bille : la main appuie sur la cible et reste immobile pendant
+  que l'anneau se remplit autour du lanceur ; plein, un badge « Chargé ! » et la ligne
+  « …relâchez : le tir chargé file deux fois plus vite ! » (à la souris : « Maintenez le clic, ou
+  Espace : le tir se charge… »). Un tir chargé qui n'est pas un laser compte pour la leçon.
+- **Une fois chacun** : chaque geste n'est montré qu'une fois, et revient s'il n'est pas fait.
+  Le nouveau venu simulé recopie le toucher du lanceur et l'appui tenu : sur 80 parties (cinq
+  plateaux, premier tir au hasard), l'échange et la charge sont faits 80 fois, et E1 est gagnée
+  80 fois ; le test des vitrines (`tests/levels/showcases.test.ts`) demande chaque geste dans au
+  moins neuf parties sur dix. Tests de bout en bout au clavier, à la souris et au doigt ; textes
+  dans les quatre langues. La durée d'E1 avec ses leçons (visée : 60 à 80 s) se mesurera sur les
+  premiers joueurs : le robot tire plus vite qu'eux (§ 3.13).
+
 **Écran de la défaite** (étape 6, le 28/10/2026, maquette validée par l'auteur) : une défaite
 de campagne a son écran à elle (`DefeatReport`, d'après `DefeatSummary`) ; le défi du jour,
 l'Arcade et l'entraînement, où l'on ne perd pas, gardent le panneau de fin.
@@ -1965,8 +1994,8 @@ l'Arcade et l'entraînement, où l'on ne perd pas, gardent le panneau de fin.
   dit au doigt ou à la souris selon l'appareil, avec son dessin ; sinon l'indice du niveau,
   sauf ceux qui ouvrent un niveau (viser, assortir, échanger) ; sinon la réaction en chaîne.
 - **« Rejouer » d'abord** : en grand, avec le focus, 1,9 s après la défaite ; puis l'aide après
-  trois défaites, « Continuer » sur les portails, et la carte en simple lien. Le score de la
-  partie n'y figure plus.
+  trois défaites (deux au monde 1 depuis l'étape 10), « Continuer » sur les portails, et la carte
+  en simple lien. Le score de la partie n'y figure plus.
 - **Tout tient sans défiler** aux quatre tailles du test des langues (de 320 × 568 à
   1280 × 720), dans les quatre langues, aide comprise : dans une fenêtre basse, le titre de
   l'astuce passe dans son texte, et sous 680 px de haut le trou, simple décor, cède sa place.
@@ -1974,6 +2003,36 @@ l'Arcade et l'entraînement, où l'on ne perd pas, gardent le panneau de fin.
   téléphone de 568 px de haut, « Rejouer » restant en vue.
 - **Le rapport de partie** (`GameReport`) compte désormais les tirs chargés, les billes restées
   sur le tracé et les points de vie du Colosse.
+
+**Le son de la défaite** (étape 7, fusionnée le 30/10/2026 : l'accord de l'auteur tient lieu
+d'écoute) : la musique se tait en un quart de seconde (`HUSH`), puis un court motif chanté
+descend vers la tonique du monde, de la quinte par la tierce (mineure, ou majeure en
+Joaillerie) et la seconde, au milieu du clavier quelle que soit l'octave du thème ; sous sa
+dernière note, le trou avale la chaîne dans un long glissement grave et se referme ; puis le
+silence, jusqu'à la partie suivante (Rejouer, Continuer) ou un autre écran. Couper puis remettre
+la musique sur l'écran de défaite ne la relance pas : le moteur de son retient qu'une défaite
+l'a tue. En mode Rythme, le motif prend la tonalité de la chanson. Le motif est une donnée de la
+partition (`defeatMotif`, `src/audio/score.ts`), testée pour chaque monde ; un faux contexte Web
+Audio vérifie le silence, le retour de la musique, et que rien ne joue quand le son ou la
+musique sont coupés.
+
+**La musique de tension** (étape 8, fusionnée le 30/10/2026, même accord) : la musique du monde
+monte par paliers, sur les seuils des signaux de danger (`TENSION_TIERS`, § 3.15) :
+
+- dès la moitié du tracé, une basse qui pousse sur chaque croche et le charleston entre les
+  temps ;
+- dès les deux tiers, l'alarme : les quatre temps, le contretemps, des doubles croches au
+  charleston, et un tempo qui monte peu à peu, jusqu'à 15 % de plus au trou (`TEMPO_RISE`) ;
+- dans la zone de grâce, près du trou : la grosse caisse doublée et un roulement qui enfle vers
+  chaque mesure, avec le battement du cœur.
+
+Quand la chaîne recule, un palier ne part qu'une fois la chaîne revenue 6 % sous son seuil
+(`TIER_SLACK`), et le tempo suit la tension avec 2 s de retard à la montée, 4 s à la descente :
+la musique se détend sans à-coups. Palier et tempo se calculent une fois par double croche, dans
+l'ordonnanceur (`MusicPlayer`), jamais à chaque image ; la partie lui donne seulement la part du
+tracé parcourue. Une nouvelle partie, ou un Continuer, repart au calme. Tests : les couches de
+chaque palier, l'hystérésis des seuils, le tempo lissé, et, sur un faux contexte Web Audio, une
+musique plus rapide près du trou qui revient à son tempo.
 
 **Le plateau de chaque écran** (relevé dans le jeu, `data-board`, le 28/10/2026) : le jeu prend
 le plateau qui montre le niveau le plus grand, si bien qu'il change avec le niveau et l'écran.
@@ -2889,3 +2948,5 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.20    | 28/10/2026 | Version 1.8.1, étape 6 : l'écran de la défaite, ce qui manquait en vrai, une astuce et « Rejouer » d'abord (§ 3.17).                                                                                                                                               |
 | 1.21    | 28/10/2026 | Version 1.8.1, étape 9 : le plateau de chaque écran relevé dans le jeu, les tableaux des six mondes validés, la règle du lent au doigt (§ 3.17).                                                                                                                   |
 | 1.22    | 30/10/2026 | Version 1.8.1, étape 10 : les 72 niveaux réglés siège par siège, les outils des mondes en nouveau venu, la règle du centre et les mélanges de la Joaillerie, les aiguillages du Volcan, le garde-fou des parties qui traînent, la porte précisée (§ 3.2, 3.17).    |
+| 1.23    | 30/10/2026 | Version 1.8.1, étapes 5, 7 et 8 décrites à la livraison : les commandes au premier niveau, le son de la défaite, la musique de tension (§ 3.5, 3.13, 3.17).                                                                                                        |
+| 1.24    | 30/10/2026 | Version 1.8.1 livrée : la porte de dépôt CrazyGames tenue par les joueurs-robots, Lighthouse à 100 dans les quatre catégories ; restent le bac à sable Playgama et la revue de modérateur avant le dépôt.                                                          |
