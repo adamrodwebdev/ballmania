@@ -1,8 +1,8 @@
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CLEAR_BONUS, SPEED_BONUS } from '@/engine/Scoring';
-import { CAMPAIGN, starThresholds, type CampaignLevel } from '@/levels/campaign';
-import { referenceTime } from '@/levels/calibration';
+import { CAMPAIGN, type CampaignLevel } from '@/levels/campaign';
+import { referenceTime, starThresholds } from '@/levels/calibration';
 import { CALIBRATION } from '@/levels/calibration.data';
 import { seatKey, type Seat, type SeatKey } from '@/levels/seat';
 import { FRAMES } from '@/levels/tracks';

@@ -4,14 +4,8 @@ import { Game } from '@/engine/Game';
 import { Vec2 } from '@/engine/geometry/Vec2';
 import { Prism } from '@/engine/reflectors/Reflectors';
 import { SeededRandom } from '@/engine/core/Random';
-import {
-  CAMPAIGN,
-  findLevel,
-  nextLevel,
-  starsFor,
-  starThresholds,
-  WORLDS,
-} from '@/levels/campaign';
+import { starsFor, starThresholds } from '@/levels/calibration';
+import { CAMPAIGN, findLevel, nextLevel, WORLDS } from '@/levels/campaign';
 import { resolveLevel } from '@/levels/resolveLevel';
 import { toLevelSetup } from '@/levels/LevelDefinition';
 import { FRAMES } from '@/levels/tracks';

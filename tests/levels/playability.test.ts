@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CAMPAIGN, findLevel, starsFor } from '@/levels/campaign';
+import { starsFor } from '@/levels/calibration';
+import { CAMPAIGN, findLevel } from '@/levels/campaign';
 import { FRAMES } from '@/levels/tracks';
 import { boardOn } from './boards';
 import { AIMING, playLevel, playRobot, robotOf } from './bot';

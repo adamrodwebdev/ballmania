@@ -1,9 +1,7 @@
-import { calibratedStars } from './calibration';
 import { DEMO, DEMO_WORLDS } from './edition';
 import type { WeatherKind } from '@/engine/hazards/Hazards';
 import { POWER_KINDS, type PowerSetup } from '@/engine/powers/Powers';
 import type { Lesson } from './LevelDefinition';
-import type { Seat } from './seat';
 import type { TrackRecipe } from './tracks';
 
 export type WorldId = 'nebula' | 'neon' | 'abyss' | 'jewel' | 'volcano' | 'singularity';
@@ -987,24 +985,4 @@ export function nextLevel(current: CampaignLevel): CampaignLevel | undefined {
 /** The i18n key of a Colossus's name: one per world, and one for the young Colossus. */
 export function colossusName(world: WorldId, young = false): string {
   return young ? 'colossus.young' : `colossus.${world}`;
-}
-
-/**
- * Scores for two and three stars at a seat; one star is earned by finishing
- * the level. Calibrated level by level and seat by seat on careful newcomers
- * (src/levels/calibration.ts): about 30 % of their wins reach the third star.
- */
-export function starThresholds(level: CampaignLevel, seat: Seat): readonly [number, number] {
-  return calibratedStars(level, seat);
-}
-
-/** The stars a game earned: none for a defeat, then by its score at its seat. */
-export function starsFor(
-  level: CampaignLevel,
-  seat: Seat,
-  game: { readonly score: number; readonly won: boolean },
-): number {
-  if (!game.won) return 0;
-  const [two, three] = starThresholds(level, seat);
-  return game.score >= three ? 3 : game.score >= two ? 2 : 1;
 }

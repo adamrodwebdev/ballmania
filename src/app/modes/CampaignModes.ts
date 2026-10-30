@@ -1,13 +1,6 @@
 import type { GameReport } from '@/engine/Game';
-import {
-  CAMPAIGN,
-  colossusName,
-  nextLevel,
-  starsFor,
-  starThresholds,
-  WORLDS,
-  type CampaignLevel,
-} from '@/levels/campaign';
+import { starsFor, starThresholds } from '@/levels/calibration';
+import { CAMPAIGN, colossusName, nextLevel, WORLDS, type CampaignLevel } from '@/levels/campaign';
 import type { LevelDefinition } from '@/levels/LevelDefinition';
 import { noveltyOf, type Novelty } from '@/levels/novelty';
 import { resolveLevel } from '@/levels/resolveLevel';
