@@ -19,6 +19,8 @@ titre qui diffère entre le jeu et la fiche.
 
 - **Title** : Ball Mania
 - **Game Engine** : js (JavaScript sans moteur)
+- **Main category** : Matching / Sorting / Unblock (match-3, bubble shooters), choisie le
+  31/10/2026 ; Playgama a ajouté ce champ, dont dépendent les objectifs du bac à sable
 - **Supported Devices** : iOS, Android, Desktop
 - **Screen Orientation** : landscape et portrait
 - **Game Languages** : English, French, Indonesian, Russian (le russe depuis la v1.7.5 ; la
