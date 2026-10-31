@@ -699,10 +699,10 @@
       "name": "Mundur"
     },
     "slow": {
-      "cheer": "Perlambatan!",
-      "announce": "Perlambatan: rantai bergerak dengan setengah kecepatan selama 8 detik.",
-      "chip": "Perlambatan · {seconds} dtk",
-      "name": "Perlambatan"
+      "cheer": "Stasis!",
+      "announce": "Stasis: rantai bergerak dengan setengah kecepatan selama 8 detik.",
+      "chip": "Stasis · {seconds} dtk",
+      "name": "Stasis"
     },
     "rainbow": {
       "cheer": "Pelangi!",

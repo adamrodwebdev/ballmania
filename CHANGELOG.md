@@ -41,6 +41,10 @@ grand élément 0,9 s), et 100 dans les quatre sur ordinateur dans les deux lang
   publiées, et trois nouveaux venus sur chacune, vif, typique et lent. `TUNE=<monde>` règle
   les niveaux ; `DEVICES=<monde>` les relève sur quatre écrans, avec des suites de couleurs que
   l'outil de réglage ne joue jamais.
+- **Droits en ordre**, après une revue avant les dépôts : un test interdit le nom d'un autre
+  jeu dans les textes des quatre langues, les fiches des portails, la page et les noms de
+  fichiers ; les licences des polices (`CREDITS.md`, `LICENSES/OFL-1.1.txt`) et un dossier de
+  provenance (`docs/ORIGINALITE.md`) rejoignent le dépôt.
 
 ### Modifié
 
@@ -66,7 +70,9 @@ grand élément 0,9 s), et 100 dans les quatre sur ordinateur dans les deux lang
 - **Visée et charge au toucher** : le tir garde la visée d'avant le glissement du doigt qui se
   lève, et la charge tient sous le doigt jusqu'à 18 px (environ 3 mm) de son point de départ,
   au lieu de 6 : le tir chargé, presque jamais atteint au téléphone, l'est désormais.
-- **Le Ralenti garde les couleurs** : un liseré de givre autour des billes remplace le voile
+- **Le Ralenti devient la Stase** (Stasis en anglais et en indonésien, Стазис en russe), un
+  nom propre au jeu ; sa bille garde son sablier.
+- **La Stase garde les couleurs** : un liseré de givre autour des billes remplace le voile
   clair qui les délavait, le cyan d'abord.
 - **L'aide du monde 1 vient plus tôt** : après deux défaites d'affilée au lieu de trois, et
   elle ralentit la chaîne de 25 % au lieu de 15 %. Avec elle, le nouveau venu lent, au doigt,

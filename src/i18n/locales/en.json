@@ -699,10 +699,10 @@
       "name": "Rewind"
     },
     "slow": {
-      "cheer": "Slow-down!",
-      "announce": "Slow-down: the chain moves at half speed for 8 seconds.",
-      "chip": "Slow-down · {seconds} s",
-      "name": "Slow-down"
+      "cheer": "Stasis!",
+      "announce": "Stasis: the chain moves at half speed for 8 seconds.",
+      "chip": "Stasis · {seconds} s",
+      "name": "Stasis"
     },
     "rainbow": {
       "cheer": "Rainbow!",

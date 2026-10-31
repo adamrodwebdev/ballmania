@@ -699,10 +699,10 @@
       "name": "Recul"
     },
     "slow": {
-      "cheer": "Ralenti\u00a0!",
-      "announce": "Ralenti\u00a0: la chaîne avance à mi-vitesse pendant 8 secondes.",
-      "chip": "Ralenti · {seconds}\u00a0s",
-      "name": "Ralenti"
+      "cheer": "Stase\u00a0!",
+      "announce": "Stase\u00a0: la chaîne avance à mi-vitesse pendant 8 secondes.",
+      "chip": "Stase · {seconds}\u00a0s",
+      "name": "Stase"
     },
     "rainbow": {
       "cheer": "Arc-en-ciel\u00a0!",

@@ -2,7 +2,7 @@ import type { Chain } from '../chain/Chain';
 import type { PowerShot, PowerTarget } from './Powers';
 
 /**
- * The powers at work in a game (v1.7): the rewind under way, the slow-down
+ * The powers at work in a game (v1.7): the rewind under way, the stasis
  * left, the shot a power has loaded. Powers act through it, the game updates
  * it every step.
  */
@@ -41,7 +41,7 @@ export class PowerEffects implements PowerTarget {
     this.shot = null;
   }
 
-  /** Seconds of slow-down left; 0 when the chains run at their speed. */
+  /** Seconds of stasis left; 0 when the chains run at their speed. */
   get slowRemaining(): number {
     return this.slowLeft;
   }

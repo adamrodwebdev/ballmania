@@ -383,7 +383,7 @@ export class Game {
   private gift: boolean;
   /** The gift bomb on its way: if it misses the chain, it comes back (v1.8.0). */
   private giftShot: Projectile | null = null;
-  /** The powers at work: rewind, slow-down, a loaded rainbow or laser shot. */
+  /** The powers at work: rewind, stasis, a loaded rainbow or laser shot. */
   private readonly powers: PowerEffects;
   /** Balls fed since the last power ball (Endless, a Colossus), and the next power's turn. */
   private fedSincePower = 0;
@@ -544,7 +544,7 @@ export class Game {
     return every !== null && (this.shotsFired + 1) % every === 0 ? 'wild' : null;
   }
 
-  /** Seconds of slow-down left (a power); 0 when the chains run at their speed. */
+  /** Seconds of stasis left (a power); 0 when the chains run at their speed. */
   get slowRemaining(): number {
     return this.powers.slowRemaining;
   }

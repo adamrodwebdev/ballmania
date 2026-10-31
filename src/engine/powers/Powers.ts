@@ -9,7 +9,7 @@ export const POWER_KINDS: readonly PowerKind[] = ['rewind', 'slow', 'rainbow', '
 export const REWIND_BALLS = 8;
 /** How fast the chain goes back, in units per second: a short pull the eye can follow. */
 export const REWIND_SPEED = 900;
-/** Slow-down: the chain's speed factor, and for how long (seconds). */
+/** Stasis: the chain's speed factor, and for how long (seconds). */
 export const SLOW_FACTOR = 0.5;
 export const SLOW_SECONDS = 8;
 /** Laser: balls the next shot pierces before it fades. */

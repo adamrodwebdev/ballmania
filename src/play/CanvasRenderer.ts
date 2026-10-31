@@ -1480,7 +1480,7 @@ export class CanvasRenderer implements Renderer {
       this.powers.laserBall(ctx, barrel, radius, null, this.glowOf(LASER_GLOW));
     } else if (special) this.drawSpecial(special, barrel, radius);
     this.drawBall(shooter.next, shooter.position, radius * NEXT_BALL_SCALE);
-    // Slow-down: the time left runs out around the launcher.
+    // Stasis: the time left runs out around the launcher.
     const slow = this.game.slowRemaining;
     if (slow > 0) this.powers.countdown(ctx, shooter.position, COUNTDOWN_REACH, slow);
   }

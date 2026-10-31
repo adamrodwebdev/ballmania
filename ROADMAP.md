@@ -127,7 +127,7 @@ https://claude.ai/artifact/Rp94DZXtBfcMrCUH8YwXjo (pages privées de l'auteur).
   pour garder l'intérêt.
 - **Bonus de départ en éclats** (tranché le 26/10/2026) : sans vies ni énergie, avancer plus vite
   veut dire passer un niveau difficile en moins d'essais. Les éclats achètent aussi la bille bonus de
-  départ (Recul, Ralenti, Tir arc-en-ciel ou Laser, prête au premier tir), qui se gagne aussi dans
+  départ (Recul, Stase, Tir arc-en-ciel ou Laser, prête au premier tir), qui se gagne aussi dans
   les coffres et les missions ; jamais au défi du jour, au défi du Colosse ni dans un classement, et
   le robot gagne chaque niveau sans elle. Entorse assumée à la règle d'or du § 3.6 du cahier des
   charges (rien ne rend un niveau plus facile), à y écrire avec la 1.12.0 : sans elle, les éclats
@@ -201,7 +201,7 @@ contenu de 1,5 à 2,5.
 **Décidé le 26/10/2026** : les grandes réactions en chaîne rapportent des billes spéciales.
 
 - **×4 (« Génial ! »)** : une bille d'attaque, Laser ou Tir arc-en-ciel à tour de rôle, se charge
-  aussitôt dans le lanceur. Le Recul et le Ralenti restent des billes bonus de la chaîne, où ceux
+  aussitôt dans le lanceur. Le Recul et la Stase restent des billes bonus de la chaîne, où ceux
   qui peinent les trouvent aussi ; les billes bonus de la chaîne ne changent pas.
 - **×5 (« Incroyable ! »)** : la **boule de démolition**. On vise comme un tir : le crochet saisit
   la première bille ou le premier mur de la ligne de visée, un arc en pointillés montre le

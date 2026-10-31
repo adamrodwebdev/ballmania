@@ -259,7 +259,7 @@ export class SoundEngine {
       this.sweep(ctx, out, now, 'sawtooth', 900, 120, 0.45, 0.12, 1800);
       this.noiseBurst(ctx, out, now, 0.4, 2500, 0.1);
     },
-    // Slow-down: a chord sinking slowly, as time stretches.
+    // Stasis: a chord sinking slowly, as time stretches.
     slow: (ctx, out, now) => {
       this.sweep(ctx, out, now, 'triangle', 660, 330, 0.9, 0.14);
       this.bell(ctx, out, now, 392, 1.2, 0.06);

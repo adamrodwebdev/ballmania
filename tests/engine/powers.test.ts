@@ -111,7 +111,7 @@ describe('powers', () => {
     expect(game.chains[0]!.tail).toBeCloseTo(300 - REWIND_BALLS * D, 0);
   });
 
-  it('Slow-down halves the speed of the chain for a while', () => {
+  it('Stasis halves the speed of the chain for a while', () => {
     const moving = { chain: { ...PARAMS, speed: 50, rushSpeed: 50 } };
     const game = new Game(level('slow', moving), new FixedRandom(0));
     setOff(game, 'slow');

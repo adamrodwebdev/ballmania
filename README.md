@@ -32,7 +32,7 @@ indonésien et russe**, thèmes clair et sombre, sur mobile comme sur ordinateur
   écran, qui dit ce qui manquait, donne une astuce et propose « Rejouer » d'abord. Chaque
   niveau est réglé pour le téléphone comme pour l'ordinateur, sur des joueurs-robots tirés
   d'études publiées.
-- **Billes bonus** cachées dans la chaîne : **Recul**, **Ralenti**, **Tir arc-en-ciel**
+- **Billes bonus** cachées dans la chaîne : **Recul**, **Stase**, **Tir arc-en-ciel**
   et **Laser**, une nouveauté par niveau dans le monde 1, puis mêlées aux mondes suivants.
 - **Aléas** : billes qui tombent du ciel, arythmie, tempête solaire, froid mordant, vents
   contraires, tracés à deux entrées.
@@ -217,7 +217,8 @@ Polices sous licence [SIL Open Font License 1.1](https://openfontlicense.org) : 
 (© 2011 Juan Montoreano) pour les titres, Fredoka (© 2016 The Fredoka Project Authors) pour
 l'interface et, pour le russe, un sous-ensemble de Nunito (© 2014 The Nunito Project
 Authors) dont le fichier garde le copyright et la licence. Sons et musique sont synthétisés
-par le jeu.
+par le jeu. Le détail, avec le texte de la licence, est dans [CREDITS.md](CREDITS.md), et la
+provenance de chaque élément dans [docs/ORIGINALITE.md](docs/ORIGINALITE.md).
 
 ## Licence
 
