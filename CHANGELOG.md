@@ -3,7 +3,7 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
-## [1.8.1] — 2026-10-30
+## [1.8.1] — 2026-10-31
 
 « Équilibre téléphone et ordinateur ». Un niveau est désormais aussi difficile au téléphone
 qu'à l'ordinateur, et les 72 niveaux suivent la courbe des campagnes mesurées. Faute de
