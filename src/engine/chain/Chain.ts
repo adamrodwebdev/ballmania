@@ -89,7 +89,7 @@ export class Chain {
   private speedFactor = 1;
   /** Speed factor of the hazards (arrhythmia, wind), on top of `speedFactor`. */
   private paceValue = 1;
-  /** Speed factor of the powers (Slow-down), on top of the others. */
+  /** Speed factor of the powers (Stasis), on top of the others. */
   private powerFactor = 1;
   /**
    * The level's opening rush is over: once the head has travelled
@@ -195,7 +195,7 @@ export class Chain {
     this.paceValue = factor;
   }
 
-  /** Multiplies the pushing speed once more, for a power (Slow-down: 0.5; 1 when it ends). */
+  /** Multiplies the pushing speed once more, for a power (Stasis: 0.5; 1 when it ends). */
   setPowerFactor(factor: number): void {
     this.powerFactor = factor;
   }

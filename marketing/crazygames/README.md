@@ -53,7 +53,7 @@ texte promotionnel ni de logo.
 > shatter in spectacular chain reactions.
 >
 > Burst the power-up marbles hidden in the chain: **Rewind** pushes the chain back,
-> **Slow-down** halves its speed, the **Rainbow shot** matches any colour and the **Laser**
+> **Stasis** halves its speed, the **Rainbow shot** matches any colour and the **Laser**
 > pierces through four marbles.
 >
 > Travel through six worlds, each with its own twist: bank shots off neon mirrors, pull
@@ -70,7 +70,7 @@ texte promotionnel ni de logo.
 > **Features**
 >
 > - 6 worlds, 72 levels and 6 bosses
-> - 4 power-up marbles: Rewind, Slow-down, Rainbow shot and Laser
+> - 4 power-up marbles: Rewind, Stasis, Rainbow shot and Laser
 > - 3 difficulty levels
 > - 4 Arcade modes, a daily challenge and a daily gift
 > - Charged shots and an optional aim assist

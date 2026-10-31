@@ -1,8 +1,8 @@
 # Cahier des charges — Ballmania
 
-| Version | Date       | Statut               |
-| ------- | ---------- | -------------------- |
-| 1.24    | 30/10/2026 | Version 1.8.1 livrée |
+| Version | Date       | Statut                             |
+| ------- | ---------- | ---------------------------------- |
+| 1.25    | 31/10/2026 | Version 1.8.1 livrée, droits revus |
 
 Document vivant : il est mis à jour à chaque étape livrée (voir § 12, journal).
 
@@ -71,13 +71,22 @@ Différenciation :
 
 - Les noms des jeux de référence du genre ne sont **jamais utilisés**, ni dans le jeu, ni
   dans le code, ni dans la documentation, ni dans le référencement : ce sont des marques de
-  leurs éditeurs.
+  leurs éditeurs. Seule la liste du test qui les interdit les nomme :
+  `tests/i18n/otherGames.test.ts` échoue si un texte du jeu, une fiche de portail, la page ou
+  un nom de fichier nomme un autre jeu (depuis le 31/10/2026).
 - Les règles d'un jeu ne sont pas protégeables, mais **l'apparence** l'est (_Tetris Holding
   v. Xio Interactive_, 2012) : pas de grenouille-idole, pas de temple de pierre ni d'univers
   précolombien, pas de cartouches de niveaux imités. Univers, palette, lanceur, chemins et noms
   de modes sont **propres à Ballmania**.
-- Nom de travail : **Ballmania**, lisible dans les quatre langues. Vérification de
-  disponibilité (marque, domaine, magasins d'applis, réseaux) à faire avant lancement.
+- Les noms des billes bonus aussi : le Ralenti est devenu la **Stase** (Stasis, Stase, Stasis,
+  Стазис) le 31/10/2026, son nom anglais étant celui d'une bille d'un jeu du genre ; sa bille
+  garde son sablier.
+- Nom : **Ballmania** (« Ball Mania » sur Playgama, qui demande deux à quatre mots), gardé après
+  la revue des droits du 31/10/2026, tenue hors du dépôt. Un avocat vérifie sa disponibilité
+  avant tout dépôt de marque, et à toute réclamation.
+- Les licences des polices sont dans `CREDITS.md` et `LICENSES/OFL-1.1.txt` ;
+  `docs/ORIGINALITE.md` réunit les preuves de provenance du jeu, à joindre si un portail
+  demande de répondre à une réclamation.
 
 ## 3. Périmètre fonctionnel
 
@@ -203,7 +212,7 @@ Deux portes d'entrée depuis l'accueil :
 | 3      | Serpentin 3 rangées + **jeune Colosse**  | 24 + renforts | 3        | 30      | Blesser le Colosse       |
 | 4      | Spirale 1,5 tour (respiration)           | 40            | 3        | 44      | Bille Recul              |
 | 5      | Spirale « carrée » 1,45 tour             | 44            | 4        | 50      | Réaction en chaîne       |
-| 6      | Serpentin 3 rangées (respiration)        | 38            | 4        | 42      | Bille Ralenti            |
+| 6      | Serpentin 3 rangées (respiration)        | 38            | 4        | 42      | Bille Stase              |
 | 7      | Double spirale, 2 chaînes                | 2 × 22        | 4        | 44      | Deux chaînes, deux trous |
 | 8      | Spirale 1,7 tour, sens inverse           | 50            | 4        | 58      | Bille Arc-en-ciel        |
 | 9      | Serpentin 4 rangées                      | 52            | 4        | 48      | —                        |
@@ -1141,7 +1150,7 @@ fait éclater son nom au-dessus du plateau.
 | Pouvoir         | Effet                                                                  | Emblème   |
 | --------------- | ---------------------------------------------------------------------- | --------- |
 | **Recul**       | Toute la chaîne recule de 8 billes, vite (900 u/s) : chevrons de recul | Double ◀  |
-| **Ralenti**     | La chaîne avance à mi-vitesse pendant 8 s : givre, anneau qui se vide  | Sablier   |
+| **Stase**       | La chaîne avance à mi-vitesse pendant 8 s : givre, anneau qui se vide  | Sablier   |
 | **Arc-en-ciel** | La bille suivante prend la couleur de la bille qu'elle touche          | Étincelle |
 | **Laser**       | Le tir suivant file droit et traverse les 4 premières billes touchées  | Éclair    |
 
@@ -1152,12 +1161,12 @@ fait éclater son nom au-dessus du plateau.
   ajoutées, les pouvoirs à tour de rôle.
 - **Apprentissage, une nouveauté par niveau** : Recul au 1-4 (au 1-3 jusqu'à la 1.7.3, qui
   accueille depuis le jeune Colosse ; conseil « Les billes à anneau cachent un pouvoir… »),
-  Ralenti au 1-6, Arc-en-ciel au 1-8, Laser au 1-10, après un avant-goût du Laser dans la
+  Stase au 1-6, Arc-en-ciel au 1-8, Laser au 1-10, après un avant-goût du Laser dans la
   vitrine du 1-1 ; le conseil sur les réactions en chaîne passe du 1-3 au 1-5. Le Colosse du monde 1
   ne porte que les pouvoirs d'attaque (arc-en-ciel, laser), rarement, pour garder sa
   pression. Mondes 2 à 6 : les quatre, une toutes les 20 billes. Infini : une toutes les
   24 billes. Pas dans les Énigmes, le Rythme ni le Duel.
-- **Affichage** : pastilles « Ralenti · 6 s » et « Laser prêt » / « Tir arc-en-ciel prêt » ;
+- **Affichage** : pastilles « Stase · 6 s » et « Laser prêt » / « Tir arc-en-ciel prêt » ;
   laser chargé : faisceau de visée et anneau pointillé sur chaque bille qu'il prendra ;
   annonce au lecteur d'écran. Sons propres à chaque pouvoir.
 - **Ouverture** : la ruée du début de niveau ne se fait qu'une fois ; un recul (ou une
@@ -1492,7 +1501,7 @@ celles du robot nouveau venu, sur 24 parties ; les durées, celles de vrais joue
 | 1-3    | Frisson     | Le jeune Colosse                           | 90–150 s    | 36 % → 55–65 %               | 2 à 4                 | Vitesse, puis endurance du boss |
 | 1-4    | Respiration | Le Recul, première bille bonus             | 90–120 s    | 26 % → 40–50 %               | 0 à 1                 | Longueur, à vitesse égale       |
 | 1-5    | Montée      | Les réactions, la quatrième couleur        | 90–150 s    | 30 % → 50–60 %               | 1 à 2                 | Vitesse                         |
-| 1-6    | Montée      | Le Ralenti                                 | 90–150 s    | 36 % → 55–65 %               | 2 à 3                 | Vitesse, puis longueur          |
+| 1-6    | Montée      | La Stase                                   | 90–150 s    | 36 % → 55–65 %               | 2 à 3                 | Vitesse, puis longueur          |
 | 1-7    | Frisson     | Deux chaînes                               | 90–150 s    | 51 % → 60–70 %               | 3 à 5                 | Longueur                        |
 | 1-8    | Respiration | Le Tir arc-en-ciel                         | 90–150 s    | 43 % → 45–55 %               | 0 à 1                 | Aucun, ou un peu de vitesse     |
 | 1-9    | Montée      | Les acquis mêlés, serpentin à quatre rangs | 2:00–2:30   | 32 % → 55–65 %               | 2 à 3                 | Vitesse, puis longueur          |
@@ -1954,7 +1963,7 @@ dira lequel chaque robot doit jouer, avant les tableaux (étape 5).
   de son point de départ, au lieu de 6 px, si bien que le tremblement du doigt et les retouches
   de visée ne la vident plus ; le tir chargé, presque jamais atteint au téléphone, l'est
   désormais. À la souris, la charge court depuis l'appui, comme avant.
-- **Le Ralenti garde les couleurs** (`PowerPainter.frost`) : un liseré de givre autour des
+- **La Stase garde les couleurs** (`PowerPainter.frost`) : un liseré de givre autour des
   billes remplace le voile clair qui délavait leurs couleurs pendant 8 s, le cyan d'abord.
 
 **Les commandes au premier niveau** (étape 5, fiches validées le 28/10/2026, fusionnée le
@@ -2073,7 +2082,7 @@ monde, et le robot d'aujourd'hui, avant tout réglage : victoires du typique sur
 | 1-3    | Frisson              | Le jeune Colosse                           | 85–95 % | 99 % ↑             | 100 % ↑     | 100 % ↑ | 86 %         |
 | 1-4    | Respiration          | Le Recul, première bille bonus             | ≥ 95 %  | 100 %              | 100 %       | 100 %   | 83 %         |
 | 1-5    | Montée               | Les réactions, la quatrième couleur        | ≥ 90 %  | 92 %               | 100 %       | 100 %   | 33 %         |
-| 1-6    | Montée               | Le Ralenti                                 | ≥ 90 %  | 100 %              | 97 %        | 100 %   | 57 %         |
+| 1-6    | Montée               | La Stase                                   | ≥ 90 %  | 100 %              | 97 %        | 100 %   | 57 %         |
 | 1-7    | Frisson              | Deux chaînes                               | 85–95 % | 90 %               | 94 %        | 100 % ↑ | 24 %         |
 | 1-8    | Respiration          | Le Tir arc-en-ciel                         | ≥ 95 %  | 100 %              | 99 %        | 100 %   | 51 %         |
 | 1-9    | Montée               | Les acquis mêlés, serpentin à quatre rangs | ≥ 90 %  | 100 %              | 100 %       | 99 %    | 31 %         |
@@ -2950,3 +2959,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.22    | 30/10/2026 | Version 1.8.1, étape 10 : les 72 niveaux réglés siège par siège, les outils des mondes en nouveau venu, la règle du centre et les mélanges de la Joaillerie, les aiguillages du Volcan, le garde-fou des parties qui traînent, la porte précisée (§ 3.2, 3.17).    |
 | 1.23    | 30/10/2026 | Version 1.8.1, étapes 5, 7 et 8 décrites à la livraison : les commandes au premier niveau, le son de la défaite, la musique de tension (§ 3.5, 3.13, 3.17).                                                                                                        |
 | 1.24    | 30/10/2026 | Version 1.8.1 livrée : la porte de dépôt CrazyGames tenue par les joueurs-robots, Lighthouse à 100 dans les quatre catégories ; restent le bac à sable Playgama et la revue de modérateur avant le dépôt.                                                          |
+| 1.25    | 31/10/2026 | Revue des droits avant les dépôts : le Ralenti devient la Stase, un test interdit les noms d'autres jeux, les licences des polices et le dossier de provenance sont dans le dépôt (§ 2.3).                                                                         |

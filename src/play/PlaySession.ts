@@ -79,7 +79,7 @@ export interface HudState {
   danger: boolean;
   /** The latest power set off (v1.7), for the cheer over the board and the announcement. */
   power: { readonly kind: PowerKind; readonly serial: number } | null;
-  /** Whole seconds of Slow-down left, or null while the chains run at their speed. */
+  /** Whole seconds of Stasis left, or null while the chains run at their speed. */
   slow: number | null;
   /** The shot a power has loaded, until it is fired: rainbow or laser. */
   powerShot: PowerShot | null;

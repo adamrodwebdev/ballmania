@@ -109,7 +109,7 @@ export interface CampaignLevel {
     readonly arrhythmia?: number;
     readonly weather?: readonly WeatherKind[];
   };
-  /** Balls of the chain that hold a power (v1.7): Rewind, Slow-down, Rainbow shot, Laser. */
+  /** Balls of the chain that hold a power (v1.7): Rewind, Stasis, Rainbow shot, Laser. */
   readonly powers?: PowerSetup;
   /** Abyss world: pull balls out of the chain. */
   readonly magnet?: {
@@ -253,7 +253,7 @@ const FIRST_LEVEL = [
  * curve (three levels up, one to breathe), ending with the stellar Colossus.
  * Its young form comes at 1-3 (v1.7.4), so a boss shows within minutes, and
  * 1-4 breathes after it with three colours; the fourth comes at 1-5. The
- * powers arrive one at a time (v1.7): Rewind at 1-4, Slow-down at 1-6,
+ * powers arrive one at a time (v1.7): Rewind at 1-4, Stasis at 1-6,
  * Rainbow shot at 1-8, Laser at 1-10; one lesson a level. The training shows
  * a Laser first, as a glimpse (v1.8.0).
  */

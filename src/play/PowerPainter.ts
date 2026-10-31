@@ -13,7 +13,7 @@ const BEAM = '#9d7bff';
 
 /**
  * Each power's emblem in the middle of its ball, for a radius of 1: Rewind's
- * double arrow, Slow-down's hourglass, Rainbow's sparkle, Laser's bolt.
+ * double arrow, Stasis's hourglass, Rainbow's sparkle, Laser's bolt.
  */
 const EMBLEMS: Readonly<Record<PowerKind, (ctx: Context) => void>> = {
   rewind: (ctx) => {
@@ -60,7 +60,7 @@ const EMBLEMS: Readonly<Record<PowerKind, (ctx: Context) => void>> = {
 
 /**
  * Draws the powers (v1.7): the balls that hold one, and what a power does
- * while it works — the chain rolling back, the frost of the slow-down and its
+ * while it works — the chain rolling back, the frost of the stasis and its
  * countdown around the launcher, the laser's beam and the balls it will take.
  * Board units; the renderer has set the transform.
  */
@@ -120,7 +120,7 @@ export class PowerPainter {
   }
 
   /**
-   * Slow-down: a rim of frost round every ball of the chains. It leaves the
+   * Stasis: a rim of frost round every ball of the chains. It leaves the
    * colours as they are (v1.8.1): a veil over the balls washed them out, cyan
    * first, just when the player has to tell them apart.
    */
@@ -141,7 +141,7 @@ export class PowerPainter {
     ctx.restore();
   }
 
-  /** Slow-down: the time left, as a ring around the launcher that empties. */
+  /** Stasis: the time left, as a ring around the launcher that empties. */
   countdown(ctx: Context, at: Vec2, reach: number, remaining: number): void {
     const share = Math.max(0, Math.min(1, remaining / SLOW_SECONDS));
     ctx.save();
@@ -270,5 +270,5 @@ export class PowerPainter {
 /** Colour of the laser's glow, for the renderer's cached glows. */
 export const LASER_GLOW = BEAM;
 
-/** Where the slow-down's countdown ring runs, around the launcher (board units). */
+/** Where the stasis's countdown ring runs, around the launcher (board units). */
 export const COUNTDOWN_REACH = 82;
