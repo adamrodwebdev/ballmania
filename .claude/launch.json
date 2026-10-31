@@ -18,6 +18,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "couloir"],
       "port": 4190
+    },
+    {
+      "name": "ballmania-playgama",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--mode", "playgama", "--port", "4186", "--strictPort"],
+      "port": 4186
     }
   ]
 }
