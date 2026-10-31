@@ -288,7 +288,7 @@ visuels de 3 à 5.
 | 4. Couvertures     | Trois couvertures comparées sur le taux de clic des portails, vérifiées à 200 px de large.                                                                                                                                                                                                                                                                               | Taux de clic dans le quart supérieur de la balise.                                                 |
 | 5. Livraison       | Comme la 1.10.0.                                                                                                                                                                                                                                                                                                                                                         | Présent sur cinq canaux au moins.                                                                  |
 
-## v1.8.1 — Équilibre téléphone et ordinateur (livrée le 30/10/2026)
+## v1.8.1 — Équilibre téléphone et ordinateur (livrée le 31/10/2026)
 
 **But** : qu'un niveau soit aussi difficile au téléphone qu'à l'ordinateur, et que les 72 niveaux
 suivent la courbe des campagnes mesurées, réglés sur des joueurs-robots tirés des études
@@ -366,7 +366,7 @@ Playgama, au moins 50 nouvelles parties sur la 1.8.1, dont au moins un tiers au-
 et une sur dix au-delà de 5 minutes (22 % et 5 % le 21/10/2026, sur la 1.4) ; puis, comme prévu,
 la revue de modérateur complète, les vidéos rendues de nouveau, la fiche et la case Progress Save.
 
-**Le 30/10/2026**, la 1.8.1 est livrée. Sur les joueurs-robots, la porte de dépôt CrazyGames
+**Le 31/10/2026**, la 1.8.1 est livrée. Sur les joueurs-robots, la porte de dépôt CrazyGames
 tient : le monde 1 dans ses bandes, aucun niveau plus dur que la sienne au-delà de deux erreurs
 types hors de ceux où les couleurs fusionnent, aucun qui traîne (cahier des charges, § 3.17) ;
 Lighthouse à 100 dans les quatre catégories, sur mobile aux trois mesures et sur ordinateur, en
