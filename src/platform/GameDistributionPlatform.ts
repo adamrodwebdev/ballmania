@@ -30,6 +30,8 @@ export class GameDistributionPlatform implements PlatformAdapter {
   readonly id = 'gamedistribution';
   readonly hasAds = true;
   readonly isPortal = true;
+  readonly stopsOnAutoPause = false;
+  readonly allowsSharing = true;
   private sdk: GameDistributionSdk | null = null;
   private rewardEarned = false;
   private adStart: AdStart | null = null;

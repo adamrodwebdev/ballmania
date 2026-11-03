@@ -35,6 +35,9 @@ export async function createPlatform(): Promise<PlatformAdapter> {
   } else if (__PLATFORM__ === 'playgama') {
     const { PlaygamaPlatform } = await import('./PlaygamaPlatform');
     platform = new PlaygamaPlatform(window as Window & PlaygamaHost);
+  } else if (__PLATFORM__ === 'yandex') {
+    const { YandexPlatform } = await import('./YandexPlatform');
+    platform = new YandexPlatform(window, loadScript(document));
   } else if (__PLATFORM__ === 'simulated') {
     const { SimulatedPlatform } = await import('./SimulatedPlatform');
     const ads = new URLSearchParams(window.location.search).get('ads');

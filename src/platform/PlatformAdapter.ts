@@ -24,6 +24,16 @@ export interface PlatformAdapter {
    * own site keeps the game plain.
    */
   readonly isPortal: boolean;
+  /**
+   * True if the game's own pause (a hidden tab) is told as a stop: Yandex
+   * wants every stop told (rule 1.19.3), CrazyGames only the player's.
+   */
+  readonly stopsOnAutoPause: boolean;
+  /**
+   * False where the game offers no share at all: Yandex Games allows no way
+   * off the platform (version 1.9.0).
+   */
+  readonly allowsSharing: boolean;
   /** Loads and starts the SDK. Resolves even when it fails. */
   init(): Promise<void>;
   /** Where saves go: the SDK's storage when the portal asks for it. */
