@@ -144,7 +144,8 @@ publicité ni SDK.
 | `npm run build:poki`             | Poki, dans `dist-poki/`                                                                                |
 | `npm run build:gamedistribution` | GameDistribution, dans `dist-gamedistribution/` (avec `VITE_GD_GAME_ID`)                               |
 | `npm run build:playgama`         | Playgama, dans `dist-playgama/` (titre « Ball Mania »)                                                 |
-| `npm run build:portals`          | Les quatre                                                                                             |
+| `npm run build:yandex`           | Yandex Games, dans `dist-yandex/` (titre « Ball Mania », SDK servi par Yandex en `/sdk.js`)            |
+| `npm run build:portals`          | Les cinq                                                                                               |
 | `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités, `?ads=off`)                                |
 | `npm run couloir`                | Le portail simulé servi au réseau de la maison, port 4190 ([test de couloir](docs/TEST_DE_COULOIR.md)) |
 
@@ -152,7 +153,11 @@ Sur un portail, un nouveau joueur arrive directement dans l'entraînement, sans 
 ni écran titre, et les menus de base n'apparaissent qu'ensuite ; sur notre site,
 l'entraînement s'ouvre au premier « Jouer ». La page est en anglais, le jeu suit ensuite la
 langue du joueur. On envoie
-ensuite au portail une archive zip du dossier. Pour CrazyGames, le
+ensuite au portail une archive zip du dossier, faite par `scripts/zip-build.py` : il ne
+garde aucune archive sans `index.html` à la racine ou avec un nom qui contient une espace
+ou un caractère hors ASCII (règle 1.22 de Yandex), et donne la taille décompressée (100 Mo
+au plus chez Yandex).
+Pour CrazyGames, le
 [kit de soumission](marketing/crazygames/README.md) réunit description, commandes,
 couvertures et vidéos (`npm run kit:crazygames`). Son build de dépôt est sans publicité,
 comme l'exige le Basic Launch ; `CRAZYGAMES_LAUNCH=full npm run build:crazygames` construit

@@ -7,6 +7,7 @@ import type { SoundEngine } from '@/audio/SoundEngine';
 import { loadMessages } from '@/i18n';
 import type { PlayRequest } from '@/app/PlayRequest';
 import type { CampaignLevel } from '@/levels/campaign';
+import { withListedName } from '@/platform/platforms';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
 import StudioIntro from '@/ui/components/StudioIntro.vue';
 import { ScrollKeyGuard } from '@/ui/ScrollKeys';
@@ -191,9 +192,8 @@ watch(
 );
 watchEffect(() => {
   document.documentElement.lang = locale.value;
-  // Playgama: the two-word title, the same in the game and on the portal's page.
-  const title = t('meta.title');
-  document.title = __PLATFORM__ === 'playgama' ? title.replace('Ballmania', 'Ball Mania') : title;
+  // Playgama and Yandex: the two-word title, the same in the game and on the portal's page.
+  document.title = withListedName(__PLATFORM__, t('meta.title'));
   document
     .querySelector('meta[name="description"]')
     ?.setAttribute('content', t('meta.description'));

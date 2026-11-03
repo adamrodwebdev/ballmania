@@ -1,12 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Ports of the two builds. Another project may already serve on them, and a
- * server found there is reused: `E2E_PORT` and `E2E_PORTAL_PORT` move them.
+ * Ports of the three builds. Another project may already serve on them, and a
+ * server found there is reused: `E2E_PORT`, `E2E_PORTAL_PORT` and
+ * `E2E_YANDEX_PORT` move them.
  */
 const PORT = Number(process.env.E2E_PORT ?? 4174);
 /** The portal build, against the simulated portal (e2e/portal.spec.ts). */
 const PORTAL_PORT = Number(process.env.E2E_PORTAL_PORT ?? 4175);
+/** The Yandex Games build, against a stand-in for its SDK (e2e/yandex.spec.ts). */
+const YANDEX_PORT = Number(process.env.E2E_YANDEX_PORT ?? 4176);
 
 /** A phone or a tablet: touch, a coarse pointer, its own viewport. */
 const handheld = (width: number, height: number) => ({
@@ -75,6 +78,12 @@ export default defineConfig({
     {
       command: `npx vite build --mode simulated && npx vite preview --mode simulated --port ${PORTAL_PORT} --strictPort`,
       port: PORTAL_PORT,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      command: `npx vite build --mode yandex && npx vite preview --mode yandex --port ${YANDEX_PORT} --strictPort`,
+      port: YANDEX_PORT,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
