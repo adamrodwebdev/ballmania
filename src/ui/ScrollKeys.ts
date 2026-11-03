@@ -56,6 +56,45 @@ export function canScroll(from: Element, move: ScrollMove): boolean {
   return false;
 }
 
+/** The ways a turn of the wheel scrolls; with Shift, some browsers turn it sideways. */
+export function wheelMoves(
+  wheel: Pick<WheelEvent, 'deltaX' | 'deltaY' | 'shiftKey'>,
+): ScrollMove[] {
+  const towards = (delta: number): -1 | 1 => (delta < 0 ? -1 : 1);
+  const moves: ScrollMove[] = [];
+  if (wheel.deltaY !== 0) {
+    moves.push({ axis: 'y', towards: towards(wheel.deltaY) });
+    if (wheel.shiftKey) moves.push({ axis: 'x', towards: towards(wheel.deltaY) });
+  }
+  if (wheel.deltaX !== 0) moves.push({ axis: 'x', towards: towards(wheel.deltaX) });
+  return moves;
+}
+
+/**
+ * Keeps the mouse wheel inside the game when it plays in a portal's frame
+ * (v1.9.0): a turn that nothing under the pointer can scroll any further is
+ * stopped, so the portal's page around the frame never slides. The page's
+ * `overscroll-behavior: none` asks the same, and Chromium keeps to it, but
+ * WebKit hands the turn on to the parent page (Playwright's WebKit,
+ * 03/11/2026: 800 px under the title screen). Ctrl and the wheel still zoom.
+ */
+export class ScrollWheelGuard {
+  constructor(private readonly view: Window) {
+    view.addEventListener('wheel', this.onWheel, { passive: false });
+  }
+
+  destroy(): void {
+    this.view.removeEventListener('wheel', this.onWheel);
+  }
+
+  private readonly onWheel = (event: WheelEvent): void => {
+    if (event.defaultPrevented || event.ctrlKey) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (target && wheelMoves(event).some((move) => canScroll(target, move))) return;
+    event.preventDefault();
+  };
+}
+
 /** Pixels an arrow scrolls by, as browsers do; a page scrolls by most of the screen. */
 const ARROW_STEP = 40;
 const PAGE_SHARE = 0.875;

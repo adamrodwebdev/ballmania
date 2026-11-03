@@ -86,11 +86,13 @@ test.describe('portal rules', () => {
     await page.mouse.wheel(0, 800);
     expect(await portalScroll()).toBe(0);
 
-    // A screen longer than its frame scrolls inside the game, and only there.
+    // A screen longer than its frame scrolls inside the game, and only there: the wheel too.
     await game.getByTestId('achievements').click();
     await game.locator('#achievements-title').click();
-    await page.keyboard.press('End');
     const screen = game.locator('main');
+    await page.mouse.wheel(0, 200);
+    await expect.poll(() => screen.evaluate((main) => main.scrollTop)).toBeGreaterThan(0);
+    await page.keyboard.press('End');
     await expect
       .poll(() => screen.evaluate((main) => main.scrollTop + main.clientHeight - main.scrollHeight))
       .toBeGreaterThanOrEqual(-1);

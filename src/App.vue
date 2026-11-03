@@ -10,7 +10,7 @@ import type { CampaignLevel } from '@/levels/campaign';
 import { withListedName } from '@/platform/platforms';
 import HomeScreen from '@/ui/screens/HomeScreen.vue';
 import StudioIntro from '@/ui/components/StudioIntro.vue';
-import { ScrollKeyGuard } from '@/ui/ScrollKeys';
+import { ScrollKeyGuard, ScrollWheelGuard } from '@/ui/ScrollKeys';
 
 /** The campaign map, the game screen and the engine are downloaded only when needed. */
 const CampaignScreen = defineAsyncComponent(() => import('@/ui/screens/CampaignScreen.vue'));
@@ -112,6 +112,8 @@ window.addEventListener(
 );
 // The arrows, Page Up and Down, Home, End and Space never scroll a portal's page.
 new ScrollKeyGuard(window);
+// Nor does the wheel, in a frame: the page around it is someone else's.
+if (window.parent !== window) new ScrollWheelGuard(window);
 // On a portal, a right click or a long press opens no menu, in the menus as on the board
 // (Yandex rules 1.6.1.8 and 1.6.2.7).
 if (platform.isPortal) window.addEventListener('contextmenu', (event) => event.preventDefault());

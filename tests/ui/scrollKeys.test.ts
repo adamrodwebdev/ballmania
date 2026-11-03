@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { scrollMove } from '@/ui/ScrollKeys';
+import { scrollMove, wheelMoves } from '@/ui/ScrollKeys';
 
 describe('scrollMove', () => {
   it('knows which keys scroll a page, and which way', () => {
@@ -18,5 +18,31 @@ describe('scrollMove', () => {
     expect(scrollMove('Enter', false)).toBeNull();
     expect(scrollMove('x', false)).toBeNull();
     expect(scrollMove('Tab', false)).toBeNull();
+  });
+});
+
+describe('wheelMoves', () => {
+  it('scrolls down a turn towards the player, up a turn away', () => {
+    expect(wheelMoves({ deltaX: 0, deltaY: 120, shiftKey: false })).toEqual([
+      { axis: 'y', towards: 1 },
+    ]);
+    expect(wheelMoves({ deltaX: 0, deltaY: -3, shiftKey: false })).toEqual([
+      { axis: 'y', towards: -1 },
+    ]);
+  });
+
+  it('also scrolls sideways with Shift, as some browsers turn it', () => {
+    expect(wheelMoves({ deltaX: 0, deltaY: 120, shiftKey: true })).toEqual([
+      { axis: 'y', towards: 1 },
+      { axis: 'x', towards: 1 },
+    ]);
+  });
+
+  it('follows a trackpad both ways at once, and nothing on a still wheel', () => {
+    expect(wheelMoves({ deltaX: -8, deltaY: 30, shiftKey: false })).toEqual([
+      { axis: 'y', towards: 1 },
+      { axis: 'x', towards: -1 },
+    ]);
+    expect(wheelMoves({ deltaX: 0, deltaY: 0, shiftKey: false })).toEqual([]);
   });
 });
