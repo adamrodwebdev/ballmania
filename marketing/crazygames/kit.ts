@@ -42,11 +42,11 @@ const kit = {
     return toDataUrl(blob!);
   },
 
-  /** The trailer: the cover, then the title reel's moments (see `CUTS`). */
-  async trailer(width: number, height: number): Promise<string> {
+  /** The trailer: the cover, with the portal's title, then the title reel's moments (see `CUTS`). */
+  async trailer(width: number, height: number, title = 'Ballmania'): Promise<string> {
     const recorder = await Recorder.create(width, height);
     const trailer = new Trailer(width, height, palette());
-    await trailer.shoot(await cover(width, height), CUTS, (frame) => recorder.add(frame));
+    await trailer.shoot(await cover(width, height, title), CUTS, (frame) => recorder.add(frame));
     return toDataUrl(new Blob([await recorder.finish()], { type: 'video/mp4' }));
   },
 };

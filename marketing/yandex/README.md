@@ -12,11 +12,14 @@ champ et visuel de la fiche (règle 5.1.3) ; un titre latin peut servir à toute
   ne garde aucune archive sans `index.html` à la racine ou avec un nom de fichier qui contient
   une espace ou un caractère hors ASCII (règle 1.22), et donne la taille décompressée (100 Mo
   au plus, règle 1.21).
-- Visuels (étape 5, à produire avec les outils du kit CrazyGames, dans `out/`) : icône
-  512 × 512 et couverture 800 × 470 en PNG, sans capture du jeu (règle 5.6), ni bord, ni coin
-  arrondi, ni interface du jeu (8.3.3, 8.3.4) ; au moins deux captures d'ordinateur (paysage) et
-  deux de téléphone, côté long de 1 280 à 2 560 px, 70 % de vrai jeu au moins (5.1.1.2) ; vidéo
-  horizontale 16:9 obligatoire, MP4, 28 s au plus, 70 % de jeu au moins (5.1.1.3).
+- Visuels : `npm run kit:crazygames -- yandex` écrit dans `out/` l'icône `icon-512x512.png` et
+  la couverture `cover-800x470.png`, sans capture du jeu (règle 5.6), ni bord, ni coin arrondi,
+  ni interface du jeu (8.3.3, 8.3.4), avec le titre « Ball Mania » ; puis la vidéo horizontale
+  obligatoire `trailer-landscape-1920x1080.mp4` et la verticale `trailer-vertical-1080x1920.mp4`,
+  de moins de 28 s, la couverture une seconde puis les moments du jeu (70 % de jeu au moins,
+  5.1.1.3). Les vidéos ne sont pas versionnées.
+- Captures (à faire) : au moins deux d'ordinateur (paysage) et deux de téléphone, côté long de
+  1 280 à 2 560 px, 70 % de vrai jeu au moins (5.1.1.2).
 
 ## Onglet « Общее » (général)
 
