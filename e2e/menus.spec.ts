@@ -89,9 +89,10 @@ const sweep = async (page: Page) => {
 };
 
 test.describe('the Workshop and the Observatory (v1.8.0)', () => {
-  test.beforeEach(({ page: _page }, info) => {
-    test.skip(info.project.name !== 'desktop', 'the viewport is swept: one project is enough');
-  });
+  test.skip(
+    ({ formFactor }) => formFactor !== 'desktop',
+    'the viewport is swept: one form factor per engine is enough',
+  );
 
   for (const tab of ['shooter', 'trail', 'burst', 'board'] as const) {
     test(`the Workshop's ${tab} tab fits on one screen at every size`, async ({ page }) => {

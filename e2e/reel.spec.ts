@@ -25,6 +25,14 @@ const caption = (page: Page) => page.getByTestId('reel-caption').last();
 const showing = (page: Page, text: string, timeout = 10_000) =>
   expect(caption(page)).toHaveText(text, { timeout });
 
+/**
+ * Why a reel's pace is not checked on WebKit under Windows: Playwright's build
+ * there has no OffscreenCanvas, and draws the reel in the page in software, at
+ * 14 frames a second where it takes 30, so each scene lasts twice as long
+ * (03/11/2026). Everywhere else, and on WebKit under Linux, the pace is checked.
+ */
+const SLOW_REEL = 'WebKit under Windows draws the reel at half its pace';
+
 /** The tab hidden, or shown again, as the browser tells a page. */
 const setHidden = (page: Page, hidden: boolean) =>
   page.evaluate((hidden) => {
@@ -40,14 +48,19 @@ const setHidden = (page: Page, hidden: boolean) =>
  * game's own engine in a window between the title and Play.
  */
 test.describe('the title reel', () => {
-  test('plays the highlights one after the other, each with its caption', async ({ page }) => {
+  test('plays the highlights one after the other, each with its caption', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName === 'webkit' && process.platform === 'win32', SLOW_REEL);
     await page.goto('./');
     await showing(page, 'Nebula The Nova bomb');
     await showing(page, 'Neon Bounce your shots', 8_000);
     await expect(page.getByTestId('reel').locator('.ticks li.on')).toHaveCount(1);
   });
 
-  test('stops in a hidden tab, and plays on once it shows again', async ({ page }) => {
+  test('stops in a hidden tab, and plays on once it shows again', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit' && process.platform === 'win32', SLOW_REEL);
     await page.goto('./');
     await showing(page, 'Nebula The Nova bomb');
     await setHidden(page, true);

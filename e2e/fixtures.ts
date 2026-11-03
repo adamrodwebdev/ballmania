@@ -1,4 +1,39 @@
-import { expect, test as base, type Page } from '@playwright/test';
+import { expect, test as base, type Locator, type Page } from '@playwright/test';
+
+/** What a project plays on: a phone under a finger, or a computer with a mouse. */
+export type FormFactor = 'mobile' | 'desktop';
+
+/** The options a project or a spec sets (`use` in playwright.config.ts, `test.use`). */
+export interface TestOptions {
+  /** The training is done before the journey starts. */
+  trained: boolean;
+  /**
+   * The form factor of the project (v1.9.0): a check meant for one of them
+   * skips the other with it, on every engine.
+   */
+  formFactor: FormFactor;
+}
+
+/** What a test reads at its end: the console errors of its page so far. */
+type ConsoleErrors = () => Promise<string[]>;
+
+/** The words WebKit logs for every style it refuses under the page's CSP. */
+const WEBKIT_STYLE_REFUSAL =
+  "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.";
+
+/** Tells the test, through `refusedSelectStyle`, of each style refused to a `<select>`. */
+const watchSelects = () => {
+  document.addEventListener(
+    'securitypolicyviolation',
+    (event) => {
+      if (event.violatedDirective === 'style-src-attr' && event.target instanceof HTMLSelectElement)
+        void (
+          window as unknown as { refusedSelectStyle: () => Promise<void> }
+        ).refusedSelectStyle();
+    },
+    true,
+  );
+};
 
 /**
  * The journeys start where players land after the studio intro: it plays
@@ -7,8 +42,37 @@ import { expect, test as base, type Page } from '@playwright/test';
  * own or opts out (`test.use({ trained: false })`, the training's journeys).
  * They run without Web Audio (see below); the sound is measured on its own.
  */
-export const test = base.extend<{ trained: boolean }>({
+export const test = base.extend<TestOptions & { consoleErrors: ConsoleErrors }>({
   trained: [true, { option: true }],
+  formFactor: ['desktop', { option: true }],
+  /**
+   * The page's console errors, collected from the moment a test asks for them.
+   * Playwright's WebKit refuses, under the page's CSP, a style it gives the
+   * inner parts of each `<select>` (03/11/2026), in the very words and at the
+   * very place it would refuse a style of the game's own: on WebKit, one such
+   * message is left out per refusal aimed at a `<select>`, and every other
+   * refusal stays an error.
+   */
+  consoleErrors: async ({ page, browserName }, use) => {
+    const errors: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text());
+    });
+    let refusedToSelects = 0;
+    if (browserName === 'webkit') {
+      await page.exposeFunction('refusedSelectStyle', () => {
+        refusedToSelects += 1;
+      });
+      await page.addInitScript(watchSelects);
+      if (page.url() !== 'about:blank') await page.evaluate(watchSelects);
+    }
+    await use(async () => {
+      // A refusal's event is a task queued behind its message: one round trip lets it through.
+      await page.evaluate(() => undefined);
+      let left = refusedToSelects;
+      return errors.filter((text) => !(text === WEBKIT_STYLE_REFUSAL && left-- > 0));
+    });
+  },
   page: async ({ page, trained }, use) => {
     await page.addInitScript((trained) => {
       sessionStorage.setItem('ballmania:intro', '1');
@@ -59,5 +123,29 @@ export async function spendShots(page: Page): Promise<void> {
     }).toPass({ intervals: [250] });
   }
 }
+
+/**
+ * Lets `ms` of the fake clock go by, as `page.clock.runFor` does, but plays
+ * frame by frame only while the game lasts: once `end` shows (its result),
+ * the rest of the time passes in one jump. Behind a result the board still
+ * draws every frame, and Playwright's clock gives each frame a real
+ * `setTimeout(0)`, which nested timers hold to 4 ms at least. Measured on
+ * 03/11/2026: a second of play costs Chromium 0.3 s, WebKit under Windows
+ * 1.4 to 1.8 s (its timers wake on the system's 15.6 ms tick, and it draws a
+ * frame in 7 to 12 ms).
+ */
+export async function playFor(page: Page, ms: number, end: Locator): Promise<void> {
+  let played = 0;
+  while (played < ms && !(await end.isVisible())) {
+    const step = Math.min(1000, ms - played);
+    await page.clock.runFor(step);
+    played += step;
+  }
+  if (played < ms) await page.clock.fastForward(ms - played);
+}
+
+/** Why a game played frame by frame gets three times its time on WebKit (see `playFor`). */
+export const WEBKIT_FRAMES =
+  'a simulated frame costs WebKit four to six times what it costs Chromium';
 
 export { expect, type Page };

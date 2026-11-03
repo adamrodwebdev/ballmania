@@ -147,11 +147,8 @@ test.describe('Yandex Games build', () => {
 
   test('speaks the language Yandex gives, and tells it when the game can be played', async ({
     page,
+    consoleErrors,
   }) => {
-    const errors: string[] = [];
-    page.on('console', (message) => {
-      if (message.type() === 'error') errors.push(message.text());
-    });
     await onYandex(page, { lang: 'ru' });
     await page.goto('./');
     // A new player plays at once, in the language of their Yandex (rule 2.14).
@@ -163,7 +160,7 @@ test.describe('Yandex Games build', () => {
     const events = await log(page);
     expect(events.filter((event) => event === 'ready')).toHaveLength(1);
     expect(events.indexOf('ready')).toBeLessThan(events.indexOf('start'));
-    expect(errors).toEqual([]);
+    expect(await consoleErrors()).toEqual([]);
   });
 
   test('stops the play while Yandex pauses the game, and resumes it after', async ({ page }) => {
@@ -234,8 +231,11 @@ test.describe('Yandex Games build', () => {
     await expect(page.getByTestId('sound-toggle')).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test("fits every window of Yandex's display check, at zoom 80 to 125 %", async ({ page }) => {
-    test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+  test("fits every window of Yandex's display check, at zoom 80 to 125 %", async ({
+    page,
+    formFactor,
+  }) => {
+    test.skip(formFactor !== 'desktop', 'desktop only');
     test.setTimeout(180_000);
     await onYandex(page, { data: RETURNING });
     for (const [width, height] of WINDOWS) {
