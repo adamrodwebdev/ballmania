@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures';
+import { expect, overflowOf, test, type Page } from './fixtures';
 
 /**
  * The Yandex Games build (version 1.9.0), against a stand-in for Yandex's SDK
@@ -99,6 +99,35 @@ const RETURNING = {
     levels: { 'nebula-01': { stars: 2, best: 1200 } },
   }),
 };
+
+/**
+ * Rule 1.10 as Yandex checks it on a computer: the game in a window of each of
+ * its reference screens (16:9, 16:10, 5:4, ultra-wide), that window shrunk by
+ * 20 % on each axis, and zoom from 80 to 125 % (a 1280 × 720 window seen at
+ * 125 % is 1024 × 576 CSS pixels, at 80 % 1600 × 900).
+ */
+const WINDOWS = [
+  [1920, 1080],
+  [1536, 864],
+  [1600, 900],
+  [1280, 720],
+  [1024, 576],
+  [1366, 768],
+  [1093, 614],
+  [1680, 1050],
+  [1344, 840],
+  [1280, 1024],
+  [1024, 819],
+  [2560, 1080],
+  [2048, 864],
+] as const;
+
+/** How far the page itself scrolls, either way (rule 1.10.2): the game may scroll inside. */
+const pageScroll = (page: Page) =>
+  page.evaluate(() => {
+    const root = document.documentElement;
+    return Math.max(root.scrollWidth - root.clientWidth, root.scrollHeight - root.clientHeight);
+  });
 
 test.describe('Yandex Games build', () => {
   test('serves its page with the SDK in the head and the title of its listing', async ({
@@ -203,5 +232,33 @@ test.describe('Yandex Games build', () => {
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.getByTestId('sound-toggle')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test("fits every window of Yandex's display check, at zoom 80 to 125 %", async ({ page }) => {
+    test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+    test.setTimeout(180_000);
+    await onYandex(page, { data: RETURNING });
+    for (const [width, height] of WINDOWS) {
+      const size = `${width} × ${height}`;
+      await page.setViewportSize({ width, height });
+      await page.goto('./');
+      await expect(page.getByTestId('play')).toBeVisible();
+      // The title screen holds whole, the two-word title included (rules 1.10.1 and 1.10.4).
+      expect(await overflowOf(page), size).toBeLessThanOrEqual(0);
+      expect(await pageScroll(page), size).toBeLessThanOrEqual(0);
+      await page.getByTestId('play').click();
+      await page.getByTestId('level-nebula-01').click();
+      await expect(page.getByTestId('board')).toBeVisible();
+      expect(await pageScroll(page), size).toBeLessThanOrEqual(0);
+      // The playing frame, from the HUD to the buttons, from the top of the window to its
+      // bottom: 2:1 at most, and it reaches an edge (rules 1.6.2.1 and 1.6.2.2).
+      const frame = await page.evaluate(() => ({
+        left: document.querySelector('.hud')!.getBoundingClientRect().left,
+        right: document.querySelector('.controls')!.getBoundingClientRect().right,
+        height: document.querySelector('.game')!.getBoundingClientRect().height,
+      }));
+      expect(frame.height, size).toBeCloseTo(height, 0);
+      expect((frame.right - frame.left) / frame.height, size).toBeLessThanOrEqual(2.01);
+    }
   });
 });
