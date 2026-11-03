@@ -77,6 +77,7 @@ export class PlaygamaPlatform implements PlatformAdapter {
   readonly isPortal = true;
   readonly stopsOnAutoPause = false;
   readonly allowsSharing = true;
+  readonly showsVersion = true;
   private bridge: PlaygamaBridge | null = null;
   private readonly cache = new Map<string, string>();
   private inLevel = false;

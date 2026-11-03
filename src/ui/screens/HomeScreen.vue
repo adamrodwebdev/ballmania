@@ -20,7 +20,7 @@ const props = defineProps<{
   covered: boolean;
 }>();
 const { t, locale } = useI18n();
-const { player, progress, today } = useServices();
+const { player, progress, today, platform } = useServices();
 const emit = defineEmits<{
   play: [];
   daily: [challenge: DailyChallenge];
@@ -436,7 +436,9 @@ const openSettings = () => {
           </button>
         </div>
       </div>
-      <p class="version">{{ t('app.version', { version }) }}</p>
+      <p v-if="platform.showsVersion" class="version" data-testid="version">
+        {{ t('app.version', { version }) }}
+      </p>
     </div>
     <!-- The gift's shards, on their way to the wallet. -->
     <SparkFlight

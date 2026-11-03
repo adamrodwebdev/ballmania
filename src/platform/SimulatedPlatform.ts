@@ -17,6 +17,7 @@ export class SimulatedPlatform implements PlatformAdapter {
   readonly isPortal = true;
   readonly stopsOnAutoPause = false;
   readonly allowsSharing = true;
+  readonly showsVersion = true;
   readonly log: string[] = [];
   private readonly storage: KeyValueStorage;
 

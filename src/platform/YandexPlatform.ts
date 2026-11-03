@@ -106,6 +106,7 @@ export class YandexPlatform implements PlatformAdapter {
   readonly isPortal = true;
   readonly stopsOnAutoPause = true;
   readonly allowsSharing = false;
+  readonly showsVersion = false;
   private sdk: YandexSdk | null = null;
   private player: YandexPlayer | null = null;
   private readonly cache = new Map<string, string>();

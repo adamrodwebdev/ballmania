@@ -112,6 +112,9 @@ window.addEventListener(
 );
 // The arrows, Page Up and Down, Home, End and Space never scroll a portal's page.
 new ScrollKeyGuard(window);
+// On a portal, a right click or a long press opens no menu, in the menus as on the board
+// (Yandex rules 1.6.1.8 and 1.6.2.7).
+if (platform.isPortal) window.addEventListener('contextmenu', (event) => event.preventDefault());
 watch([() => settings.current.music, () => settings.current.muted, portalMuted], () =>
   engine.value?.setMusicVolume(musicVolume()),
 );

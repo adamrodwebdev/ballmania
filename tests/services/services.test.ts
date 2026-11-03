@@ -17,18 +17,30 @@ const DEFAULTS = {
 } as const;
 
 describe('SettingsService', () => {
-  it('starts from the defaults and saves every change', () => {
+  it('starts from the defaults and saves every change, only what the player chose', () => {
     const storage = new MemoryStorage();
     const settings = new SettingsService(storage, DEFAULTS);
     expect(settings.current.theme).toBe('system');
-    settings.update({ theme: 'dark', effects: 'subtle', volume: 0 });
-    expect(settings.current.theme).toBe('dark');
+    settings.update({ theme: 'dark', effects: 'subtle' });
+    settings.update({ volume: 0 });
+    expect(settings.current).toEqual({ ...DEFAULTS, theme: 'dark', effects: 'subtle', volume: 0 });
     expect(readJson(storage, SETTINGS_KEY)).toEqual({
-      ...DEFAULTS,
       theme: 'dark',
       effects: 'subtle',
       volume: 0,
     });
+  });
+
+  it('keeps following a language the player never chose, such as the portal one', () => {
+    const storage = new MemoryStorage();
+    // Muted on a visit in Russian, the language Yandex gave (rule 2.14)…
+    new SettingsService(storage, { ...DEFAULTS, locale: 'ru' }).update({ muted: true });
+    // …then back with Yandex in English: English, still muted.
+    const next = new SettingsService(storage, { ...DEFAULTS, locale: 'en' });
+    expect(next.current).toMatchObject({ locale: 'en', muted: true });
+    // A language the player picked stays theirs.
+    next.update({ locale: 'id' });
+    expect(new SettingsService(storage, { ...DEFAULTS, locale: 'ru' }).current.locale).toBe('id');
   });
 
   it('restores saved settings and ignores invalid fields', () => {
