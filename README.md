@@ -103,11 +103,25 @@ npm run dev
 | `npm run build`      | Vérification des types puis build de production (`dist/`)         |
 | `npm run verify`     | Lint, format, types, tests unitaires et build (avant commit)      |
 | `npm test`           | Tests unitaires (Vitest)                                          |
-| `npm run test:e2e`   | Parcours Playwright, matrice de tailles, audits axe-core          |
+| `npm run test:e2e`   | Parcours Playwright sur Chromium, matrice de tailles, audits axe  |
 | `npm run lighthouse` | Audit Lighthouse mobile du build (`-- --desktop`, `-- --lang=ru`) |
 
-Les parcours servent le build du site sur le port 4174 et celui du portail simulé sur le
-4175 ; si un autre projet les occupe déjà, `E2E_PORT` et `E2E_PORTAL_PORT` les déplacent.
+Les parcours servent le build du site sur le port 4174, celui du portail simulé sur le 4175 et
+celui de Yandex sur le 4176 ; si un autre projet les occupe déjà, `E2E_PORT`,
+`E2E_PORTAL_PORT` et `E2E_YANDEX_PORT` les déplacent.
+
+Firefox et WebKit jouent les mêmes parcours quand on les nomme : Firefox sur ordinateur,
+WebKit sur ordinateur et en iPhone. Les tests qui pilotent le navigateur par CDP, le protocole
+de Chromium (un doigt tenu, les marges d'une encoche), portent l'étiquette `@cdp` et restent
+à Chromium.
+
+```bash
+npx playwright test --project="webkit-*"
+npx playwright test --project=firefox-desktop
+```
+
+Le Firefox de Playwright ne démarre pas sur la machine Windows de l'auteur
+(`spawn UNKNOWN`) : il tourne dans l'intégration continue, sous Linux.
 
 Pour un déploiement, `SITE_URL=https://exemple.org/ npm run build` ajoute le lien
 canonique, les adresses absolues des cartes de partage, `sitemap.xml` et un `robots.txt`
@@ -197,8 +211,9 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   doigt, des nouveaux venus vif, typique et lent) qui règlent chaque niveau plateau par
   plateau, mesurent sa tension (temps sous pression, quasi-défaites) et calibrent ses
   étoiles, et un test qui fait résoudre chaque énigme par le vrai moteur.
-- Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), audits
-  d'accessibilité en anglais et en russe dans les deux thèmes ; une matrice de tailles
+- Parcours Playwright sur mobile (390 × 844) et ordinateur (1 280 × 800), sur Chromium,
+  Firefox et WebKit (v1.9.0), audits d'accessibilité en anglais et en russe dans les deux
+  thèmes ; une matrice de tailles
   (téléphones, téléphone couché, tablette, grands écrans, zoom à 200 et 400 %) où chaque écran
   garde la page immobile et passe l'audit WCAG 2.2 ; un balayage de 320 à 2 560 px sans
   défilement horizontal ; et chaque écran en russe, en indonésien et en français à
@@ -208,7 +223,16 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   sur ordinateur. Règle du projet depuis le 22/10/2026 : 100 dans les quatre catégories, sur
   la plus faible de trois mesures mobiles et sur ordinateur ; `npm run lighthouse` échoue en
   dessous.
-- Intégration continue GitHub Actions à chaque envoi.
+- Intégration continue GitHub Actions à chaque envoi, sur Chromium (`ci.yml`). Firefox et
+  WebKit (`engines.yml`) jouent les parcours sur `dev` chaque lundi, à chaque changement de
+  version, de Playwright ou des projets de test, et à la demande avant une sortie :
+
+  ```bash
+  gh workflow run engines.yml --ref dev
+  ```
+
+  GitHub ne lance un workflow planifié ou à la demande que s'il est sur `main` : ces deux
+  déclencheurs attendent la prochaine publication.
 
 ## Conventions
 
