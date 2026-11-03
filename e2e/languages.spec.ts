@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures';
+import { expect, playFor, test, WEBKIT_FRAMES, type Page } from './fixtures';
 
 /**
  * The longest languages, where text runs out of room first (specification § 3.7):
@@ -138,9 +138,10 @@ test.describe('languages', () => {
     for (const [width, height] of SIZES) {
       test(`keeps the menus' text in place in ${locale} at ${width}×${height}`, async ({
         page,
+        formFactor,
       }) => {
-        // The viewport is set per test: one project is enough.
-        test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+        // The viewport is set per test: one form factor per engine is enough.
+        test.skip(formFactor !== 'desktop', 'desktop only');
         // Six screens, each measured at rest.
         test.setTimeout(60_000);
         await page.setViewportSize({ width, height });
@@ -159,8 +160,9 @@ test.describe('languages', () => {
 
     test(`keeps the Observatory bubble's text in place in ${locale} at every size`, async ({
       page,
+      formFactor,
     }) => {
-      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      test.skip(formFactor !== 'desktop', 'desktop only');
       // A first upgrade within reach and none bought yet: the map points at the Observatory,
       // on one visit only, so that visit is measured at every size.
       await page.setViewportSize({ width: SIZES[0][0], height: SIZES[0][1] });
@@ -174,8 +176,11 @@ test.describe('languages', () => {
       }
     });
 
-    test(`keeps the training's text in place in ${locale} at every size`, async ({ page }) => {
-      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+    test(`keeps the training's text in place in ${locale} at every size`, async ({
+      page,
+      formFactor,
+    }) => {
+      test.skip(formFactor !== 'desktop', 'desktop only');
       // A newcomer (v1.8.0): no level played yet, "Play" opens the training.
       await page.setViewportSize({ width: SIZES[0][0], height: SIZES[0][1] });
       await page.addInitScript((code) => {
@@ -198,11 +203,16 @@ test.describe('languages', () => {
       }
     });
 
-    test(`keeps the game's text in place in ${locale} at every size`, async ({ page }) => {
-      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+    test(`keeps the game's text in place in ${locale} at every size`, async ({
+      page,
+      formFactor,
+      browserName,
+    }) => {
+      test.skip(formFactor !== 'desktop', 'desktop only');
       // A level simulated frame by frame until the chain reaches the hole takes a while: one
       // game per language, measured at every size.
       test.setTimeout(150_000);
+      test.slow(browserName === 'webkit', WEBKIT_FRAMES);
       const everySize = async (screen: string) => {
         for (const [width, height] of SIZES) {
           await page.setViewportSize({ width, height });
@@ -223,9 +233,7 @@ test.describe('languages', () => {
       // Nobody shoots: the chain reaches the hole, and the level failed three times already
       // offers help.
       const assist = page.getByTestId('assist');
-      for (let ran = 0; ran < 200_000 && !(await assist.isVisible()); ran += 10_000) {
-        await page.clock.runFor(10_000);
-      }
+      await playFor(page, 200_000, assist);
       await expect(assist).toBeVisible();
       await everySize('defeat');
     });
@@ -233,7 +241,12 @@ test.describe('languages', () => {
 
   test('serves Russian its own font, before the first paint, and never Fredoka', async ({
     page,
+    browserName,
   }) => {
+    // A known fault, to mend in the font (03/11/2026): the Russian copy breaks long words
+    // with soft hyphens (U+00AD), which the Nunito cut lacks. Chromium sets that invisible
+    // mark with no face at all; WebKit looks further down the stack and fetches Fredoka 700.
+    test.fail(browserName === 'webkit', 'Nunito has no soft hyphen: WebKit fetches Fredoka');
     const fonts: string[] = [];
     page.on('request', (request) => {
       if (request.url().endsWith('.woff2')) fonts.push(request.url().split('/').pop()!);

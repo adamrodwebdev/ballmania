@@ -1,18 +1,14 @@
 import { expect, overflowOf, test } from './fixtures';
 
 test.describe('home', () => {
-  test('shows the game without errors nor horizontal scroll', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', (message) => {
-      if (message.type() === 'error') errors.push(message.text());
-    });
+  test('shows the game without errors nor horizontal scroll', async ({ page, consoleErrors }) => {
     await page.goto('./');
     await expect(page.getByRole('heading', { level: 1, name: 'Ballmania' })).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBe(0);
-    expect(errors).toEqual([]);
+    expect(await consoleErrors()).toEqual([]);
   });
 
   test('switches language and remembers it', async ({ page }) => {

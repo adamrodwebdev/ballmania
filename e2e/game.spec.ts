@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, playFor, test, WEBKIT_FRAMES } from './fixtures';
 
 test.describe('game', () => {
   test.beforeEach(async ({ page }) => {
@@ -11,11 +11,7 @@ test.describe('game', () => {
     await expect(page.getByTestId('board')).toBeVisible();
   });
 
-  test('plays without errors nor horizontal scroll', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', (message) => {
-      if (message.type() === 'error') errors.push(message.text());
-    });
+  test('plays without errors nor horizontal scroll', async ({ page, consoleErrors }) => {
     const board = page.getByTestId('board');
     const box = (await board.boundingBox())!;
     for (let i = 0; i < 5; i++) {
@@ -27,7 +23,7 @@ test.describe('game', () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBe(0);
-    expect(errors).toEqual([]);
+    expect(await consoleErrors()).toEqual([]);
   });
 
   test('shows how far the stars are under the score, inside the HUD', async ({ page }) => {
@@ -155,9 +151,11 @@ test.describe('campaign', () => {
 
   test('shows the defeat when the chain reaches the hole, and goes back to the map', async ({
     page,
+    browserName,
   }) => {
     // Simulating a whole level frame by frame takes a while.
     test.setTimeout(150_000);
+    test.slow(browserName === 'webkit', WEBKIT_FRAMES);
     await page.clock.install();
     await page.goto('./');
     await page.getByTestId('play').click();
@@ -165,10 +163,10 @@ test.describe('campaign', () => {
     await expect(page.getByTestId('board')).toBeVisible();
     await expect(page.getByTestId('level')).toHaveText('1-1');
     // Nobody shoots: the chain reaches the hole, slowed down in its last fifth (v1.8.0).
-    await page.clock.runFor(150_000);
     // Its own screen (v1.8.1): nothing destroyed, so the chain wins, and a tip for the
     // gesture never made; "Play again" has the focus.
     const dialog = page.getByRole('dialog', { name: 'The chain wins' });
+    await playFor(page, 150_000, dialog);
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('defeat-left')).toHaveText(/^\d+ marbles left$/);
     await expect(dialog.getByTestId('defeat-share')).toHaveText('0% of the chain destroyed');
@@ -284,17 +282,21 @@ test.describe('progression', () => {
     await expect(page.getByTestId('achievement-colossus')).toContainText('+100 shards');
   });
 
-  test('plays the daily challenge once for rewards, then offers to share', async ({ page }) => {
-    // Two and a half minutes of play, simulated frame by frame.
+  test('plays the daily challenge once for rewards, then offers to share', async ({
+    page,
+    browserName,
+  }) => {
+    // Up to two and a half minutes of play, simulated frame by frame.
     test.setTimeout(150_000);
+    test.slow(browserName === 'webkit', WEBKIT_FRAMES);
     await page.clock.install();
     await page.goto('./');
     await expect(page.getByTestId('daily-new')).toBeVisible();
     await page.getByTestId('daily').click();
     await expect(page.getByTestId('board')).toBeVisible();
     await expect(page.getByTestId('level')).toHaveText('Daily');
-    await page.clock.runFor(150_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    await playFor(page, 150_000, dialog);
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('shards-earned')).toHaveText('+10 shards');
     // The balance they make (v1.8.0).
@@ -305,8 +307,9 @@ test.describe('progression', () => {
   });
 });
 
-test('offers help after repeated failures on a level', async ({ page }) => {
+test('offers help after repeated failures on a level', async ({ page, browserName }) => {
   test.setTimeout(150_000);
+  test.slow(browserName === 'webkit', WEBKIT_FRAMES);
   await page.addInitScript(() => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
@@ -326,8 +329,8 @@ test('offers help after repeated failures on a level', async ({ page }) => {
   await page.getByTestId('play').click();
   await page.getByTestId('level-nebula-01').click();
   await expect(page.getByTestId('board')).toBeVisible();
-  await page.clock.runFor(150_000);
   const dialog = page.getByRole('dialog', { name: 'The chain wins' });
+  await playFor(page, 150_000, dialog);
   await expect(dialog).toBeVisible();
   // "Play again" comes first (v1.8.1): Enter replays, and the help is the next choice.
   await expect(dialog.getByTestId('replay')).toBeFocused();
@@ -436,11 +439,7 @@ test('flips the switches of the Volcano world by touch and by keyboard', async (
   await expect(live).toHaveText('Switch set to the shortcut');
 });
 
-test('plays around the black hole of the Singularity world', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
+test('plays around the black hole of the Singularity world', async ({ page, consoleErrors }) => {
   await page.addInitScript(() => {
     localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
     const levels: Record<string, { stars: number; best: number }> = {};
@@ -462,7 +461,7 @@ test('plays around the black hole of the Singularity world', async ({ page }) =>
     await board.click({ position: { x: box.width * (0.25 + i * 0.15), y: box.height * 0.3 } });
   }
   await page.keyboard.press('Space');
-  expect(errors).toEqual([]);
+  expect(await consoleErrors()).toEqual([]);
 });
 
 test('chooses the difficulty of the campaign on the map', async ({ page }) => {

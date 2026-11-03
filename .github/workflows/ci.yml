@@ -23,8 +23,9 @@ jobs:
       - run: npm ci
       - run: npm run verify
 
+  # Chromium only; Firefox and WebKit run in engines.yml.
   e2e:
-    name: Playwright journeys (mobile and desktop)
+    name: Playwright on Chromium (journeys and size matrix)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

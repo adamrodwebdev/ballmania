@@ -49,9 +49,9 @@ const RETURNING = () => {
 
 test.describe('portal rules', () => {
   for (const [width, height] of PORTAL_SIZES) {
-    test(`shows no page scrollbar at ${width}×${height}`, async ({ page }) => {
-      // The viewport is set per size: one project is enough.
-      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+    test(`shows no page scrollbar at ${width}×${height}`, async ({ page, formFactor }) => {
+      // The viewport is set per size: one form factor per engine is enough.
+      test.skip(formFactor !== 'desktop', 'desktop only');
       await page.setViewportSize({ width, height });
       await page.addInitScript(RETURNING);
       for (const tile of ['play', 'observatory', 'arcade', 'shop', 'achievements', null]) {
@@ -63,8 +63,12 @@ test.describe('portal rules', () => {
     });
   }
 
-  test("never scrolls a portal's page with the keys or the wheel", async ({ page, baseURL }) => {
-    test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+  test("never scrolls a portal's page with the keys or the wheel", async ({
+    page,
+    baseURL,
+    formFactor,
+  }) => {
+    test.skip(formFactor !== 'desktop', 'desktop only');
     await page.addInitScript(RETURNING);
     // The portal's page: taller than the window, the game in an 800 × 450 frame at its top.
     await page.setContent(
@@ -86,11 +90,13 @@ test.describe('portal rules', () => {
     await page.mouse.wheel(0, 800);
     expect(await portalScroll()).toBe(0);
 
-    // A screen longer than its frame scrolls inside the game, and only there.
+    // A screen longer than its frame scrolls inside the game, and only there: the wheel too.
     await game.getByTestId('achievements').click();
     await game.locator('#achievements-title').click();
-    await page.keyboard.press('End');
     const screen = game.locator('main');
+    await page.mouse.wheel(0, 200);
+    await expect.poll(() => screen.evaluate((main) => main.scrollTop)).toBeGreaterThan(0);
+    await page.keyboard.press('End');
     await expect
       .poll(() => screen.evaluate((main) => main.scrollTop + main.clientHeight - main.scrollHeight))
       .toBeGreaterThanOrEqual(-1);
@@ -160,9 +166,15 @@ const measureFrames = async (page: Page) => {
 
 test.describe('on a touch screen', () => {
   test.use({ isMobile: true, hasTouch: true, viewport: { width: 412, height: 839 } });
+  // The phone is set here: one run per engine, on its phone project, is enough.
+  test.skip(({ formFactor }) => formFactor !== 'mobile', 'mobile only');
 
-  test('draws 60 frames a second at most, however fast the screen', async ({ page }) => {
-    test.skip(test.info().project.name !== 'mobile', 'mobile project only');
+  test('draws 60 frames a second at most, however fast the screen', async ({
+    page,
+    browserName,
+  }) => {
+    // Its 4 ms timers wake on the system's 15.6 ms tick: the 240 Hz screen offers 64 frames.
+    test.skip(browserName === 'webkit' && process.platform === 'win32', 'WebKit under Windows');
     const { offered, drawn } = await measureFrames(page);
     expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
     expect(offered).toBeGreaterThan(100);
@@ -171,7 +183,6 @@ test.describe('on a touch screen', () => {
   });
 
   test('picks the board shape again at a restart after the phone was turned', async ({ page }) => {
-    test.skip(test.info().project.name !== 'mobile', 'mobile project only');
     await page.addInitScript(() =>
       localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' })),
     );
@@ -192,8 +203,8 @@ test.describe('on a touch screen', () => {
   });
 });
 
-test('draws every frame of a fast screen on a computer', async ({ page }) => {
-  test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+test('draws every frame of a fast screen on a computer', async ({ page, formFactor }) => {
+  test.skip(formFactor !== 'desktop', 'desktop only');
   const { offered, drawn } = await measureFrames(page);
   expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(false);
   expect(drawn).toBeGreaterThan(Math.min(100, offered * 0.8));

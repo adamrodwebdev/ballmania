@@ -75,9 +75,12 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
 
 test.describe('layout', () => {
   for (const [name, open] of Object.entries(SCREENS)) {
-    test(`never scrolls sideways on the ${name} screen, from 320 to 2560 px`, async ({ page }) => {
-      // The viewport is swept: one project is enough.
-      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+    test(`never scrolls sideways on the ${name} screen, from 320 to 2560 px`, async ({
+      page,
+      formFactor,
+    }) => {
+      // The viewport is swept: one form factor per engine is enough.
+      test.skip(formFactor !== 'desktop', 'desktop only');
       await page.addInitScript(() => {
         localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'id' }));
         localStorage.setItem(
@@ -120,8 +123,9 @@ test.describe('layout', () => {
   for (const [width, height] of FRAMES) {
     test(`shows the whole campaign map without scrolling at ${width}×${height}`, async ({
       page,
+      formFactor,
     }) => {
-      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      test.skip(formFactor !== 'desktop', 'desktop only');
       await page.setViewportSize({ width, height });
       await page.goto('./');
       await page.getByTestId('play').click();
@@ -143,8 +147,9 @@ test.describe('layout', () => {
   ] as const) {
     test(`shows the whole map with the Observatory's bubble at ${width}×${height}`, async ({
       page,
+      formFactor,
     }) => {
-      test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+      test.skip(formFactor !== 'desktop', 'desktop only');
       await page.addInitScript(() => {
         localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'ru' }));
         localStorage.setItem(

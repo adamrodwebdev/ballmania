@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures';
+import { expect, playFor, test, WEBKIT_FRAMES, type Page } from './fixtures';
 
 /**
  * The portal build (specification § 3.7), against the simulated portal
@@ -118,16 +118,18 @@ test.describe('portal build', () => {
 
   test('continues once after a defeat, and spares a new player any ad after it', async ({
     page,
+    browserName,
   }) => {
-    // Seven and a half minutes of play, simulated frame by frame.
+    // Seven and a half minutes on the clock, three games of them simulated frame by frame.
     test.setTimeout(360_000);
+    test.slow(browserName === 'webkit', WEBKIT_FRAMES);
     await english(page);
     await page.clock.install();
     // A new player: the visit opens in the first level.
     await page.goto('./');
     await expect(page.getByTestId('board')).toBeVisible();
-    await page.clock.runFor(150_000);
     const dialog = page.getByRole('dialog', { name: 'The chain wins' });
+    await playFor(page, 150_000, dialog);
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('ad-continue')).toContainText('Watch an ad');
     // The ad offer looks like any other choice, and shards are the way without an ad.
@@ -140,30 +142,35 @@ test.describe('portal build', () => {
     await expect(page.getByTestId('board')).toBeFocused();
     // Lost again: no second continue. On a first visit, a defeat is never followed
     // by an ad, even three minutes after the rewarded one.
-    await page.clock.runFor(190_000);
+    await playFor(page, 190_000, dialog);
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('ad-continue')).toHaveCount(0);
     await dialog.getByTestId('replay').click();
     await expect(dialog).toBeHidden();
     await expect(page.getByTestId('simulated-ad')).toHaveCount(0);
     expect(await log(page)).toContain('rewarded');
-    // Back to a menu: never an ad.
-    await page.clock.runFor(100_000);
+    // The game replayed is lost too, still in the first eight minutes. Back to a menu:
+    // never an ad.
+    await playFor(page, 120_000, dialog);
     await dialog.getByTestId('map').click();
     await expect(page.getByRole('heading', { level: 1, name: 'Campaign' })).toBeVisible();
     expect(await log(page)).not.toContain('interstitial');
   });
 
-  test('shows a returning player an ad between games after three minutes', async ({ page }) => {
+  test('shows a returning player an ad between games after three minutes', async ({
+    page,
+    browserName,
+  }) => {
     test.setTimeout(240_000);
+    test.slow(browserName === 'webkit', WEBKIT_FRAMES);
     await english(page);
     await returning(page);
     await page.clock.install();
     await page.goto('./');
     await page.getByTestId('daily').click();
     await expect(page.getByTestId('board')).toBeVisible();
-    await page.clock.runFor(190_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    await playFor(page, 190_000, dialog);
     await expect(dialog).toBeVisible();
     await dialog.getByTestId('replay').click();
     await expect(page.getByTestId('simulated-ad')).toBeVisible();
@@ -172,8 +179,12 @@ test.describe('portal build', () => {
     expect(await log(page)).toContain('interstitial');
   });
 
-  test('doubles the shards of a game, and lends a cosmetic to try', async ({ page }) => {
+  test('doubles the shards of a game, and lends a cosmetic to try', async ({
+    page,
+    browserName,
+  }) => {
     test.setTimeout(120_000);
+    test.slow(browserName === 'webkit', WEBKIT_FRAMES);
     await english(page);
     await returning(page);
     await page.clock.install();
@@ -186,8 +197,8 @@ test.describe('portal build', () => {
     await page.getByTestId('home').click();
     await page.getByTestId('daily').click();
     await expect(page.getByTestId('board')).toBeVisible();
-    await page.clock.runFor(150_000);
     const dialog = page.getByRole('dialog', { name: 'The chain reached the hole' });
+    await playFor(page, 150_000, dialog);
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('shards-earned')).toHaveText('+10 shards');
     await dialog.getByTestId('ad-double').click();
@@ -200,14 +211,18 @@ test.describe('portal build', () => {
     await expect(page.getByTestId('wallet')).toHaveText(/20 shards/);
   });
 
-  test('shows no ad at all in a build without ads (CrazyGames Basic Launch)', async ({ page }) => {
+  test('shows no ad at all in a build without ads (CrazyGames Basic Launch)', async ({
+    page,
+    browserName,
+  }) => {
     test.setTimeout(240_000);
+    test.slow(browserName === 'webkit', WEBKIT_FRAMES);
     await english(page);
     await page.clock.install();
     await page.goto('./?ads=off');
     await expect(page.getByTestId('board')).toBeVisible();
-    await page.clock.runFor(150_000);
     const dialog = page.getByRole('dialog', { name: 'The chain wins' });
+    await playFor(page, 150_000, dialog);
     await expect(dialog).toBeVisible();
     // Continuing is still offered, for shards only, and says why it can't be taken yet.
     await expect(dialog.getByTestId('ad-continue')).toHaveCount(0);
@@ -215,7 +230,7 @@ test.describe('portal build', () => {
     await expect(dialog.getByTestId('shard-continue')).toBeDisabled();
     await expect(dialog.getByTestId('ads-blocked')).toHaveCount(0);
     // Even three minutes on, replaying brings no ad.
-    await page.clock.runFor(100_000);
+    await playFor(page, 100_000, dialog);
     await dialog.getByTestId('replay').click();
     await expect(page.getByTestId('simulated-ad')).toHaveCount(0);
     await expect(dialog).toBeHidden();

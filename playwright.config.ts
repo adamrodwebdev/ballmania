@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import type { TestOptions } from './e2e/fixtures';
 
 /**
  * Ports of the three builds. Another project may already serve on them, and a
@@ -17,7 +18,47 @@ const handheld = (width: number, height: number) => ({
   viewport: { width, height },
   isMobile: true,
   hasTouch: true,
+  formFactor: 'mobile' as const,
 });
+
+/**
+ * The two form factors of the journeys, the same on every engine: a phone,
+ * 390 × 844 under a finger, and a computer, 1280 × 800 with a mouse, at one
+ * pixel per CSS pixel, as Chromium's (Desktop Safari's descriptor says 2).
+ */
+const PHONE = {
+  viewport: { width: 390, height: 844 },
+  hasTouch: true,
+  formFactor: 'mobile',
+} as const;
+const COMPUTER = {
+  viewport: { width: 1280, height: 800 },
+  deviceScaleFactor: 1,
+  formFactor: 'desktop',
+} as const;
+
+/**
+ * Twice the time for a test and for an assertion on WebKit: Playwright's
+ * build has no OffscreenCanvas under Windows, so the title reel draws in the
+ * page, in software (14 frames a second where Chromium draws 30), and its
+ * timers wake on the system's 15.6 ms tick (03/11/2026).
+ */
+const WEBKIT_PACE = { timeout: 60_000, expect: { timeout: 10_000 } };
+
+/**
+ * Firefox and WebKit play the journeys too (v1.9.0, the cross-browser rule),
+ * only when asked for (`--project="firefox-*"`, `--project="webkit-*"`): every
+ * week on `dev` in CI, and before every release (.github/workflows/engines.yml).
+ * Firefox plays the computer only, as the rule asks (Firefox for Android is
+ * rare, and Playwright has no Firefox phone); WebKit plays both form factors,
+ * the phone as an iPhone. Checks that need CDP, Chromium's own protocol (a
+ * held finger, a notch's insets), are tagged `@cdp`.
+ */
+const ENGINES = [
+  { name: 'firefox-desktop', use: { ...devices['Desktop Firefox'], ...COMPUTER } },
+  { name: 'webkit-desktop', use: { ...devices['Desktop Safari'], ...COMPUTER }, ...WEBKIT_PACE },
+  { name: 'webkit-mobile', use: { ...devices['iPhone 13'], ...PHONE }, ...WEBKIT_PACE },
+].map((project) => ({ ...project, default: false, grepInvert: /@cdp/ }));
 
 /**
  * The test matrix (v1.7.6, the responsive directive): each size runs the
@@ -33,16 +74,17 @@ const MATRIX = [
   { name: 'tablet', use: handheld(768, 1024) },
   {
     name: 'desktop-1080',
-    use: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 } },
+    use: { ...devices['Desktop Chrome'], ...COMPUTER, viewport: { width: 1920, height: 1080 } },
   },
   {
     name: 'desktop-1440',
-    use: { ...devices['Desktop Chrome'], viewport: { width: 2560, height: 1440 } },
+    use: { ...devices['Desktop Chrome'], ...COMPUTER, viewport: { width: 2560, height: 1440 } },
   },
   {
     name: 'zoom-200',
     use: {
       ...devices['Desktop Chrome'],
+      ...COMPUTER,
       viewport: { width: 640, height: 400 },
       deviceScaleFactor: 2,
     },
@@ -51,6 +93,7 @@ const MATRIX = [
     name: 'zoom-400',
     use: {
       ...devices['Desktop Chrome'],
+      ...COMPUTER,
       viewport: { width: 320, height: 200 },
       deviceScaleFactor: 4,
     },
@@ -58,10 +101,10 @@ const MATRIX = [
 ].map((project) => ({ ...project, testMatch: 'matrix.spec.ts' }));
 
 /**
- * Journeys run on the production build, in the two viewports of the
- * specification; the test matrix adds its sizes.
+ * Journeys run on the production build, in the two form factors of the
+ * specification, on Chromium by default; the test matrix adds its sizes.
  */
-export default defineConfig({
+export default defineConfig<TestOptions>({
   testDir: 'e2e',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
@@ -89,14 +132,9 @@ export default defineConfig({
     },
   ],
   projects: [
-    {
-      name: 'mobile',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, hasTouch: true },
-    },
-    {
-      name: 'desktop',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
-    },
+    { name: 'mobile', use: { ...devices['Desktop Chrome'], ...PHONE } },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], ...COMPUTER } },
     ...MATRIX,
+    ...ENGINES,
   ],
 });

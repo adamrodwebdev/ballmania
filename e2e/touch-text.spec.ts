@@ -56,9 +56,10 @@ const levelBox = (page: Page) =>
 test.describe('touch and text', () => {
   test.describe('under a finger', () => {
     test.use({ isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 } });
+    // The phone is set here: one run per engine, on its phone project, is enough.
+    test.skip(({ formFactor }) => formFactor !== 'mobile', 'mobile only');
 
     test('gives the buttons pressed all game long 48 px, the others 44', async ({ page }) => {
-      test.skip(test.info().project.name !== 'mobile', 'mobile project only');
       await page.addInitScript(seed, null);
       await startFirstLevel(page);
       for (const height of await heights(page, '.controls .control')) {
@@ -70,7 +71,6 @@ test.describe('touch and text', () => {
     });
 
     test('names each world on a button 44 px tall', async ({ page }) => {
-      test.skip(test.info().project.name !== 'mobile', 'mobile project only');
       await page.addInitScript(seed, null);
       await page.goto('./');
       await page.getByTestId('play').click();
@@ -82,7 +82,6 @@ test.describe('touch and text', () => {
     });
 
     test('lists its choices at 16 px, so that iOS does not zoom in', async ({ page }) => {
-      test.skip(test.info().project.name !== 'mobile', 'mobile project only');
       await page.addInitScript(seed, null);
       await page.goto('./');
       await page.getByTestId('open-settings').click();
@@ -98,8 +97,9 @@ test.describe('touch and text', () => {
 
   test("writes the HUD's words at 14 px at least in CrazyGames' smallest frame", async ({
     page,
+    formFactor,
   }) => {
-    test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+    test.skip(formFactor !== 'desktop', 'desktop only');
     await page.setViewportSize({ width: 821, height: 462 });
     await page.addInitScript(seed, null);
     await startFirstLevel(page);
@@ -119,8 +119,11 @@ test.describe('touch and text', () => {
     expect(smallest).toBeGreaterThanOrEqual(14);
   });
 
-  test("paints the browser's bar in the colour of the theme shown", async ({ page }) => {
-    test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+  test("paints the browser's bar in the colour of the theme shown", async ({
+    page,
+    formFactor,
+  }) => {
+    test.skip(formFactor !== 'desktop', 'desktop only');
     const bar = page.locator('meta[name="theme-color"]');
     // Dark by default, whatever the system says.
     await page.emulateMedia({ colorScheme: 'light' });
@@ -138,9 +141,10 @@ test.describe('touch and text', () => {
 
   test.describe('on a phone on its side, with a notch and a home bar', () => {
     test.use({ isMobile: true, hasTouch: true, viewport: { width: 844, height: 390 } });
+    test.skip(({ formFactor }) => formFactor !== 'mobile', 'mobile only');
 
-    test('keeps the menus and the board clear of them', async ({ page }) => {
-      test.skip(test.info().project.name !== 'mobile', 'mobile project only');
+    // The insets are set over CDP, Chromium's own protocol (`@cdp`, Chromium only).
+    test('keeps the menus and the board clear of them', { tag: '@cdp' }, async ({ page }) => {
       const cdp = await page.context().newCDPSession(page);
       // An iPhone: the notch on the left, as much room on the right, the home bar below.
       await cdp.send('Emulation.setSafeAreaInsetsOverride', {
@@ -162,8 +166,8 @@ test.describe('touch and text', () => {
     });
   });
 
-  test('keeps a 2:1 playing frame in a window wider than that', async ({ page }) => {
-    test.skip(test.info().project.name !== 'desktop', 'desktop project only');
+  test('keeps a 2:1 playing frame in a window wider than that', async ({ page, formFactor }) => {
+    test.skip(formFactor !== 'desktop', 'desktop only');
     await page.setViewportSize({ width: 2560, height: 1080 });
     await page.addInitScript(seed, null);
     await startFirstLevel(page);

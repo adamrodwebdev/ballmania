@@ -108,8 +108,8 @@ test.describe('the training', () => {
     await expect(page.getByTestId('training-steps')).toHaveAttribute('aria-label', 'Step 3 of 3');
   });
 
-  test("teaches E1's controls one at a time, with the keyboard", async ({ page }) => {
-    test.skip(test.info().project.name !== 'desktop', "a desktop's keys");
+  test("teaches E1's controls one at a time, with the keyboard", async ({ page, formFactor }) => {
+    test.skip(formFactor !== 'desktop', "a desktop's keys");
     await english(page);
     await page.goto('./');
     await page.getByTestId('play').click();
@@ -132,8 +132,8 @@ test.describe('the training', () => {
     await expect(hint).toBeHidden();
   });
 
-  test("teaches E1's controls with the mouse", async ({ page }) => {
-    test.skip(test.info().project.name !== 'desktop', 'a desktop mouse');
+  test("teaches E1's controls with the mouse", async ({ page, formFactor }) => {
+    test.skip(formFactor !== 'desktop', 'a desktop mouse');
     await english(page);
     await page.goto('./');
     await page.getByTestId('play').click();
@@ -152,26 +152,40 @@ test.describe('the training', () => {
     await expect(hint).toBeHidden();
   });
 
-  test("teaches E1's controls with a finger", async ({ page }) => {
-    test.skip(test.info().project.name !== 'mobile', 'a touch screen');
-    await english(page);
-    await page.goto('./');
-    await page.getByTestId('play').tap();
-    const board = page.getByTestId('board');
-    await expect(board).toBeVisible();
-    await landTheNova(page, (x, y) => board.tap({ position: { x, y } }));
-    const hint = page.getByTestId('hint');
-    await expect(hint).toContainText(SWAP);
-    await page.getByTestId('swap').tap();
-    await expect(hint).toContainText(/Keep your finger still|Hold the click/);
-    // A finger held still, then lifted: real touches, which the board captures.
-    const box = (await board.boundingBox())!;
-    const point = { x: box.x + box.width / 2, y: box.y + box.height * 0.22 };
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
-    await expect(hint).toContainText('release: the charged shot');
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-    await expect(hint).toBeHidden();
+  test.describe('with a finger', () => {
+    test.skip(({ formFactor }) => formFactor !== 'mobile', 'a touch screen');
+
+    /** Taps the first lessons away, the Nova's then the swap's: the charge's line comes. */
+    const tapToTheCharge = async (page: Page) => {
+      await english(page);
+      await page.goto('./');
+      await page.getByTestId('play').tap();
+      const board = page.getByTestId('board');
+      await expect(board).toBeVisible();
+      await landTheNova(page, (x, y) => board.tap({ position: { x, y } }));
+      await expect(page.getByTestId('hint')).toContainText(SWAP);
+      await page.getByTestId('swap').tap();
+    };
+
+    test("teaches E1's controls with a finger, up to the charge", async ({ page }) => {
+      await tapToTheCharge(page);
+      await expect(page.getByTestId('hint')).toContainText(/Keep your finger still|Hold the click/);
+    });
+
+    // A finger held still, then lifted: real touches, which the board captures. Playwright
+    // only taps: holding takes CDP, Chromium's own protocol (`@cdp`, Chromium only).
+    test("charges E1's shot under a finger held still", { tag: '@cdp' }, async ({ page }) => {
+      await tapToTheCharge(page);
+      const hint = page.getByTestId('hint');
+      await expect(hint).toContainText(/Keep your finger still|Hold the click/);
+      const box = (await page.getByTestId('board').boundingBox())!;
+      const point = { x: box.x + box.width / 2, y: box.y + box.height * 0.22 };
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+      await expect(hint).toContainText('release: the charged shot');
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect(hint).toBeHidden();
+    });
   });
 
   test('is where a new player lands on a portal, playing from the first frame', async ({

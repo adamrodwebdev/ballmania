@@ -83,7 +83,9 @@ Où en sont les préalables ce jour-là :
 - **Le build se prépare dès maintenant** (étapes 2 à 6), pour un dépôt dès que Yandex rouvrira.
 - **Avancement, le 03/11/2026** : étapes 2 à 5 faites et dans `dev` (adaptateur, build,
   conformité, fiche avec ses visuels) ; la revue de l'étape 6 est dans `marketing/yandex/README.md`.
-  Restent le brouillon dans la console, Firefox en CI, un vrai iPhone et « Yandex Games » décoché
+  Firefox et WebKit jouent désormais les parcours de bout en bout (Firefox sur ordinateur, WebKit
+  sur ordinateur et en iPhone), en CI sur `dev` chaque semaine et avant chaque sortie
+  (`engines.yml`). Restent le brouillon dans la console, un vrai iPhone et « Yandex Games » décoché
   dans Playgama.
 
 | Étape                  | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Fini quand                                                                                                                              |
