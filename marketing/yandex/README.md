@@ -18,8 +18,12 @@ champ et visuel de la fiche (règle 5.1.3) ; un titre latin peut servir à toute
   obligatoire `trailer-landscape-1920x1080.mp4` et la verticale `trailer-vertical-1080x1920.mp4`,
   de moins de 28 s, la couverture une seconde puis les moments du jeu (70 % de jeu au moins,
   5.1.1.3). Les vidéos ne sont pas versionnées.
-- Captures (à faire) : au moins deux d'ordinateur (paysage) et deux de téléphone, côté long de
-  1 280 à 2 560 px, 70 % de vrai jeu au moins (5.1.1.2).
+- Captures : `npm run build:yandex`, puis `node marketing/yandex/shots.mjs ru` (et `en`, `fr`,
+  `id`) écrit dans `out/` quatre captures de vraie partie par langue, le HUD dans la langue de
+  l'onglet de la fiche : deux d'ordinateur en 1920 × 1080 (miroirs néon, trou noir) et deux de
+  téléphone en 1080 × 1920 (alchimie des couleurs, aimant), côté long de 1 280 à 2 560 px,
+  100 % de jeu (5.1.1.2). Le script joue le build Yandex contre une doublure du SDK, avec toute
+  la campagne ouverte. Les captures ne sont pas versionnées.
 
 ## Onglet « Общее » (général)
 
