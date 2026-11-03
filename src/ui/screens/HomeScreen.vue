@@ -5,6 +5,7 @@ import { playerTrace, useServices } from '@/app/AppServices';
 import { GiftClaim } from '@/app/GiftClaim';
 import { startsTraining } from '@/app/landing';
 import { CAMPAIGN } from '@/levels/campaign';
+import { withListedName } from '@/platform/platforms';
 import { DailyChallenge } from '@/player/DailyChallenge';
 import { GIFT_SHARDS } from '@/player/DailyGift';
 import type { Currency } from '@/ui/components/Currency';
@@ -220,8 +221,8 @@ const dayLabel = (day: number, shards: number) =>
     shards,
   );
 const version = __APP_VERSION__;
-/** Playgama wants a two-to-four-word title, the same in the game and on its page. */
-const gameName = __PLATFORM__ === 'playgama' ? 'Ball Mania' : t('app.name');
+/** The name the portal lists the game under, the same in the game and on its page. */
+const gameName = withListedName(__PLATFORM__, t('app.name'));
 
 const settingsDialog = ref<{ open: () => void } | null>(null);
 /** The settings cover the screen: the reel waits behind them. */

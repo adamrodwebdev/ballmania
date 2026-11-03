@@ -4,7 +4,13 @@ import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
-import { CRAZYGAMES_SDK, PLATFORM_IDS, type PlatformId } from './src/platform/platforms.ts';
+import {
+  CRAZYGAMES_SDK,
+  PLATFORM_IDS,
+  withListedName,
+  YANDEX_SDK,
+  type PlatformId,
+} from './src/platform/platforms.ts';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
   version: string;
@@ -314,8 +320,8 @@ const escapeHtml = (text: string) =>
 const pageText = (platform: PlatformId): Plugin => {
   const locale = platform === 'standalone' ? 'fr' : 'en';
   const { title, description } = metaOf(locale);
-  // Playgama: the two-word title, as on its page.
-  const shown = platform === 'playgama' ? title.replace('Ballmania', 'Ball Mania') : title;
+  // Playgama and Yandex: the two-word title, as on their pages.
+  const shown = withListedName(platform, title);
   return {
     name: 'ballmania:page-text',
     apply: 'build',
@@ -336,6 +342,19 @@ const crazygames = (): Plugin => ({
   apply: 'build',
   transformIndexHtml: () => [{ tag: 'script', attrs: { src: CRAZYGAMES_SDK }, injectTo: 'head' }],
 });
+
+/**
+ * Yandex Games: its SDK in the <head>, as their documentation shows, from the
+ * relative `/sdk.js` Yandex serves next to the game (rules 1.7 and 1.19.1).
+ */
+const yandex = (): Plugin => ({
+  name: 'ballmania:yandex',
+  apply: 'build',
+  transformIndexHtml: () => [{ tag: 'script', attrs: { src: YANDEX_SDK }, injectTo: 'head' }],
+});
+
+/** What a portal adds to the page of its build: its SDK, and its own files. */
+const PORTAL_PAGES: Partial<Record<PlatformId, () => Plugin>> = { crazygames, playgama, yandex };
 
 /**
  * The platform of a build (specification § 3.7): `vite build --mode poki`
@@ -375,8 +394,7 @@ export default defineConfig(({ mode }) => {
       ...(site ? [contentSecurityPolicy(), seo()] : demo ? [contentSecurityPolicy()] : []),
       pageText(platform),
       ...(platform === 'standalone' ? [firstPaint()] : []),
-      ...(platform === 'playgama' ? [playgama()] : []),
-      ...(platform === 'crazygames' ? [crazygames()] : []),
+      PORTAL_PAGES[platform]?.(),
     ],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

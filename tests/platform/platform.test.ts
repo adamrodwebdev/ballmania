@@ -17,7 +17,7 @@ import {
   type GameDistributionHost,
 } from '@/platform/GameDistributionPlatform';
 import type { PlatformAdapter } from '@/platform/PlatformAdapter';
-import { PLATFORM_IDS } from '@/platform/platforms';
+import { PLATFORM_IDS, withListedName } from '@/platform/platforms';
 import { PlaygamaPlatform, type PlaygamaBridge } from '@/platform/PlaygamaPlatform';
 import { POKI_SDK, PokiPlatform, type PokiSdk } from '@/platform/PokiPlatform';
 import { SimulatedPlatform } from '@/platform/SimulatedPlatform';
@@ -71,6 +71,17 @@ class FakePortal extends StandalonePlatform {
     return Promise.resolve(this.watched);
   }
 }
+
+describe('listed names', () => {
+  it('names the game in two words where Playgama and Yandex list it so, elsewhere as it is', () => {
+    expect(withListedName('yandex', 'Ballmania — marble shooting reinvented')).toBe(
+      'Ball Mania — marble shooting reinvented',
+    );
+    expect(withListedName('playgama', 'Ballmania')).toBe('Ball Mania');
+    expect(withListedName('standalone', 'Ballmania')).toBe('Ballmania');
+    expect(withListedName('crazygames', 'Ballmania')).toBe('Ballmania');
+  });
+});
 
 describe('AdPolicy', () => {
   it('waits three minutes after the start of the visit and after every ad', () => {

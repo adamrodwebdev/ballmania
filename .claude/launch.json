@@ -24,6 +24,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["vite", "preview", "--mode", "playgama", "--port", "4186", "--strictPort"],
       "port": 4186
+    },
+    {
+      "name": "ballmania-yandex",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--mode", "yandex", "--port", "4187", "--strictPort"],
+      "port": 4187
     }
   ]
 }

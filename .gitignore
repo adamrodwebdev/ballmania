@@ -12,3 +12,4 @@ Thumbs.db
 dist-*/
 marketing/crazygames/out/*.mp4
 marketing/playgama/out/*.zip
+marketing/yandex/out/*.zip
