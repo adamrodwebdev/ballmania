@@ -11,6 +11,7 @@ export class StandalonePlatform implements PlatformAdapter {
   readonly isPortal: boolean = false;
   readonly stopsOnAutoPause = false;
   readonly allowsSharing = true;
+  readonly showsVersion = true;
   private readonly storage: KeyValueStorage;
 
   constructor(

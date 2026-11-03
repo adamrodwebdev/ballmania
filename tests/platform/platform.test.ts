@@ -204,6 +204,7 @@ describe('StandalonePlatform', () => {
     expect(site.hasAds).toBe(false);
     expect(site.isPortal).toBe(false);
     expect(site.allowsSharing).toBe(true);
+    expect(site.showsVersion).toBe(true);
     expect(await site.shareLink({ day: '20261013' })).toBe('https://ballmania.example/jeu/');
     expect(PLATFORM_IDS).toContain(site.id);
   });
@@ -869,6 +870,8 @@ describe('YandexPlatform', () => {
     expect(calls).toEqual(['getData', 'ready', 'start', 'stop']);
     expect(portal.stopsOnAutoPause).toBe(true);
     expect(portal.allowsSharing).toBe(false);
+    // No version number in the game: developer information to Yandex (rule 1.14).
+    expect(portal.showsVersion).toBe(false);
     expect(portal.muted()).toBe(false);
     expect(await portal.shareLink()).toBeNull();
   });

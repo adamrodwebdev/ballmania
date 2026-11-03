@@ -34,6 +34,11 @@ export interface PlatformAdapter {
    * off the platform (version 1.9.0).
    */
   readonly allowsSharing: boolean;
+  /**
+   * False where the game shows no version number: Yandex counts it as
+   * developer information in the game (rule 1.14).
+   */
+  readonly showsVersion: boolean;
   /** Loads and starts the SDK. Resolves even when it fails. */
   init(): Promise<void>;
   /** Where saves go: the SDK's storage when the portal asks for it. */

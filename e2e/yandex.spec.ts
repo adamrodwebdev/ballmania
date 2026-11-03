@@ -175,4 +175,33 @@ test.describe('Yandex Games build', () => {
     await expect(page.getByRole('status').filter({ hasText: 'circled marble' })).toBeAttached();
     expect(await log(page)).toContain('rewarded');
   });
+
+  test('shows no version number, and opens no menu on a right click or a long press', async ({
+    page,
+  }) => {
+    await onYandex(page, { data: RETURNING });
+    await page.goto('./');
+    await expect(page.getByTestId('play')).toBeVisible();
+    // Developer information to Yandex (rule 1.14).
+    await expect(page.getByTestId('version')).toHaveCount(0);
+    // On the title screen too, far from the board (rules 1.6.1.8 and 1.6.2.7).
+    const opened = await page.getByTestId('play').evaluate((button) => {
+      const press = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      return button.dispatchEvent(press);
+    });
+    expect(opened).toBe(false);
+    await expect(page.locator('body')).toHaveCSS('user-select', 'none');
+  });
+
+  test('keeps following the language Yandex gives after a change of settings', async ({ page }) => {
+    await onYandex(page, { lang: 'ru', data: RETURNING });
+    await page.goto('./');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+    await page.getByTestId('sound-toggle').click();
+    // Yandex in English now: the debug panel's language mock opens the game again (rule 2.14).
+    await onYandex(page, { lang: 'en', data: RETURNING });
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.getByTestId('sound-toggle')).toHaveAttribute('aria-pressed', 'true');
+  });
 });

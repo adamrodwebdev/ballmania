@@ -39,26 +39,29 @@ const isEffectLevel = (value: unknown): value is EffectLevel =>
 
 /**
  * The player's preferences: validated when read, saved on every change, and
- * exposed read-only so that only `update` can change them.
+ * exposed read-only so that only `update` can change them. Only what the
+ * player chose is saved: a default, such as the language their portal gives,
+ * keeps following that portal (Yandex rule 2.14), whatever else they changed.
  */
 export class SettingsService {
   private readonly state: Settings;
+  /** What the player chose: the settings saved. */
+  private chosen: Partial<Settings>;
   readonly current: Readonly<Settings>;
 
   constructor(
     private readonly storage: KeyValueStorage,
     defaults: Settings,
   ) {
-    this.state = reactive({
-      ...defaults,
-      ...SettingsService.parse(readJson(storage, SETTINGS_KEY)),
-    });
+    this.chosen = SettingsService.parse(readJson(storage, SETTINGS_KEY));
+    this.state = reactive({ ...defaults, ...this.chosen });
     this.current = readonly(this.state);
   }
 
   update(patch: Partial<Settings>): void {
     Object.assign(this.state, patch);
-    this.storage.set(SETTINGS_KEY, JSON.stringify(this.state));
+    this.chosen = { ...this.chosen, ...patch };
+    this.storage.set(SETTINGS_KEY, JSON.stringify(this.chosen));
   }
 
   /** Keeps only the valid fields of a stored value. */
