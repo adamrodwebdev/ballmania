@@ -29,12 +29,12 @@ champ et visuel de la fiche (règle 5.1.3) ; un titre latin peut servir à toute
 - **Ориентация** : « Любая » (les deux), le jeu se réorganise en portrait comme en paysage.
 - **Игра переведена на** : russe, anglais, français, indonésien ; chaque langue bascule en
   entier avec le SDK (règle 2.14, vérifiée par `e2e/yandex.spec.ts`).
-- **Возрастной рейтинг** : 6+. Aucune violence réaliste, mais des explosions de billes et un
-  boss, le Colosse, qui rugit et disparaît dans les étincelles : le 0+ exclut ce qui peut
-  effrayer un jeune enfant, explosions comprises (2.7).
-- **Категории** (deux au plus, 2.3, premier motif de refus) : « Аркады » et « Головоломки », à
-  confirmer dans la liste de la console. Le jeu est un tir de billes en temps réel (la chaîne
-  avance), avec des énigmes à coups comptés.
+- **Возрастной рейтинг** : 6+ (décidé le 03/11/2026). Aucune violence réaliste, mais des
+  explosions de billes et un boss, le Colosse, qui rugit et disparaît dans les étincelles : le
+  0+ exclut ce qui peut effrayer un jeune enfant, explosions comprises (2.7).
+- **Категории** (deux au plus, 2.3, premier motif de refus) : « Аркады » et « Головоломки »
+  (décidé le 03/11/2026). Le jeu est un tir de billes en temps réel (la chaîne avance), avec
+  des énigmes à coups comptés.
 - **Ключевые слова** (minuscules, 100 caractères au plus) :
   `шарики, стрелялка шариками, три в ряд, цепочка шаров, головоломка, аркада, космос`
 - **Игра использует облачные сохранения** : coché (`player.setData()`, règle 1.11).
