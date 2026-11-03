@@ -66,6 +66,22 @@ distribution de Playgama, avec votre accord.
 - **Voie de contrat choisie au premier dépôt** de l'un des deux jeux : l'ЕЛС si ses inscriptions
   ont rouvert, sinon RSYa comme entrepreneur individuel ; aucune inscription à RSYa avant.
 
+**Décidé le 03/11/2026** : la voie CrazyGames est abandonnée, et tout l'effort va au build Yandex.
+Où en sont les préalables ce jour-là :
+
+- **Compte développeur créé** : le profil « AdamRodWebDev », ouvert sur yandex.com et commun à Ball
+  Mania et à Lumirift. La licence des non-résidents du 28/10/2026 est acceptée, avec les règles de
+  placement et les conditions d'affichage dans l'Union européenne. Son article 1.4 demande l'accord
+  écrit de Yandex avant toute publicité sur la coopération : aucune annonce « maintenant sur Yandex
+  Games » sans lui.
+- **Les nouveaux partenaires ne sont pas acceptés** depuis la panne : ni contrat, ni modération pour
+  l'instant, mais les brouillons sont possibles. La réouverture sera annoncée sur le canal Telegram
+  des développeurs.
+- **Voie de contrat : RSYa**, une fois un brouillon déposé, après une vérification comptable de
+  l'URSSAF et de la TVA. La contrepartie est Air Smart Advertising Solutions FZ-LLC (Dubaï) :
+  versements en euros vers un IBAN, dès 100 €, sous 60 jours bancaires.
+- **Le build se prépare dès maintenant** (étapes 2 à 6), pour un dépôt dès que Yandex rouvrira.
+
 | Étape                  | Contenu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Fini quand                                                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | 1. Préalables (auteur) | Compte développeur créé, le même que pour Lumirift ; titre « Ball Mania » vérifié libre dans la console ; réponse de l'équipe de RSYa sur les documents, la TVA et les versements vers la France ; « Yandex Games » décoché dans la distribution de Playgama. Rien n'est signé, créé ni décoché sans votre accord.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Compte ouvert ; titre retenu ; réponse de RSYa reçue ; Playgama ne diffuse plus vers Yandex.                                            |
@@ -80,12 +96,8 @@ distribution de Playgama, avec votre accord.
 **Laissé de côté** (23/10/2026) : la diffusion vers Yandex par Playgama (écartée au profit de la
 voie directe) ; les achats intégrés ; la bannière collante ; le turc.
 
-**VK : en attente d'un avis juridique.** La holding VK est sous sanctions européennes depuis le
-13/07/2026, et ses contrats de monétisation ne s'ouvrent aux étrangers qu'en tant que société, après
-contact avec VK. Si l'avis le permet, VK aura sa propre feuille de route : un adaptateur VK Bridge,
-un menu de départ complet exigé (règle 4.2.10, contraire à notre règle « jouer, c'est jouer » sur
-les portails), le stockage de VK au lieu du stockage local, aucune publicité au lancement. Fiche de
-référence : `references/vk-games.md`.
+**VK : abandonné le 03/11/2026**, pour Ball Mania comme pour Lumirift : la holding VK est sous
+sanctions européennes depuis le 13/07/2026.
 
 ## Stratégie de croissance : chaque ligne à 5 (décidée le 26/10/2026)
 
@@ -102,12 +114,12 @@ https://claude.ai/artifact/Rp94DZXtBfcMrCUH8YwXjo (pages privées de l'auteur).
 **Trois phases, trois portes** :
 
 - **A. Prouver le jeu** (jusqu'à mi-novembre 2026) : la fin de la 1.8.0 (étapes 4 à 8), puis le
-  dépôt CrazyGames et Yandex Games (1.9.0), tous deux avant la fin novembre, pour que la sortie sur
-  Yandex et un Full Launch de CrazyGames profitent des tarifs publicitaires de décembre. Porte A :
-  au moins 25 % des inconnus au-delà de 3 minutes et les bandes de tension du robot tenues, avant le
-  dépôt CrazyGames.
+  dépôt sur Yandex Games (1.9.0) avant la fin novembre, pour que la sortie profite des tarifs
+  publicitaires de décembre ; la date dépend de la réouverture de Yandex aux nouveaux partenaires.
+  Porte A : les bandes de tension du robot tenues avant le dépôt. La voie CrazyGames est abandonnée
+  (03/11/2026).
 - **B. Donner des raisons de revenir** (mi-novembre à fin janvier 2027) : 1.10.0, 1.11.0 et 1.12.0.
-  Porte B, sur les mesures du Basic Launch et de Yandex : rétention J1 d'au moins 10 % et 8 minutes
+  Porte B, sur les mesures de Yandex et du bac à sable Playgama : rétention J1 d'au moins 10 % et 8 minutes
   de jeu en moyenne ; très en dessous, on corrige une fois le plus gros écart, puis l'effort passe à
   un autre jeu.
 - **C. Gagner et se diffuser** (février à avril 2027) : 1.13.0, 1.14.0 et 1.15.0. Porte C : 4 $ pour
@@ -375,6 +387,9 @@ le bac à sable Playgama, dont un tiers au-delà de 2 minutes et une sur dix au-
 puis la revue de modérateur complète, les vidéos rendues de nouveau, la fiche et la case Progress
 Save. Les événements de niveau de la 1.10.0 porteront l'appareil et l'essai, pour caler le robot
 sur les premiers joueurs.
+
+**Le 03/11/2026**, la voie CrazyGames est abandonnée : le dépôt et ses dernières étapes ne sont plus
+à faire. La 1.8.1 reste dans le bac à sable Playgama, et l'effort passe au build Yandex (1.9.0).
 
 ## v1.8.0 — Les cinq premières minutes (livrée le 27/10/2026)
 
