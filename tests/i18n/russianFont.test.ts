@@ -137,4 +137,14 @@ describe('the Russian face', () => {
     expect(defaults).toContain("'Ballmania Cyrillic'");
     expect(defaults).not.toContain("'Ballmania Russian'");
   });
+
+  it('sets the Russian text in its own face, with no web face behind it', () => {
+    // With Fredoka behind it, WebKit downloaded Fredoka 700 all the same (v1.9.0): the cut
+    // holds the whole copy, so the stack goes straight on to the system's faces.
+    const tokens = file('src/styles/tokens.css').toString('utf8');
+    const russian = /:root:lang\(ru\)\s*{([^}]*)}/.exec(tokens)![1]!;
+    const stack = /--font-ui:([^;]*);/.exec(russian)![1]!.trim();
+    expect(stack.startsWith("'Ballmania Russian',")).toBe(true);
+    expect(stack).not.toContain('Fredoka');
+  });
 });
