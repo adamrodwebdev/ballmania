@@ -3,8 +3,10 @@
  * rounded like Fredoka (SIL Open Font License 1.1, copyright and licence names
  * kept in the file). One variable file for every weight, cut with fontTools from
  * Google Fonts' Nunito[wght] to what Russian shows: its alphabet, the digits,
- * the punctuation and the few Latin letters of its texts (23.6 KB). A missing
- * character falls back to Fredoka.
+ * the punctuation, the few Latin letters of its texts and the soft hyphens that
+ * break its long words (23.7 KB). A missing character falls back to Fredoka,
+ * which WebKit and Firefox then download, even for an invisible soft hyphen
+ * (tests/i18n/russianFont.test.ts holds the cut to the Russian copy).
  *
  * Weights are matched to the game's faces: each rule declares a single weight,
  * and the browser clamps the font's weight axis to it. Text (Fredoka 500) is set
@@ -20,8 +22,8 @@
   font-weight: 600;
   src: url('../assets/fonts/nunito-russian-wght.woff2') format('woff2');
   unicode-range:
-    U+0020-007E, U+00A0, U+00AB, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2013-2014, U+2026,
-    U+2116, U+0401, U+0410-044F, U+0451;
+    U+0020-007E, U+00A0, U+00AB, U+00AD, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2010,
+    U+2013-2014, U+2026, U+2116, U+0401, U+0410-044F, U+0451;
 }
 
 @font-face {
@@ -31,8 +33,8 @@
   font-weight: 800;
   src: url('../assets/fonts/nunito-russian-wght.woff2') format('woff2');
   unicode-range:
-    U+0020-007E, U+00A0, U+00AB, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2013-2014, U+2026,
-    U+2116, U+0401, U+0410-044F, U+0451;
+    U+0020-007E, U+00A0, U+00AB, U+00AD, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2010,
+    U+2013-2014, U+2026, U+2116, U+0401, U+0410-044F, U+0451;
 }
 
 @font-face {
@@ -42,8 +44,8 @@
   font-weight: 900;
   src: url('../assets/fonts/nunito-russian-wght.woff2') format('woff2');
   unicode-range:
-    U+0020-007E, U+00A0, U+00AB, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2013-2014, U+2026,
-    U+2116, U+0401, U+0410-044F, U+0451;
+    U+0020-007E, U+00A0, U+00AB, U+00AD, U+00B0, U+00B7, U+00BB, U+00D7, U+00E7, U+2010,
+    U+2013-2014, U+2026, U+2116, U+0401, U+0410-044F, U+0451;
 }
 
 /*

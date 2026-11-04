@@ -241,12 +241,11 @@ test.describe('languages', () => {
 
   test('serves Russian its own font, before the first paint, and never Fredoka', async ({
     page,
-    browserName,
   }) => {
-    // A known fault, to mend in the font (03/11/2026): the Russian copy breaks long words
-    // with soft hyphens (U+00AD), which the Nunito cut lacks. Chromium sets that invisible
-    // mark with no face at all; WebKit looks further down the stack and fetches Fredoka 700.
-    test.fail(browserName === 'webkit', 'Nunito has no soft hyphen: WebKit fetches Fredoka');
+    // Until v1.9.0 the Nunito cut lacked the soft hyphens (U+00AD) of four long words:
+    // Chromium sets that invisible mark with no face at all, but WebKit and Firefox looked
+    // further down the stack and fetched Fredoka 700. tests/i18n/russianFont.test.ts now
+    // holds the cut to every character of the Russian copy.
     const fonts: string[] = [];
     page.on('request', (request) => {
       if (request.url().endsWith('.woff2')) fonts.push(request.url().split('/').pop()!);
