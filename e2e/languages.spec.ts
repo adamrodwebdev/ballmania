@@ -1,4 +1,4 @@
-import { expect, playFor, test, WEBKIT_FRAMES, type Page } from './fixtures';
+import { expect, playFor, settled, test, WEBKIT_FRAMES, type Page } from './fixtures';
 
 /**
  * The longest languages, where text runs out of room first (specification § 3.7):
@@ -105,10 +105,11 @@ const problems = (page: Page) =>
   });
 
 /**
- * Measures a screen in its final state: its fonts loaded (a fallback font is wider) and its
- * entrances over (screens slide in, lists rise).
+ * Measures a screen in its final state: its size followed (the world deck), its fonts loaded
+ * (a fallback font is wider) and its entrances over (screens slide in, lists rise).
  */
 const check = async (page: Page, what: string) => {
+  await settled(page);
   await page.evaluate(async () => {
     await document.fonts.ready;
   });

@@ -105,6 +105,30 @@ export const overflowOf = (page: Page): Promise<number> =>
   });
 
 /**
+ * Waits until the page has followed a new size. The CSS does at once; the
+ * deck of cards (Swiper) sizes its cards a frame after its resize observer
+ * fires, so a measure taken one or two frames after `setViewportSize` can
+ * still see the cards of the size before (WebKit under Linux, 03/11/2026:
+ * cards of 288 px at 1280 px). The canvases' observers only resize their
+ * pixels. The wait is on the cards' width, polled on timers: a screen with no
+ * deck needs no frame at all.
+ */
+export async function settled(page: Page): Promise<void> {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll<HTMLElement>('.swiper')].every((deck) => {
+            const card = deck.querySelector<HTMLElement>('.swiper-slide');
+            return !card || Math.abs(card.offsetWidth - deck.clientWidth) <= 1;
+          }),
+        ),
+      { message: 'every deck has sized its cards to its own width', intervals: [50, 100, 250] },
+    )
+    .toBe(true);
+}
+
+/**
  * Spends a puzzle's shots from the keyboard, Space pressed again until the
  * shots badge counts each one: a press while the launcher reloads is no shot,
  * and on a loaded machine the game's clock falls behind the test's (30/10/2026:

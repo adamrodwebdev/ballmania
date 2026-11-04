@@ -1,4 +1,4 @@
-import { expect, overflowOf, test, type Page } from './fixtures';
+import { expect, overflowOf, settled, test, type Page } from './fixtures';
 
 /**
  * Acceptance criterion (specification § 8, widened by v1.7.6): no horizontal
@@ -28,10 +28,9 @@ const sweep = async (page: Page) => {
   for (const height of HEIGHTS) {
     for (const width of WIDTHS) {
       await page.setViewportSize({ width, height });
-      // Let the layout and the resize observers (the world deck, the board) follow.
-      await page.evaluate(
-        () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
-      );
+      // Two frames were not enough for the world deck, and no frame came at all on WebKit
+      // under Linux once the workshop had been resized sixteen times (03/11/2026).
+      await settled(page);
       const overflow = await sideways(page);
       if (overflow > 0) found.push(`${width}×${height}: ${overflow} px`);
     }
