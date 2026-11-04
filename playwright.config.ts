@@ -51,6 +51,18 @@ const COMPUTER = {
 const WEBKIT_PACE = { timeout: 60_000, expect: { timeout: 10_000 } };
 
 /**
+ * WebKit's journeys draw their canvases in the page. Under Linux, its pages
+ * that handed a canvas to a worker (OffscreenCanvas) now and then stopped
+ * drawing and answering: a click waited for "stable", an evaluate was never
+ * served, as the workshop changed a tab or a size. On the CI's runner, on
+ * 04/11/2026: 5 stalls in 371 runs of the workshop's tests with workers, none
+ * in 371 without; Chromium and Firefox, on the same path, never stalled. The
+ * hand-over itself is still checked on WebKit (first-paint.spec.ts); whether
+ * Safari stalls too, only a real iPhone can tell.
+ */
+const WEBKIT_CANVASES = { canvasWorkers: false } as const;
+
+/**
  * Firefox and WebKit play the journeys too (v1.9.0, the cross-browser rule),
  * only when asked for (`--project="firefox-*"`, `--project="webkit-*"`): every
  * week on `dev` in CI, and before every release (.github/workflows/engines.yml).
@@ -61,8 +73,16 @@ const WEBKIT_PACE = { timeout: 60_000, expect: { timeout: 10_000 } };
  */
 const ENGINES = [
   { name: 'firefox-desktop', use: { ...devices['Desktop Firefox'], ...COMPUTER } },
-  { name: 'webkit-desktop', use: { ...devices['Desktop Safari'], ...COMPUTER }, ...WEBKIT_PACE },
-  { name: 'webkit-mobile', use: { ...devices['iPhone 13'], ...PHONE }, ...WEBKIT_PACE },
+  {
+    name: 'webkit-desktop',
+    use: { ...devices['Desktop Safari'], ...COMPUTER, ...WEBKIT_CANVASES },
+    ...WEBKIT_PACE,
+  },
+  {
+    name: 'webkit-mobile',
+    use: { ...devices['iPhone 13'], ...PHONE, ...WEBKIT_CANVASES },
+    ...WEBKIT_PACE,
+  },
 ].map((project) => ({ ...project, default: false, grepInvert: /@cdp/ }));
 
 /**
