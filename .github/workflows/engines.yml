@@ -15,11 +15,13 @@ on:
   push:
     branches: [dev]
     # The version bump that comes before every release; Playwright or its
-    # browsers updated; the projects or this workflow changed.
+    # browsers updated; the projects, the journeys themselves or this workflow
+    # changed: a test changed is played on every engine.
     paths:
       - package.json
       - package-lock.json
       - playwright.config.ts
+      - e2e/**
       - .github/workflows/engines.yml
 
 # A newer run on the same branch replaces the older one, scheduled runs included.

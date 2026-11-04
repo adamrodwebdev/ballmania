@@ -92,10 +92,13 @@
 
 /*
  * Russian: Nunito sets the whole text, digits and Latin letters included, so a word
- * never mixes two faces and Fredoka is not downloaded; titles keep Lilita One.
+ * never mixes two faces and Fredoka is not downloaded; titles keep Lilita One. The text
+ * stack names no Fredoka: the cut holds every character of the Russian copy
+ * (tests/i18n/russianFont.test.ts), and with Fredoka behind it WebKit downloaded it all
+ * the same, under Windows and Linux (v1.9.0).
  */
 :root:lang(ru) {
-  --font-ui: 'Ballmania Russian', 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ui: 'Ballmania Russian', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display:
     'Lilita One', 'Ballmania Russian Display', 'Ballmania Russian', 'Fredoka', system-ui, sans-serif;
 }

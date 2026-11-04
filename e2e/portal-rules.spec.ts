@@ -173,8 +173,10 @@ test.describe('on a touch screen', () => {
     page,
     browserName,
   }) => {
-    // Its 4 ms timers wake on the system's 15.6 ms tick: the 240 Hz screen offers 64 frames.
-    test.skip(browserName === 'webkit' && process.platform === 'win32', 'WebKit under Windows');
+    // Playwright's WebKit cannot offer the 240 Hz screen: under Windows its 4 ms timers wake
+    // on the system's 15.6 ms tick (64 frames), and the CI's runner, drawing it in software
+    // under Linux, gave 67 to 75 (04/11/2026). The cap is the game's own, checked elsewhere.
+    test.skip(browserName === 'webkit', "Playwright's WebKit offers no 240 Hz screen");
     const { offered, drawn } = await measureFrames(page);
     expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
     expect(offered).toBeGreaterThan(100);
