@@ -105,14 +105,36 @@ const problems = (page: Page) =>
   });
 
 /**
+ * Loads the faces the screen's text is set in: for each text, the first family of its stack
+ * at its weight, as the page's own styles say. The game's fonts are fetched after the first
+ * paint, when the browser sees fit, and until then `document.fonts.ready` resolves at once:
+ * text measured then is in a fallback face (04/11/2026: "Cadeau du jour" on two lines at
+ * 320 × 568, 4 runs in 30, measured 30 ms before its fonts were asked for; neither a forced
+ * layout nor two frames drawn made the browser ask sooner). No other face is loaded, and no
+ * frame awaited, so a test that fakes the clock waits the same.
+ */
+const fontsLoaded = (page: Page) =>
+  page.evaluate(async () => {
+    const faces = new Set<string>();
+    for (const element of document.querySelectorAll('#app *')) {
+      const text = [...element.childNodes].some(
+        (node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim() !== '',
+      );
+      if (!text) continue;
+      const style = getComputedStyle(element);
+      faces.add(`${style.fontWeight} 16px ${style.fontFamily.split(',')[0]}`);
+    }
+    await Promise.all([...faces].map((face) => document.fonts.load(face)));
+    await document.fonts.ready;
+  });
+
+/**
  * Measures a screen in its final state: its size followed (the world deck), its fonts loaded
  * (a fallback font is wider) and its entrances over (screens slide in, lists rise).
  */
 const check = async (page: Page, what: string) => {
   await settled(page);
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-  });
+  await fontsLoaded(page);
   await page.waitForFunction(() =>
     document
       .getAnimations()
@@ -150,6 +172,9 @@ test.describe('languages', () => {
         const at = `${locale} ${width}×${height}`;
         await page.goto('./');
         await expect(page.locator('html')).toHaveAttribute('lang', locale);
+        // The page is born `lang="fr"`: in French, the line above waits for nothing, and the
+        // home screen was measured before the game had mounted it (04/11/2026, 4 runs in 30).
+        await expect(page.getByTestId('play')).toBeVisible();
         await check(page, `${at} home`);
         for (const [tile, menu] of MENUS) {
           await page.goto('./');
@@ -280,7 +305,7 @@ test.describe('languages', () => {
     await seed(page, 'en');
     await page.goto('./');
     await expect(page.getByTestId('play')).toBeVisible();
-    await page.evaluate(() => document.fonts.ready);
+    await fontsLoaded(page);
     expect(fonts.some((font) => font.startsWith('nunito'))).toBe(false);
   });
 });
