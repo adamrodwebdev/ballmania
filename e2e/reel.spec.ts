@@ -26,12 +26,14 @@ const showing = (page: Page, text: string, timeout = 10_000) =>
   expect(caption(page)).toHaveText(text, { timeout });
 
 /**
- * Why a reel's pace is not checked on WebKit under Windows: Playwright's build
- * there has no OffscreenCanvas, and draws the reel in the page in software, at
- * 14 frames a second where it takes 30, so each scene lasts twice as long
- * (03/11/2026). Everywhere else, and on WebKit under Linux, the pace is checked.
+ * Why a reel's pace is checked on Chromium and Firefox only: the reel takes one
+ * step per frame drawn, and Playwright's WebKit draws it below its 30 frames a
+ * second (03/11/2026). Under Windows it has no OffscreenCanvas and draws in the
+ * page, in software, at 14; under Linux, in its worker, the CI's software
+ * drawing kept the first scene on past 8 s. The hand-over to a worker, and the
+ * page's fallback, are checked on WebKit too (first-paint.spec.ts).
  */
-const SLOW_REEL = 'WebKit under Windows draws the reel at half its pace';
+const SLOW_REEL = "Playwright's WebKit draws the reel below its pace";
 
 /** The tab hidden, or shown again, as the browser tells a page. */
 const setHidden = (page: Page, hidden: boolean) =>
@@ -52,7 +54,7 @@ test.describe('the title reel', () => {
     page,
     browserName,
   }) => {
-    test.skip(browserName === 'webkit' && process.platform === 'win32', SLOW_REEL);
+    test.skip(browserName === 'webkit', SLOW_REEL);
     await page.goto('./');
     await showing(page, 'Nebula The Nova bomb');
     await showing(page, 'Neon Bounce your shots', 8_000);
@@ -60,7 +62,7 @@ test.describe('the title reel', () => {
   });
 
   test('stops in a hidden tab, and plays on once it shows again', async ({ page, browserName }) => {
-    test.skip(browserName === 'webkit' && process.platform === 'win32', SLOW_REEL);
+    test.skip(browserName === 'webkit', SLOW_REEL);
     await page.goto('./');
     await showing(page, 'Nebula The Nova bomb');
     await setHidden(page, true);

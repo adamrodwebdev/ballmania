@@ -85,8 +85,10 @@ quatre formes du russe (« 1 шар, 2 шара, 5 шаров »). Un glossaire 
 jeu (bille : marble, bola, шар ; éclats : shards, kepingan, осколки…).
 
 Fredoka et Lilita One n'ont pas de lettres cyrilliques : le russe s'affiche en Nunito, dans
-un fichier de 23,6 Ko que les autres langues ne téléchargent jamais. Un test de bout en bout
-vérifie chaque écran en russe, en indonésien et en français, de 320 × 568 à 1 280 × 720.
+un fichier de 23,7 Ko que les autres langues ne téléchargent jamais. Un test unitaire vérifie
+que ce fichier contient chaque caractère du texte russe, traits d'union conditionnels compris
+(sans eux, WebKit et Firefox téléchargeaient Fredoka). Un test de bout en bout vérifie chaque
+écran en russe, en indonésien et en français, de 320 × 568 à 1 280 × 720.
 
 ## Développement
 
@@ -225,7 +227,9 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   dessous.
 - Intégration continue GitHub Actions à chaque envoi, sur Chromium (`ci.yml`). Firefox et
   WebKit (`engines.yml`) jouent les parcours sur `dev` chaque lundi, à chaque changement de
-  version, de Playwright ou des projets de test, et à la demande avant une sortie :
+  version, de Playwright ou des projets de test, et à la demande avant une sortie. Firefox y
+  tient en un job ; WebKit, dessiné sans GPU, joue chacun de ses projets sur quatre machines,
+  une page à la fois :
 
   ```bash
   gh workflow run engines.yml --ref dev

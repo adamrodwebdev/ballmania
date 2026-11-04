@@ -23,11 +23,16 @@ const handheld = (width: number, height: number) => ({
 
 /**
  * The two form factors of the journeys, the same on every engine: a phone,
- * 390 × 844 under a finger, and a computer, 1280 × 800 with a mouse, at one
- * pixel per CSS pixel, as Chromium's (Desktop Safari's descriptor says 2).
+ * 390 × 844 under a finger, and a computer, 1280 × 800 with a mouse, both at
+ * one pixel per CSS pixel, as Chromium's (the descriptors of Desktop Safari
+ * and the iPhone say 2 and 3). The CI draws WebKit in software: at 3, the
+ * iPhone drew nine times the pixels of Chromium's phone, and its long
+ * journeys ran out of time (03/11/2026). Higher pixel ratios are the zoom
+ * projects' part.
  */
 const PHONE = {
   viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 1,
   hasTouch: true,
   formFactor: 'mobile',
 } as const;

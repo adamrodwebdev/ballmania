@@ -1,4 +1,4 @@
-import { expect, playFor, test, WEBKIT_FRAMES, type Page } from './fixtures';
+import { expect, playFor, settled, test, WEBKIT_FRAMES, type Page } from './fixtures';
 
 /**
  * The longest languages, where text runs out of room first (specification § 3.7):
@@ -105,10 +105,11 @@ const problems = (page: Page) =>
   });
 
 /**
- * Measures a screen in its final state: its fonts loaded (a fallback font is wider) and its
- * entrances over (screens slide in, lists rise).
+ * Measures a screen in its final state: its size followed (the world deck), its fonts loaded
+ * (a fallback font is wider) and its entrances over (screens slide in, lists rise).
  */
 const check = async (page: Page, what: string) => {
+  await settled(page);
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
@@ -243,10 +244,17 @@ test.describe('languages', () => {
     page,
     browserName,
   }) => {
-    // A known fault, to mend in the font (03/11/2026): the Russian copy breaks long words
-    // with soft hyphens (U+00AD), which the Nunito cut lacks. Chromium sets that invisible
-    // mark with no face at all; WebKit looks further down the stack and fetches Fredoka 700.
-    test.fail(browserName === 'webkit', 'Nunito has no soft hyphen: WebKit fetches Fredoka');
+    // Until v1.9.0 the Nunito cut lacked the soft hyphens (U+00AD) of four long words:
+    // Chromium sets that invisible mark with no face at all, but WebKit and Firefox looked
+    // further down the stack and fetched Fredoka 700. tests/i18n/russianFont.test.ts now
+    // holds the cut to every character of the Russian copy.
+    // WebKit under Windows still fetches it (04/11/2026), though every character it draws
+    // is in the cut, at any weight, without the reel and with the page born in Russian; a
+    // bare page with the same stylesheet does not. WebKit under Linux runs in CI.
+    test.fail(
+      browserName === 'webkit' && process.platform === 'win32',
+      'WebKit under Windows fetches Fredoka 700 in Russian, cause not found',
+    );
     const fonts: string[] = [];
     page.on('request', (request) => {
       if (request.url().endsWith('.woff2')) fonts.push(request.url().split('/').pop()!);
