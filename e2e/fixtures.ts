@@ -12,6 +12,12 @@ export interface TestOptions {
    * skips the other with it, on every engine.
    */
   formFactor: FormFactor;
+  /**
+   * Whether the page may hand its canvases to workers (OffscreenCanvas) as the
+   * browser allows (v1.9.0). Off, every canvas draws in the page, as on a browser
+   * without OffscreenCanvas: the WebKit projects' choice (playwright.config.ts).
+   */
+  canvasWorkers: boolean;
 }
 
 /** What a test reads at its end: the console errors of its page so far. */
@@ -45,6 +51,7 @@ const watchSelects = () => {
 export const test = base.extend<TestOptions & { consoleErrors: ConsoleErrors }>({
   trained: [true, { option: true }],
   formFactor: ['desktop', { option: true }],
+  canvasWorkers: [true, { option: true }],
   /**
    * The page's console errors, collected from the moment a test asks for them.
    * Playwright's WebKit refuses, under the page's CSP, a style it gives the
@@ -73,7 +80,7 @@ export const test = base.extend<TestOptions & { consoleErrors: ConsoleErrors }>(
       return errors.filter((text) => !(text === WEBKIT_STYLE_REFUSAL && left-- > 0));
     });
   },
-  page: async ({ page, trained }, use) => {
+  page: async ({ page, trained, canvasWorkers }, use) => {
     await page.addInitScript((trained) => {
       sessionStorage.setItem('ballmania:intro', '1');
       if (trained && !localStorage.getItem('ballmania:player')) {
@@ -85,6 +92,10 @@ export const test = base.extend<TestOptions & { consoleErrors: ConsoleErrors }>(
       // silently without it, as on a browser without Web Audio.
       Object.assign(window, { AudioContext: undefined });
     }, trained);
+    if (!canvasWorkers)
+      await page.addInitScript(() =>
+        Reflect.deleteProperty(HTMLCanvasElement.prototype, 'transferControlToOffscreen'),
+      );
     await use(page);
   },
 });
