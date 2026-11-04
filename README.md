@@ -227,7 +227,9 @@ script ni style en ligne). Détails, décisions et équilibrage : le
   dessous.
 - Intégration continue GitHub Actions à chaque envoi, sur Chromium (`ci.yml`). Firefox et
   WebKit (`engines.yml`) jouent les parcours sur `dev` chaque lundi, à chaque changement de
-  version, de Playwright ou des projets de test, et à la demande avant une sortie :
+  version, de Playwright ou des projets de test, et à la demande avant une sortie. Firefox y
+  tient en un job ; WebKit, dessiné sans GPU, joue chacun de ses projets sur quatre machines,
+  une page à la fois :
 
   ```bash
   gh workflow run engines.yml --ref dev

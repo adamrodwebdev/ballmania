@@ -29,19 +29,27 @@ concurrency:
 
 jobs:
   e2e:
-    name: Playwright on ${{ matrix.project }}
+    name: Playwright on ${{ matrix.project }} (${{ matrix.shard }}/${{ matrix.of }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
+      # The runner draws without a GPU. Firefox keeps up with two workers (11 min).
+      # WebKit draws in software on its main thread: with two pages at once, the
+      # workshop stopped answering for tens of seconds and the run took 36 min to
+      # an hour (03/11/2026). So each WebKit page gets the runner to itself, and
+      # the tests are shared out over four runners.
       matrix:
         include:
-          - project: firefox-desktop
-            browser: firefox
-          - project: webkit-desktop
-            browser: webkit
-          - project: webkit-mobile
-            browser: webkit
+          - { project: firefox-desktop, browser: firefox, workers: 2, shard: 1, of: 1 }
+          - { project: webkit-desktop, browser: webkit, workers: 1, shard: 1, of: 4 }
+          - { project: webkit-desktop, browser: webkit, workers: 1, shard: 2, of: 4 }
+          - { project: webkit-desktop, browser: webkit, workers: 1, shard: 3, of: 4 }
+          - { project: webkit-desktop, browser: webkit, workers: 1, shard: 4, of: 4 }
+          - { project: webkit-mobile, browser: webkit, workers: 1, shard: 1, of: 4 }
+          - { project: webkit-mobile, browser: webkit, workers: 1, shard: 2, of: 4 }
+          - { project: webkit-mobile, browser: webkit, workers: 1, shard: 3, of: 4 }
+          - { project: webkit-mobile, browser: webkit, workers: 1, shard: 4, of: 4 }
     steps:
       - uses: actions/checkout@v7
         with:
@@ -52,10 +60,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npx playwright test --project=${{ matrix.project }}
+      # The line reporter prints each failure when it happens: a run stopped by
+      # its time limit still says why its tests failed.
+      - run: >-
+          npx playwright test --project=${{ matrix.project }} --workers=${{ matrix.workers }}
+          --shard=${{ matrix.shard }}/${{ matrix.of }} --reporter=line
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: failure() || cancelled()
         with:
-          name: playwright-traces-${{ matrix.project }}
+          name: playwright-traces-${{ matrix.project }}-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
