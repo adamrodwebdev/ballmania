@@ -77,19 +77,21 @@ function charactersOf(cmap: Buffer): Set<number> {
   throw new Error('no Windows Unicode cmap of format 4');
 }
 
-/** Whether the `unicode-range` of every Russian text face holds a character. */
-function declared(css: string): (code: number) => boolean {
-  const faces = [...css.matchAll(/@font-face\s*{([^}]*)}/g)]
+const CSS = file('src/styles/russian.css').toString('utf8');
+
+/** The `unicode-range` spans of each face of a family in russian.css. */
+const rangesOf = (family: string) =>
+  [...CSS.matchAll(/@font-face\s*{([^}]*)}/g)]
     .map((face) => face[1]!)
-    .filter((face) => /font-family:\s*'Ballmania Russian';/.test(face));
-  const spans = faces.map((face) =>
-    [.../unicode-range:([^;]*);/.exec(face)![1]!.matchAll(/U\+([0-9A-F]+)(?:-([0-9A-F]+))?/gi)].map(
-      ([, from, to]) => [parseInt(from!, 16), parseInt(to ?? from!, 16)] as const,
-    ),
-  );
-  expect(faces).toHaveLength(3);
-  return (code) => spans.every((face) => face.some(([from, to]) => code >= from && code <= to));
-}
+    .filter((face) => face.includes(`font-family: '${family}';`))
+    .map((face) =>
+      [
+        .../unicode-range:([^;]*);/.exec(face)![1]!.matchAll(/U\+([0-9A-F]+)(?:-([0-9A-F]+))?/gi),
+      ].map(([, from, to]) => [parseInt(from!, 16), parseInt(to ?? from!, 16)] as const),
+    );
+
+const holds = (face: readonly (readonly [number, number])[], code: number) =>
+  face.some(([from, to]) => code >= from && code <= to);
 
 type Tree = { readonly [key: string]: string | Tree };
 const messages = (tree: Tree): string[] =>
@@ -109,13 +111,30 @@ const hex = (code: number) =>
 
 describe('the Russian face', () => {
   const cut = charactersOf(cmapOf(file('src/assets/fonts/nunito-russian-wght.woff2')));
-  const inRange = declared(file('src/styles/russian.css').toString('utf8'));
+  const faces = rangesOf('Ballmania Russian');
 
   it('has a glyph for every character of the Russian copy, soft hyphens included', () => {
     expect([...SHOWN.keys()].filter((code) => !cut.has(code)).map(hex)).toEqual([]);
   });
 
   it('declares every character of the Russian copy in its unicode-range', () => {
-    expect([...SHOWN.keys()].filter((code) => !inRange(code)).map(hex)).toEqual([]);
+    expect(faces).toHaveLength(3);
+    const missing = [...SHOWN.keys()].filter((code) => !faces.every((face) => holds(face, code)));
+    expect(missing.map(hex)).toEqual([]);
+  });
+
+  it('keeps soft hyphens out of the faces the other languages fall back on', () => {
+    // Fredoka has no U+00AD either: WebKit and Firefox look further down the stack for the
+    // soft hyphens of "Obser­vatory", and a face declaring it would download Nunito (v1.9.0).
+    for (const family of ['Ballmania Cyrillic', 'Ballmania Russian Display']) {
+      expect(rangesOf(family).length, family).toBeGreaterThan(0);
+      expect(
+        rangesOf(family).some((face) => holds(face, 0x00ad)),
+        family,
+      ).toBe(false);
+    }
+    const defaults = /:root\s*{([^}]*)}/.exec(file('src/styles/tokens.css').toString('utf8'))![1]!;
+    expect(defaults).toContain("'Ballmania Cyrillic'");
+    expect(defaults).not.toContain("'Ballmania Russian'");
   });
 });

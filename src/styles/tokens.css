@@ -13,9 +13,10 @@
    * Rounded game type (Fredoka) and a bold display face (Lilita One), served with the
    * game; a Cyrillic letter comes from Nunito (russian.css), downloaded only for it.
    */
-  --font-ui: 'Fredoka', 'Ballmania Russian', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ui: 'Fredoka', 'Ballmania Cyrillic', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display:
-    'Lilita One', 'Ballmania Russian Display', 'Fredoka', 'Ballmania Russian', system-ui, sans-serif;
+    'Lilita One', 'Ballmania Russian Display', 'Fredoka', 'Ballmania Cyrillic', system-ui,
+    sans-serif;
 
   /* The big gold button (Play, Next level): the same in both themes. */
   --primary-top: #ffe680;
