@@ -34,15 +34,18 @@ npm run test:e2e          # Playwright sur le build, Chromium et la matrice de t
 npx playwright test --project="webkit-*"        # WebKit, ordinateur et iPhone
 npm run lighthouse        # mobile ; `-- --desktop`, `-- --lang=ru`
 npm run build:portals     # les builds de portail dans dist-<portail>/
-npm run couloir           # portail simulé servi au réseau de la maison (port 4190)
+npm run couloir           # portail simulé servi au réseau de la maison (port 4290)
 npm run kit:crazygames    # couvertures et vidéos du kit CrazyGames
 ```
 
 Node 24 (`.nvmrc`). Une archive de portail se fait avec `scripts/zip-build.py` (`index.html` à
 la racine, noms en ASCII sans espace, taille décompressée affichée). Les parcours servent les
-ports 4174, 4175 et 4176 (`E2E_PORT`, `E2E_PORTAL_PORT`, `E2E_YANDEX_PORT` pour les déplacer).
+ports 4274, 4275 et 4276 (`E2E_PORT`, `E2E_PORTAL_PORT`, `E2E_YANDEX_PORT` pour les déplacer).
 Sur le poste Windows de l'auteur, le Firefox de Playwright ne démarre pas : il tourne en CI.
 Les tests qui pilotent le navigateur par CDP portent l'étiquette `@cdp` et restent à Chromium.
+Ce projet garde les ports 42xx et 52xx (Lumirift, les 41xx et 51xx). `.claude/settings.json` autorise les
+commandes de vérification sans demander ; un hook y formate avec Prettier chaque fichier que Claude
+écrit (`.claude/hooks/format.mjs`).
 
 ## Pile et carte du code
 
