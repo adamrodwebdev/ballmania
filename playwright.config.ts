@@ -6,11 +6,11 @@ import type { TestOptions } from './e2e/fixtures';
  * server found there is reused: `E2E_PORT`, `E2E_PORTAL_PORT` and
  * `E2E_YANDEX_PORT` move them.
  */
-const PORT = Number(process.env.E2E_PORT ?? 4174);
+const PORT = Number(process.env.E2E_PORT ?? 4274);
 /** The portal build, against the simulated portal (e2e/portal.spec.ts). */
-const PORTAL_PORT = Number(process.env.E2E_PORTAL_PORT ?? 4175);
+const PORTAL_PORT = Number(process.env.E2E_PORTAL_PORT ?? 4275);
 /** The Yandex Games build, against a stand-in for its SDK (e2e/yandex.spec.ts). */
-const YANDEX_PORT = Number(process.env.E2E_YANDEX_PORT ?? 4176);
+const YANDEX_PORT = Number(process.env.E2E_YANDEX_PORT ?? 4276);
 
 /** A phone or a tablet: touch, a coarse pointer, its own viewport. */
 const handheld = (width: number, height: number) => ({

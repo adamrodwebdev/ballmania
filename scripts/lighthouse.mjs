@@ -10,7 +10,7 @@ import desktopConfig from 'lighthouse/core/config/desktop-config.js';
 import { preview } from 'vite';
 
 const THRESHOLDS = { performance: 100, accessibility: 100, 'best-practices': 100, seo: 100 };
-const PORT = 4176;
+const PORT = 4277;
 const desktop = process.argv.includes('--desktop');
 const lang = process.argv.find((arg) => arg.startsWith('--lang='))?.slice('--lang='.length);
 

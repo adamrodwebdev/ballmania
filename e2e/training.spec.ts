@@ -6,7 +6,7 @@ import { expect, test, type Page } from './fixtures';
  */
 test.use({ trained: false });
 
-const PORTAL = `http://localhost:${process.env.E2E_PORTAL_PORT ?? 4175}/`;
+const PORTAL = `http://localhost:${process.env.E2E_PORTAL_PORT ?? 4275}/`;
 
 const english = async (page: Page, player: object | null = null) => {
   await page.addInitScript((saved) => {

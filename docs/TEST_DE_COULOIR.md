@@ -33,8 +33,8 @@ monde 1 (étapes 5 et 6).
 ## Matériel
 
 - **Le build des portails sur le réseau de la maison** : `npm run couloir` construit le
-  portail simulé, puis le sert à toutes les machines du réseau sur le port 4190. Ouvrir
-  l'adresse « Network » qu'il affiche (`http://192.168.….:4190`) sur le téléphone, connecté au
+  portail simulé, puis le sert à toutes les machines du réseau sur le port 4290. Ouvrir
+  l'adresse « Network » qu'il affiche (`http://192.168.….:4290`) sur le téléphone, connecté au
   même Wi-Fi. Au premier lancement, Windows peut demander d'autoriser Node.js : réseaux privés
   seulement. Arrêter le serveur après le test (Ctrl + C).
 - **Une fenêtre privée par personne** (navigation privée sur le téléphone) : chacun arrive en

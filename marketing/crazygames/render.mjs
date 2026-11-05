@@ -54,7 +54,7 @@ const save = async (name, dataUrl, dir = out) => {
 await mkdir(out, { recursive: true });
 const server = await createServer({
   root,
-  server: { port: 5199, strictPort: true },
+  server: { port: 5299, strictPort: true },
   logLevel: 'warn',
 });
 await server.listen();
@@ -63,7 +63,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
   page.on('console', (message) => console.log(`  ${message.text()}`));
   page.on('pageerror', (error) => console.error(error));
-  await page.goto('http://localhost:5199/marketing/crazygames/kit.html');
+  await page.goto('http://localhost:5299/marketing/crazygames/kit.html');
   await page.waitForSelector('body[data-ready="true"]', { state: 'attached', timeout: 60_000 });
   if (og) {
     await save(
