@@ -6,7 +6,7 @@ import { expect, overflowOf, test, type Page } from './fixtures';
  * data on Yandex's servers is `window.yandexData`.
  */
 test.use({
-  baseURL: `http://localhost:${process.env.E2E_YANDEX_PORT ?? 4176}/`,
+  baseURL: `http://localhost:${process.env.E2E_YANDEX_PORT ?? 4276}/`,
   // The saves live on Yandex's servers: nothing is seeded in the browser.
   trained: false,
 });

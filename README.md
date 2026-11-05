@@ -108,8 +108,8 @@ npm run dev
 | `npm run test:e2e`   | Parcours Playwright sur Chromium, matrice de tailles, audits axe  |
 | `npm run lighthouse` | Audit Lighthouse mobile du build (`-- --desktop`, `-- --lang=ru`) |
 
-Les parcours servent le build du site sur le port 4174, celui du portail simulé sur le 4175 et
-celui de Yandex sur le 4176 ; si un autre projet les occupe déjà, `E2E_PORT`,
+Les parcours servent le build du site sur le port 4274, celui du portail simulé sur le 4275 et
+celui de Yandex sur le 4276 ; si un autre projet les occupe déjà, `E2E_PORT`,
 `E2E_PORTAL_PORT` et `E2E_YANDEX_PORT` les déplacent.
 
 Firefox et WebKit jouent les mêmes parcours quand on les nomme : Firefox sur ordinateur,
@@ -163,7 +163,7 @@ publicité ni SDK.
 | `npm run build:yandex`           | Yandex Games, dans `dist-yandex/` (titre « Ball Mania », SDK servi par Yandex en `/sdk.js`)            |
 | `npm run build:portals`          | Les cinq                                                                                               |
 | `npm run dev:portal`             | Développement contre un portail simulé (fausses publicités, `?ads=off`)                                |
-| `npm run couloir`                | Le portail simulé servi au réseau de la maison, port 4190 ([test de couloir](docs/TEST_DE_COULOIR.md)) |
+| `npm run couloir`                | Le portail simulé servi au réseau de la maison, port 4290 ([test de couloir](docs/TEST_DE_COULOIR.md)) |
 
 Sur un portail, un nouveau joueur arrive directement dans l'entraînement, sans logo, intro
 ni écran titre, et les menus de base n'apparaissent qu'ensuite ; sur notre site,

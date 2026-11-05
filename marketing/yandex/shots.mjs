@@ -10,7 +10,7 @@ import { preview } from 'vite';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = fileURLToPath(new URL('./out/', import.meta.url));
 const lang = process.argv[2] ?? 'ru';
-const PORT = 4188;
+const PORT = 4288;
 
 const WORLDS = ['nebula', 'neon', 'abyss', 'jewel', 'volcano', 'singularity'];
 /** A player well into the game: every world open, so any level can be shown. */

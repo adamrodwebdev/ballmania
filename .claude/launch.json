@@ -4,32 +4,32 @@
     {
       "name": "ballmania-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5183", "--strictPort"],
-      "port": 5183
+      "runtimeArgs": ["run", "dev", "--", "--port", "5283", "--strictPort"],
+      "port": 5283
     },
     {
       "name": "ballmania-lan",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "preview", "--host", "--port", "5184", "--strictPort"],
-      "port": 5184
+      "runtimeArgs": ["vite", "preview", "--host", "--port", "5284", "--strictPort"],
+      "port": 5284
     },
     {
       "name": "ballmania-couloir",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "couloir"],
-      "port": 4190
+      "port": 4290
     },
     {
       "name": "ballmania-playgama",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "preview", "--mode", "playgama", "--port", "4186", "--strictPort"],
-      "port": 4186
+      "runtimeArgs": ["vite", "preview", "--mode", "playgama", "--port", "4286", "--strictPort"],
+      "port": 4286
     },
     {
       "name": "ballmania-yandex",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "preview", "--mode", "yandex", "--port", "4187", "--strictPort"],
-      "port": 4187
+      "runtimeArgs": ["vite", "preview", "--mode", "yandex", "--port", "4287", "--strictPort"],
+      "port": 4287
     }
   ]
 }
