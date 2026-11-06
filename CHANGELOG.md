@@ -3,6 +3,18 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon
 [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Sécurité
+
+- **Alertes Dependabot de `vue-i18n` (GHSA-83rm-6c8r-g728, élevée ; GHSA-8rc2-428q-7ww3, faible) et de
+  `fast-uri` (quatre avis, moyens et faibles)**, toutes dans l'outillage de construction :
+  `@intlify/unplugin-vue-i18n` passe de 11.2.5 à 11.2.8, dont `@intlify/vue-i18n-extensions` 9 ne tire
+  plus sa propre copie de `vue-i18n` 10.0.8 ; `fast-uri` passe à 3.1.9. Le jeu livré chargeait déjà
+  `vue-i18n` 11.4.14, que ces avis ne visent pas.
+- `minimatch` 10.2.6 (GHSA-g3hv-75wg-m249, moyenne) reste : risque accepté le 6 novembre 2026, voir
+  la [feuille de route](ROADMAP.md#alertes-de-sécurité-acceptées).
+
 ## [1.8.1] — 2026-10-31
 
 « Équilibre téléphone et ordinateur ». Un niveau est désormais aussi difficile au téléphone

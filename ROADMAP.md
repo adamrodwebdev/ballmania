@@ -3,6 +3,12 @@
 Le détail des versions livrées est dans le [journal des modifications](CHANGELOG.md) ; le
 cahier des charges (`docs/CAHIER_DES_CHARGES.md`) décrit le jeu tel qu'il est.
 
+## Alertes de sécurité acceptées
+
+| Date            | Gravité | Alerte                                                                                                                | Où elle joue                                                                                                             | Pourquoi elle attend                                                                                                                                                                                                                                              | Revue                                                                                                                         |
+| --------------- | ------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 6 novembre 2026 | Moyenne | `minimatch` 7.0.0 à 11.0.0 (GHSA-g3hv-75wg-m249) : déni de service par des motifs piégés, corrigé en 11.0.1 seulement | Outils de développement seulement : ESLint 10, `@eslint/config-array` et typescript-eslint. Rien n'est livré dans le jeu | Ces outils ne lisent que les motifs de la configuration du dépôt, jamais ce qu'envoie un joueur. Leurs dernières versions (ESLint 10.14.0, typescript-eslint 8.72.1) demandent encore `minimatch` 10 : forcer la version 11 sous eux risquerait de casser le lint | À chaque publication (`npm audit`, développement compris), et dès qu'ESLint ou typescript-eslint passent à `minimatch` 11.0.1 |
+
 ## v1.9.0 — Yandex Games en direct (en préparation)
 
 **But** : publier Ballmania en direct sur Yandex Games, la première plateforme de jeux web
