@@ -162,7 +162,8 @@ export class Director {
       energy,
       signature: this.signature(t),
       sweep: crossing ? blend : 0,
-      sweepStrength: crossing ? Math.sin(Math.PI * blend) * 0.35 * this.calming(t) : 0,
+      // A glint, not a flash: the band changes a zone by about its own strength.
+      sweepStrength: crossing ? Math.sin(Math.PI * blend) * 0.05 * this.calming(t) : 0,
       light: this.mood.light * this.dimming(t),
       glows: this.glows(t),
     };

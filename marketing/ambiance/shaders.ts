@@ -313,7 +313,7 @@ void main() {
   }
   // A band of light crossing the picture while one shot gives way to the next.
   float across = uv.x * 0.8 + (1.0 - uv.y) * 0.2;
-  c += mix(uGlowA, uGlowB, 0.5) * exp(-pow((across - (uSweep.x * 1.4 - 0.2)) * 4.0, 2.0)) * uSweep.y;
+  c += mix(uGlowA, uGlowB, 0.5) * exp(-pow((across - (uSweep.x * 2.0 - 0.5)) * 1.6, 2.0)) * uSweep.y;
   outColour = vec4(c, 1.0);
 }`;
 

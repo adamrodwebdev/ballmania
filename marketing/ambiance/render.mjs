@@ -5,6 +5,7 @@
 // Usage: npm run ambiance -- --mood <id> --minutes <n> --seed <s> [--small] [--check]
 //   --small  640 × 360, Shorts of 5 s (the smoke test of the CI)
 //   --check  renders samples again and compares them with the manifest, writing nothing
+//   --scan   the flash check alone, over the whole video at 320 × 180, writing nothing
 //   --stills one picture per mood (1280 × 720) at its first signature effect, in out/stills/
 //   --guard <file>  another guard than guard.json (games watched, temperatures)
 // Needs Google Chrome (H.264 encoding) and ffmpeg on the PATH.
@@ -51,6 +52,7 @@ const minutes = Number(option('minutes', stills ? '60' : undefined));
 const seed = Number(option('seed', '1'));
 const small = flag('small');
 const checking = flag('check');
+const scanning = flag('scan');
 if (
   (!moodId && !stills) ||
   !Number.isFinite(minutes) ||
@@ -318,6 +320,7 @@ try {
     const planHash = sha256(setup.notes);
     log(`${mood.name.en}: ${plan.sections.length} sections, ${minutes} min, seed ${seed}`);
     if (checking) exitCode = await check(plan, planHash);
+    else if (scanning) exitCode = await scan();
     else await produce(plan, planHash);
   }
 } catch (error) {
@@ -328,6 +331,32 @@ try {
   await server.close();
 }
 process.exit(exitCode);
+
+// ---------------------------------------------------------------- scan
+
+/** The flash check alone, fast: the whole picture at 320 × 180, nothing encoded or written. */
+async function scan() {
+  await call('openVideo', 'scan', 320, 180, false);
+  const frameCount = seconds * FPS;
+  for (let from = 0; from < frameCount; from += BATCH) {
+    await stayCool(`frame ${from}`);
+    await call('frames', {
+      video: 'scan',
+      from,
+      count: Math.min(BATCH, frameCount - from),
+      offset: 0,
+      loop: null,
+      fingerprintEvery: 0,
+    });
+  }
+  const flashes = await call('closeVideo', 'scan');
+  const passed = flashes.frame <= 0.1 && flashes.zone <= 0.1;
+  log(
+    `${passed ? '✓' : '✗'} flashes: frame ${flashes.frame.toFixed(3)}, zone ${flashes.zone.toFixed(3)}` +
+      ` (worst at ${flashes.at.toFixed(1)} s)`,
+  );
+  return passed ? 0 : 1;
+}
 
 // ---------------------------------------------------------------- stills
 
@@ -531,20 +560,32 @@ async function produce(plan, planHash) {
       { length: SIZE.loops },
       (_, i) => Math.round(moment.seconds * (0.9 + (0.2 * i) / (SIZE.loops - 1)) * FPS) / FPS,
     );
-    const loop = await call(
-      'loopPlan',
-      { width: SIZE.short[0], height: SIZE.short[1] },
-      moment.start,
-      candidates,
-      [SEAM, SEAM * 1.3, SEAM * 1.6],
-    );
+    // …and the start, a few seconds either side, until the seam is gentle enough.
+    let loop = null;
+    let start = moment.start;
+    for (const shift of [0, -3, 3, -6, 6]) {
+      const from = moment.start + shift;
+      if (from < 0 || from + moment.seconds * 1.1 + SEAM * 1.6 > plan.seconds) continue;
+      const tried = await call(
+        'loopPlan',
+        { width: SIZE.short[0], height: SIZE.short[1] },
+        from,
+        candidates,
+        [SEAM, SEAM * 1.3, SEAM * 1.6],
+      );
+      if (!loop || tried.worst < loop.worst) {
+        loop = tried;
+        start = from;
+      }
+      if (loop.worst < 0.085) break;
+    }
     const { length, fade } = loop;
     await call('openVideo', file, SIZE.short[0], SIZE.short[1], true);
     await call('frames', {
       video: file,
       from: 0,
       count: Math.round(length * FPS),
-      offset: moment.start,
+      offset: start,
       loop: { seconds: length, fade },
       fingerprintEvery: 0,
     });
@@ -557,8 +598,8 @@ async function produce(plan, planHash) {
       await finalRead.read(bytes, 0, bytes.length, Math.round(at * RATE) * 8);
       return new Float32Array(bytes.buffer, bytes.byteOffset, count * 2);
     };
-    const body = await read(moment.start, n);
-    const after = await read(moment.start + length, seam);
+    const body = await read(start, n);
+    const after = await read(start + length, seam);
     for (let i = 0; i < seam; i++) {
       const w = (Math.PI / 2) * (i / seam);
       for (const c of [0, 1])
@@ -591,12 +632,13 @@ async function produce(plan, planHash) {
     shortFiles.push({
       file: `${file}.mp4`,
       ...moment,
+      start,
       seconds: length,
       seam: fade,
       seamWorst: Number(loop.worst.toFixed(3)),
       flashes: shortFlashes,
     });
-    log(`Short ${index + 1}: from ${moment.start.toFixed(1)} s`);
+    log(`Short ${index + 1}: from ${start.toFixed(1)} s`);
   }
   await finalRead.close();
 
@@ -629,7 +671,9 @@ async function produce(plan, planHash) {
       Number(audioStream.sample_rate) === RATE &&
       audioStream.channels === 2,
     crossCheck: Math.abs(crossCheck.integrated - report.integrated) <= 0.3,
-    budget: machineMinutes <= Math.max(10, minutes),
+    // The guard's pauses (a game, the heat) are not the factory's time.
+    budget:
+      machineMinutes - pauses.reduce((sum, p) => sum + p.seconds, 0) / 60 <= Math.max(10, minutes),
   };
   const manifest = {
     factory: { version: pkg.version, schema: 1 },
@@ -669,7 +713,11 @@ async function produce(plan, planHash) {
     shorts: shortFiles,
     listen: listeningPoints(plan, sections),
     files,
-    machine: { minutes: round(machineMinutes, 1), pauses },
+    machine: {
+      minutes: round(machineMinutes, 1),
+      working: round(machineMinutes - pauses.reduce((sum, p) => sum + p.seconds, 0) / 60, 1),
+      pauses,
+    },
     checks,
     passed: Object.values(checks).every(Boolean),
   };
