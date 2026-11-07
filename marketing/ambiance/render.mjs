@@ -671,9 +671,12 @@ async function produce(plan, planHash) {
       Number(audioStream.sample_rate) === RATE &&
       audioStream.channels === 2,
     crossCheck: Math.abs(crossCheck.integrated - report.integrated) <= 0.3,
-    // The guard's pauses (a game, the heat) are not the factory's time.
-    budget:
-      machineMinutes - pauses.reduce((sum, p) => sum + p.seconds, 0) / 60 <= Math.max(10, minutes),
+    // The guard's pauses (a game, the heat) are not the factory's time. Not measured in the
+    // small smoke render: the CI draws in software (SwiftShader), forty times slower than a GPU.
+    budget: small
+      ? null
+      : machineMinutes - pauses.reduce((sum, p) => sum + p.seconds, 0) / 60 <=
+        Math.max(10, minutes),
   };
   const manifest = {
     factory: { version: pkg.version, schema: 1 },
@@ -719,13 +722,17 @@ async function produce(plan, planHash) {
       pauses,
     },
     checks,
-    passed: Object.values(checks).every(Boolean),
+    passed: Object.values(checks).every((passed) => passed !== false),
   };
   await writeFile(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   await rm(work, { recursive: true, force: true });
   await prune();
   log(`Done in ${machineMinutes.toFixed(1)} min: ${out}`);
-  for (const [check, passed] of Object.entries(checks)) log(`  ${passed ? '✓' : '✗'} ${check}`);
+  for (const [check, passed] of Object.entries(checks)) {
+    log(
+      `  ${passed === null ? '–' : passed ? '✓' : '✗'} ${check}${passed === null ? ' (not measured)' : ''}`,
+    );
+  }
   if (!manifest.passed) exitCode = 1;
 }
 
