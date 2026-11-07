@@ -208,8 +208,9 @@ class Factory {
   }
 
   /**
-   * The loop of a Short: among `lengths` and `fades`, the one whose seam
-   * changes the picture least, measured as the flash check will measure it.
+   * The loop of a Short: among `lengths` and `fades`, the one that changes
+   * the picture least over the whole looping Short, its seam included,
+   * measured as the flash check will measure it.
    * A cross-fade mixes the finished frames linearly, so the luminance of each
    * zone of the mix is the mix of the two zones' luminances.
    */
@@ -234,8 +235,11 @@ class Factory {
     const STEP = 0.2;
     const longest = Math.max(...fades);
     const steps = Math.round((longest + 1) / STEP);
-    // The start of the Short, after its seam too: shared by every candidate.
-    const head = Array.from({ length: steps + 1 }, (_, i) => cells(start + i * STEP));
+    // The whole Short from its start: shared by every candidate. The Shorts are framed
+    // upright, so their zones differ from the video's: every second of them is checked.
+    const head = Array.from({ length: Math.ceil(Math.max(...lengths) / STEP) + 1 }, (_, i) =>
+      cells(start + i * STEP),
+    );
     let best = { length: lengths[0]!, fade: fades[0]!, worst: Infinity };
     for (const length of lengths) {
       // The end of the Short, one second before the loop point, then on under the seam.
@@ -244,9 +248,9 @@ class Factory {
       );
       for (const fade of fades) {
         const watch = new FlashWatch();
-        for (let i = -5; i <= Math.round((fade + 1) / STEP); i++) {
+        for (let i = -5; i * STEP < length; i++) {
           const u = i * STEP;
-          const end = tail[i + 5];
+          const end = u <= fade ? tail[i + 5] : undefined;
           const begin = head[Math.max(0, i)]!;
           const w = u < 0 ? 0 : Math.min(1, u / fade);
           const mixed =

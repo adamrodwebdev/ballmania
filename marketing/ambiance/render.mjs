@@ -549,20 +549,15 @@ async function produce(plan, planHash) {
   await call('thumbnail', thumbAt, SIZE.thumbnail[0], SIZE.thumbnail[1], 'thumbnail.jpg');
   await rm(join(out, 'thumbnail.jpg'), { force: true });
   await writeFile(join(out, 'thumbnail.jpg'), await readFile(join(work, 'thumbnail.jpg')));
-  const moments = shorts(plan, mood, SIZE.shortSeconds);
-  const shortFiles = [];
-  const finalRead = await open(final, 'r');
-  for (const [index, moment] of moments.entries()) {
-    await stayCool(`short ${index + 1}`);
-    const file = `short-${index + 1}`;
-    // The loop point where the end looks most like the start: within 10 % of the length.
+  // Each Short's loop is planned first: its length, its seam and its start, simulated as the
+  // flash check measures the whole looping Short. A moment that stays above 0.09 gives way
+  // to another strong moment of the video.
+  const planLoop = async (moment) => {
     const candidates = Array.from(
       { length: SIZE.loops },
       (_, i) => Math.round(moment.seconds * (0.9 + (0.2 * i) / (SIZE.loops - 1)) * FPS) / FPS,
     );
-    // …and the start, a few seconds either side, until the seam is gentle enough.
-    let loop = null;
-    let start = moment.start;
+    let best = null;
     for (const shift of [0, -3, 3, -6, 6]) {
       const from = moment.start + shift;
       if (from < 0 || from + moment.seconds * 1.1 + SEAM * 1.6 > plan.seconds) continue;
@@ -573,13 +568,40 @@ async function produce(plan, planHash) {
         candidates,
         [SEAM, SEAM * 1.3, SEAM * 1.6],
       );
-      if (!loop || tried.worst < loop.worst) {
-        loop = tried;
-        start = from;
-      }
-      if (loop.worst < 0.085) break;
+      if (!best || tried.worst < best.worst) best = { moment, start: from, ...tried };
+      if (best.worst < 0.085) break;
     }
-    const { length, fade } = loop;
+    return best;
+  };
+  const primary = shorts(plan, mood, SIZE.shortSeconds);
+  const reserve = shorts(plan, mood, SIZE.shortSeconds, 8).filter(
+    (m) => !primary.some((p) => Math.abs(p.start - m.start) < 1),
+  );
+  const planned = [];
+  for (const moment of primary) {
+    await stayCool('the Shorts');
+    planned.push(await planLoop(moment));
+  }
+  for (const [i, loop] of planned.entries()) {
+    while (planned[i].worst > 0.09 && reserve.length) {
+      const other = reserve.shift();
+      const apart = planned.every(
+        (p, j) => j === i || Math.abs(p.start - other.start) >= other.seconds * 2,
+      );
+      if (!apart) continue;
+      const tried = await planLoop(other);
+      if (tried && tried.worst < planned[i].worst) planned[i] = tried;
+    }
+    if (planned[i] !== loop)
+      log(`Short moved from ${loop.start.toFixed(1)} s to ${planned[i].start.toFixed(1)} s`);
+  }
+  planned.sort((x, y) => x.start - y.start);
+  const shortFiles = [];
+  const finalRead = await open(final, 'r');
+  for (const [index, loop] of planned.entries()) {
+    await stayCool(`short ${index + 1}`);
+    const file = `short-${index + 1}`;
+    const { moment, start, length, fade } = loop;
     await call('openVideo', file, SIZE.short[0], SIZE.short[1], true);
     await call('frames', {
       video: file,
@@ -635,7 +657,7 @@ async function produce(plan, planHash) {
       start,
       seconds: length,
       seam: fade,
-      seamWorst: Number(loop.worst.toFixed(3)),
+      predictedFlash: Number(loop.worst.toFixed(3)),
       flashes: shortFlashes,
     });
     log(`Short ${index + 1}: from ${start.toFixed(1)} s`);
