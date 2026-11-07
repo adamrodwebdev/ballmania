@@ -53,9 +53,9 @@ export interface FrameDirection {
 }
 
 /** Seconds a signature effect takes to swell, hold and fall: never a flash. */
-export const SIGNATURE = { rise: 5, hold: 3, fall: 10 } as const;
+export const SIGNATURE = { rise: 6, hold: 3, fall: 10 } as const;
 /** Seconds a glow takes to bloom and to fade. */
-export const GLOW = { rise: 1.4, fall: 3 } as const;
+export const GLOW = { rise: 4, fall: 5 } as const;
 /** At most this many glows at once. */
 export const MAX_GLOWS = 8;
 
@@ -207,8 +207,9 @@ export class Director {
       const n = Math.round(note.at * 1000);
       out.push({
         x: 0.15 + 0.7 * hash(n, 11),
-        y: 0.15 + 0.6 * hash(n, 13),
-        strength: strength * note.level * 4,
+        // In the lit upper part of the picture: a glow in the dark depths would flash.
+        y: 0.4 + 0.45 * hash(n, 13),
+        strength: strength * note.level * 2.5,
         hue: note.voice === 'bell' ? 1 : 0,
       });
     }

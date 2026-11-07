@@ -324,7 +324,14 @@ export class Scene {
     canvas.height = Math.round(height * 1.2);
     const ctx = canvas.getContext('2d')!;
     THEMES[mood.world]().paintBackground(ctx, canvas.width, canvas.height, palette);
-    return this.texture(canvas);
+    // The far plane, softened: the game's crisp shapes would look cut out at this size.
+    const soft = document.createElement('canvas');
+    soft.width = canvas.width;
+    soft.height = canvas.height;
+    const softCtx = soft.getContext('2d')!;
+    softCtx.filter = `blur(${Math.round(canvas.height * 0.008)}px)`;
+    softCtx.drawImage(canvas, 0, 0);
+    return this.texture(soft);
   }
 
   /** The mood's name, in English, for its first ten seconds (when asked for). */

@@ -5,6 +5,7 @@
 // Usage: npm run ambiance -- --mood <id> --minutes <n> --seed <s> [--small] [--check]
 //   --small  640 × 360, Shorts of 5 s (the smoke test of the CI)
 //   --check  renders samples again and compares them with the manifest, writing nothing
+//   --guard <file>  another guard than guard.json (games watched, temperatures)
 // Needs Google Chrome (H.264 encoding) and ffmpeg on the PATH.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -34,8 +35,6 @@ const RATE = 48_000;
 const FPS = 30;
 /** Frames per batch: five minutes, after which the guard looks at the machine. */
 const BATCH = 5 * 60 * FPS;
-/** Seconds of a Short's seam. */
-const SEAM = 2;
 
 // ---------------------------------------------------------------- arguments
 
@@ -66,6 +65,8 @@ const seconds = Math.round(minutes * 60);
 const SIZE = small
   ? { video: [640, 360], short: [360, 640], shortSeconds: 5, thumbnail: [640, 360] }
   : { video: [1920, 1080], short: [1080, 1920], shortSeconds: 20, thumbnail: [1280, 720] };
+/** Seconds of a Short's seam: long enough for its cross-fade never to flash. */
+const SEAM = Math.min(4, SIZE.shortSeconds / 2);
 const name = `${moodId}-${seed}-${minutes}m${small ? '-small' : ''}`;
 const outRoot = join(here, 'out');
 const out = join(outRoot, name);
@@ -75,7 +76,7 @@ const log = (text) => console.log(`[${((Date.now() - begun) / 60000).toFixed(1)}
 
 // ---------------------------------------------------------------- the guard
 
-const guard = JSON.parse(await readFile(join(here, 'guard.json'), 'utf8'));
+const guard = JSON.parse(await readFile(option('guard', join(here, 'guard.json')), 'utf8'));
 const pauses = [];
 
 const gamesRunning = async () => {
@@ -572,7 +573,9 @@ async function produce(plan, planHash) {
     clicks: report.clicks.length === 0,
     silences: report.silences.length === 0,
     mono: report.monoLoss <= 3,
-    flashes: flashes.frame <= 0.1 && flashes.zone <= 0.1,
+    flashes: [flashes, ...shortFiles.map((s) => s.flashes)].every(
+      (f) => f.frame <= 0.1 && f.zone <= 0.1,
+    ),
     duration: Math.abs(duration - seconds) < 0.5,
     format:
       videoStream?.codec_name === 'h264' &&
@@ -656,7 +659,9 @@ function listeningPoints(plan, sections) {
   ];
 }
 
-const round = (value, digits) => Number(value.toFixed(digits));
+function round(value, digits) {
+  return Number(value.toFixed(digits));
+}
 
 /** Keeps the two latest renders of this mood, deleting older ones the factory made. */
 async function prune() {

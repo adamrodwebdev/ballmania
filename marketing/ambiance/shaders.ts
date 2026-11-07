@@ -169,24 +169,30 @@ vec3 jellyfish(vec2 uv, float t, float s) {
     float fi = float(i);
     float depth = 0.45 + 0.12 * fi;
     vec2 base = vec2(fract(0.13 + fi * 0.37 + 0.01 * sin(t * 0.07 + fi)),
-                     1.25 - fract(fi * 0.29 + t * (0.006 + 0.002 * fi)) * 1.6);
+                     -0.35 + fract(fi * 0.29 + t * (0.006 + 0.002 * fi)) * 1.7);
     vec2 p = (cameraUv(uv, depth) - base) * vec2(aspect, 1.0);
     float size = 0.05 + 0.03 * fract(fi * 0.73);
     float pulse = 1.0 + 0.08 * sin(t * 0.9 + fi * 2.0);
     vec2 q = p / (size * vec2(pulse, 1.0 / pulse));
-    float bell = smoothstep(1.0, 0.6, length(q * vec2(1.0, 1.5))) * step(0.0, q.y + 0.05);
-    float rim = exp(-pow((length(q * vec2(1.0, 1.5)) - 0.9) * 5.0, 2.0)) * step(-0.1, q.y);
+    // The bell: a dome, its lower edge scalloped, brighter at its rim, veiled inside.
+    vec2 b = q * vec2(1.0, 1.3);
+    float r = length(b);
+    float hem = -0.18 + 0.07 * cos(q.x * 9.0 + t * 1.3 + fi);
+    float inside = smoothstep(1.0, 0.92, r) * smoothstep(hem - 0.06, hem + 0.06, q.y);
+    float bell = inside * (0.22 + 0.12 * sin(r * 13.0 - t * 0.8));
+    float rim = exp(-pow((r - 0.93) * 9.0, 2.0)) * smoothstep(hem - 0.06, hem + 0.1, q.y)
+              + exp(-pow((q.y - hem) * 16.0, 2.0)) * smoothstep(1.05, 0.7, abs(q.x)) * 0.6;
     float tentacles = 0.0;
     for (int k = 0; k < 4; k++) {
       float fk = float(k);
       float x0 = -0.6 + 0.4 * fk;
-      float y = -q.y;
+      float y = hem - q.y;
       float wave = x0 + 0.18 * sin(y * 2.2 - t * 1.1 + fk + fi) * min(y, 3.0) * 0.4;
       tentacles += exp(-pow((q.x - wave) * 14.0, 2.0)) * smoothstep(0.0, 0.2, y) * smoothstep(4.0, 0.5, y);
     }
     float glow = exp(-length(q) * 1.6) * 0.5;
     vec3 tint = mix(uGlowA, uGlowB, fract(fi * 0.5));
-    c += tint * (bell * 0.5 + rim * 1.4 + tentacles * 0.5 + glow) * (0.6 + 0.8 * s) * (0.5 + depth);
+    c += tint * (bell + rim * 1.2 + tentacles * 0.45 + glow) * (0.65 + 0.6 * s) * (0.5 + depth);
   }
   return c;
 }
@@ -264,7 +270,7 @@ void main() {
   vec3 c = backdrop(bgUv) * (0.55 + 0.45 * uLight);
   float energy = uEnergy;
   float s = uSignature;
-  c += gas(uv, t, (0.35 + 0.4 * energy + 0.5 * s) * uLight);
+  c += gas(uv, t, (0.35 + 0.4 * energy + 0.4 * s) * uLight);
   if (uWorld == 0) {
     c += rays(uv, t, mix(uGlowA, uGlowB, 0.5), 0.12 * uLight);
     c += starBirth(uv, t, 0.25 + s);
@@ -287,7 +293,7 @@ void main() {
     vec4 g = uGlows[i];
     vec2 d = (cameraUv(uv, 0.85) - g.xy) * vec2(aspect, 1.0);
     float r2 = dot(d, d);
-    c += mix(uGlowA, uGlowB, g.w) * g.z * (exp(-r2 * 220.0) * 1.6 + exp(-r2 * 25.0) * 0.35);
+    c += mix(uGlowA, uGlowB, g.w) * g.z * (exp(-r2 * 120.0) * 0.6 + exp(-r2 * 18.0) * 0.15);
   }
   // A band of light crossing the picture while one shot gives way to the next.
   float across = uv.x * 0.8 + (1.0 - uv.y) * 0.2;

@@ -38,6 +38,29 @@ const BELL_PARTIALS = [
   [5.43, 0.12, 0.25],
 ] as const;
 
+/**
+ * Mixes nodes through a tree of gains with two inputs each. Chrome adds the
+ * inputs of a node in an order that changes from one render to the next, and
+ * floating-point addition is not associative: with three inputs or more, the
+ * same notes come out a few units of the last place apart (around −140 dB).
+ * With two, a + b is b + a exactly, and the sound is the same to the bit.
+ */
+export function mixTree(ctx: BaseAudioContext, nodes: readonly AudioNode[]): AudioNode | null {
+  let level = [...nodes];
+  if (!level.length) return null;
+  while (level.length > 1) {
+    const next: AudioNode[] = [];
+    for (let i = 0; i < level.length; i += 2) {
+      const pair = ctx.createGain();
+      level[i]!.connect(pair);
+      level[i + 1]?.connect(pair);
+      next.push(pair);
+    }
+    level = next;
+  }
+  return level[0]!;
+}
+
 export class AmbientVoices {
   constructor(
     private readonly plan: Plan,
@@ -78,11 +101,17 @@ export class AmbientVoices {
     wet.gain.value = 0.55;
     reverb.connect(wet);
     wet.connect(master);
+    const dry: AudioNode[] = [];
+    const sends: AudioNode[] = [];
     for (const note of sectionNotes(this.plan, index)) {
       const at = note.at - start;
       if (at >= seconds) continue;
-      this.play(ctx, note, at, master, reverb, section.brightness);
+      const outputs = this.play(ctx, note, at, section.brightness);
+      dry.push(outputs.dry);
+      sends.push(outputs.send);
     }
+    mixTree(ctx, dry)?.connect(master);
+    mixTree(ctx, sends)?.connect(reverb);
     const buffer = await ctx.startRendering();
     return {
       index,
@@ -96,17 +125,13 @@ export class AmbientVoices {
     ctx: OfflineAudioContext,
     note: Note,
     at: number,
-    dry: AudioNode,
-    reverb: AudioNode,
     brightness: number,
-  ): void {
+  ): { dry: AudioNode; send: AudioNode } {
     const pan = ctx.createStereoPanner();
     pan.pan.value = note.pan;
-    pan.connect(dry);
     const send = ctx.createGain();
     send.gain.value = SEND[note.voice];
     pan.connect(send);
-    send.connect(reverb);
     switch (note.voice) {
       case 'pad':
         this.pad(ctx, note, at, pan, brightness);
@@ -150,6 +175,7 @@ export class AmbientVoices {
         this.struck(ctx, note, at, pan, BELL_PARTIALS);
         break;
     }
+    return { dry: pan, send };
   }
 
   /** A held note: rises over its attack, holds, then falls over its last third. */
@@ -204,6 +230,7 @@ export class AmbientVoices {
     filter.frequency.value = lowpass;
     filter.connect(gain);
     gain.connect(out);
+    const parts: AudioNode[] = [];
     for (const [ratio, level, wave] of layers) {
       const osc = ctx.createOscillator();
       osc.type = wave;
@@ -211,10 +238,11 @@ export class AmbientVoices {
       const layer = ctx.createGain();
       layer.gain.value = level;
       osc.connect(layer);
-      layer.connect(filter);
+      parts.push(layer);
       osc.start(at);
       osc.stop(at + note.seconds + 0.05);
     }
+    mixTree(ctx, parts)?.connect(filter);
   }
 
   /** A struck note (glass, bell): each partial rises over the attack and rings away. */
@@ -225,6 +253,7 @@ export class AmbientVoices {
     out: AudioNode,
     partials: readonly (readonly [number, number, number])[],
   ): void {
+    const parts: AudioNode[] = [];
     for (const [ratio, level, decay] of partials) {
       const frequency = note.frequency * ratio;
       if (frequency > 12_000) continue;
@@ -239,10 +268,11 @@ export class AmbientVoices {
       gain.gain.setValueAtTime(0.00001, at + note.attack + ring * 1.4);
       gain.gain.linearRampToValueAtTime(0, at + note.attack + ring * 1.5);
       osc.connect(gain);
-      gain.connect(out);
+      parts.push(gain);
       osc.start(at);
       osc.stop(at + note.attack + ring * 1.5 + 0.05);
     }
+    mixTree(ctx, parts)?.connect(out);
   }
 
   /**

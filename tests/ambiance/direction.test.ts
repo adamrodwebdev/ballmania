@@ -18,7 +18,8 @@ const directorOf = (mood: Mood, seconds = HOUR, seed = 1) => {
 };
 
 /** Samples every `step` seconds of the hour. */
-const sampled = (step: number) => Array.from({ length: Math.floor(HOUR / step) }, (_, i) => i * step);
+const sampled = (step: number) =>
+  Array.from({ length: Math.floor(HOUR / step) }, (_, i) => i * step);
 
 describe('the direction of the picture', () => {
   it('is a function of time alone: the same frame in any order', () => {
