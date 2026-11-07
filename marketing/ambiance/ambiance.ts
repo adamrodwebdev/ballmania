@@ -207,6 +207,61 @@ class Factory {
     return job.watch.report();
   }
 
+  /**
+   * The loop of a Short: among `lengths` and `fades`, the one whose seam
+   * changes the picture least, measured as the flash check will measure it.
+   * A cross-fade mixes the finished frames linearly, so the luminance of each
+   * zone of the mix is the mix of the two zones' luminances.
+   */
+  loopPlan(
+    size: { width: number; height: number },
+    start: number,
+    lengths: readonly number[],
+    fades: readonly number[],
+  ): { length: number; fade: number; worst: number } {
+    const scene = new Scene({
+      ...size,
+      mood: this.need(this.mood),
+      palette: Palette.fromStyle(getComputedStyle(document.documentElement)),
+      seed: this.need(this.plan).seed,
+    });
+    const director = this.need(this.director);
+    const cells = (t: number) => {
+      scene.draw(t, director.frame(t), Math.round(t * FPS));
+      scene.present();
+      return Array.from(scene.luminance().cells);
+    };
+    const STEP = 0.2;
+    const longest = Math.max(...fades);
+    const steps = Math.round((longest + 1) / STEP);
+    // The start of the Short, after its seam too: shared by every candidate.
+    const head = Array.from({ length: steps + 1 }, (_, i) => cells(start + i * STEP));
+    let best = { length: lengths[0]!, fade: fades[0]!, worst: Infinity };
+    for (const length of lengths) {
+      // The end of the Short, one second before the loop point, then on under the seam.
+      const tail = Array.from({ length: steps + 6 }, (_, i) =>
+        cells(start + length + (i - 5) * STEP),
+      );
+      for (const fade of fades) {
+        const watch = new FlashWatch();
+        for (let i = -5; i <= Math.round((fade + 1) / STEP); i++) {
+          const u = i * STEP;
+          const end = tail[i + 5];
+          const begin = head[Math.max(0, i)]!;
+          const w = u < 0 ? 0 : Math.min(1, u / fade);
+          const mixed =
+            end && w < 1 ? begin.map((value, k) => value * w + end[k]! * (1 - w)) : begin;
+          watch.push(u, mixed.reduce((sum, v) => sum + v, 0) / mixed.length, mixed);
+        }
+        const report = watch.report();
+        const worst = Math.max(report.frame, report.zone);
+        if (worst < best.worst) best = { length, fade, worst };
+      }
+    }
+    scene.destroy();
+    return best;
+  }
+
   /** The thumbnail: one frame as a JPEG. */
   async thumbnail(t: number, width: number, height: number, file: string) {
     const scene = new Scene({

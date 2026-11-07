@@ -68,7 +68,7 @@ const SIZE = small
   ? { video: [640, 360], short: [360, 640], shortSeconds: 5, thumbnail: [640, 360] }
   : { video: [1920, 1080], short: [1080, 1920], shortSeconds: 20, thumbnail: [1280, 720] };
 /** Seconds of a Short's seam: long enough for its cross-fade never to flash. */
-const SEAM = Math.min(4, SIZE.shortSeconds / 2);
+const SEAM = Math.min(5, SIZE.shortSeconds / 2);
 const name = `${moodId}-${seed}-${minutes}m${small ? '-small' : ''}`;
 const outRoot = join(here, 'out');
 const out = join(outRoot, name);
@@ -519,26 +519,39 @@ async function produce(plan, planHash) {
   for (const [index, moment] of moments.entries()) {
     await stayCool(`short ${index + 1}`);
     const file = `short-${index + 1}`;
+    // The loop point where the end looks most like the start: within 10 % of the length.
+    const candidates = Array.from(
+      { length: 17 },
+      (_, i) => Math.round(moment.seconds * (0.9 + 0.0125 * i) * FPS) / FPS,
+    );
+    const loop = await call(
+      'loopPlan',
+      { width: SIZE.short[0], height: SIZE.short[1] },
+      moment.start,
+      candidates,
+      [SEAM, SEAM * 1.3, SEAM * 1.6],
+    );
+    const { length, fade } = loop;
     await call('openVideo', file, SIZE.short[0], SIZE.short[1], true);
     await call('frames', {
       video: file,
       from: 0,
-      count: moment.seconds * FPS,
+      count: Math.round(length * FPS),
       offset: moment.start,
-      loop: { seconds: moment.seconds, fade: SEAM },
+      loop: { seconds: length, fade },
       fingerprintEvery: 0,
     });
     const shortFlashes = await call('closeVideo', file);
     // Its sound: the same seam, equal power.
-    const n = moment.seconds * RATE;
-    const seam = SEAM * RATE;
+    const n = Math.round(length * RATE);
+    const seam = Math.round(fade * RATE);
     const read = async (at, count) => {
       const bytes = Buffer.alloc(count * 8);
       await finalRead.read(bytes, 0, bytes.length, Math.round(at * RATE) * 8);
       return new Float32Array(bytes.buffer, bytes.byteOffset, count * 2);
     };
     const body = await read(moment.start, n);
-    const after = await read(moment.start + moment.seconds, seam);
+    const after = await read(moment.start + length, seam);
     for (let i = 0; i < seam; i++) {
       const w = (Math.PI / 2) * (i / seam);
       for (const c of [0, 1])
@@ -568,7 +581,14 @@ async function produce(plan, planHash) {
       '+faststart',
       target,
     );
-    shortFiles.push({ file: `${file}.mp4`, ...moment, flashes: shortFlashes });
+    shortFiles.push({
+      file: `${file}.mp4`,
+      ...moment,
+      seconds: length,
+      seam: fade,
+      seamWorst: Number(loop.worst.toFixed(3)),
+      flashes: shortFlashes,
+    });
     log(`Short ${index + 1}: from ${moment.start.toFixed(1)} s`);
   }
   await finalRead.close();
