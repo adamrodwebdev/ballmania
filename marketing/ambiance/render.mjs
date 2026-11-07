@@ -5,6 +5,7 @@
 // Usage: npm run ambiance -- --mood <id> --minutes <n> --seed <s> [--small] [--check]
 //   --small  640 × 360, Shorts of 5 s (the smoke test of the CI)
 //   --check  renders samples again and compares them with the manifest, writing nothing
+//   --stills one picture per mood (1280 × 720) at its first signature effect, in out/stills/
 //   --guard <file>  another guard than guard.json (games watched, temperatures)
 // Needs Google Chrome (H.264 encoding) and ffmpeg on the PATH.
 import { execFile } from 'node:child_process';
@@ -44,13 +45,14 @@ const option = (name, fallback) => {
   return at >= 0 ? args[at + 1] : fallback;
 };
 const flag = (name) => args.includes(`--${name}`);
+const stills = flag('stills');
 const moodId = option('mood');
-const minutes = Number(option('minutes'));
+const minutes = Number(option('minutes', stills ? '60' : undefined));
 const seed = Number(option('seed', '1'));
 const small = flag('small');
 const checking = flag('check');
 if (
-  !moodId ||
+  (!moodId && !stills) ||
   !Number.isFinite(minutes) ||
   minutes <= 0 ||
   minutes > 180 ||
@@ -249,7 +251,7 @@ const { SoundAnalyzer, Limiter, LoudnessMeter, gainTo, fadeAt, fromDecibels } =
 const { shorts, thumbnailAt } = await server.ssrLoadModule('/marketing/ambiance/Highlights.ts');
 const moods = Mood.parseAll(JSON.parse(await readFile(join(here, 'moods.json'), 'utf8')));
 const mood = moods.find((m) => m.id === moodId);
-if (!mood) {
+if (!mood && !stills) {
   console.error(`Unknown mood "${moodId}". Moods: ${moods.map((m) => m.id).join(', ')}`);
   await server.close();
   process.exit(2);
@@ -301,15 +303,15 @@ const call = (method, ...values) =>
 
 let exitCode = 0;
 try {
-  const setup = await call('setup', { mood: moodId, seconds, seed });
-  const plan = setup.plan;
-  const planHash = sha256(setup.notes);
-  log(`${mood.name.en}: ${plan.sections.length} sections, ${minutes} min, seed ${seed}`);
-
-  if (checking) {
-    exitCode = await check(plan, planHash);
+  if (stills) {
+    await renderStills();
   } else {
-    await produce(plan, planHash);
+    const setup = await call('setup', { mood: moodId, seconds, seed });
+    const plan = setup.plan;
+    const planHash = sha256(setup.notes);
+    log(`${mood.name.en}: ${plan.sections.length} sections, ${minutes} min, seed ${seed}`);
+    if (checking) exitCode = await check(plan, planHash);
+    else await produce(plan, planHash);
   }
 } catch (error) {
   console.error(error);
@@ -319,6 +321,21 @@ try {
   await server.close();
 }
 process.exit(exitCode);
+
+// ---------------------------------------------------------------- stills
+
+/** One picture per mood, at its first signature effect: the look of each world at a glance. */
+async function renderStills() {
+  const dir = join(outRoot, 'stills');
+  await mkdir(dir, { recursive: true });
+  uploads = dir;
+  for (const each of moods) {
+    const setup = await call('setup', { mood: each.id, seconds, seed });
+    const at = thumbnailAt(setup.plan, each);
+    await call('thumbnail', at, 1280, 720, `${each.id}.jpg`);
+    log(`${each.name.en}: ${join(dir, `${each.id}.jpg`)} (at ${at.toFixed(1)} s)`);
+  }
+}
 
 // ---------------------------------------------------------------- produce
 

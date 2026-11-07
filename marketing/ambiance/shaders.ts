@@ -115,8 +115,7 @@ vec3 rays(vec2 uv, float t, vec3 colour, float amount) {
     float width = 0.03 + 0.03 * noise(vec2(fi, t * 0.03));
     shafts += exp(-pow((x - centre) / width, 2.0)) * (0.5 + 0.5 * noise(vec2(fi * 3.1, t * 0.08)));
   }
-  float fade = smoothstep(1.05, 0.0, p.y) ;
-  return colour * shafts * (1.0 - fade * 0.0) * smoothstep(-0.1, 0.9, 1.0 - p.y) * amount;
+  return colour * shafts * smoothstep(-0.1, 0.9, p.y) * amount;
 }
 
 // Nebula: a star being born, its halo and its four spikes.
@@ -124,8 +123,8 @@ vec3 starBirth(vec2 uv, float t, float s) {
   float aspect = uResolution.x / uResolution.y;
   vec2 p = (cameraUv(uv, 0.75) - vec2(0.58, 0.42)) * vec2(aspect, 1.0);
   float r = length(p);
-  float core = exp(-r * r * 900.0) * 6.0;
-  float halo = exp(-r * 6.0) * 0.9 + exp(-r * 18.0) * 1.2;
+  float core = exp(-r * r * 1400.0) * 3.0;
+  float halo = exp(-r * 7.0) * 0.55 + exp(-r * 22.0) * 0.8;
   float spikes = (exp(-abs(p.x) * 260.0) * exp(-abs(p.y) * 5.0)
                 + exp(-abs(p.y) * 260.0) * exp(-abs(p.x) * 5.0)) * 1.4;
   float ring = exp(-pow((r - 0.08 - 0.10 * s) * 22.0, 2.0)) * fbm(p * 9.0 + t * 0.05) * 1.2;
@@ -136,26 +135,27 @@ vec3 starBirth(vec2 uv, float t, float s) {
 vec3 neonWorld(vec2 uv, float t, float s) {
   vec2 p = cameraUv(uv, 0.9);
   vec3 c = vec3(0.0);
-  float horizon = 0.58;
+  float horizon = 0.46;
   if (p.y < horizon) {
     float d = horizon - p.y;
-    float z = 0.12 / max(d, 0.002);
-    float x = (p.x - 0.5) * z * 3.0;
-    float lines = exp(-abs(fract(x) - 0.5) * 0.0 + 0.0) * 0.0;
-    float gx = smoothstep(0.035 * z, 0.0, abs(fract(x + 0.5) - 0.5) );
-    float gz = smoothstep(0.035 * z, 0.0, abs(fract(z - t * (0.25 + 0.35 * s)) - 0.5) - 0.0);
-    float fog = exp(-z * 0.35);
-    c += (uGlowA * gx + uGlowB * gz) * fog * (0.35 + 0.65 * uEnergy) + lines;
-    c += uGlowB * exp(-d * 30.0) * 0.6;
+    float z = 0.25 / max(d, 0.004);
+    float x = (p.x - 0.5) * z * 4.0;
+    float travel = z - t * (0.35 + 0.35 * s);
+    float gx = 1.0 - smoothstep(0.0, fwidth(x) * 1.5, abs(fract(x + 0.5) - 0.5));
+    float gz = 1.0 - smoothstep(0.0, fwidth(travel) * 1.5, abs(fract(travel + 0.5) - 0.5));
+    float fog = exp(-z * 0.12);
+    c += (uGlowA * gx + uGlowB * gz) * fog * (0.5 + 0.5 * uEnergy);
+    c += uGlowB * exp(-d * 22.0) * 0.45;
   } else {
     float h = p.y - horizon;
+    c += uGlowB * exp(-h * 18.0) * 0.35;
     for (int i = 0; i < 3; i++) {
       float fi = float(i);
-      float wave = 0.18 + 0.1 * fi + 0.06 * sin(p.x * (3.0 + fi) + t * (0.06 + 0.02 * fi))
-                 + 0.05 * fbm(vec2(p.x * 2.0 + fi * 4.0, t * 0.04));
-      float band = exp(-pow((h - wave) * 14.0, 2.0)) * smoothstep(0.0, 0.08, h);
-      float curtain = band * (0.6 + 0.4 * noise(vec2(p.x * 25.0, t * 0.2 + fi)));
-      c += mix(uGlowA, uGlowB, fi * 0.5) * curtain * (0.35 + 0.9 * s);
+      float wave = 0.16 + 0.09 * fi + 0.05 * sin(p.x * (3.0 + fi) + t * (0.05 + 0.02 * fi))
+                 + 0.04 * fbm(vec2(p.x * 2.0 + fi * 4.0, t * 0.04));
+      float band = exp(-pow((h - wave) * 22.0, 2.0)) * smoothstep(0.0, 0.08, h);
+      float curtain = band * (0.5 + 0.5 * noise(vec2(p.x * 30.0, t * 0.15 + fi)));
+      c += mix(uGlowA, uGlowB, fi * 0.5) * curtain * (0.2 + 0.45 * s);
     }
   }
   return c;
@@ -204,40 +204,52 @@ vec3 hue(float h) {
 vec3 crystals(vec2 uv, float t, float s) {
   float aspect = uResolution.x / uResolution.y;
   vec3 c = vec3(0.0);
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     float fi = float(i);
-    vec2 centre = vec2(0.2 + 0.2 * fi + 0.03 * sin(t * 0.03 + fi), 0.35 + 0.25 * fract(fi * 0.61));
-    vec2 p = (cameraUv(uv, 0.5 + 0.12 * fi) - centre) * vec2(aspect, 1.0);
-    float angle = t * (0.02 + 0.01 * fi) * (mod(fi, 2.0) * 2.0 - 1.0) + fi;
+    vec2 centre = vec2(0.12 + 0.19 * fi + 0.02 * sin(t * 0.03 + fi), 0.3 + 0.35 * fract(fi * 0.61));
+    float depth = 0.45 + 0.1 * fi;
+    vec2 p = (cameraUv(uv, depth) - centre) * vec2(aspect, 1.0);
+    float angle = 0.25 * sin(t * (0.02 + 0.006 * fi) + fi * 1.7);
     float ca = cos(angle);
     float sa = sin(angle);
     p = mat2(ca, -sa, sa, ca) * p;
-    float size = 0.07 + 0.03 * fi;
-    // A hexagonal prism: its outline and its facets.
-    vec2 a = abs(p);
-    float hex = max(a.x * 0.866 + a.y * 0.5, a.y) - size;
-    float face = floor((atan(p.y, p.x) + PI) / (PI / 3.0));
-    float inside = smoothstep(0.004, -0.004, hex);
-    float edge = exp(-abs(hex) * 160.0);
-    vec3 facet = hue(face / 6.0 + t * 0.01 + s * 0.2) * (0.25 + 0.2 * sin(face + t * 0.2));
-    c += (facet * inside * 1.2 + edge * mix(uGlowA, vec3(1.0), 0.5) * 1.6) * (0.6 + 0.6 * s);
+    float size = 0.035 + 0.02 * fract(fi * 0.53);
+    // A long crystal with pointed ends, three faces turned to us.
+    vec2 a = abs(p / vec2(1.0, 2.6));
+    float body = max(a.x * 0.866 + a.y * 0.5, a.x) - size;
+    float inside = smoothstep(0.003, -0.003, body);
+    float across = p.x / size;
+    // The faces turn with time: their light slides across them.
+    float turn = t * (0.03 + 0.01 * fi) + fi;
+    float face = across + 0.6 * sin(turn);
+    float shade = face < -0.35 ? 0.3 : face > 0.35 ? 0.18 : 0.55;
+    float streak = 0.5 + 0.5 * sin(p.y / size * 1.4 + turn * 2.0);
+    vec3 body3 = mix(uGlowB, uGlowA, streak) * shade;
+    vec3 rainbow = hue(p.y / size * 0.12 + face * 0.15 + t * 0.008) * (0.15 + 0.4 * s) * streak;
+    float edge = exp(-abs(body) * 420.0) * 0.45;
+    float sparkle = pow(max(0.0, sin(turn * 3.0 + fi * 5.0)), 40.0) * exp(-dot(p, p) * 900.0) * 3.0;
+    c += ((body3 + rainbow) * inside * 0.8 + mix(uGlowA, vec3(1.0), 0.5) * (edge + sparkle)) * (0.6 + 0.5 * s) * (0.5 + depth);
   }
   // Rainbow caustics sweeping slowly across the picture at the peak.
   vec2 p = cameraUv(uv, 0.6);
   float bands = sin((p.x + p.y * 0.4) * 9.0 - t * 0.12);
-  c += hue(p.x * 0.8 + t * 0.01) * smoothstep(0.7, 1.0, bands) * 0.35 * s;
+  c += hue(p.x * 0.8 + t * 0.01) * smoothstep(0.75, 1.0, bands) * 0.22 * s;
   return c;
 }
 
 // Volcano: rivers of lava far below and the glow of the horizon.
 vec3 lava(vec2 uv, float t, float s) {
   vec2 p = cameraUv(uv, 0.8);
-  float low = smoothstep(0.55, 1.0, p.y);
-  vec2 q = vec2(p.x * 3.0, p.y * 9.0);
-  float flow = volutes(q + vec2(t * 0.02, 0.0), t * 0.5);
-  float rivers = pow(smoothstep(0.55, 0.85, flow), 2.0) * low;
-  float horizon = exp(-pow((p.y - 0.62) * 9.0, 2.0)) * (0.4 + 0.9 * s);
-  return uGlowA * rivers * 2.4 + mix(uGlowA, uGlowB, 0.4) * horizon;
+  float horizonY = 0.42;
+  float below = smoothstep(horizonY, horizonY - 0.08, p.y);
+  // Seen in perspective: the rivers stretch towards the horizon.
+  float d = max(horizonY - p.y, 0.01);
+  vec2 q = vec2((p.x - 0.5) / d * 0.6, 1.0 / d * 0.35);
+  float flow = volutes(q * 0.8 + vec2(0.0, -t * 0.03), t * 0.4);
+  float rivers = pow(smoothstep(0.55, 0.8, flow), 2.0) * below * exp(-0.6 / d * 0.1);
+  float horizon = exp(-pow((p.y - horizonY) * 16.0, 2.0)) * (0.22 + 0.4 * s);
+  float sky = smoothstep(horizonY, horizonY + 0.4, p.y);
+  return uGlowA * rivers * 1.6 + mix(uGlowA, uGlowB, 0.4) * horizon + uGlowA * 0.06 * (1.0 - sky) * (1.0 - below);
 }
 
 // Singularity: a black hole far away, its disk of light bending the stars behind it.
@@ -251,16 +263,20 @@ vec2 lens(vec2 uv) {
 vec3 blackHole(vec2 uv, float t, float s) {
   float aspect = uResolution.x / uResolution.y;
   vec2 p = (cameraUv(uv, 0.7) - vec2(0.62, 0.45)) * vec2(aspect, 1.0);
-  float tilt = 0.28;
+  float tilt = 0.24;
   vec2 q = vec2(p.x, p.y / tilt);
   float r = length(q);
-  float disk = smoothstep(0.06, 0.09, r) * smoothstep(0.30, 0.12, r);
-  float swirl = 0.6 + 0.4 * fbm(vec2(atan(q.y, q.x) * 3.0 - t * 0.25, r * 18.0));
-  float doppler = 0.55 + 0.45 * (q.x / max(r, 0.001));
-  float ring = exp(-pow((length(p) - 0.055) * 120.0, 2.0)) * (1.0 + 2.0 * s);
-  float shadow = smoothstep(0.05, 0.035, length(p));
-  vec3 c = mix(uGlowB, uGlowA, doppler) * disk * swirl * doppler * (1.2 + 1.4 * s) + uGlowA * ring;
-  return c * (1.0 - shadow);
+  // The disk, in front of the hole below its middle and bent over it above (the lensed far side).
+  float disk = smoothstep(0.10, 0.13, r) * smoothstep(0.34, 0.16, r);
+  float arc = exp(-pow((length(p * vec2(1.0, 1.25)) - 0.085) * 55.0, 2.0)) * smoothstep(-0.01, 0.03, p.y);
+  float swirl = 0.55 + 0.45 * fbm(vec2(atan(q.y, q.x) * 3.0 - t * 0.2, r * 16.0));
+  float doppler = 0.5 + 0.5 * (q.x / max(r, 0.001));
+  float ring = exp(-pow((length(p) - 0.072) * 140.0, 2.0)) * (0.5 + 1.0 * s);
+  float shadow = smoothstep(0.072, 0.06, length(p));
+  float front = step(p.y, 0.0);
+  vec3 light = mix(uGlowB, uGlowA, doppler);
+  vec3 c = light * (disk * swirl * (0.35 + 0.65 * doppler) + arc * 0.6) * (0.7 + 0.8 * s) + uGlowA * ring;
+  return c * (1.0 - shadow * (1.0 - front * disk));
 }
 
 void main() {
@@ -324,7 +340,8 @@ float h(float n, float s) { return fract(sin(n * 127.1 + s * 311.7) * 43758.5453
 
 void main() {
   float id = float(gl_VertexID);
-  float depth = floor(h(id, 1.0) * 5.0) / 4.0;          // 0 far .. 1 near
+  // Most particles far away, few near the lens: the near ones are large and soft.
+  float depth = floor(pow(h(id, 1.0), 2.2) * 5.0) / 4.0;  // 0 far .. 1 near
   vec2 seed = vec2(h(id, 2.0), h(id, 3.0));
   float speed = (0.15 + 0.85 * h(id, 4.0)) * (0.3 + depth);
   vec2 velocity;
