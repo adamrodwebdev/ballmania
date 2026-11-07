@@ -2587,6 +2587,29 @@ et de la miniature, chaque fichier avec sa taille et son SHA-256, le temps machi
 5. Merge dans `dev` une fois l'e2e vert ; jamais dans `main` sans demande (le lot ne change rien
    de ce que le site déploie).
 
+#### Livraison (07/11/2026)
+
+- **Porte, partie automatique** : « Abysses, pour dormir », 60 min, graine 1, commit ff1cc2c :
+  −18,0 LUFS, crête vraie −3,6 dBTP, LRA 4,8 LU, aucun clic, aucun silence, perte en mono 0,18 dB,
+  flash le plus fort 0,085 (film) et 0,071 à 0,087 (Shorts), `--check` vert. **41 min de travail
+  machine** pour l'heure (son 27 min, images 5,2 ms par image), plus 4 pauses de la garde (GPU à
+  80 °C). La vidéo pèse 5,6 Go. Reste l'écoute de l'utilisateur au casque et au téléphone.
+- **Écarts avec ce qui précède, trouvés en rendant** :
+  - Le son se refait au bit près seulement en mélangeant les notes par paires (`mixTree`) :
+    Chrome additionne les entrées d'un nœud dans un ordre variable.
+  - La couche `Ambience` du jeu n'est pas reprise : les particules de la scène WebGL2 la
+    remplacent, en cinq profondeurs. Le décor peint du monde est flouté (plan lointain).
+  - La bande de lumière des changements de plan est un reflet discret (force 0,05) : plus forte,
+    elle flashait (0,36 en une seconde à la force 0,35).
+  - Les Shorts durent de 18 à 22 s : la fabrique simule chaque Short bouclé en entier (longueur,
+    départ, fondu de 5 à 8 s) et garde le réglage le plus doux, ou un autre moment fort.
+  - Le budget n'est pas mesuré sur la fumée de CI, dessinée en logiciel (40 fois plus lente).
+  - `--scan` lit le contrôle anti-flash d'une heure en 30 s avant d'engager le rendu.
+  - Le serveur de la fabrique tourne sans rechargement ni surveillance des fichiers : une
+    modification du code avait rechargé la page au milieu d'un rendu.
+- **Volcan** : le monde le moins abouti (bande d'horizon trop présente), à reprendre avant sa
+  première vidéo.
+
 #### Coût estimé
 
 | Poste                                                                                                                    | Session       | Machine                   |
@@ -3267,3 +3290,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.25    | 31/10/2026 | Revue des droits avant les dépôts : le Ralenti devient la Stase, un test interdit les noms d'autres jeux, les licences des polices et le dossier de provenance sont dans le dépôt (§ 2.3).                                                                         |
 | 1.26    | 07/11/2026 | Lot 15 « Fabrique d'ambiances » proposé : architecture, humeurs, musique, images, sorties, déterminisme, tests, porte et coût, à valider (§ 3.18).                                                                                                                 |
 | 1.27    | 07/11/2026 | Lot 15 validé par l'utilisateur avec ses choix ; direction artistique des images (plans, profondeur, étalonnages, effets signature des six mondes, rythme sur la durée) et coût revu (§ 3.18).                                                                     |
+| 1.28    | 07/11/2026 | Lot 15 livré sur `dev` : la porte automatique de « Abysses, pour dormir » (60 min) passe, 41 min de machine ; écarts trouvés en rendant (§ 3.18).                                                                                                                  |
