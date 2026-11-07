@@ -65,8 +65,14 @@ if (
 }
 const seconds = Math.round(minutes * 60);
 const SIZE = small
-  ? { video: [640, 360], short: [360, 640], shortSeconds: 5, thumbnail: [640, 360] }
-  : { video: [1920, 1080], short: [1080, 1920], shortSeconds: 20, thumbnail: [1280, 720] };
+  ? { video: [640, 360], short: [360, 640], shortSeconds: 5, thumbnail: [640, 360], loops: 5 }
+  : {
+      video: [1920, 1080],
+      short: [1080, 1920],
+      shortSeconds: 20,
+      thumbnail: [1280, 720],
+      loops: 17,
+    };
 /** Seconds of a Short's seam: long enough for its cross-fade never to flash. */
 const SEAM = Math.min(5, SIZE.shortSeconds / 2);
 const name = `${moodId}-${seed}-${minutes}m${small ? '-small' : ''}`;
@@ -216,7 +222,8 @@ const interleave = (left, right, gainAt) => {
 let uploads = work;
 const server = await createServer({
   root,
-  server: { port: 5198, strictPort: true },
+  // No hot reload, no file watching: an edit to the code during a render must not reload the page.
+  server: { port: 5198, strictPort: true, hmr: false, watch: null },
   logLevel: 'warn',
   plugins: [
     {
@@ -521,8 +528,8 @@ async function produce(plan, planHash) {
     const file = `short-${index + 1}`;
     // The loop point where the end looks most like the start: within 10 % of the length.
     const candidates = Array.from(
-      { length: 17 },
-      (_, i) => Math.round(moment.seconds * (0.9 + 0.0125 * i) * FPS) / FPS,
+      { length: SIZE.loops },
+      (_, i) => Math.round(moment.seconds * (0.9 + (0.2 * i) / (SIZE.loops - 1)) * FPS) / FPS,
     );
     const loop = await call(
       'loopPlan',

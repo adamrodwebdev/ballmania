@@ -190,9 +190,9 @@ vec3 jellyfish(vec2 uv, float t, float s) {
       float wave = x0 + 0.18 * sin(y * 2.2 - t * 1.1 + fk + fi) * min(y, 3.0) * 0.4;
       tentacles += exp(-pow((q.x - wave) * 14.0, 2.0)) * smoothstep(0.0, 0.2, y) * smoothstep(4.0, 0.5, y);
     }
-    float glow = exp(-length(q) * 1.6) * 0.5;
+    float glow = exp(-length(q) * 1.8) * 0.35;
     vec3 tint = mix(uGlowA, uGlowB, fract(fi * 0.5));
-    c += tint * (bell + rim * 1.2 + tentacles * 0.45 + glow) * (0.65 + 0.6 * s) * (0.5 + depth);
+    c += tint * (bell + rim * 0.9 + tentacles * 0.4 + glow) * (0.6 + 0.45 * s) * (0.5 + depth);
   }
   return c;
 }
@@ -286,14 +286,14 @@ void main() {
   vec3 c = backdrop(bgUv) * (0.55 + 0.45 * uLight);
   float energy = uEnergy;
   float s = uSignature;
-  c += gas(uv, t, (0.35 + 0.4 * energy + 0.4 * s) * uLight);
+  c += gas(uv, t, (0.35 + 0.4 * energy + 0.3 * s) * uLight);
   if (uWorld == 0) {
     c += rays(uv, t, mix(uGlowA, uGlowB, 0.5), 0.12 * uLight);
     c += starBirth(uv, t, 0.25 + s);
   } else if (uWorld == 1) {
     c += neonWorld(uv, t, s) * uLight;
   } else if (uWorld == 2) {
-    c += rays(uv, t, uGlowA, (0.22 + 0.25 * s) * uLight);
+    c += rays(uv, t, uGlowA, (0.22 + 0.18 * s) * uLight);
     c += jellyfish(uv, t, s) * uLight;
   } else if (uWorld == 3) {
     c += crystals(uv, t, s) * uLight;
