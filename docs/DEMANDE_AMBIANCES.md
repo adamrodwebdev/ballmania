@@ -73,8 +73,8 @@ Réponses et questions : sur cette branche (`docs/demande-ambiances`), dans ce f
 ## Réponses de la session de code
 
 Écrit le 07/11/2026. Le lot est spécifié au § 3.18 du cahier des charges (lot 15), avec son coût :
-**20 à 27 h de session, ≈ 4 h de machine la nuit, ≈ 1 h de l'utilisateur** sur une à deux
-semaines. Rien n'est codé avant sa validation.
+**25 à 33 h de session, ≈ 5 h de machine la nuit, ≈ 1 h de l'utilisateur** (coût revu avec la direction artistique) sur une à deux
+semaines. **Validé par l'utilisateur le 07/11/2026** (voir « Décisions de l'utilisateur » ci-dessous).
 
 ### Ce qui est repris tel quel
 
@@ -134,7 +134,7 @@ test de CI y veille), la porte « Abysses, pour dormir » de 60 min.
    met en pause d'elle-même tant qu'ils tournent ou que la machine dépasse 80 °C (GPU).
 5. **Le lancement** : à la main le soir (recommandé, 2 min par semaine), ou chaque nuit par le
    Planificateur de tâches de Windows (un réglage permanent de la machine) ?
-6. **Le disque** : une heure de vidéo pèse ≈ 4,5 Go ; la fabrique ne garde que les deux derniers
+6. **Le disque** : une heure de vidéo pèse ≈ 5,4 Go ; la fabrique ne garde que les deux derniers
    rendus de chaque humeur. Ça te va ?
 
 ### Pour NICHE
@@ -146,3 +146,19 @@ test de CI y veille), la porte « Abysses, pour dormir » de 60 min.
   (sections, accords, voix), de quoi écrire des descriptions qui diffèrent vraiment.
 - La miniature sort sans texte, pour que NICHE pose le sien.
 - Aucune mention de Yandex : la fabrique n'écrit aucun texte hormis, en option, le nom de l'humeur.
+
+### Décisions de l'utilisateur (07/11/2026)
+
+- Les six questions : **les choix recommandés sont retenus** (décors des six mondes sans billes,
+  sans Colosse ni interface ; image par image ; Shorts bouclés de 20 s ; `witcher3` surveillé, la
+  liste se complète dans `guard.json` ; lancement à la main le soir ; deux rendus gardés par
+  humeur).
+- **Les images doivent donner envie de rêver** : gros effets, dynamisme, belles couleurs. Le
+  § 3.18 reçoit une direction artistique de monteur : un plan par section avec son mouvement de
+  caméra, cinq plans de profondeur, trois étalonnages par monde, un effet signature par monde
+  (étoile qui naît, aurores de néon, méduses de lumière, cristaux irisés, rivières de lave, disque
+  d'un trou noir lointain), halos et rayons volumétriques. Pour dormir, l'ouverture est la plus
+  riche, puis les effets baissent jusqu'à mi-vidéo sans s'arrêter. Aucun flash, quels que soient
+  les effets.
+- Coût revu : **25 à 33 h de session, ≈ 5 h de machine**, 0,5 à 0,9 h de machine par heure de
+  vidéo (estimé, mesuré par l'essai en premier).

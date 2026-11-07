@@ -2322,10 +2322,10 @@ quatre écrans, le nouveau venu typique ; « au-delà » : plus d'une erreur typ
 - **Le nouveau venu lent, au doigt, avec l'aide**, au téléphone aux barres : 82 % en médiane
   au monde 1, de 64 % (1-11) à 100 %, sept niveaux sur douze à 80 % ou plus.
 
-### 3.18 Lot 15 « Fabrique d'ambiances » (proposé le 07/11/2026, à valider)
+### 3.18 Lot 15 « Fabrique d'ambiances » (validé le 07/11/2026)
 
 Demande de NICHE : `docs/DEMANDE_AMBIANCES.md` (les réponses de la session de code y sont, avec
-les désaccords). **Rien n'est codé avant la validation de l'utilisateur.** La fabrique rend des
+les désaccords). Validé par l'utilisateur le 07/11/2026, avec ses choix (réponses de la demande) et une direction artistique plus spectaculaire (ci-dessous). La fabrique rend des
 vidéos longues d'ambiance (dormir, étudier, se concentrer) depuis la musique et les décors du
 jeu, pour une chaîne séparée de @adamrodwebdev. Aucune IA générative : tout est calculé par le
 code, comme dans le jeu.
@@ -2426,28 +2426,83 @@ Six humeurs au départ, une par monde, la première seule rendue pour la porte.
   et des 2 dernières). La mesure est recoupée par le filtre `ebur128` de ffmpeg (écart ≤ 0,3 LU).
   Puis AAC-LC 256 kb/s stéréo par ffmpeg.
 
-#### Les images
+#### Les images : direction artistique
 
-- **Le décor** : le `WorldTheme` du monde peint une fois à 2 112 × 1 188 (10 % de marge pour la
-  caméra) avec la palette sombre du jeu, plus sa couche `Ambience` (étoiles, bulles, éclats,
-  braises), qui ne dépend que du temps. Ni bille, ni chemin, ni trou noir, ni Colosse, ni
-  interface.
-- **Ce que la fabrique ajoute** : une caméra qui glisse et respire (zoom 1,00 à 1,06 sur
-  plusieurs minutes), deux ou trois plans de particules en parallaxe, sans état (position =
-  fonction du temps et de l'indice), une lumière d'ensemble qui suit l'énergie de la musique,
-  lissée sur 4 s au moins, des lueurs qui gonflent en 1 à 2 s sous les notes de verre, un
-  vignettage, et un grain déterministe très fin contre les bandes du H.264 sur les dégradés
-  sombres.
-- **Jamais stroboscopique** : la luminance moyenne de l'image varie de moins de 2 % par seconde,
-  et aucune zone ne flashe (critère 2.3.1 des WCAG, très en deçà) ; mesuré sur les images
-  échantillonnées et écrit au manifeste.
-- **Image par image, sur toute la durée** (recommandé, voir les réponses) : `frame(t)` sans
-  état, pour que les images suivent vraiment la musique qui ne se répète pas. Repli si le budget
-  machine n'est pas tenu : une boucle visuelle sans couture de 15 min (tous les mouvements
-  périodiques sur 15 min), où seule la lumière d'ensemble suit encore la musique.
-- **Encodage** : `VideoEncoder` de Chrome (H.264 High, matériel), 30 i/s, débit visé 10 Mb/s
-  (YouTube conseille 8 en 1080p30 ; les dégradés sombres en demandent un peu plus), par segments
-  de 5 min envoyés au fur et à mesure à Node (jamais une vidéo entière en mémoire). ffmpeg les
+Demande de l'utilisateur (07/11/2026) : **des images qui donnent envie de rêver**, avec de gros
+effets, du dynamisme et de belles couleurs. Le regard est celui d'un monteur : le dynamisme d'une
+ambiance vient de l'échelle, de la profondeur, de la couleur et du découpage, pas de la vitesse.
+Une image qui va vite réveille ; une image immense qui bouge lentement fait rêver.
+
+**Le découpage en plans.** Chaque section de musique est un plan, avec son cadre et son
+mouvement de caméra, tirés par la graine parmi : plan large d'ouverture, lente poussée vers un
+point de lumière, travelling latéral en parallaxe, montée vers la surface, plongée vers le fond,
+rotation lente autour d'un astre. Le passage d'un plan à l'autre se fait au changement de
+section, en fondu enchaîné de 8 à 15 s ou par un balayage de lumière, calé sur la musique. Une
+vidéo d'une heure compte donc 15 à 25 plans, jamais deux fois le même cadre de suite.
+
+**La profondeur** : 5 plans de profondeur, du lointain (le décor du monde) au tout proche
+(poussières floues qui passent devant l'objectif), en parallaxe, avec une mise au point qui
+glisse doucement d'un plan à l'autre (flou de profondeur).
+
+**Les couleurs** : chaque monde garde les couleurs du jeu et reçoit trois étalonnages, un par
+type de section (calme, lumineux, profond), qui se fondent l'un dans l'autre en 20 s au moins.
+Contrastes complémentaires et saturés, noirs profonds mais jamais bouchés, halos (bloom) sur
+toutes les lumières.
+
+| Monde       | Étalonnages (calme · lumineux · profond)               | Effet signature, aux temps forts                                                               |
+| ----------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Nébuleuse   | violet et rose · or et magenta · indigo                | Les gaz de la nébuleuse coulent et s'ouvrent sur une étoile qui naît, son halo gagne l'écran   |
+| Néon        | cyan et magenta · rose électrique · bleu nuit          | Une grille d'horizon infinie que l'on survole, des aurores de néon qui ondulent au-dessus      |
+| Abysses     | turquoise et vert d'eau · cyan lumineux · bleu abyssal | Des méduses de lumière qui montent en dérivant, des bancs de plancton qui tournent, des rayons |
+| Joaillerie  | émeraude et améthyste · diamant blanc irisé · saphir   | Des cristaux géants qui pivotent, la lumière s'y décompose en arcs-en-ciel lents               |
+| Volcan      | braise et pourpre · or fondu · rouge sombre            | Des rivières de lave lointaines, des nuées de braises qui tourbillonnent dans le vent chaud    |
+| Singularité | bleu glacé et violet · blanc éclatant · noir et or     | Le disque de lumière d'un trou noir lointain qui courbe les étoiles derrière lui               |
+
+Les méduses, cristaux, aurores et la grille sont dessinés par le code (courbes, dégradés, bruit
+de Perlin), dans le style des décors du jeu. Le trou noir de la Singularité est un astre lointain
+du décor, pas celui du plateau. Aucune bille, aucun Colosse, aucune interface.
+
+**Les gros effets** :
+
+- **Nébuleuses vivantes** : des volutes de gaz calculées par un shader (bruit fractal déformé),
+  qui coulent lentement et changent de forme sans jamais se répéter.
+- **Rayons volumétriques** (Abysses, Nébuleuse, Singularité) : la lumière traverse la scène et
+  les particules s'y allument en passant.
+- **Halos, reflets d'objectif doux et grain de film** sur toutes les lumières.
+- **Un moment fort par section**, au sommet de son énergie : l'effet signature du monde, qui
+  gonfle en 3 à 6 s et retombe en 10 s, avec une montée de lumière et une poussée de caméra.
+- **Les notes de verre et de cloche** allument des lueurs qui s'épanouissent en 1 à 2 s là où
+  la caméra regarde ; la nappe fait respirer la lumière d'ensemble.
+
+**Le rythme sur la durée** (`arc` de l'humeur) :
+
+- **Les 3 premières minutes** sont les plus riches : c'est là que le spectateur décide de rester,
+  et là que se prennent la miniature et l'image d'aperçu.
+- **Pour dormir** (`descending`) : après l'ouverture, l'amplitude des mouvements et des effets
+  baisse peu à peu jusqu'à la moitié de la vidéo, puis reste à ce niveau, sans jamais s'arrêter.
+  Les couleurs restent belles, la lumière baisse de 30 % au plus.
+- **Pour étudier ou se concentrer** (`steady`, `breathing`) : dynamisme constant ou en vagues de
+  10 à 15 min.
+- **Les Shorts** prennent les moments forts les plus spectaculaires, en vertical, avec le
+  mouvement le plus ample de la vidéo.
+
+**Jamais stroboscopique, quels que soient les effets** (non négociable : santé des spectateurs,
+critère 2.3.1 des WCAG et règles de YouTube) : aucune variation de luminance de plus de 10 % en
+moins d'une seconde, aucun clignotement, aucun rouge saturé qui pulse ; un effet monte en 2 s au
+moins. Mesuré sur une image toutes les 0,2 s et écrit au manifeste.
+
+**La technique** : le décor du monde (`WorldTheme`, peint une fois à 2 304 × 1 296 pour laisser
+voyager la caméra) et sa couche `Ambience` en Canvas 2D, comme dans le jeu ; par-dessus, une
+passe WebGL2 de la fabrique : nébuleuses, rayons, éléments signature, flou de profondeur, halos,
+étalonnage, vignettage et grain (le grain empêche aussi les bandes du H.264 dans les dégradés
+sombres). Tout est fonction de `t` et de la graine : `frame(t)` sans état, en accès direct.
+
+- **Image par image, sur toute la durée** (décidé le 07/11/2026) : les images suivent vraiment
+  la musique, qui ne se répète pas. Repli si le budget machine n'est pas tenu : halos calculés en
+  demi-résolution, puis, en dernier recours, une boucle de 15 min.
+- **Encodage** : `VideoEncoder` de Chrome (H.264 High, matériel), 30 i/s, débit visé 12 Mb/s
+  (le grain et les dégradés demandent plus que les 8 Mb/s que conseille YouTube), par segments de
+  5 min envoyés au fur et à mesure à Node (jamais une vidéo entière en mémoire). ffmpeg les
   assemble sans réencoder et ajoute le son.
 
 #### Les sorties
@@ -2492,7 +2547,7 @@ et de la miniature, chaque fichier avec sa taille et son SHA-256, le temps machi
   deux segments (pas de suspension de processus, qui s'empile sous Windows) et reprend quand
   c'est fini et refroidi (sous 70 °C). Les pauses sont écrites au manifeste.
 - Elle refuse de démarrer s'il reste moins de deux fois la taille attendue sur le disque
-  (≈ 4,5 Go par heure de vidéo à 10 Mb/s, plus 1,4 Go de son temporaire, effacé à la fin).
+  (≈ 5,4 Go par heure de vidéo à 12 Mb/s, plus 1,4 Go de son temporaire, effacé à la fin).
 - Elle ne garde que les deux derniers rendus de chaque humeur ; l'utilisateur efface après la
   mise en ligne.
 - Elle se lance à la main, le soir. La programmer chaque nuit dans le Planificateur de tâches de
@@ -2510,7 +2565,7 @@ et de la miniature, chaque fichier avec sa taille et son SHA-256, le temps machi
   fondus) ; manifeste complet.
 - **Playwright** (`e2e/ambiance.spec.ts`, Chromium) : `frame(t)` donne les mêmes pixels deux
   fois et dans n'importe quel ordre ; une section de son rendue deux fois a la même empreinte ;
-  la lumière moyenne varie de moins de 2 % par seconde sur une minute échantillonnée.
+  aucune variation de luminance de plus de 10 % en moins d'une seconde sur une minute échantillonnée (une image toutes les 0,2 s), effets signature compris.
 - **Fumée en CI** : `npm run ambiance -- --mood abyss-sleep --minutes 1 --seed 1 --small`
   (640 × 360, Shorts de 5 s), puis `ffprobe` sur les durées et les formats, puis `--check` vert.
   Environ 3 min par passage.
@@ -2519,8 +2574,9 @@ et de la miniature, chaque fichier avec sa taille et son SHA-256, le temps machi
 
 #### La porte
 
-1. Une ébauche d'abord : six images fixes (une par monde) et 2 min de « Abysses, pour dormir »,
-   regardées par l'utilisateur avant le rendu long (15 min de son temps).
+1. Une ébauche d'abord : six images fixes (une par monde, au moment fort de chacune) et les
+   3 premières minutes de « Abysses, pour dormir », effets compris, regardées par l'utilisateur
+   avant le rendu long (15 min de son temps). Elles doivent donner envie de rêver.
 2. « Abysses, pour dormir », 60 min, graine 1 : −18 ± 0,5 LUFS, crête vraie ≤ −2 dBTP, aucun
    clic, aucun silence, perte en mono ≤ 3 dB, aucune fenêtre de 5 min répétée, lumière sans
    à-coup, `--check` vert, **temps machine ≤ 60 min mesuré**.
@@ -2533,40 +2589,42 @@ et de la miniature, chaque fichier avec sa taille et son SHA-256, le temps machi
 
 #### Coût estimé
 
-| Poste                                                                                          | Session       | Machine                   |
-| ---------------------------------------------------------------------------------------------- | ------------- | ------------------------- |
-| Essai de faisabilité : vitesse du son hors ligne, du rendu image et de l'encodage par segments | 2 à 3 h       | 1 h                       |
-| Humeurs, validation et tests                                                                   | 1 à 1,5 h     | —                         |
-| Plan et notes (`Composer`, `Score`) et tests                                                   | 3 à 4 h       | —                         |
-| Voix d'ambiance et rendu par sections                                                          | 2 à 3 h       | —                         |
-| Sonie, limiteur, clics, silences et tests                                                      | 2 à 3 h       | —                         |
-| Scène : décors, caméra, particules, lumière, grain, anti-flash                                 | 3 à 4 h       | —                         |
-| Commande : garde, segments, ffmpeg, Shorts, miniature, manifeste, `--check`                    | 3 à 4 h       | —                         |
-| e2e, fumée en CI, documentation                                                                | 1,5 à 2 h     | ≈ 3 min par passage de CI |
-| Ébauche, rendu de la porte et deux tours de retouches après écoute                             | 2 à 3 h       | 2 à 3 nuits d'1 h au plus |
-| **Total**                                                                                      | **20 à 27 h** | **≈ 4 h**                 |
+| Poste                                                                                                                    | Session       | Machine                   |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------- | ------------------------- |
+| Essai de faisabilité : vitesse du son hors ligne, du rendu image et de l'encodage par segments                           | 2 à 3 h       | 1 h                       |
+| Humeurs, validation et tests                                                                                             | 1 à 1,5 h     | —                         |
+| Plan et notes (`Composer`, `Score`) et tests                                                                             | 3 à 4 h       | —                         |
+| Voix d'ambiance et rendu par sections                                                                                    | 2 à 3 h       | —                         |
+| Sonie, limiteur, clics, silences et tests                                                                                | 2 à 3 h       | —                         |
+| Scène : plans et caméra, profondeur, étalonnages, shader des nébuleuses, rayons, halos, six effets signature, anti-flash | 7 à 9 h       | —                         |
+| Commande : garde, segments, ffmpeg, Shorts, miniature, manifeste, `--check`                                              | 3 à 4 h       | —                         |
+| e2e, fumée en CI, documentation                                                                                          | 1,5 à 2 h     | ≈ 3 min par passage de CI |
+| Ébauche, rendu de la porte et deux tours de retouches après écoute                                                       | 3 à 4 h       | 3 à 4 nuits d'1 h au plus |
+| **Total**                                                                                                                | **25 à 33 h** | **≈ 5 h**                 |
 
 **Temps de l'utilisateur** : ≈ 1 h sur une à deux semaines (validation du lot 10 min, ébauche
 15 min, écoute de la porte 20 min, retouches 15 min), dans son budget d'1 h par semaine pour le
 Compte B. Ensuite, par vidéo : lancer la commande le soir (2 min) et la relecture du dimanche.
 
 **Estimation du rendu** (à confirmer par l'essai) : son ≈ 3 à 5 min par heure de vidéo ;
-images ≈ 15 à 30 min par heure (3 à 5 ms de dessin et 2 ms d'encodage par image, 108 000
-images) ; assemblage ≈ 2 min. Soit 0,3 à 0,6 h de machine par heure de vidéo, sous le budget
-d'1 h.
+images ≈ 25 à 50 min par heure (6 à 12 ms de dessin et de passe WebGL2 et 2 ms d'encodage par
+image, 108 000 images, sur la RTX 4070 de la machine) ; assemblage ≈ 2 min. Soit 0,5 à 0,9 h de
+machine par heure de vidéo : sous le budget d'1 h, avec moins de marge que sans les effets.
 
 **Risques** :
 
-| Risque                                                                          | Parade                                                                                   |
-| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Le rendu image par image dépasse 1 h par heure de vidéo                         | L'essai le mesure d'abord ; repli sur la boucle visuelle de 15 min                       |
-| Bandes visibles dans les dégradés sombres après la compression de YouTube       | Grain déterministe, 10 Mb/s, vérifié sur l'ébauche                                       |
-| Les basses des Abysses (65 Hz) n'existent pas sur un haut-parleur de téléphone  | Harmoniques de la basse, voix de verre au médium, écoute au téléphone dans la porte      |
-| Une musique juste mais ennuyeuse : ça ne s'entend qu'à l'oreille                | L'ébauche de 2 min avant le rendu long ; deux tours de retouches comptés                 |
-| YouTube démonétise le contenu « non authentique » (produit en série, répétitif) | Une vidéo par semaine, chacune différente, relue par un humain, la fabrication expliquée |
-| Chrome ou l'encodeur matériel diffèrent d'une version à l'autre                 | Versions au manifeste ; empreintes sur les pixels et le PCM ; `--check` le dit           |
-| La machine chauffe ou l'utilisateur joue                                        | Garde entre les segments, rendu la nuit, pauses au manifeste                             |
-| Le disque se remplit (≈ 4,5 Go par heure de vidéo)                              | Contrôle avant départ, deux rendus gardés par humeur                                     |
+| Risque                                                                          | Parade                                                                                                     |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Le rendu image par image dépasse 1 h par heure de vidéo                         | L'essai le mesure d'abord, effets compris ; halos en demi-résolution, puis la boucle de 15 min             |
+| Bandes visibles dans les dégradés sombres après la compression de YouTube       | Grain déterministe, 12 Mb/s, vérifié sur l'ébauche                                                         |
+| Les basses des Abysses (65 Hz) n'existent pas sur un haut-parleur de téléphone  | Harmoniques de la basse, voix de verre au médium, écoute au téléphone dans la porte                        |
+| Une musique juste mais ennuyeuse : ça ne s'entend qu'à l'oreille                | L'ébauche de 3 min avant le rendu long ; deux tours de retouches comptés                                   |
+| YouTube démonétise le contenu « non authentique » (produit en série, répétitif) | Une vidéo par semaine, chacune différente, relue par un humain, la fabrication expliquée                   |
+| Chrome ou l'encodeur matériel diffèrent d'une version à l'autre                 | Versions au manifeste ; empreintes sur les pixels et le PCM ; `--check` le dit                             |
+| La machine chauffe ou l'utilisateur joue                                        | Garde entre les segments, rendu la nuit, pauses au manifeste                                               |
+| Le disque se remplit (≈ 5,4 Go par heure de vidéo)                              | Contrôle avant départ, deux rendus gardés par humeur                                                       |
+| Des effets trop forts empêchent de s'endormir                                   | Ouverture riche puis effets en baisse jusqu'à mi-vidéo (`descending`) ; jugé à l'écoute de la porte        |
+| Un effet signature trop vif déclenche une gêne ou une crise (photosensibilité)  | Montée de 2 s au moins, luminance mesurée toutes les 0,2 s, test qui échoue au-delà de 10 % en une seconde |
 
 ## 4. Exigences non fonctionnelles
 
@@ -3208,3 +3266,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.24    | 30/10/2026 | Version 1.8.1 livrée : la porte de dépôt CrazyGames tenue par les joueurs-robots, Lighthouse à 100 dans les quatre catégories ; restent le bac à sable Playgama et la revue de modérateur avant le dépôt.                                                          |
 | 1.25    | 31/10/2026 | Revue des droits avant les dépôts : le Ralenti devient la Stase, un test interdit les noms d'autres jeux, les licences des polices et le dossier de provenance sont dans le dépôt (§ 2.3).                                                                         |
 | 1.26    | 07/11/2026 | Lot 15 « Fabrique d'ambiances » proposé : architecture, humeurs, musique, images, sorties, déterminisme, tests, porte et coût, à valider (§ 3.18).                                                                                                                 |
+| 1.27    | 07/11/2026 | Lot 15 validé par l'utilisateur avec ses choix ; direction artistique des images (plans, profondeur, étalonnages, effets signature des six mondes, rythme sur la durée) et coût revu (§ 3.18).                                                                     |
