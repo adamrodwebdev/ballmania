@@ -5,6 +5,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [Non publié]
 
+### Ajouté
+
+- **La fabrique d'ambiances** (lot 15, cahier des charges § 3.18), pour la chaîne d'ambiances
+  séparée du Compte B : `npm run ambiance -- --mood <id> --minutes <n> --seed <s>` rend une vidéo
+  longue en 1080p à 30 i/s, sa miniature, trois Shorts bouclés et un manifeste, depuis les thèmes et
+  les mondes du jeu, sans IA générative. Options `--check` (même plan, mêmes images, même son),
+  `--scan` (contrôle anti-flash rapide), `--stills` (une image par monde), `--small` (fumée en
+  CI). Le jeu et les kits des portails ne changent pas ; la fabrique ne publie rien.
+
 ### Sécurité
 
 - **Alertes Dependabot de `vue-i18n` (GHSA-83rm-6c8r-g728, élevée ; GHSA-8rc2-428q-7ww3, faible) et de

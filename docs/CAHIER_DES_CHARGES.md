@@ -2322,6 +2322,333 @@ quatre écrans, le nouveau venu typique ; « au-delà » : plus d'une erreur typ
 - **Le nouveau venu lent, au doigt, avec l'aide**, au téléphone aux barres : 82 % en médiane
   au monde 1, de 64 % (1-11) à 100 %, sept niveaux sur douze à 80 % ou plus.
 
+### 3.18 Lot 15 « Fabrique d'ambiances » (validé le 07/11/2026)
+
+Demande de NICHE : `docs/DEMANDE_AMBIANCES.md` (les réponses de la session de code y sont, avec
+les désaccords). Validé par l'utilisateur le 07/11/2026, avec ses choix (réponses de la demande) et une direction artistique plus spectaculaire (ci-dessous). La fabrique rend des
+vidéos longues d'ambiance (dormir, étudier, se concentrer) depuis la musique et les décors du
+jeu, pour une chaîne séparée de @adamrodwebdev. Aucune IA générative : tout est calculé par le
+code, comme dans le jeu.
+
+**Ce qui ne change pas** : le jeu (`src/`), le kit CrazyGames (`marketing/crazygames/`) et les
+médias Playgama et Yandex. La fabrique **lit** les données et les peintres du jeu (`THEMES` de
+`src/audio/score.ts`, les six `WorldTheme`, `Ambience`, `Palette`, `SeededRandom`) sans les
+modifier. Un test de CI échoue si la branche du lot touche un fichier de `src/` ou de
+`marketing/crazygames/`, `marketing/playgama/`, `marketing/yandex/`. La fabrique n'écrit que des
+fichiers : aucune publication, aucune API de plateforme, aucun compte.
+
+#### Architecture
+
+Dans `marketing/ambiance/`, comme le kit : une page servie par Vite qui calcule dans Chrome
+(les mêmes peintres et le même Web Audio que le jeu), et un script Node qui la pilote avec
+Playwright puis assemble avec ffmpeg (déjà installé sur la machine, 9.0.2 ; installé par `apt`
+en CI).
+
+| Module (TypeScript sauf mention) | Rôle                                                                                                      | Pur, testé par Vitest |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------- |
+| `moods.json`, `Mood.ts`          | Les humeurs en données, contrôlées champ par champ (`Mood.parse()`, erreur qui nomme le champ)            | oui                   |
+| `Composer.ts`                    | La graine et l'humeur donnent le plan : sections, accords, instruments, densité, courbe d'énergie         | oui                   |
+| `Score.ts`                       | Le plan donne la liste des notes, section par section, avec leurs instants exacts                         | oui                   |
+| `AmbientVoices.ts`               | Les voix d'ambiance en Web Audio hors ligne (`OfflineAudioContext`) : nappe, drone, verre doux, cloche    | non (Chrome)          |
+| `Scene.ts`                       | L'image à l'instant `t` : décor du monde, lumière, particules ; **sans état**, `frame(t)` en accès direct | non (Chrome)          |
+| `Loudness.ts`                    | Mesure BS.1770-4 (LUFS intégrés, LRA, crête vraie suréchantillonnée ×4), limiteur, clics, silences, mono  | oui                   |
+| `Highlights.ts`                  | Les trois moments des Shorts et celui de la miniature, d'après la courbe d'énergie                        | oui                   |
+| `Manifest.ts`                    | Le manifeste et ses empreintes                                                                            | oui                   |
+| `render.mjs` (Node)              | La commande : garde (jeux, chaleur, disque), rendu par segments, ffmpeg, sorties, `--check`               | e2e                   |
+
+**Pourquoi des voix à part plutôt que `MusicPlayer`** : le lecteur du jeu joue en temps réel
+(`setInterval`), tire son bruit et sa réverbération avec `Math.random()`, passe par le
+compresseur du mixage et porte la tension (`setDanger`). Le modifier changerait le jeu. La
+fabrique reprend donc la **partition** (`THEMES` : tonalités, accords, timbres) et réécrit en
+~200 lignes des voix lentes, stéréo et déterministes, sans batterie. Le lecteur du jeu n'est pas
+touché.
+
+#### Les humeurs (`moods.json`)
+
+Un tableau d'humeurs ; `Mood.parse()` refuse tout champ manquant, inconnu ou hors bornes et nomme
+le champ fautif, avant tout rendu.
+
+| Champ        | Type et bornes                                                                         | Abysses, pour dormir    |
+| ------------ | -------------------------------------------------------------------------------------- | ----------------------- |
+| `id`         | `[a-z0-9-]+`, unique                                                                   | `abyss-sleep`           |
+| `use`        | `sleep`, `study`, `focus`                                                              | `sleep`                 |
+| `theme`      | un thème de `THEMES` (source des accords et des timbres)                               | `abyss`                 |
+| `bpm`        | 56 à 80                                                                                | 56                      |
+| `intensity`  | 0 à 1 : densité des notes au sommet                                                    | 0,35                    |
+| `arc`        | `steady`, `descending` (s'apaise peu à peu : pour dormir), `breathing` (vagues lentes) | `descending`            |
+| `sections`   | `{ min, max }` en secondes, 120 ≤ min ≤ max ≤ 300                                      | `{ 150, 270 }`          |
+| `voices`     | parmi `pad`, `drone`, `glass`, `bell`, `bass` ; au moins `pad`                         | `pad`, `drone`, `glass` |
+| `brightness` | `{ min, max }` en hertz, coupure du filtre des nappes, 400 à 3000                      | `{ 500, 1100 }`         |
+| `reverb`     | 2 à 8 s                                                                                | 6                       |
+| `loudness`   | LUFS visés, −20 à −14                                                                  | −18                     |
+| `fade`       | `{ in, out }` en secondes, 5 à 60                                                      | `{ 20, 45 }`            |
+| `world`      | `nebula`, `neon`, `abyss`, `jewel`, `volcano`, `singularity`                           | `abyss`                 |
+| `particles`  | 0 à 1 : densité des particules                                                         | 0,4                     |
+| `light`      | 0 à 1 : luminosité générale (le plafond de la lumière qui suit la musique)             | 0,45                    |
+| `motion`     | 0 à 1 : vitesse de la caméra et des particules                                         | 0,25                    |
+| `caption`    | booléen : le nom de l'humeur en anglais pendant les 10 premières secondes              | `false`                 |
+| `name`       | `{ en, fr }`, le nom affiché et écrit au manifeste                                     | Abyss, for sleep        |
+
+Six humeurs au départ, une par monde, la première seule rendue pour la porte.
+
+#### La musique
+
+- **Le plan** (`Composer`, pur) : la graine tire une suite de sections de `sections.min` à
+  `sections.max` secondes, arrondies à la mesure. Chacune change au moins deux choses par
+  rapport à la précédente, parmi : la progression (rotation des accords du thème, relatif majeur,
+  emprunt du ivᵉ ou du ♭VIᵉ degré, accord pivot pour une modulation d'une quinte au plus), la
+  disposition (serrée, ouverte, à l'octave), les voix présentes, la densité, la brillance. Le
+  tempo reste fixe dans une vidéo (aucune accélération).
+- **Les notes** (`Score`, pur) : nappes à attaque lente (au moins 1,5 s), drone sur la
+  fondamentale, verre et cloche tirés au sort sur les notes de l'accord, rares (au plus une note
+  toutes les deux mesures à densité 1), attaque adoucie à 40 ms au moins (contre 8 ms dans le
+  jeu). La basse grave reçoit une harmonique douce (octave et quinte au-dessus) pour qu'un
+  haut-parleur de téléphone entende sa hauteur.
+- **Interdits, vérifiés par test** : grosse caisse, caisse claire, charleston, toms, couches de
+  tension (`TENSION_LAYERS`), montée du tempo, bruitages du jeu.
+- **Sans boucle audible** : aucune fenêtre de 5 minutes de notes identique à une autre (test sur
+  la liste des notes, à 1 ms près) ; les choix des notes de verre et de cloche sont tirés mesure
+  par mesure.
+- **Changements de section** : fondu enchaîné de 8 à 15 s, les nappes de l'ancienne section
+  finissent sous celles de la nouvelle, avec une note commune entre les deux accords.
+- **Début et fin** : fondu d'entrée et de sortie de l'humeur (`fade`). La dernière section
+  revient aux accords et aux voix de la première : la fin peut rejoindre le début (le direct
+  24/7 enchaînera les vidéos ; un fichier sans fondus, `--no-fades`, viendra avec ce lot-là).
+- **Rendu** : section par section dans un `OfflineAudioContext` stéréo à 48 kHz, avec 10 s de
+  traîne. Le son étant linéaire (pas de compresseur), la somme des sections recouvrées est
+  exactement le rendu d'un seul tenant, sans en garder une heure en mémoire (1,4 Go). Le bruit
+  et la réponse de la réverbération (stéréo, `reverb` secondes) sont tirés par `SeededRandom`.
+- **Niveau** (`Loudness`, dans Node, sur le PCM 32 bits) : un gain amène les LUFS intégrés à la
+  cible (±0,5), un limiteur à anticipation de 5 ms tient la crête vraie sous −2 dBTP. Contrôles
+  écrits au manifeste : LUFS intégrés, LRA, crête vraie, sonie momentanée la plus haute, perte
+  de sonie en mono (≤ 3 dB), clics (dérivée seconde au-delà d'un seuil, mesurée aux jointures
+  des sections et partout), silence numérique (aucune seconde sous −60 dBFS hors des 2 premières
+  et des 2 dernières). La mesure est recoupée par le filtre `ebur128` de ffmpeg (écart ≤ 0,3 LU).
+  Puis AAC-LC 256 kb/s stéréo par ffmpeg.
+
+#### Les images : direction artistique
+
+Demande de l'utilisateur (07/11/2026) : **des images qui donnent envie de rêver**, avec de gros
+effets, du dynamisme et de belles couleurs. Le regard est celui d'un monteur : le dynamisme d'une
+ambiance vient de l'échelle, de la profondeur, de la couleur et du découpage, pas de la vitesse.
+Une image qui va vite réveille ; une image immense qui bouge lentement fait rêver.
+
+**Le découpage en plans.** Chaque section de musique est un plan, avec son cadre et son
+mouvement de caméra, tirés par la graine parmi : plan large d'ouverture, lente poussée vers un
+point de lumière, travelling latéral en parallaxe, montée vers la surface, plongée vers le fond,
+rotation lente autour d'un astre. Le passage d'un plan à l'autre se fait au changement de
+section, en fondu enchaîné de 8 à 15 s ou par un balayage de lumière, calé sur la musique. Une
+vidéo d'une heure compte donc 15 à 25 plans, jamais deux fois le même cadre de suite.
+
+**La profondeur** : 5 plans de profondeur, du lointain (le décor du monde) au tout proche
+(poussières floues qui passent devant l'objectif), en parallaxe, avec une mise au point qui
+glisse doucement d'un plan à l'autre (flou de profondeur).
+
+**Les couleurs** : chaque monde garde les couleurs du jeu et reçoit trois étalonnages, un par
+type de section (calme, lumineux, profond), qui se fondent l'un dans l'autre en 20 s au moins.
+Contrastes complémentaires et saturés, noirs profonds mais jamais bouchés, halos (bloom) sur
+toutes les lumières.
+
+| Monde       | Étalonnages (calme · lumineux · profond)               | Effet signature, aux temps forts                                                               |
+| ----------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Nébuleuse   | violet et rose · or et magenta · indigo                | Les gaz de la nébuleuse coulent et s'ouvrent sur une étoile qui naît, son halo gagne l'écran   |
+| Néon        | cyan et magenta · rose électrique · bleu nuit          | Une grille d'horizon infinie que l'on survole, des aurores de néon qui ondulent au-dessus      |
+| Abysses     | turquoise et vert d'eau · cyan lumineux · bleu abyssal | Des méduses de lumière qui montent en dérivant, des bancs de plancton qui tournent, des rayons |
+| Joaillerie  | émeraude et améthyste · diamant blanc irisé · saphir   | Des cristaux géants qui pivotent, la lumière s'y décompose en arcs-en-ciel lents               |
+| Volcan      | braise et pourpre · or fondu · rouge sombre            | Des rivières de lave lointaines, des nuées de braises qui tourbillonnent dans le vent chaud    |
+| Singularité | bleu glacé et violet · blanc éclatant · noir et or     | Le disque de lumière d'un trou noir lointain qui courbe les étoiles derrière lui               |
+
+Les méduses, cristaux, aurores et la grille sont dessinés par le code (courbes, dégradés, bruit
+de Perlin), dans le style des décors du jeu. Le trou noir de la Singularité est un astre lointain
+du décor, pas celui du plateau. Aucune bille, aucun Colosse, aucune interface.
+
+**Les gros effets** :
+
+- **Nébuleuses vivantes** : des volutes de gaz calculées par un shader (bruit fractal déformé),
+  qui coulent lentement et changent de forme sans jamais se répéter.
+- **Rayons volumétriques** (Abysses, Nébuleuse, Singularité) : la lumière traverse la scène et
+  les particules s'y allument en passant.
+- **Halos, reflets d'objectif doux et grain de film** sur toutes les lumières.
+- **Un moment fort par section**, au sommet de son énergie : l'effet signature du monde, qui
+  gonfle en 3 à 6 s et retombe en 10 s, avec une montée de lumière et une poussée de caméra.
+- **Les notes de verre et de cloche** allument des lueurs qui s'épanouissent en 1 à 2 s là où
+  la caméra regarde ; la nappe fait respirer la lumière d'ensemble.
+
+**Le rythme sur la durée** (`arc` de l'humeur) :
+
+- **Les 3 premières minutes** sont les plus riches : c'est là que le spectateur décide de rester,
+  et là que se prennent la miniature et l'image d'aperçu.
+- **Pour dormir** (`descending`) : après l'ouverture, l'amplitude des mouvements et des effets
+  baisse peu à peu jusqu'à la moitié de la vidéo, puis reste à ce niveau, sans jamais s'arrêter.
+  Les couleurs restent belles, la lumière baisse de 30 % au plus.
+- **Pour étudier ou se concentrer** (`steady`, `breathing`) : dynamisme constant ou en vagues de
+  10 à 15 min.
+- **Les Shorts** prennent les moments forts les plus spectaculaires, en vertical, avec le
+  mouvement le plus ample de la vidéo.
+
+**Jamais stroboscopique, quels que soient les effets** (non négociable : santé des spectateurs,
+critère 2.3.1 des WCAG et règles de YouTube) : aucune variation de luminance de plus de 10 % en
+moins d'une seconde, aucun clignotement, aucun rouge saturé qui pulse ; un effet monte en 2 s au
+moins. Mesuré sur une image toutes les 0,2 s et écrit au manifeste.
+
+**La technique** : le décor du monde (`WorldTheme`, peint une fois à 2 304 × 1 296 pour laisser
+voyager la caméra) et sa couche `Ambience` en Canvas 2D, comme dans le jeu ; par-dessus, une
+passe WebGL2 de la fabrique : nébuleuses, rayons, éléments signature, flou de profondeur, halos,
+étalonnage, vignettage et grain (le grain empêche aussi les bandes du H.264 dans les dégradés
+sombres). Tout est fonction de `t` et de la graine : `frame(t)` sans état, en accès direct.
+
+- **Image par image, sur toute la durée** (décidé le 07/11/2026) : les images suivent vraiment
+  la musique, qui ne se répète pas. Repli si le budget machine n'est pas tenu : halos calculés en
+  demi-résolution, puis, en dernier recours, une boucle de 15 min.
+- **Encodage** : `VideoEncoder` de Chrome (H.264 High, matériel), 30 i/s, débit visé 12 Mb/s
+  (le grain et les dégradés demandent plus que les 8 Mb/s que conseille YouTube), par segments de
+  5 min envoyés au fur et à mesure à Node (jamais une vidéo entière en mémoire). ffmpeg les
+  assemble sans réencoder et ajoute le son.
+
+#### Les sorties
+
+`npm run ambiance -- --mood <id> --minutes <n> --seed <s>` écrit dans
+`marketing/ambiance/out/<id>-<seed>-<minutes>m/` (non versionné) :
+
+| Fichier                  | Contenu                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ambiance.mp4`           | 1920 × 1080, 30 i/s, H.264 + AAC, la durée demandée (10 à 180 min)                                                                                                                                                                                                                                               |
+| `thumbnail.jpg`          | 1280 × 720, l'image la plus lumineuse hors des fondus, sans texte (NICHE ajoute le sien)                                                                                                                                                                                                                         |
+| `short-1.mp4` à `-3.mp4` | 1080 × 1920, 20 s, chacun dans une section différente, à 5 min d'écart au moins, hors des fondus. Image recadrée au format vertical (le décor se repeint en 1080 × 1920), son et image bouclés sans couture (les 2 dernières secondes fondues dans les premières) : un Short qui tourne en boucle garde l'écoute |
+| `manifest.json`          | Voir ci-dessous                                                                                                                                                                                                                                                                                                  |
+
+**Le manifeste** : humeur et ses valeurs, graine, durée, version de la fabrique (celle de
+`package.json` et celle du schéma), commit, fichiers modifiés ou non (`git status`), versions de
+Chrome et de ffmpeg, les sections (début, durée, accords, voix, densité), les mesures du son
+(ci-dessus), l'empreinte du plan (SHA-256 de la liste des notes), l'empreinte du son (SHA-256 du
+PCM de chaque section, avant l'AAC), l'empreinte des images (SHA-256 des pixels d'une image par
+seconde avant l'encodage, une empreinte par minute et une pour le tout), les moments des Shorts
+et de la miniature, chaque fichier avec sa taille et son SHA-256, le temps machine et les pauses
+(jeu lancé, chaleur).
+
+#### Le déterminisme et `--check`
+
+- **Même graine, mêmes images et même son** sur la même machine avec les mêmes versions de
+  Chrome et de ffmpeg : aucun `Math.random()`, aucune horloge, tout est fonction de la graine et
+  de `t`. Le fichier MP4 lui-même peut différer d'un octet à l'autre (encodeur matériel) : les
+  empreintes portent donc sur les pixels et le PCM avant encodage. Sur une autre machine, les
+  pixels peuvent différer à peine (rastérisation du GPU) : le manifeste nomme les versions pour
+  le savoir.
+- **`--check`** : refait le plan et compare son empreinte au manifeste (instantané), puis
+  recalcule au hasard de la graine 12 images et 3 sections de son, plus la première jointure de
+  section, et compare leurs empreintes. Rien n'est écrit. Code de sortie non nul et écart nommé
+  en cas de différence. Environ 2 min de machine pour une vidéo d'une heure.
+
+#### La garde de la machine
+
+- Avant le départ et entre deux segments : si un jeu tourne (liste dans
+  `marketing/ambiance/guard.json`, au départ `witcher3`, à compléter par l'utilisateur), si le
+  GPU dépasse 80 °C ou le processeur 90 °C, la fabrique **se met en pause d'elle-même** entre
+  deux segments (pas de suspension de processus, qui s'empile sous Windows) et reprend quand
+  c'est fini et refroidi (sous 70 °C). Les pauses sont écrites au manifeste.
+- Elle refuse de démarrer s'il reste moins de deux fois la taille attendue sur le disque
+  (≈ 5,4 Go par heure de vidéo à 12 Mb/s, plus 1,4 Go de son temporaire, effacé à la fin).
+- Elle ne garde que les deux derniers rendus de chaque humeur ; l'utilisateur efface après la
+  mise en ligne.
+- Elle se lance à la main, le soir. La programmer chaque nuit dans le Planificateur de tâches de
+  Windows est possible, mais c'est un réglage permanent de la machine : seulement sur demande.
+
+#### Les tests
+
+- **Vitest** (`tests/ambiance/`) : chaque champ de `Mood.parse()` refusé avec son nom ; plan
+  identique pour une même graine, différent pour une autre ; sections de 2 à 5 min ; au moins
+  deux changements entre deux sections ; aucune fenêtre de 5 min répétée ; aucune batterie ni
+  tension, tempo fixe et dans les bornes ; retour de la dernière section à la première ; mesure
+  de sonie sur les signaux de l'EBU Tech 3341 (sinus de 1 kHz à −23 dBFS = −23,0 LUFS…) ;
+  crête vraie d'un signal entre deux échantillons ; limiteur ; détection des clics et des
+  silences sur des signaux construits ; choix des Shorts (sections différentes, écarts, hors
+  fondus) ; manifeste complet.
+- **Playwright** (`e2e/ambiance.spec.ts`, Chromium) : `frame(t)` donne les mêmes pixels deux
+  fois et dans n'importe quel ordre ; une section de son rendue deux fois a la même empreinte ;
+  aucune variation de luminance de plus de 10 % en moins d'une seconde sur une minute échantillonnée (une image toutes les 0,2 s), effets signature compris.
+- **Fumée en CI** : `npm run ambiance -- --mood abyss-sleep --minutes 1 --seed 1 --small`
+  (640 × 360, Shorts de 5 s), puis `ffprobe` sur les durées et les formats, puis `--check` vert.
+  Environ 3 min par passage.
+- **Le jeu inchangé** : la CI échoue si le lot touche `src/` ou les dossiers des portails ; le
+  `npm run verify` et l'e2e existants restent verts.
+
+#### La porte
+
+1. Une ébauche d'abord : six images fixes (une par monde, au moment fort de chacune) et les
+   3 premières minutes de « Abysses, pour dormir », effets compris, regardées par l'utilisateur
+   avant le rendu long (15 min de son temps). Elles doivent donner envie de rêver.
+2. « Abysses, pour dormir », 60 min, graine 1 : −18 ± 0,5 LUFS, crête vraie ≤ −2 dBTP, aucun
+   clic, aucun silence, perte en mono ≤ 3 dB, aucune fenêtre de 5 min répétée, lumière sans
+   à-coup, `--check` vert, **temps machine ≤ 60 min mesuré**.
+3. L'utilisateur l'écoute au casque et sur le haut-parleur de son téléphone, aux instants que
+   donne le manifeste (début, deux jointures de section, un Short, la fin), environ 20 min, et
+   dit si ça endort et si rien ne gêne.
+4. Le kit CrazyGames et les médias Playgama inchangés (test de CI), aucune publication.
+5. Merge dans `dev` une fois l'e2e vert ; jamais dans `main` sans demande (le lot ne change rien
+   de ce que le site déploie).
+
+#### Livraison (07/11/2026)
+
+- **Porte, partie automatique** : « Abysses, pour dormir », 60 min, graine 1, commit ff1cc2c :
+  −18,0 LUFS, crête vraie −3,6 dBTP, LRA 4,8 LU, aucun clic, aucun silence, perte en mono 0,18 dB,
+  flash le plus fort 0,085 (film) et 0,071 à 0,087 (Shorts), `--check` vert. **41 min de travail
+  machine** pour l'heure (son 27 min, images 5,2 ms par image), plus 4 pauses de la garde (GPU à
+  80 °C). La vidéo pèse 5,6 Go. Reste l'écoute de l'utilisateur au casque et au téléphone.
+- **Écarts avec ce qui précède, trouvés en rendant** :
+  - Le son se refait au bit près seulement en mélangeant les notes par paires (`mixTree`) :
+    Chrome additionne les entrées d'un nœud dans un ordre variable.
+  - La couche `Ambience` du jeu n'est pas reprise : les particules de la scène WebGL2 la
+    remplacent, en cinq profondeurs. Le décor peint du monde est flouté (plan lointain).
+  - La bande de lumière des changements de plan est un reflet discret (force 0,05) : plus forte,
+    elle flashait (0,36 en une seconde à la force 0,35).
+  - Les Shorts durent de 18 à 22 s : la fabrique simule chaque Short bouclé en entier (longueur,
+    départ, fondu de 5 à 8 s) et garde le réglage le plus doux, ou un autre moment fort.
+  - Le budget n'est pas mesuré sur la fumée de CI, dessinée en logiciel (40 fois plus lente).
+  - `--scan` lit le contrôle anti-flash d'une heure en 30 s avant d'engager le rendu.
+  - Le serveur de la fabrique tourne sans rechargement ni surveillance des fichiers : une
+    modification du code avait rechargé la page au milieu d'un rendu.
+- **Volcan** : le monde le moins abouti (bande d'horizon trop présente), à reprendre avant sa
+  première vidéo.
+
+#### Coût estimé
+
+| Poste                                                                                                                    | Session       | Machine                   |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------- | ------------------------- |
+| Essai de faisabilité : vitesse du son hors ligne, du rendu image et de l'encodage par segments                           | 2 à 3 h       | 1 h                       |
+| Humeurs, validation et tests                                                                                             | 1 à 1,5 h     | —                         |
+| Plan et notes (`Composer`, `Score`) et tests                                                                             | 3 à 4 h       | —                         |
+| Voix d'ambiance et rendu par sections                                                                                    | 2 à 3 h       | —                         |
+| Sonie, limiteur, clics, silences et tests                                                                                | 2 à 3 h       | —                         |
+| Scène : plans et caméra, profondeur, étalonnages, shader des nébuleuses, rayons, halos, six effets signature, anti-flash | 7 à 9 h       | —                         |
+| Commande : garde, segments, ffmpeg, Shorts, miniature, manifeste, `--check`                                              | 3 à 4 h       | —                         |
+| e2e, fumée en CI, documentation                                                                                          | 1,5 à 2 h     | ≈ 3 min par passage de CI |
+| Ébauche, rendu de la porte et deux tours de retouches après écoute                                                       | 3 à 4 h       | 3 à 4 nuits d'1 h au plus |
+| **Total**                                                                                                                | **25 à 33 h** | **≈ 5 h**                 |
+
+**Temps de l'utilisateur** : ≈ 1 h sur une à deux semaines (validation du lot 10 min, ébauche
+15 min, écoute de la porte 20 min, retouches 15 min), dans son budget d'1 h par semaine pour le
+Compte B. Ensuite, par vidéo : lancer la commande le soir (2 min) et la relecture du dimanche.
+
+**Estimation du rendu** (à confirmer par l'essai) : son ≈ 3 à 5 min par heure de vidéo ;
+images ≈ 25 à 50 min par heure (6 à 12 ms de dessin et de passe WebGL2 et 2 ms d'encodage par
+image, 108 000 images, sur la RTX 4070 de la machine) ; assemblage ≈ 2 min. Soit 0,5 à 0,9 h de
+machine par heure de vidéo : sous le budget d'1 h, avec moins de marge que sans les effets.
+
+**Risques** :
+
+| Risque                                                                          | Parade                                                                                                     |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Le rendu image par image dépasse 1 h par heure de vidéo                         | L'essai le mesure d'abord, effets compris ; halos en demi-résolution, puis la boucle de 15 min             |
+| Bandes visibles dans les dégradés sombres après la compression de YouTube       | Grain déterministe, 12 Mb/s, vérifié sur l'ébauche                                                         |
+| Les basses des Abysses (65 Hz) n'existent pas sur un haut-parleur de téléphone  | Harmoniques de la basse, voix de verre au médium, écoute au téléphone dans la porte                        |
+| Une musique juste mais ennuyeuse : ça ne s'entend qu'à l'oreille                | L'ébauche de 3 min avant le rendu long ; deux tours de retouches comptés                                   |
+| YouTube démonétise le contenu « non authentique » (produit en série, répétitif) | Une vidéo par semaine, chacune différente, relue par un humain, la fabrication expliquée                   |
+| Chrome ou l'encodeur matériel diffèrent d'une version à l'autre                 | Versions au manifeste ; empreintes sur les pixels et le PCM ; `--check` le dit                             |
+| La machine chauffe ou l'utilisateur joue                                        | Garde entre les segments, rendu la nuit, pauses au manifeste                                               |
+| Le disque se remplit (≈ 5,4 Go par heure de vidéo)                              | Contrôle avant départ, deux rendus gardés par humeur                                                       |
+| Des effets trop forts empêchent de s'endormir                                   | Ouverture riche puis effets en baisse jusqu'à mi-vidéo (`descending`) ; jugé à l'écoute de la porte        |
+| Un effet signature trop vif déclenche une gêne ou une crise (photosensibilité)  | Montée de 2 s au moins, luminance mesurée toutes les 0,2 s, test qui échoue au-delà de 10 % en une seconde |
+
 ## 4. Exigences non fonctionnelles
 
 ### 4.1 Performance et Lighthouse
@@ -2906,6 +3233,7 @@ plus aucune décision de jeu (son script passe de 727 à 235 lignes).
 | 12 ✅ | Accessibilité, SEO, tests e2e, Lighthouse, documentation, 1.0.0 (notre site)                                                   |
 | 13 ✅ | Portails : `PlatformAdapter` par portail, publicités, builds dédiés                                                            |
 | 14 ✅ | Démo portfolio                                                                                                                 |
+| 15    | Fabrique d'ambiances (§ 3.18) : vidéos longues de musique et de décors calculés, à valider                                     |
 
 ## 10. Hors périmètre (v1)
 
@@ -2960,3 +3288,6 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.23    | 30/10/2026 | Version 1.8.1, étapes 5, 7 et 8 décrites à la livraison : les commandes au premier niveau, le son de la défaite, la musique de tension (§ 3.5, 3.13, 3.17).                                                                                                        |
 | 1.24    | 30/10/2026 | Version 1.8.1 livrée : la porte de dépôt CrazyGames tenue par les joueurs-robots, Lighthouse à 100 dans les quatre catégories ; restent le bac à sable Playgama et la revue de modérateur avant le dépôt.                                                          |
 | 1.25    | 31/10/2026 | Revue des droits avant les dépôts : le Ralenti devient la Stase, un test interdit les noms d'autres jeux, les licences des polices et le dossier de provenance sont dans le dépôt (§ 2.3).                                                                         |
+| 1.26    | 07/11/2026 | Lot 15 « Fabrique d'ambiances » proposé : architecture, humeurs, musique, images, sorties, déterminisme, tests, porte et coût, à valider (§ 3.18).                                                                                                                 |
+| 1.27    | 07/11/2026 | Lot 15 validé par l'utilisateur avec ses choix ; direction artistique des images (plans, profondeur, étalonnages, effets signature des six mondes, rythme sur la durée) et coût revu (§ 3.18).                                                                     |
+| 1.28    | 07/11/2026 | Lot 15 livré sur `dev` : la porte automatique de « Abysses, pour dormir » (60 min) passe, 41 min de machine ; écarts trouvés en rendant (§ 3.18).                                                                                                                  |

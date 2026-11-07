@@ -1,0 +1,6 @@
+{
+  "games": ["witcher3"],
+  "gpuHot": 80,
+  "gpuCool": 70,
+  "pollSeconds": 60
+}
