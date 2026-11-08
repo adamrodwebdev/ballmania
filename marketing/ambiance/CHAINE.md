@@ -6,14 +6,14 @@ l’utilisateur qui crée les comptes, relit et publie. Rien n’est publié aut
 
 ## 1. Décisions à prendre par l’utilisateur
 
-| Décision          | Recommandation                                                         | Pourquoi                                                                                                                                                                |
-| ----------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Nom de la chaîne  | **Quiet Orbit** (choisi par l’utilisateur le 08/11/2026)               | Court, calme, mémorisable ; aucune chaîne, groupe ou marque à ce nom trouvé (08/11/2026). Couvre les six mondes cosmiques, Abysses compris (« l’orbite » de la chaîne). |
-| Pseudo            | **@quietorbit** ; à défaut @quietorbitambience, puis @quiet.orbit      | Le même partout. Seul l’écran d’inscription dit s’il est libre : vérifier sur YouTube **et** TikTok avant d’imprimer quoi que ce soit.                                  |
-| Langue            | Anglais par défaut, traduction française du titre et de la description | Le public de l’ambiance est mondial et cherche en anglais ; la traduction française se lit en France (YouTube Studio → Langues).                                        |
-| Lien de la chaîne | https://ballmania.netlify.app                                          | Notre site, sans publicité ni SDK : un clic, le jeu. Jamais un portail, jamais Yandex.                                                                                  |
-| Plateformes       | YouTube d’abord, TikTok pour les Shorts                                | La vidéo longue vit sur YouTube ; TikTok n’a pas de lien cliquable avant 1 000 abonnés.                                                                                 |
-| Direct 24/7       | Après ~10 h de vidéos, sur une machine distante gratuite (§ 8)         | Pas sur le portable de l’utilisateur (chaleur, courant, disponibilité).                                                                                                 |
+| Décision          | Recommandation                                                                            | Pourquoi                                                                                                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nom de la chaîne  | **Quiet Orbit** (choisi par l’utilisateur le 08/11/2026)                                  | Court, calme, mémorisable ; aucune chaîne, groupe ou marque à ce nom trouvé (08/11/2026). Couvre les six mondes cosmiques, Abysses compris (« l’orbite » de la chaîne). |
+| Pseudo            | **@astralquietorbit** (YouTube, 08/11/2026 : @quietorbit était pris) ; le même sur TikTok | Le même partout. Seul l’écran d’inscription dit s’il est libre : vérifier sur YouTube **et** TikTok avant d’imprimer quoi que ce soit.                                  |
+| Langue            | Anglais par défaut, traduction française du titre et de la description                    | Le public de l’ambiance est mondial et cherche en anglais ; la traduction française se lit en France (YouTube Studio → Langues).                                        |
+| Lien de la chaîne | https://ballmania.netlify.app                                                             | Notre site, sans publicité ni SDK : un clic, le jeu. Jamais un portail, jamais Yandex.                                                                                  |
+| Plateformes       | YouTube d’abord, TikTok pour les Shorts                                                   | La vidéo longue vit sur YouTube ; TikTok n’a pas de lien cliquable avant 1 000 abonnés.                                                                                 |
+| Direct 24/7       | Après ~10 h de vidéos, sur une machine distante gratuite (§ 8)                            | Pas sur le portable de l’utilisateur (chaleur, courant, disponibilité).                                                                                                 |
 
 **Les deux autres pistes** : « Slow Nebula » est libre aussi, mais l’ambiance spatiale est pleine de
 « Nebula » (SpaceAmbient, Eternal Cosmos, NebulaEcho…) ; « Deep Drift » est le plus encombré (Calm
@@ -63,7 +63,7 @@ rempli d’un coup a été suspendu). Les noms et pseudos ne changent que lentem
 
 ### YouTube
 
-- **Nom** : `Quiet Orbit` · **Pseudo** : `@quietorbit`
+- **Nom** : `Quiet Orbit` · **Pseudo** : `@astralquietorbit`
 - **Photo** : `picture-800.png` · **Bannière** : `banner-2560x1440.png`
 - **Description** (anglais, 1 000 caractères au plus) :
 
@@ -98,7 +98,7 @@ rempli d’un coup a été suspendu). Les noms et pseudos ne changent que lentem
 ### TikTok
 
 - **Nom** : `Quiet Orbit · ambience` (22 caractères ; le mot-clé dans le nom aide la recherche)
-- **Pseudo** : `quietorbit` · **Photo** : `picture-800.png`
+- **Pseudo** : `astralquietorbit` (16 caractères ; le même que sur YouTube) · **Photo** : `picture-800.png`
 - **Bio** (80 caractères au plus) : `Generative ambience for sleep & focus. No gen AI. Full videos on YouTube.` (73)
 - Pas de lien cliquable avant 1 000 abonnés : le pseudo YouTube suffit dans la bio.
 
@@ -231,7 +231,8 @@ flux (qui ne doit jamais apparaître dans le dépôt).
 ## 10. Liste de la semaine 0 (à cocher par l’utilisateur)
 
 - [x] Choisir le nom : Quiet Orbit (08/11/2026).
-- [ ] Vérifier le pseudo @quietorbit sur YouTube **et** TikTok.
+- [x] Pseudo YouTube : @astralquietorbit (08/11/2026, @quietorbit était pris).
+- [ ] Prendre le même pseudo sur TikTok : astralquietorbit.
 - [ ] Créer la chaîne YouTube (sur l’ordinateur), activer les fonctionnalités avancées (téléphone).
 - [ ] Mettre l’avatar et la bannière (`out/brand/`), la description anglaise, sa traduction, le lien.
 - [ ] Créer le compte TikTok (ordinateur), nom, pseudo, photo, bio ; un jour plus tard.

@@ -90,7 +90,7 @@ describe('the texts of an upload', () => {
 
   it('points a Short to the full video and asks for nothing in return', () => {
     const caption = shortCaption(facts('abyss-sleep', 60), copy, 'en');
-    expect(caption).toContain('Full 1-hour version on @quietorbit.');
+    expect(caption).toContain(`Full 1-hour version on ${copy.handle}.`);
     expect(shortCaption(facts('abyss-sleep', 90), copy, 'en')).toContain('Full 90-minute version');
     expect(caption.toLowerCase()).not.toMatch(/comment|like and|subscribe/);
     expect(pinnedComment(copy, 'fr')).toContain(copy.site);
