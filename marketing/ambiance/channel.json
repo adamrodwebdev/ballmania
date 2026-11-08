@@ -1,14 +1,14 @@
 {
   "name": "Quiet Orbit",
   "handle": "@astralquietorbit",
-  "site": "https://ballmania.netlify.app",
+  "site": "https://playgama.ai/play/iysnewqq64",
   "tagline": {
     "en": "Generative ambient music & visuals for sleep and focus",
     "fr": "Musique et images d’ambiance génératives pour dormir et se concentrer"
   },
   "credit": {
-    "en": "Music and images generated in real time by the Ball Mania engine: no generative AI, no samples, no stock footage. Every video is composed from its own seed, so no two are alike.",
-    "fr": "Musique et images générées en temps réel par le moteur de Ball Mania : sans IA générative, sans échantillon, sans image d’archive. Chaque vidéo naît de sa propre graine : aucune ne ressemble à une autre."
+    "en": "Music and images generated in real time by the Ball Mania engine: no generative AI in the music or the images, no samples, no stock footage. Every video is composed from its own seed, so no two are alike.",
+    "fr": "Musique et images générées en temps réel par le moteur de Ball Mania : aucune IA générative dans la musique ni dans les images, sans échantillon, sans image d’archive. Chaque vidéo naît de sa propre graine : aucune ne ressemble à une autre."
   },
   "play": {
     "en": "The game behind the music, free in your browser:",

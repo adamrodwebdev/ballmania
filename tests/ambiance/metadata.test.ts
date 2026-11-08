@@ -69,7 +69,7 @@ describe('the texts of an upload', () => {
 
   it('says what is true: no generative AI, no samples, in both languages', () => {
     expect(copy.credit.en).toMatch(/no generative AI/);
-    expect(copy.credit.fr).toMatch(/sans IA générative/);
+    expect(copy.credit.fr).toMatch(/aucune IA générative/);
   });
 
   it('writes French with a no-break space before the high punctuation', () => {
