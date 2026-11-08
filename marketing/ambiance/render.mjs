@@ -6,6 +6,8 @@
 //   --small  640 × 360, Shorts of 5 s (the smoke test of the CI)
 //   --check  renders samples again and compares them with the manifest, writing nothing
 //   --scan   the flash check alone, over the whole video at 320 × 180, writing nothing
+//   --describe the upload texts (titles, descriptions, chapters, captions) of an existing render
+//   --brand  the channel's picture (800 × 800) and banner (2560 × 1440), in out/brand/
 //   --stills one picture per mood (1280 × 720) at its first signature effect, in out/stills/
 //   --guard <file>  another guard than guard.json (games watched, temperatures)
 // Needs Google Chrome (H.264 encoding) and ffmpeg on the PATH.
@@ -47,14 +49,16 @@ const option = (name, fallback) => {
 };
 const flag = (name) => args.includes(`--${name}`);
 const stills = flag('stills');
+const branding = flag('brand');
 const moodId = option('mood');
-const minutes = Number(option('minutes', stills ? '60' : undefined));
+const minutes = Number(option('minutes', stills || branding ? '60' : undefined));
 const seed = Number(option('seed', '1'));
 const small = flag('small');
 const checking = flag('check');
 const scanning = flag('scan');
+const describing = flag('describe');
 if (
-  (!moodId && !stills) ||
+  (!moodId && !stills && !branding) ||
   !Number.isFinite(minutes) ||
   minutes <= 0 ||
   minutes > 180 ||
@@ -260,10 +264,43 @@ const { SoundAnalyzer, Limiter, LoudnessMeter, gainTo, fadeAt, fromDecibels } =
 const { shorts, thumbnailAt } = await server.ssrLoadModule('/marketing/ambiance/Highlights.ts');
 const moods = Mood.parseAll(JSON.parse(await readFile(join(here, 'moods.json'), 'utf8')));
 const mood = moods.find((m) => m.id === moodId);
-if (!mood && !stills) {
+if (!mood && !stills && !branding) {
   console.error(`Unknown mood "${moodId}". Moods: ${moods.map((m) => m.id).join(', ')}`);
   await server.close();
   process.exit(2);
+}
+
+const Metadata = await server.ssrLoadModule('/marketing/ambiance/Metadata.ts');
+const channel = JSON.parse(await readFile(join(here, 'channel.json'), 'utf8'));
+
+/**
+ * The upload texts of a render, from its manifest, in texts/: the YouTube title and
+ * description in English and French, the Shorts' captions and the pinned comment.
+ */
+async function describe(manifest) {
+  const dir = join(out, 'texts');
+  await mkdir(dir, { recursive: true });
+  for (const language of Metadata.LANGUAGES) {
+    const { title, description } = Metadata.upload(manifest, channel, language);
+    await writeFile(join(dir, `youtube.${language}.txt`), `${title}\n\n${description}\n`);
+    const caption = Metadata.shortCaption(manifest, channel, language);
+    await writeFile(join(dir, `shorts.${language}.txt`), `${caption}\n`);
+    const pinned = Metadata.pinnedComment(channel, language);
+    await writeFile(join(dir, `pinned.${language}.txt`), `${pinned}\n`);
+  }
+  log(`Texts: ${dir}`);
+}
+
+if (describing) {
+  const path = join(out, 'manifest.json');
+  if (!existsSync(path)) {
+    console.error(`No render to describe: ${path}`);
+    await server.close();
+    process.exit(2);
+  }
+  await describe(JSON.parse(await readFile(path, 'utf8')));
+  await server.close();
+  process.exit(0);
 }
 
 const commit = await run('git', ['rev-parse', 'HEAD'], { cwd: root }).then(
@@ -312,7 +349,9 @@ const call = (method, ...values) =>
 
 let exitCode = 0;
 try {
-  if (stills) {
+  if (branding) {
+    await renderBrand();
+  } else if (stills) {
     await renderStills();
   } else {
     const setup = await call('setup', { mood: moodId, seconds, seed });
@@ -356,6 +395,34 @@ async function scan() {
       ` (worst at ${flashes.at.toFixed(1)} s)`,
   );
   return passed ? 0 : 1;
+}
+
+// ---------------------------------------------------------------- brand
+
+/** The channel's picture and banner, from the deep-sea mood, a frame with a ray gliding up. */
+async function renderBrand() {
+  const dir = join(outRoot, 'brand');
+  await mkdir(dir, { recursive: true });
+  uploads = dir;
+  const brandMood = option('mood', 'abyss-sleep');
+  await call('setup', { mood: brandMood, seconds, seed });
+  const at = Number(option('at', '107.6'));
+  const common = { t: at, name: channel.name, tagline: channel.tagline.en };
+  await call('brand', {
+    ...common,
+    width: 800,
+    height: 800,
+    banner: false,
+    file: 'picture-800.png',
+  });
+  await call('brand', {
+    ...common,
+    width: 2560,
+    height: 1440,
+    banner: true,
+    file: 'banner-2560x1440.png',
+  });
+  log(`Brand: ${dir}`);
 }
 
 // ---------------------------------------------------------------- stills
@@ -747,6 +814,7 @@ async function produce(plan, planHash) {
     passed: Object.values(checks).every((passed) => passed !== false),
   };
   await writeFile(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  await describe(manifest);
   await rm(work, { recursive: true, force: true });
   await prune();
   log(`Done in ${machineMinutes.toFixed(1)} min: ${out}`);

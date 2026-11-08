@@ -2628,6 +2628,16 @@ doucement, des formes qui nagent et des courants marins.
   cadre.
 - **Mesures** : contrôle anti-flash de l'heure 0,085 ; 7,4 ms par image (au lieu de 5,3).
 
+#### La chaîne (08/11/2026)
+
+Le kit de la chaîne est dans `marketing/ambiance/CHAINE.md` (nom recommandé : Quiet Orbit, à
+confirmer par l'utilisateur ; profils, calendrier, mesures, direct 24/7). La fabrique écrit à
+chaque rendu les textes de la mise en ligne (`texts/` : titre et description anglais et français
+avec les chapitres, légendes des Shorts, commentaire épinglé), tirés de `channel.json` et du plan
+par `Metadata.ts` (pur, testé : titres de 100 caractères au plus, chapitres valides, crédit et lien
+du jeu, jamais Yandex) ; `--describe` les refait pour un rendu existant, `--brand` rend l'avatar
+(800 × 800) et la bannière (2 560 × 1 440, texte dans la zone sûre).
+
 #### Coût estimé
 
 | Poste                                                                                                                    | Session       | Machine                   |
@@ -3310,3 +3320,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.27    | 07/11/2026 | Lot 15 validé par l'utilisateur avec ses choix ; direction artistique des images (plans, profondeur, étalonnages, effets signature des six mondes, rythme sur la durée) et coût revu (§ 3.18).                                                                     |
 | 1.28    | 07/11/2026 | Lot 15 livré sur `dev` : la porte automatique de « Abysses, pour dormir » (60 min) passe, 41 min de machine ; écarts trouvés en rendant (§ 3.18).                                                                                                                  |
 | 1.29    | 07/11/2026 | Lot 15, retouche « hypnotique » demandée par l'utilisateur : courants, bancs de poissons, raies mantas, méduses renouvelées (§ 3.18).                                                                                                                              |
+| 1.30    | 08/11/2026 | Lot 15 : la chaîne, son kit, les textes de mise en ligne générés et les visuels de marque (§ 3.18).                                                                                                                                                                |
