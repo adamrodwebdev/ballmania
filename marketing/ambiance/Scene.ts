@@ -14,6 +14,9 @@ import {
   BLUR_FRAGMENT,
   BRIGHT_FRAGMENT,
   FINISH_FRAGMENT,
+  FISH_COUNT,
+  FISH_FRAGMENT,
+  FISH_VERTEX,
   FULLSCREEN_VERTEX,
   MIX_FRAGMENT,
   PARTICLE_FRAGMENT,
@@ -70,6 +73,7 @@ export class Scene {
   private readonly look: WorldLook;
   private readonly scenePass: Program;
   private readonly particlePass: Program;
+  private readonly fishPass: Program;
   private readonly brightPass: Program;
   private readonly blurPass: Program;
   private readonly finishPass: Program;
@@ -104,6 +108,7 @@ export class Scene {
     );
     this.scenePass = this.program(FULLSCREEN_VERTEX, SCENE_FRAGMENT);
     this.particlePass = this.program(PARTICLE_VERTEX, PARTICLE_FRAGMENT);
+    this.fishPass = this.program(FISH_VERTEX, FISH_FRAGMENT);
     this.brightPass = this.program(FULLSCREEN_VERTEX, BRIGHT_FRAGMENT);
     this.blurPass = this.program(FULLSCREEN_VERTEX, BLUR_FRAGMENT);
     this.finishPass = this.program(FULLSCREEN_VERTEX, FINISH_FRAGMENT);
@@ -228,6 +233,20 @@ export class Scene {
     gl.uniform3fv(p.uniforms.uGlowA!, this.look.glow[0]);
     gl.uniform3fv(p.uniforms.uGlowB!, this.look.glow[1]);
     gl.drawArrays(gl.POINTS, 0, this.particles);
+    // Under the sea, schools of fish swim through, dark against the light.
+    if (this.options.mood.world === 'abyss') {
+      const f = this.fishPass;
+      gl.useProgram(f.program);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.uniform2f(f.uniforms.uResolution!, this.hdr.width, this.hdr.height);
+      gl.uniform1f(f.uniforms.uTime!, t);
+      gl.uniform4f(f.uniforms.uCamera!, d.camera.x, d.camera.y, d.camera.zoom, d.camera.rotation);
+      const [r, g, b] = this.look.gas[0];
+      gl.uniform3f(f.uniforms.uBody!, r * 0.12, g * 0.12, b * 0.12);
+      const [gr, gg, gb] = this.look.glow[0];
+      gl.uniform3f(f.uniforms.uRim!, gr * 0.5 * d.light, gg * 0.5 * d.light, gb * 0.5 * d.light);
+      gl.drawArrays(gl.POINTS, 0, FISH_COUNT);
+    }
     gl.disable(gl.BLEND);
   }
 

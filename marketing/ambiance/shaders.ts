@@ -37,6 +37,19 @@ float fbm(vec2 p) {
   }
   return v;
 }
+// The currents: a slowly turning, divergence-free field (the curl of a moving noise).
+// Everything that drifts follows it, so the whole picture sways as one body of water.
+float flowNoise(vec2 p, float t) {
+  return noise(p + vec2(t * 0.05, -t * 0.03)) * 0.6
+       + noise(p * 2.1 + vec2(-t * 0.04, t * 0.06)) * 0.3
+       + noise(p * 4.3 + vec2(t * 0.07, t * 0.02)) * 0.1;
+}
+vec2 currentAt(vec2 p, float t) {
+  const float e = 0.05;
+  float dx = flowNoise(p + vec2(e, 0.0), t) - flowNoise(p - vec2(e, 0.0), t);
+  float dy = flowNoise(p + vec2(0.0, e), t) - flowNoise(p - vec2(0.0, e), t);
+  return vec2(dy, -dx) / (2.0 * e);
+}
 // Domain-warped noise: the slow, ever-changing volutes of gas.
 float volutes(vec2 p, float t) {
   vec2 q = vec2(fbm(p + vec2(0.0, t * 0.020)), fbm(p + vec2(5.2, 1.3) - t * 0.015));
@@ -168,11 +181,17 @@ vec3 jellyfish(vec2 uv, float t, float s) {
   for (int i = 0; i < 6; i++) {
     float fi = float(i);
     float depth = 0.45 + 0.12 * fi;
-    vec2 base = vec2(fract(0.13 + fi * 0.37 + 0.01 * sin(t * 0.07 + fi)),
-                     -0.35 + fract(fi * 0.29 + t * (0.006 + 0.002 * fi)) * 1.7);
+    // Each pass up the screen is a new jellyfish: it changes out of sight, below the frame.
+    float climb = fi * 0.29 + t * (0.006 + 0.002 * fi);
+    float pass = floor(climb) + fi * 17.0;
+    float r1 = hash21(vec2(pass, 1.3));
+    float r2 = hash21(vec2(pass, 2.7));
+    float r3 = hash21(vec2(pass, 4.1));
+    vec2 base = vec2(0.08 + 0.84 * r1 + 0.03 * sin(t * 0.05 + fi), -0.35 + fract(climb) * 1.7);
+    base += currentAt(base * 1.5, t) * 0.02;
     vec2 p = (cameraUv(uv, depth) - base) * vec2(aspect, 1.0);
-    float size = 0.05 + 0.03 * fract(fi * 0.73);
-    float pulse = 1.0 + 0.08 * sin(t * 0.9 + fi * 2.0);
+    float size = 0.035 + 0.05 * r2;
+    float pulse = 1.0 + 0.08 * sin(t * (0.6 + 0.6 * r3) + fi * 2.0);
     vec2 q = p / (size * vec2(pulse, 1.0 / pulse));
     // The bell: a dome, its lower edge scalloped, brighter at its rim, veiled inside.
     vec2 b = q * vec2(1.0, 1.3);
@@ -191,10 +210,75 @@ vec3 jellyfish(vec2 uv, float t, float s) {
       tentacles += exp(-pow((q.x - wave) * 14.0, 2.0)) * smoothstep(0.0, 0.2, y) * smoothstep(4.0, 0.5, y);
     }
     float glow = exp(-length(q) * 1.8) * 0.35;
-    vec3 tint = mix(uGlowA, uGlowB, fract(fi * 0.5));
+    vec3 tint = mix(uGlowA, uGlowB, r3);
     c += tint * (bell + rim * 0.9 + tentacles * 0.4 + glow) * (0.6 + 0.45 * s) * (0.5 + depth);
   }
   return c;
+}
+
+// Abyss: filaments of light carried by the currents, appearing and fading as they flow.
+vec3 currents(vec2 uv, float t, float amount) {
+  float aspect = uResolution.x / uResolution.y;
+  vec2 p = cameraUv(uv, 0.65) * vec2(aspect, 1.0);
+  vec2 w = p + 0.35 * currentAt(p * 0.9, t * 0.6);
+  float lanes = 0.0;
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    float y = w.y * (4.0 + fi * 2.0) + fbm(vec2(w.x * 0.6 + t * 0.02 * (1.0 + fi), fi * 3.1)) * 2.5
+            - t * (0.04 + 0.015 * fi);
+    float line = pow(1.0 - abs(fract(y) - 0.5) * 2.0, 14.0);
+    float mask = smoothstep(0.5, 0.78, noise(vec2(w.x * 1.2 - t * 0.025 * (1.0 + fi), w.y * 1.6 + fi * 7.0)));
+    lanes += line * mask * (0.5 - 0.12 * fi);
+  }
+  return mix(uGlowA, uGlowB, 0.3) * lanes * amount;
+}
+
+// Abyss: great rays gliding far away, rarely and never twice the same way. Dark shapes
+// rimmed with light; returns the colour and how much of the picture it covers.
+vec4 mantas(vec2 uv, float t) {
+  float aspect = uResolution.x / uResolution.y;
+  vec4 out4 = vec4(0.0);
+  for (int i = 0; i < 2; i++) {
+    float fi = float(i);
+    float period = 300.0 + 110.0 * fi;
+    float journey = t / period + fi * 0.43;
+    float pass = floor(journey) + fi * 31.0;
+    if (hash21(vec2(pass, 5.0)) > 0.55) continue;          // many passes stay empty: an event
+    float u = fract(journey);
+    float dir = hash21(vec2(pass, 6.0)) < 0.5 ? 1.0 : -1.0;
+    // It rises slowly towards the light, slanting across: its wings spread wide to the sides.
+    float x0 = 0.2 + 0.6 * hash21(vec2(pass, 7.0));
+    vec2 centre = vec2(x0 + dir * (u - 0.5) * 0.7 + 0.03 * sin(u * 7.0 + pass), mix(-0.35, 1.35, u));
+    float span = 0.09 + 0.06 * hash21(vec2(pass, 8.0));
+    vec2 p = (cameraUv(uv, 0.45) - centre) * vec2(aspect, 1.0);
+    float bank = 0.15 * cos(u * 7.0 + pass);
+    vec2 heading = normalize(vec2(dir * 0.42 + bank, 1.0));
+    // Its own frame: x forward, y across the wings, in wingspans.
+    vec2 l = vec2(dot(p, heading), dot(p, vec2(-heading.y, heading.x))) / span;
+    float flap = t * (0.45 + 0.2 * hash21(vec2(pass, 9.0))) + pass;
+    // The wings beat slowly: they seem to shorten and their tips curl.
+    float side = abs(l.y) / (0.85 + 0.15 * cos(flap));
+    float f = l.x + 0.07 * sin(flap - side * 1.8) * side * side;
+    // Seen from below: broad at the body, a rounded leading edge, a hollowed trailing edge.
+    float front = 0.45 - 0.5 * pow(side, 1.4);
+    float rear = -0.4 + 0.3 * pow(side, 0.8);
+    float soft = 0.05;
+    float wing = smoothstep(1.0, 0.9, side) * smoothstep(rear - soft, rear + soft, f)
+               * smoothstep(front + soft, front - soft, f);
+    // The two horns at the front, and the long thin tail.
+    float horns = smoothstep(0.05, 0.02, abs(abs(l.y) - 0.12)) * smoothstep(0.62, 0.48, f) * step(0.35, f);
+    float tail = smoothstep(0.02, 0.007, abs(l.y)) * smoothstep(-1.25, -0.5, f) * step(f, -0.35);
+    float body = max(max(wing, horns), tail * 0.7);
+    float edge = min(min(front - f, f - rear), (1.0 - side) * 0.6);
+    float rim = wing * (1.0 - smoothstep(0.0, 0.1, edge));
+    // A paler belly towards the middle: a body, not a cut-out.
+    float belly = wing * smoothstep(0.7, 0.0, side) * smoothstep(-0.3, 0.2, f);
+    vec3 colour = uGasA * (0.14 + 0.22 * belly) + uGlowB * rim * 0.3;
+    float cover = body * 0.6;
+    out4.rgb = mix(out4.rgb, colour, cover);
+    out4.a = max(out4.a, cover);
+  }
+  return out4;
 }
 
 // Jewels: great crystals turning slowly, their faces splitting the light into rainbows.
@@ -282,18 +366,25 @@ vec3 blackHole(vec2 uv, float t, float s) {
 void main() {
   vec2 uv = vUv;
   float t = uTime;
-  vec2 bgUv = uWorld == 5 ? lens(uv) : uv;
+  float aspect0 = uResolution.x / uResolution.y;
+  // The whole far plane sways in the current: gently in space, more under the sea.
+  float sway = uWorld == 2 ? 0.009 : 0.004;
+  vec2 drift = currentAt(uv * vec2(aspect0, 1.0) * 1.3, t * 0.04) * sway;
+  vec2 bgUv = uWorld == 5 ? lens(uv + drift) : uv + drift;
   vec3 c = backdrop(bgUv) * (0.55 + 0.45 * uLight);
   float energy = uEnergy;
   float s = uSignature;
-  c += gas(uv, t, (0.35 + 0.4 * energy + 0.3 * s) * uLight);
+  c += gas(uv + drift * 2.0, t, (0.35 + 0.4 * energy + 0.3 * s) * uLight);
   if (uWorld == 0) {
     c += rays(uv, t, mix(uGlowA, uGlowB, 0.5), 0.12 * uLight);
     c += starBirth(uv, t, 0.25 + s);
   } else if (uWorld == 1) {
     c += neonWorld(uv, t, s) * uLight;
   } else if (uWorld == 2) {
-    c += rays(uv, t, uGlowA, (0.22 + 0.18 * s) * uLight);
+    c += rays(uv + drift * 1.5, t, uGlowA, (0.22 + 0.18 * s) * uLight);
+    c += currents(uv, t, (0.10 + 0.08 * energy) * uLight);
+    vec4 ray = mantas(uv + drift, t);
+    c = mix(c, ray.rgb * (0.4 + 0.6 * uLight), ray.a);
     c += jellyfish(uv, t, s) * uLight;
   } else if (uWorld == 3) {
     c += crystals(uv, t, s) * uLight;
@@ -337,6 +428,7 @@ out float vLight;
 out float vHue;
 
 float h(float n, float s) { return fract(sin(n * 127.1 + s * 311.7) * 43758.5453); }
+${NOISE}
 
 void main() {
   float id = float(gl_VertexID);
@@ -351,6 +443,10 @@ void main() {
   else if (uWorld == 3) velocity = vec2(0.0015, -0.001);                        // glints hang
   else velocity = vec2(0.004, 0.0012);                                          // stars drift
   vec2 p = fract(seed + velocity * speed * uTime + 0.03 * vec2(sin(uTime * 0.05 + id), cos(uTime * 0.04 + id * 1.3)));
+  // Carried by the current: the particles swirl together, the near ones most.
+  float aspectP = uResolution.x / uResolution.y;
+  float carried = (uWorld == 2 ? 0.05 : 0.025) * (0.6 + 0.6 * depth);
+  p += currentAt(p * vec2(aspectP, 1.0) * 1.3, uTime * 0.04) * carried;
   // Parallax: the near particles move most with the camera.
   float aspect = uResolution.x / uResolution.y;
   vec2 q = (p - 0.5) * vec2(aspect, 1.0);
@@ -363,7 +459,7 @@ void main() {
   gl_Position = vec4(q * 2.0, 0.0, 1.0);
   float blur = abs(depth - uFocus);
   float scale = uResolution.y / 1080.0;
-  gl_PointSize = clamp((2.0 + depth * depth * 26.0) * (1.0 + blur * 2.5) * scale, 1.0, 96.0);
+  gl_PointSize = clamp((2.0 + depth * depth * 18.0) * (1.0 + blur * 2.0) * scale, 1.0, 80.0);
   vSoft = blur;
   float twinkle = 0.55 + 0.45 * sin(uTime * (0.4 + h(id, 5.0)) + id);
   vLight = twinkle * (0.25 + 0.5 * uEnergy + 0.6 * uSignature) / (1.0 + blur * blur * 6.0) * (0.5 + 0.5 * h(id, 6.0));
@@ -500,4 +596,102 @@ uniform float uMix;
 out vec4 outColour;
 void main() {
   outColour = vec4(mix(texture(uA, vUv).rgb, texture(uB, vUv).rgb, uMix), 1.0);
+}`;
+
+/**
+ * Abyss: schools of fish swimming across, two depths, each pass a new school
+ * (its path, its size, its density). Each fish keeps its place in the school
+ * with a wobble of its own, turns with the school and beats its tail. Dark
+ * silhouettes lit from above, blended over the scene.
+ */
+export const FISH_COUNT = 160;
+
+export const FISH_VERTEX = /* glsl */ `#version 300 es
+precision highp float;
+uniform vec2 uResolution;
+uniform float uTime;
+uniform vec4 uCamera;
+out float vAngle;
+out float vTail;
+out float vShade;
+out float vHere;
+
+float h(float n, float s) { return fract(sin(n * 127.1 + s * 311.7) * 43758.5453); }
+
+vec2 path(float u, float pass, float dir) {
+  float y0 = 0.25 + 0.5 * h(pass, 3.0);
+  float x = mix(-0.45, 1.45, dir > 0.0 ? u : 1.0 - u);
+  return vec2(x, y0 + 0.09 * sin(u * 6.2831 * (0.8 + 0.6 * h(pass, 4.0)) + pass)
+                    + 0.04 * sin(u * 23.0 + pass * 2.0));
+}
+
+void main() {
+  float id = float(gl_VertexID);
+  float school = id < ${FISH_COUNT / 2}.0 ? 0.0 : 1.0;
+  float i = id - school * ${FISH_COUNT / 2}.0;
+  float period = 95.0 + 55.0 * school;
+  float journey = uTime / period + school * 0.57;
+  float pass = floor(journey) + school * 53.0;
+  float u = fract(journey);
+  float dir = h(pass, 1.0) < 0.5 ? 1.0 : -1.0;
+  // Some passes are empty, and each school has its own size.
+  float present = step(h(pass, 2.0), 0.75) * step(i, 40.0 + 40.0 * h(pass, 5.0));
+  float radius = (0.035 + 0.03 * h(pass, 6.0)) * (1.0 + 0.6 * school)
+               * (1.0 + 0.25 * sin(uTime * 0.21 + pass));
+  // Its place in the school: a flattened cloud, each fish wobbling, the front leading.
+  float a = h(i, 7.0) * 6.2831;
+  float r = sqrt(h(i, 8.0));
+  vec2 local = vec2(cos(a) * 1.6, sin(a) * 0.7) * r * radius;
+  local += 0.012 * vec2(sin(uTime * (0.6 + 0.5 * h(i, 9.0)) + i), cos(uTime * (0.7 + 0.4 * h(i, 10.0)) + i * 1.7));
+  float lag = local.x * dir * 0.002;
+  vec2 centre = path(u - lag, pass, dir);
+  vec2 ahead = path(u - lag + 0.002, pass, dir);
+  vec2 heading = normalize((ahead - centre) * vec2(uResolution.x / uResolution.y, 1.0));
+  vec2 p = centre + vec2(local.x * heading.x - local.y * heading.y, local.x * heading.y + local.y * heading.x)
+                  / vec2(uResolution.x / uResolution.y, 1.0);
+  // The camera, at the school's depth.
+  float depth = 0.55 + 0.3 * school;
+  float aspect = uResolution.x / uResolution.y;
+  vec2 q = (p - 0.5) * vec2(aspect, 1.0);
+  float c = cos(uCamera.w * depth);
+  float s = sin(uCamera.w * depth);
+  q = mat2(c, -s, s, c) * q;
+  q /= mix(1.0, uCamera.z, depth);
+  q += uCamera.xy * depth;
+  q /= vec2(aspect, 1.0);
+  gl_Position = vec4(q * 2.0, 0.0, 1.0);
+  float scale = uResolution.y / 1080.0;
+  gl_PointSize = (24.0 + 20.0 * school) * (0.75 + 0.5 * h(i, 11.0)) * scale * present;
+  vAngle = atan(heading.y, heading.x);
+  vTail = uTime * (5.0 + 3.0 * h(i, 12.0)) + i;
+  vShade = 0.6 + 0.4 * h(i, 13.0);
+  vHere = present;
+}`;
+
+export const FISH_FRAGMENT = /* glsl */ `#version 300 es
+precision highp float;
+in float vAngle;
+in float vTail;
+in float vShade;
+in float vHere;
+uniform vec3 uBody;
+uniform vec3 uRim;
+out vec4 outColour;
+void main() {
+  if (vHere < 0.5) discard;
+  // gl_PointCoord runs downwards: flip it, then turn it to the fish's heading.
+  vec2 d = vec2(gl_PointCoord.x - 0.5, 0.5 - gl_PointCoord.y);
+  float c = cos(vAngle);
+  float s = sin(vAngle);
+  vec2 f = vec2(c * d.x + s * d.y, -s * d.x + c * d.y);
+  float wag = sin(vTail) * 0.05;
+  float body = 1.0 - smoothstep(0.85, 1.0, length(vec2(f.x / 0.34, (f.y - wag * (0.2 - f.x)) / 0.1)));
+  vec2 t = f - vec2(-0.36, wag);
+  float tail = step(t.x, 0.0) * step(-0.12, t.x) * (1.0 - smoothstep(0.0, 0.02, abs(t.y) + t.x * 0.6));
+  float shape = max(body, tail);
+  if (shape < 0.01) discard;
+  // Lit from above, as the rays fall.
+  float lit = smoothstep(-0.02, 0.08, d.y);
+  vec3 colour = uBody * vShade + uRim * lit * 0.5;
+  outColour = vec4(colour, shape * 0.7);
 }`;
