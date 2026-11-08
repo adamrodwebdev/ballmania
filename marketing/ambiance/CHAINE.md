@@ -239,5 +239,7 @@ flux (qui ne doit jamais apparaître dans le dépôt).
 - [ ] Créer le compte TikTok (ordinateur), nom, pseudo, photo, bio ; un jour plus tard.
 - [ ] Créer les quatre playlists.
 - [x] Vidéo validée (Abysses, 1 h) envoyée et programmée pour le mardi 10/11/2026 à 20:00, avec ses textes, ses chapitres, sa miniature et sa traduction française (https://youtu.be/AWAkYGn_F1U).
-- [ ] Programmer ses trois Shorts (lundi, mercredi, vendredi 12:30) sur YouTube et TikTok.
+- [x] Ses trois Shorts programmés sur YouTube : mer. 11, ven. 13 et lun. 16/11/2026 à 12:30 (après la sortie de la vidéo longue, qu’ils annoncent), chacun avec une légende tirée de ce qu’il montre.
+- [ ] Après la vérification par téléphone : vidéo associée de chaque Short (la vidéo longue), commentaire épinglé.
+- [ ] Les trois Shorts sur TikTok, quand le compte existe.
 - [ ] Dire à la session de code quand c’est fait : elle prépare l’ébauche de S2.
