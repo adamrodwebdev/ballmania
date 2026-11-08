@@ -233,10 +233,11 @@ flux (qui ne doit jamais apparaître dans le dépôt).
 - [x] Choisir le nom : Quiet Orbit (08/11/2026).
 - [x] Pseudo YouTube : @astralquietorbit (08/11/2026, @quietorbit était pris).
 - [ ] Prendre le même pseudo sur TikTok : astralquietorbit.
-- [ ] Créer la chaîne YouTube (sur l’ordinateur), activer les fonctionnalités avancées (téléphone).
-- [ ] Mettre l’avatar et la bannière (`out/brand/`), la description anglaise, sa traduction, le lien.
+- [x] Créer la chaîne YouTube (08/11/2026).
+- [ ] Activer les fonctionnalités avancées (vérification par téléphone, par l’utilisateur) : liens cliquables, commentaire épinglé.
+- [x] Avatar, bannière, nom Quiet Orbit, description anglaise et sa traduction, lien du jeu (08/11/2026).
 - [ ] Créer le compte TikTok (ordinateur), nom, pseudo, photo, bio ; un jour plus tard.
 - [ ] Créer les quatre playlists.
-- [ ] Programmer la vidéo validée (Abysses, 1 h) pour le mardi 20:00 avec ses textes de `texts/`.
+- [x] Vidéo validée (Abysses, 1 h) envoyée et programmée pour le mardi 10/11/2026 à 20:00, avec ses textes, ses chapitres, sa miniature et sa traduction française (https://youtu.be/AWAkYGn_F1U).
 - [ ] Programmer ses trois Shorts (lundi, mercredi, vendredi 12:30) sur YouTube et TikTok.
 - [ ] Dire à la session de code quand c’est fait : elle prépare l’ébauche de S2.
