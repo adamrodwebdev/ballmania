@@ -2610,6 +2610,24 @@ et de la miniature, chaque fichier avec sa taille et son SHA-256, le temps machi
 - **Volcan** : le monde le moins abouti (bande d'horizon trop présente), à reprendre avant sa
   première vidéo.
 
+#### Retouche « hypnotique » (08/11/2026)
+
+Demande de l'utilisateur après la porte : des images moins répétitives, hypnotiques, un fond agité
+doucement, des formes qui nagent et des courants marins.
+
+- **Les courants** : un champ de courants commun (le rotationnel d'un bruit qui se déplace, donc sans
+  source ni puits) déforme doucement le décor peint, le gaz et les rayons (plus sous la mer que dans
+  l'espace) et porte les particules, qui tourbillonnent ensemble au lieu de filer en ligne droite.
+  Sous la mer, des filets de lumière suivent ces courants, apparaissent et s'effacent.
+- **Les formes qui nagent** (Abysses) : deux bancs de poissons en silhouette, à deux profondeurs ;
+  chaque poisson garde sa place dans le banc avec un tremblement à lui, tourne avec le banc et bat
+  de la queue ; chaque passage est un banc nouveau (trajet, taille, densité), certains passages
+  restent vides. De grandes raies mantas montent lentement vers la lumière, en diagonale, rarement
+  (une fois toutes les 5 à 7 min environ), jamais au même endroit.
+- **Les méduses** changent de place, de taille, de teinte et de battement à chaque passage, hors du
+  cadre.
+- **Mesures** : contrôle anti-flash de l'heure 0,085 ; 7,4 ms par image (au lieu de 5,3).
+
 #### Coût estimé
 
 | Poste                                                                                                                    | Session       | Machine                   |
@@ -3291,3 +3309,4 @@ Comptes, classements en ligne, multijoueur en réseau, achats intégrés.
 | 1.26    | 07/11/2026 | Lot 15 « Fabrique d'ambiances » proposé : architecture, humeurs, musique, images, sorties, déterminisme, tests, porte et coût, à valider (§ 3.18).                                                                                                                 |
 | 1.27    | 07/11/2026 | Lot 15 validé par l'utilisateur avec ses choix ; direction artistique des images (plans, profondeur, étalonnages, effets signature des six mondes, rythme sur la durée) et coût revu (§ 3.18).                                                                     |
 | 1.28    | 07/11/2026 | Lot 15 livré sur `dev` : la porte automatique de « Abysses, pour dormir » (60 min) passe, 41 min de machine ; écarts trouvés en rendant (§ 3.18).                                                                                                                  |
+| 1.29    | 07/11/2026 | Lot 15, retouche « hypnotique » demandée par l'utilisateur : courants, bancs de poissons, raies mantas, méduses renouvelées (§ 3.18).                                                                                                                              |
