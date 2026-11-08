@@ -1,0 +1,197 @@
+{
+  "name": "Quiet Orbit",
+  "handle": "@quietorbit",
+  "site": "https://ballmania.netlify.app",
+  "tagline": {
+    "en": "Generative ambient music & visuals for sleep and focus",
+    "fr": "Musique et images d’ambiance génératives pour dormir et se concentrer"
+  },
+  "credit": {
+    "en": "Music and images generated in real time by the Ball Mania engine: no generative AI, no samples, no stock footage. Every video is composed from its own seed, so no two are alike.",
+    "fr": "Musique et images générées en temps réel par le moteur de Ball Mania : sans IA générative, sans échantillon, sans image d’archive. Chaque vidéo naît de sa propre graine : aucune ne ressemble à une autre."
+  },
+  "play": {
+    "en": "The game behind the music, free in your browser:",
+    "fr": "Le jeu d’où vient la musique, gratuit dans votre navigateur :"
+  },
+  "listen": {
+    "en": "Best at low volume, with headphones or a small speaker. The music evolves for the whole video and never loops.",
+    "fr": "À écouter à faible volume, au casque ou sur un petit haut-parleur. La musique évolue tout au long de la vidéo, sans jamais boucler."
+  },
+  "chaptersTitle": {
+    "en": "Chapters",
+    "fr": "Chapitres"
+  },
+  "durations": {
+    "en": {
+      "minutes": "{n} Minutes",
+      "hour": "1 Hour",
+      "hours": "{n} Hours"
+    },
+    "fr": {
+      "minutes": "{n} minutes",
+      "hour": "1 heure",
+      "hours": "{n} heures"
+    }
+  },
+  "realms": {
+    "sea": {
+      "en": {
+        "wide": "Open water",
+        "push": "Toward the light",
+        "travel": "Drifting with the current",
+        "rise": "Rising to the surface",
+        "dive": "Into the deep",
+        "orbit": "A slow turn among the jellyfish"
+      },
+      "fr": {
+        "wide": "Eau libre",
+        "push": "Vers la lumière",
+        "travel": "Au fil du courant",
+        "rise": "Remonter vers la surface",
+        "dive": "Vers les profondeurs",
+        "orbit": "Lente ronde des méduses"
+      }
+    },
+    "space": {
+      "en": {
+        "wide": "Wide sky",
+        "push": "Closer to the light",
+        "travel": "Drifting past the stars",
+        "rise": "Rising slowly",
+        "dive": "Falling softly",
+        "orbit": "Slow orbit"
+      },
+      "fr": {
+        "wide": "Ciel immense",
+        "push": "Vers la lumière",
+        "travel": "Entre les étoiles",
+        "rise": "Lente ascension",
+        "dive": "Douce descente",
+        "orbit": "Orbite lente"
+      }
+    }
+  },
+  "moods": {
+    "abyss-sleep": {
+      "realm": "sea",
+      "title": {
+        "en": "Deep Sea Sleep Music · {duration} of Glowing Jellyfish & Slow Currents",
+        "fr": "Musique pour dormir au fond des mers · {duration} de méduses et de courants lents"
+      },
+      "hook": {
+        "en": "Sink into the deep sea: glowing jellyfish rise toward the light, slow currents sway the water, and soft synth pads carry you to sleep.",
+        "fr": "Glissez au fond des mers : des méduses lumineuses montent vers la lumière, des courants lents bercent l’eau, et des nappes de synthé douces vous emmènent vers le sommeil."
+      },
+      "scene": {
+        "en": "Schools of fish pass in the blue, and now and then a manta ray glides up toward the surface. The images grow calmer as the hour goes on.",
+        "fr": "Des bancs de poissons passent dans le bleu, et parfois une raie manta remonte vers la surface. Les images s’apaisent au fil de l’heure."
+      },
+      "hashtags": ["#sleepmusic", "#deepsea", "#ambient"],
+      "short": {
+        "en": "Breathe out. The jellyfish are rising.",
+        "fr": "Expirez. Les méduses remontent."
+      }
+    },
+    "nebula-dream": {
+      "realm": "space",
+      "title": {
+        "en": "Dreamy Space Ambience for Sleep · {duration} Inside a Glowing Nebula",
+        "fr": "Ambiance spatiale pour dormir · {duration} au cœur d’une nébuleuse"
+      },
+      "hook": {
+        "en": "Float inside a glowing nebula while a star is slowly born, with warm synth pads and soft chimes to help you fall asleep.",
+        "fr": "Flottez au cœur d’une nébuleuse pendant qu’une étoile naît lentement, avec des nappes de synthé chaudes et des carillons doux pour trouver le sommeil."
+      },
+      "scene": {
+        "en": "Clouds of violet gas flow and change shape, stardust drifts past, and the light slowly calms down.",
+        "fr": "Des volutes de gaz violet coulent et changent de forme, la poussière d’étoiles passe, et la lumière s’apaise doucement."
+      },
+      "hashtags": ["#sleepmusic", "#spaceambient", "#nebula"],
+      "short": {
+        "en": "A star is being born. Take your time.",
+        "fr": "Une étoile est en train de naître. Prenez votre temps."
+      }
+    },
+    "neon-focus": {
+      "realm": "space",
+      "title": {
+        "en": "Synthwave Focus Ambience · {duration} Over an Endless Neon Grid",
+        "fr": "Ambiance synthwave pour se concentrer · {duration} sur une grille néon sans fin"
+      },
+      "hook": {
+        "en": "Fly low over an endless neon grid under rippling auroras, with steady synth chords made for deep work and coding.",
+        "fr": "Survolez une grille néon sans fin sous des aurores qui ondulent, avec des accords de synthé réguliers pour travailler et coder sans décrocher."
+      },
+      "scene": {
+        "en": "No drums, no build-ups: a calm, even pulse of light and sound that stays in the background.",
+        "fr": "Ni batterie ni montée : une pulsation régulière de lumière et de son qui reste à l’arrière-plan."
+      },
+      "hashtags": ["#focusmusic", "#synthwave", "#deepwork"],
+      "short": {
+        "en": "Head down. The grid keeps going.",
+        "fr": "Tête baissée. La grille continue."
+      }
+    },
+    "jewel-study": {
+      "realm": "space",
+      "title": {
+        "en": "Crystal Ambience for Studying · {duration} of Calm Synth & Floating Crystals",
+        "fr": "Ambiance cristalline pour réviser · {duration} de synthé calme et de cristaux flottants"
+      },
+      "hook": {
+        "en": "Study among great floating crystals that turn slowly and split the light into soft rainbows, with gentle glass chimes and calm synth.",
+        "fr": "Révisez parmi de grands cristaux qui flottent, tournent lentement et décomposent la lumière en arcs-en-ciel, avec des carillons de verre et un synthé calme."
+      },
+      "scene": {
+        "en": "The music comes in slow waves of ten to fifteen minutes: enough change to stay awake, never enough to distract.",
+        "fr": "La musique avance par vagues lentes de dix à quinze minutes : assez de changement pour rester éveillé, jamais assez pour distraire."
+      },
+      "hashtags": ["#studymusic", "#ambient", "#crystals"],
+      "short": {
+        "en": "Every turn of the crystal, a new colour.",
+        "fr": "À chaque tour du cristal, une couleur nouvelle."
+      }
+    },
+    "volcano-warmth": {
+      "realm": "space",
+      "title": {
+        "en": "Warm Lava Ambience for Sleep · {duration} of Glowing Embers & Slow Synth",
+        "fr": "Ambiance de lave pour dormir · {duration} de braises et de synthé lent"
+      },
+      "hook": {
+        "en": "Rest by a distant river of lava under a sky of drifting embers, wrapped in warm, low synth pads.",
+        "fr": "Reposez-vous près d’une rivière de lave lointaine, sous un ciel de braises qui dérivent, enveloppé de nappes de synthé chaudes et graves."
+      },
+      "scene": {
+        "en": "Warm colours, slow light and a deep, soft drone: like a fireplace, far away.",
+        "fr": "Des couleurs chaudes, une lumière lente et un drone grave et doux : comme un feu de cheminée, au loin."
+      },
+      "hashtags": ["#sleepmusic", "#ambient", "#lava"],
+      "short": {
+        "en": "Warm light. Slow breath.",
+        "fr": "Lumière chaude. Souffle lent."
+      }
+    },
+    "singularity-deep-focus": {
+      "realm": "space",
+      "title": {
+        "en": "Black Hole Ambience for Deep Focus · {duration} of Space Drone",
+        "fr": "Ambiance trou noir pour se concentrer · {duration} de drone spatial"
+      },
+      "hook": {
+        "en": "Work beside a distant black hole whose disk of light bends the stars behind it, over a deep, steady space drone.",
+        "fr": "Travaillez près d’un trou noir lointain dont le disque de lumière courbe les étoiles, sur un drone spatial grave et régulier."
+      },
+      "scene": {
+        "en": "Slow waves of sound and light, no drums, no voice: a dark, quiet room for long tasks.",
+        "fr": "Des vagues lentes de son et de lumière, sans batterie ni voix : une pièce sombre et calme pour les longues tâches."
+      },
+      "hashtags": ["#focusmusic", "#spaceambient", "#blackhole"],
+      "short": {
+        "en": "Everything bends toward the work.",
+        "fr": "Tout converge vers le travail."
+      }
+    }
+  }
+}

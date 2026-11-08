@@ -266,6 +266,132 @@ class Factory {
     return best;
   }
 
+  /**
+   * The channel's picture or banner: a frame of the mood with the mark (a thin
+   * ring of orbit round a point of light) and, on the banner, the name and the
+   * line under it, inside the area YouTube shows on every screen.
+   */
+  async brand(options: {
+    width: number;
+    height: number;
+    t: number;
+    name: string;
+    tagline: string;
+    banner: boolean;
+    file: string;
+  }) {
+    const { width, height, t, name, tagline, banner, file } = options;
+    const font = document.createElement('link');
+    font.rel = 'stylesheet';
+    font.href = 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=block';
+    document.head.append(font);
+    await new Promise((resolve) => font.addEventListener('load', resolve, { once: true }));
+    await document.fonts.load('600 64px "Quicksand"');
+    await document.fonts.load('400 32px "Quicksand"');
+    const scene = new Scene({
+      width,
+      height,
+      mood: this.need(this.mood),
+      palette: Palette.fromStyle(getComputedStyle(document.documentElement)),
+      seed: this.need(this.plan).seed,
+    });
+    scene.draw(t, this.need(this.director).frame(t), Math.round(t * FPS));
+    scene.present();
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(scene.canvas, 0, 0);
+    scene.destroy();
+    // A dark veil behind the mark and the words, so they read on any frame; on the round
+    // picture, shown at 98 px, it hides almost everything but the light.
+    const veil = ctx.createRadialGradient(
+      width / 2,
+      height / 2,
+      0,
+      width / 2,
+      height / 2,
+      Math.max(width, height) * (banner ? 0.42 : 0.62),
+    );
+    veil.addColorStop(0, banner ? 'rgba(2,10,24,0.55)' : 'rgba(2,12,26,0.82)');
+    veil.addColorStop(1, banner ? 'rgba(2,10,24,0)' : 'rgba(2,12,26,0.35)');
+    ctx.fillStyle = veil;
+    ctx.fillRect(0, 0, width, height);
+    if (!banner) {
+      this.drawMark(ctx, width / 2, height / 2, width * 0.34);
+    } else {
+      // The safe area: 1546 × 423 of a 2560 × 1440 banner, the group centred in it.
+      const safe = { width: (width * 1546) / 2560, height: (height * 423) / 1440 };
+      let unit = safe.height;
+      const words = (size: number) => {
+        ctx.font = `600 ${Math.round(size * 0.36)}px "Quicksand"`;
+        ctx.letterSpacing = `${Math.round(size * 0.03)}px`;
+        const title = ctx.measureText(name.toUpperCase()).width;
+        ctx.font = `400 ${Math.round(size * 0.11)}px "Quicksand"`;
+        ctx.letterSpacing = `${Math.round(size * 0.01)}px`;
+        const line = ctx.measureText(tagline).width;
+        return size * 1.0 + size * 0.18 + Math.max(title, line);
+      };
+      while (words(unit) > safe.width * 0.94) unit *= 0.96;
+      const group = words(unit);
+      const left = width / 2 - group / 2;
+      const markX = left + unit * 0.5;
+      this.drawMark(ctx, markX, height / 2, unit * 0.42);
+      const textX = left + unit * 1.18;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'left';
+      ctx.shadowColor = 'rgba(0,0,0,0.45)';
+      ctx.shadowBlur = unit * 0.06;
+      ctx.fillStyle = 'rgba(236,252,255,0.96)';
+      ctx.font = `600 ${Math.round(unit * 0.36)}px "Quicksand"`;
+      ctx.letterSpacing = `${Math.round(unit * 0.03)}px`;
+      ctx.fillText(name.toUpperCase(), textX, height / 2 - unit * 0.1);
+      ctx.font = `400 ${Math.round(unit * 0.11)}px "Quicksand"`;
+      ctx.letterSpacing = `${Math.round(unit * 0.01)}px`;
+      ctx.fillStyle = 'rgba(200,240,245,0.88)';
+      ctx.fillText(tagline, textX + unit * 0.01, height / 2 + unit * 0.24);
+    }
+    const blob = await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('No PNG'))), 'image/png'),
+    );
+    await put(file, blob, false);
+  }
+
+  /** The mark: a tilted ring of orbit, brighter in front, and its point of light. */
+  private drawMark(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(-0.38);
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.55);
+    glow.addColorStop(0, 'rgba(210,255,250,0.95)');
+    glow.addColorStop(0.25, 'rgba(120,240,230,0.55)');
+    glow.addColorStop(1, 'rgba(60,200,210,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = Math.max(2, r * 0.045);
+    ctx.shadowColor = 'rgba(120,255,240,0.9)';
+    ctx.shadowBlur = r * 0.12;
+    // The back of the ring, fainter, then the front, brighter.
+    ctx.strokeStyle = 'rgba(180,250,245,0.45)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r, r * 0.34, 0, Math.PI, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(225,255,252,0.95)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r, r * 0.34, 0, 0, Math.PI);
+    ctx.stroke();
+    // The moon on its orbit, front right.
+    const a = 0.55;
+    ctx.fillStyle = 'rgba(255,255,255,1)';
+    ctx.shadowBlur = r * 0.2;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * r, Math.sin(a) * r * 0.34, r * 0.075, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   /** The thumbnail: one frame as a JPEG. */
   async thumbnail(t: number, width: number, height: number, file: string) {
     const scene = new Scene({
