@@ -8,7 +8,7 @@ l’utilisateur qui crée les comptes, relit et publie. Rien n’est publié aut
 
 | Décision          | Recommandation                                                         | Pourquoi                                                                                                                                                                |
 | ----------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Nom de la chaîne  | **Quiet Orbit**                                                        | Court, calme, mémorisable ; aucune chaîne, groupe ou marque à ce nom trouvé (08/11/2026). Couvre les six mondes cosmiques, Abysses compris (« l’orbite » de la chaîne). |
+| Nom de la chaîne  | **Quiet Orbit** (choisi par l’utilisateur le 08/11/2026)               | Court, calme, mémorisable ; aucune chaîne, groupe ou marque à ce nom trouvé (08/11/2026). Couvre les six mondes cosmiques, Abysses compris (« l’orbite » de la chaîne). |
 | Pseudo            | **@quietorbit** ; à défaut @quietorbitambience, puis @quiet.orbit      | Le même partout. Seul l’écran d’inscription dit s’il est libre : vérifier sur YouTube **et** TikTok avant d’imprimer quoi que ce soit.                                  |
 | Langue            | Anglais par défaut, traduction française du titre et de la description | Le public de l’ambiance est mondial et cherche en anglais ; la traduction française se lit en France (YouTube Studio → Langues).                                        |
 | Lien de la chaîne | https://ballmania.netlify.app                                          | Notre site, sans publicité ni SDK : un clic, le jeu. Jamais un portail, jamais Yandex.                                                                                  |
@@ -230,7 +230,8 @@ flux (qui ne doit jamais apparaître dans le dépôt).
 
 ## 10. Liste de la semaine 0 (à cocher par l’utilisateur)
 
-- [ ] Choisir le nom (recommandé : Quiet Orbit) et vérifier le pseudo sur YouTube **et** TikTok.
+- [x] Choisir le nom : Quiet Orbit (08/11/2026).
+- [ ] Vérifier le pseudo @quietorbit sur YouTube **et** TikTok.
 - [ ] Créer la chaîne YouTube (sur l’ordinateur), activer les fonctionnalités avancées (téléphone).
 - [ ] Mettre l’avatar et la bannière (`out/brand/`), la description anglaise, sa traduction, le lien.
 - [ ] Créer le compte TikTok (ordinateur), nom, pseudo, photo, bio ; un jour plus tard.
