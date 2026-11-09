@@ -9,6 +9,11 @@ body {
   margin: 0;
 }
 
+/* The arrow over the title, which is no text to select (base.css takes over with the app). */
+html {
+  cursor: default;
+}
+
 .first-paint {
   position: fixed;
   inset: 0;

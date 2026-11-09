@@ -215,6 +215,7 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
     const commands: PlayCommands = {
       aimAt: (x, y) => play.aimAt(x, y),
       isOnShooter: (x, y) => play.isOnShooter(x, y),
+      isOnSwitch: (x, y) => play.isOnSwitch(x, y),
       flipSwitchAt: (x, y) => play.flipSwitchAt(x, y),
       flipNextSwitch: () => play.flipNextSwitch(),
       charge: () => play.charge(),

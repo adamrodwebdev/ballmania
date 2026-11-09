@@ -388,21 +388,28 @@ export class PlaySession {
     if (this.acceptsCommands) this.game.aimAt(this.renderer.toBoard(x, y));
   }
 
-  /** True if the point (CSS pixels relative to the canvas) is on the shooter. */
+  /** True if a lever is under this point (CSS pixels on the canvas): a click there flips it. */
+  isOnSwitch(x: number, y: number): boolean {
+    return this.acceptsCommands && this.switchAt(x, y) !== undefined;
+  }
+
   /** Flips the switch under this point (CSS pixels on the canvas), if any. */
   flipSwitchAt(x: number, y: number): boolean {
     if (!this.acceptsCommands) return false;
-    const point = this.renderer.toBoard(x, y);
-    // A generous target: a finger is wider than the lever, and 44 CSS px across at least.
-    const scale = 1 / this.renderer.toBoard(x + 1, y).distanceTo(point);
-    const reach = leverReach(SWITCH_RADIUS, scale);
-    const view = this.game
-      .switches()
-      .find((candidate) => candidate.position.distanceTo(point) < reach);
+    const view = this.switchAt(x, y);
     if (!view) return false;
     this.feedback.sound.unlock();
     if (!this.game.toggleSwitch(view.chain, view.fork)) this.feedback.sound.locked();
     return true;
+  }
+
+  /** The switch whose lever is under this point (CSS pixels on the canvas), if any. */
+  private switchAt(x: number, y: number) {
+    const point = this.renderer.toBoard(x, y);
+    // A generous target: a finger is wider than the lever, and 44 CSS px across at least.
+    const scale = 1 / this.renderer.toBoard(x + 1, y).distanceTo(point);
+    const reach = leverReach(SWITCH_RADIUS, scale);
+    return this.game.switches().find((candidate) => candidate.position.distanceTo(point) < reach);
   }
 
   /** Flips the next switch a chain has not reached yet (keyboard). */
@@ -413,6 +420,7 @@ export class PlaySession {
     if (view) this.game.toggleSwitch(view.chain, view.fork);
   }
 
+  /** True if the point (CSS pixels relative to the canvas) is on the shooter. */
   isOnShooter(x: number, y: number): boolean {
     return this.renderer.toBoard(x, y).distanceTo(this.game.shooter.position) < 70;
   }

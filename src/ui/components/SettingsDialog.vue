@@ -216,7 +216,6 @@ legend {
   align-items: center;
   gap: var(--space-3);
   min-height: var(--touch);
-  cursor: pointer;
 }
 
 .choice span {

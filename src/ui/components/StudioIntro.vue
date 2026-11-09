@@ -86,6 +86,7 @@ onBeforeUnmount(() => {
   padding: 1rem;
   background: #000;
   color: var(--fg);
+  /* A click anywhere skips it: the hand says so. */
   cursor: pointer;
   overflow: hidden;
   transition: opacity 0.35s ease;

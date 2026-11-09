@@ -2,6 +2,8 @@
 export interface PlayCommands {
   aimAt(x: number, y: number): void;
   isOnShooter(x: number, y: number): boolean;
+  /** True if a lever is under this point (Volcano world): a click there flips it. */
+  isOnSwitch(x: number, y: number): boolean;
   /** Flips the switch under this point, if any (Volcano world); true if it did. */
   flipSwitchAt(x: number, y: number): boolean;
   /** Flips the next switch the chain has not reached yet (keyboard). */
@@ -40,7 +42,8 @@ interface TrailPoint {
 
 /**
  * Mouse: aim by moving, fire by releasing the main button (holding it charges
- * a powered shot), swap with the secondary one. Touch and pen: aim by
+ * a powered shot), swap with the secondary one; over a lever, the pointer says
+ * a click flips it, and the board keeps the arrow elsewhere. Touch and pen: aim by
  * dragging and fire on release, so the player can adjust first
  * (specification § 3.3); holding the finger still charges the shot; a tap on
  * the shooter swaps the balls.
@@ -103,6 +106,10 @@ export class PointerControls {
   private readonly move = (event: PointerEvent): void => {
     if (event.pointerType !== 'mouse' && event.pointerId !== this.aiming) return;
     const [x, y] = this.local(event);
+    // The cursor tells what a click does: the hand only where it flips a lever.
+    if (event.pointerType === 'mouse') {
+      this.target.style.cursor = this.commands.isOnSwitch(x, y) ? 'pointer' : '';
+    }
     this.commands.aimAt(x, y);
     if (event.pointerType !== 'mouse') {
       this.trail.push({ x, y, at: event.timeStamp });

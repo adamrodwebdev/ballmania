@@ -14,6 +14,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   `--scan` (contrôle anti-flash rapide), `--stills` (une image par monde), `--small` (fumée en
   CI). Le jeu et les kits des portails ne changent pas ; la fabrique ne publie rien.
 
+### Modifié
+
+- **Le curseur dit ce qui se clique** (règle du 9 novembre 2026) : la flèche sur le contenu (titres,
+  textes, cartes, listes), la main sur les liens, les boutons et les commandes, l'interdit sur une
+  commande désactivée (un niveau encore fermé), une seule fois dans `base.css` ; les règles
+  éparses sont retirées. Le plateau garde la flèche et montre la main au-dessus d'un levier du
+  Volcan, qu'un clic bascule ; les paquets de cartes gardent la prise de Swiper, et l'intro du
+  studio, qu'un clic passe, la main.
+
 ### Sécurité
 
 - **Les données venues de l'extérieur sont lues à la porte** (règle du 9 novembre 2026) :

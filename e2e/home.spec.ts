@@ -88,3 +88,56 @@ test.describe('home', () => {
   });
 });
 
+/**
+ * The cursor tells what can be clicked (9 Nov 2026): the arrow on content, the hand on links,
+ * buttons and controls, the no-entry sign on a disabled control. Swiper's decks keep their grab.
+ */
+test.describe('the cursor', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('ballmania:settings', JSON.stringify({ locale: 'en' }));
+      localStorage.setItem(
+        'ballmania:player',
+        JSON.stringify({ version: 2, training: { step: 1, done: true } }),
+      );
+    });
+    await page.goto('./');
+  });
+
+  test('shows the hand on the title screen only on what can be clicked', async ({ page }) => {
+    await expect(page.getByRole('heading', { level: 1, name: 'Ballmania' })).toHaveCSS(
+      'cursor',
+      'default',
+    );
+    await expect(page.locator('.tagline')).toHaveCSS('cursor', 'default');
+    await expect(page.getByTestId('play')).toHaveCSS('cursor', 'pointer');
+    await expect(page.getByTestId('open-settings')).toHaveCSS('cursor', 'pointer');
+  });
+
+  test('shows the hand on every control of the settings, and the arrow on their text', async ({
+    page,
+  }) => {
+    await page.getByTestId('open-settings').click();
+    await expect(page.getByRole('heading', { name: 'Settings' })).toHaveCSS('cursor', 'default');
+    await expect(page.getByTestId('locale')).toHaveCSS('cursor', 'pointer');
+    await expect(page.getByTestId('volume')).toHaveCSS('cursor', 'pointer');
+    await expect(page.getByTestId('vibration')).toHaveCSS('cursor', 'pointer');
+    // The whole label of a choice is clicked to choose it.
+    await expect(page.getByTestId('effects-balanced').locator('xpath=..')).toHaveCSS(
+      'cursor',
+      'pointer',
+    );
+  });
+
+  test('says a locked level cannot be played yet, and an open one can', async ({ page }) => {
+    await page.getByTestId('play').click();
+    await expect(page.locator('.difficulty legend')).toHaveCSS('cursor', 'default');
+    await expect(page.getByTestId('difficulty-pilot').locator('xpath=..')).toHaveCSS(
+      'cursor',
+      'pointer',
+    );
+    await expect(page.getByTestId('level-nebula-01')).toHaveCSS('cursor', 'pointer');
+    await expect(page.getByTestId('level-nebula-02')).toBeDisabled();
+    await expect(page.getByTestId('level-nebula-02')).toHaveCSS('cursor', 'not-allowed');
+  });
+});
