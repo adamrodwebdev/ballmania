@@ -14,8 +14,44 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
   `--scan` (contrôle anti-flash rapide), `--stills` (une image par monde), `--small` (fumée en
   CI). Le jeu et les kits des portails ne changent pas ; la fabrique ne publie rien.
 
+### Modifié
+
+- **Le curseur dit ce qui se clique** (règle du 9 novembre 2026) : la flèche sur le contenu (titres,
+  textes, cartes, listes), la main sur les liens, les boutons et les commandes, l'interdit sur une
+  commande désactivée (un niveau encore fermé), une seule fois dans `base.css` ; les règles
+  éparses sont retirées. Le plateau garde la flèche et montre la main au-dessus d'un levier du
+  Volcan, qu'un clic bascule ; les paquets de cartes gardent la prise de Swiper, et l'intro du
+  studio, qu'un clic passe, la main.
+
 ### Sécurité
 
+- **Les données venues de l'extérieur sont lues à la porte** (règle du 9 novembre 2026) :
+  sauvegardes et réglages, où que la plateforme les garde, valeurs des SDK des portails (langue,
+  son, pause, publicités, liens à partager, données du joueur), messages entre la page et les
+  workers de l'écran titre et de l'Atelier, curseurs de volume, script du thème avant le premier
+  affichage. Un nombre n'est qu'un nombre fini dans sa plage, un texte une chaîne nettoyée puis
+  bornée, un choix l'un de sa liste, lu dans les champs propres de l'objet ; rien n'est converti,
+  coupé ni deviné. Les lecteurs partagés sont dans `src/rules/input.ts`, les limites dans une seule
+  table (`src/rules/limits.ts`) : la taille de chaque sauvegarde, vérifiée avant `JSON.parse`, le
+  nombre d'éléments de chaque liste et la longueur de chaque texte.
+- **Aucun progrès perdu** : chaque sauvegarde se relit champ par champ (`SaveSlot`). Un champ abîmé
+  reprend sa valeur par défaut et le reste demeure ; un niveau dont les étoiles se lisent mal reste
+  gagné, avec une étoile. Une sauvegarde illisible (d'une autre version, coupée, trop longue, d'une
+  autre forme) est gardée telle quelle : seul un progrès du joueur la remplace, jamais ce que le jeu
+  note seul. Toutes les sauvegardes écrites depuis la 1.0.0 se relisent entières.
+- **Corrigé en chemin**, chaque fois avec un test vu en échec avant :
+  - ouvrir l'Observatoire remplaçait par un profil vide un profil que le jeu n'avait pas pu lire
+    (d'une version plus récente, abîmé) ;
+  - sur Playgama, quand Bridge ne rendait pas les sauvegardes au démarrage, ou les rendait après
+    que le jeu, las d'attendre, avait démarré sans elles, la sauvegarde suivante écrasait celles du
+    joueur sur le portail : la visite joue désormais en mémoire, sans rien y écrire ;
+  - sur Yandex, les champs des données du joueur que le jeu ne savait pas lire disparaissaient à la
+    première sauvegarde, et un texte rendu comme données s'enregistrait lettre par lettre : tout
+    repart tel quel ;
+  - une langue de portail qui n'était pas du texte (Playgama, Yandex, CrazyGames) faisait échouer
+    le démarrage ;
+  - des réglages vides de CrazyGames et un événement vide de GameDistribution levaient une erreur
+    dans les rappels de leur SDK.
 - **Alertes Dependabot de `vue-i18n` (GHSA-83rm-6c8r-g728, élevée ; GHSA-8rc2-428q-7ww3, faible) et de
   `fast-uri` (quatre avis, moyens et faibles)**, toutes dans l'outillage de construction :
   `@intlify/unplugin-vue-i18n` passe de 11.2.5 à 11.2.8, dont `@intlify/vue-i18n-extensions` 9 ne tire

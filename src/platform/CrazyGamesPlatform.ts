@@ -1,5 +1,8 @@
-import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage';
-import type { AdStart, PlatformAdapter, ScriptLoader } from './PlatformAdapter';
+import { readLanguageTag } from '@/rules/formats';
+import { orElse, readBoolean, readText } from '@/rules/input';
+import { TEXT_LIMITS } from '@/rules/limits';
+import { BrowserStorage, UNREADABLE, type KeyValueStorage } from '@/services/KeyValueStorage';
+import { sdkField, type AdStart, type PlatformAdapter, type ScriptLoader } from './PlatformAdapter';
 import { CRAZYGAMES_SDK } from './platforms';
 
 export { CRAZYGAMES_SDK };
@@ -11,10 +14,24 @@ interface AdCallbacks {
 }
 
 interface CrazySettings {
-  readonly muteAudio?: boolean;
+  readonly muteAudio?: unknown;
 }
 
-/** The part of the CrazyGames SDK (v3) the game uses. */
+/** True only when the settings CrazyGames hands over say, with a real boolean, to be silent. */
+const mutedBy = (settings: unknown): boolean => sdkField(settings, 'muteAudio') === true;
+
+/** An error code of the SDK, for the console: cleaned and bounded text, or what it is not. */
+const codeText = (error: unknown): string =>
+  orElse(
+    () =>
+      readText(sdkField(error, 'code'), { maxLength: TEXT_LIMITS.sdkCode, required: true }, 'code'),
+    'unknown',
+  );
+
+/**
+ * The part of the CrazyGames SDK (v3) the game uses. What it gives back is typed `unknown`: the
+ * game reads each value at the door.
+ */
 export interface CrazyGamesSdk {
   init(): Promise<void>;
   readonly environment: 'local' | 'crazygames' | 'disabled';
@@ -24,20 +41,20 @@ export interface CrazyGamesSdk {
     loadingStart(): void;
     loadingStop(): void;
     happytime(): void;
-    inviteLink(params: Record<string, string>): string;
+    inviteLink(params: Record<string, string>): unknown;
     readonly settings: CrazySettings;
-    addSettingsChangeListener(listener: (settings: CrazySettings) => void): void;
-    removeSettingsChangeListener(listener: (settings: CrazySettings) => void): void;
+    addSettingsChangeListener(listener: (settings: unknown) => void): void;
+    removeSettingsChangeListener(listener: (settings: unknown) => void): void;
   };
   readonly ad: {
     requestAd(type: 'midgame' | 'rewarded', callbacks: AdCallbacks): void;
-    hasAdblock(): Promise<boolean>;
+    hasAdblock(): Promise<unknown>;
   };
   readonly data: {
-    getItem(key: string): string | null;
+    getItem(key: string): unknown;
     setItem(key: string, value: string): void;
   };
-  readonly user: { readonly systemInfo?: { readonly locale?: string } };
+  readonly user: { readonly systemInfo?: { readonly locale?: unknown } };
 }
 
 export interface CrazyGamesHost {
@@ -88,7 +105,11 @@ export class CrazyGamesPlatform implements PlatformAdapter {
       if (sdk.environment === 'disabled') return;
       this.sdk = sdk;
       sdk.game.loadingStart();
-      if (this.hasAds) this.adblock = await sdk.ad.hasAdblock().catch(() => true);
+      if (this.hasAds) {
+        // An answer that is no boolean counts as a failure: blocked, as when the check fails.
+        const answer: unknown = await sdk.ad.hasAdblock().catch(() => true);
+        this.adblock = orElse(() => readBoolean(answer, 'crazygames.adblock'), true);
+      }
     } catch {
       this.sdk = null;
     }
@@ -103,7 +124,8 @@ export class CrazyGamesPlatform implements PlatformAdapter {
               return sdk.data.getItem(key);
             } catch (error) {
               this.dataFailed(error);
-              return null;
+              // Not "nothing saved": what the module holds is there, only unread.
+              return UNREADABLE;
             }
           },
           set: (key, value) => {
@@ -125,7 +147,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   }
 
   locale(): string | null {
-    return this.sdk?.user.systemInfo?.locale ?? null;
+    return readLanguageTag(this.sdk?.user.systemInfo?.locale);
   }
 
   loaded(): void {
@@ -158,7 +180,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
     return this.request('rewarded', onStart);
   }
 
-  shareLink(params: Readonly<Record<string, string>>): Promise<string | null> {
+  shareLink(params: Readonly<Record<string, string>>): Promise<unknown> {
     const sdk = this.sdk;
     if (!sdk) return Promise.resolve(null);
     try {
@@ -169,7 +191,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   }
 
   muted(): boolean {
-    return this.sdk?.game.settings.muteAudio === true;
+    return mutedBy(this.sdk?.game.settings);
   }
 
   onPausedChange(): () => void {
@@ -179,7 +201,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   onMutedChange(listener: (muted: boolean) => void): () => void {
     const sdk = this.sdk;
     if (!sdk) return () => {};
-    const onChange = (settings: CrazySettings) => listener(settings.muteAudio === true);
+    const onChange = (settings: unknown) => listener(mutedBy(settings));
     sdk.game.addSettingsChangeListener(onChange);
     return () => sdk.game.removeSettingsChangeListener(onChange);
   }
@@ -195,7 +217,7 @@ export class CrazyGamesPlatform implements PlatformAdapter {
           adFinished: () => resolve(true),
           adError: (error) => {
             // Ads are off (Basic Launch) or blocked: no rewarded button may stay without effect.
-            const code = (error as { code?: unknown } | null)?.code;
+            const code = sdkField(error, 'code');
             if (code === 'adsDisabledBasicLaunch' || code === 'adblock') this.adblock = true;
             resolve(false);
           },
@@ -214,9 +236,8 @@ export class CrazyGamesPlatform implements PlatformAdapter {
   private dataFailed(error: unknown): void {
     if (this.dataWarned) return;
     this.dataWarned = true;
-    const code = (error as { code?: unknown } | null)?.code;
     console.warn(
-      `CrazyGames data module unavailable (${String(code ?? error)}): choose "Progress Save: Data module" when submitting the game.`,
+      `CrazyGames data module unavailable (${codeText(error)}): choose "Progress Save: Data module" when submitting the game.`,
     );
   }
 

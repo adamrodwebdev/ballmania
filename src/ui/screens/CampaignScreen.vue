@@ -611,7 +611,6 @@ h2 {
   position: relative;
   display: flex;
   min-height: 44px;
-  cursor: pointer;
 }
 
 .option input {

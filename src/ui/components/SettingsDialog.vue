@@ -3,6 +3,8 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useServices } from '@/app/AppServices';
 import { isLocale, LOCALES } from '@/i18n/locales';
+import { orElse, parseNumber } from '@/rules/input';
+import { NUMBER_RULES } from '@/rules/limits';
 import {
   EFFECT_LEVELS,
   THEME_PREFERENCES,
@@ -28,13 +30,18 @@ const changeTheme = (event: Event) => {
   if (includes<ThemePreference>(THEME_PREFERENCES, value)) settings.update({ theme: value });
 };
 const changeEffects = (level: EffectLevel) => settings.update({ effects: level });
+/** The sliders' range, in whole percents: the one the template binds and the one read back. */
+const PERCENT = NUMBER_RULES.percent;
+/** A slider's value as a volume from 0 to 1, or null when its text spells no percent. */
+const volumeOf = (event: Event): number | null =>
+  orElse<number | null>(() => parseNumber(valueOf(event), PERCENT, 'volume') / 100, null);
 const changeVolume = (event: Event) => {
-  const value = Number(valueOf(event)) / 100;
-  if (value >= 0 && value <= 1) settings.update({ volume: value });
+  const volume = volumeOf(event);
+  if (volume !== null) settings.update({ volume });
 };
 const changeMusic = (event: Event) => {
-  const value = Number(valueOf(event)) / 100;
-  if (value >= 0 && value <= 1) settings.update({ music: value });
+  const music = volumeOf(event);
+  if (music !== null) settings.update({ music });
 };
 const changeVibration = (event: Event) =>
   settings.update({ vibration: (event.target as HTMLInputElement).checked });
@@ -105,8 +112,8 @@ const close = () => dialog.value?.close();
         <input
           class="range"
           type="range"
-          min="0"
-          max="100"
+          :min="PERCENT.min"
+          :max="PERCENT.max"
           step="5"
           :value="Math.round(settings.current.volume * 100)"
           data-testid="volume"
@@ -118,8 +125,8 @@ const close = () => dialog.value?.close();
         <input
           class="range"
           type="range"
-          min="0"
-          max="100"
+          :min="PERCENT.min"
+          :max="PERCENT.max"
           step="5"
           :value="Math.round(settings.current.music * 100)"
           data-testid="music"
@@ -209,7 +216,6 @@ legend {
   align-items: center;
   gap: var(--space-3);
   min-height: var(--touch);
-  cursor: pointer;
 }
 
 .choice span {

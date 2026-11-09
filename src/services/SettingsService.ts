@@ -1,7 +1,10 @@
 import { reactive, readonly } from 'vue';
-import { isLocale, type Locale } from '@/i18n/locales';
-import { isDifficulty, type Difficulty } from '@/levels/difficulty';
-import { readJson, type KeyValueStorage } from './KeyValueStorage';
+import { LOCALES, type Locale } from '@/i18n/locales';
+import { DIFFICULTIES, type Difficulty } from '@/levels/difficulty';
+import { orElse, type InputRecord } from '@/rules/input';
+import { NUMBER_RULES, SAVE_LIMITS } from '@/rules/limits';
+import type { KeyValueStorage } from './KeyValueStorage';
+import { SaveSlot } from './SaveSlot';
 
 export const EFFECT_LEVELS = ['spectacular', 'balanced', 'subtle'] as const;
 export type EffectLevel = (typeof EFFECT_LEVELS)[number];
@@ -31,57 +34,77 @@ export interface Settings {
 /** Same key as the theme bootstrap script (public/theme-boot.js). */
 export const SETTINGS_KEY = 'ballmania:settings';
 
-const isThemePreference = (value: unknown): value is ThemePreference =>
-  typeof value === 'string' && (THEME_PREFERENCES as readonly string[]).includes(value);
-
-const isEffectLevel = (value: unknown): value is EffectLevel =>
-  typeof value === 'string' && (EFFECT_LEVELS as readonly string[]).includes(value);
+type Chosen = { -readonly [K in keyof Settings]?: Settings[K] };
 
 /**
- * The player's preferences: validated when read, saved on every change, and
- * exposed read-only so that only `update` can change them. Only what the
- * player chose is saved: a default, such as the language their portal gives,
- * keeps following that portal (Yandex rule 2.14), whatever else they changed.
+ * How each saved setting is read into the chosen ones: one of its choices, a volume, a boolean.
+ * A reader that refuses its field leaves it out: that setting keeps its default.
+ */
+const READERS: readonly ((saved: InputRecord, chosen: Chosen) => void)[] = [
+  (saved, chosen) => {
+    chosen.locale = saved.choice('locale', LOCALES);
+  },
+  (saved, chosen) => {
+    chosen.theme = saved.choice('theme', THEME_PREFERENCES);
+  },
+  (saved, chosen) => {
+    chosen.effects = saved.choice('effects', EFFECT_LEVELS);
+  },
+  (saved, chosen) => {
+    chosen.volume = saved.number('volume', NUMBER_RULES.volume);
+  },
+  (saved, chosen) => {
+    chosen.music = saved.number('music', NUMBER_RULES.volume);
+  },
+  (saved, chosen) => {
+    chosen.muted = saved.boolean('muted');
+  },
+  (saved, chosen) => {
+    chosen.vibration = saved.boolean('vibration');
+  },
+  (saved, chosen) => {
+    chosen.aimAssist = saved.boolean('aimAssist');
+  },
+  (saved, chosen) => {
+    chosen.difficulty = saved.choice('difficulty', DIFFICULTIES);
+  },
+];
+
+/**
+ * The player's preferences: read field by field (`SaveSlot`), saved on every
+ * change, and exposed read-only so that only `update` can change them. Only
+ * what the player chose is saved: a default, such as the language their portal
+ * gives, keeps following that portal (Yandex rule 2.14), whatever else they
+ * changed.
  */
 export class SettingsService {
+  private readonly slot: SaveSlot;
   private readonly state: Settings;
   /** What the player chose: the settings saved. */
   private chosen: Partial<Settings>;
   readonly current: Readonly<Settings>;
 
-  constructor(
-    private readonly storage: KeyValueStorage,
-    defaults: Settings,
-  ) {
-    this.chosen = SettingsService.parse(readJson(storage, SETTINGS_KEY));
+  constructor(storage: KeyValueStorage, defaults: Settings) {
+    this.slot = new SaveSlot(storage, { key: SETTINGS_KEY, maxLength: SAVE_LIMITS.settings });
+    this.chosen = this.slot.load(
+      (saved) => SettingsService.read(saved),
+      () => ({}),
+    );
     this.state = reactive({ ...defaults, ...this.chosen });
     this.current = readonly(this.state);
   }
 
+  /** The player's choice: saved, even over settings that could not be read. */
   update(patch: Partial<Settings>): void {
     Object.assign(this.state, patch);
     this.chosen = { ...this.chosen, ...patch };
-    this.storage.set(SETTINGS_KEY, JSON.stringify(this.chosen));
+    this.slot.write(this.chosen);
   }
 
-  /** Keeps only the valid fields of a stored value. */
-  private static parse(value: unknown): Partial<Settings> {
-    if (typeof value !== 'object' || value === null) return {};
-    const record = value as Record<string, unknown>;
-    const settings: { -readonly [K in keyof Settings]?: Settings[K] } = {};
-    if (isLocale(record.locale)) settings.locale = record.locale;
-    if (isThemePreference(record.theme)) settings.theme = record.theme;
-    if (isEffectLevel(record.effects)) settings.effects = record.effects;
-    if (typeof record.volume === 'number' && record.volume >= 0 && record.volume <= 1) {
-      settings.volume = record.volume;
-    }
-    if (typeof record.music === 'number' && record.music >= 0 && record.music <= 1) {
-      settings.music = record.music;
-    }
-    if (typeof record.muted === 'boolean') settings.muted = record.muted;
-    if (typeof record.vibration === 'boolean') settings.vibration = record.vibration;
-    if (typeof record.aimAssist === 'boolean') settings.aimAssist = record.aimAssist;
-    if (isDifficulty(record.difficulty)) settings.difficulty = record.difficulty;
-    return settings;
+  /** The settings the player chose, each one that reads as a setting; the others keep their default. */
+  private static read(saved: InputRecord): Partial<Settings> {
+    const chosen: Chosen = {};
+    for (const read of READERS) orElse(() => read(saved, chosen), undefined);
+    return chosen;
   }
 }

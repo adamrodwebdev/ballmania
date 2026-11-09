@@ -48,7 +48,7 @@ export interface PlatformAdapter {
    * the first paint), or the SDK's storage where the portal forbids any other.
    */
   preferences(): KeyValueStorage;
-  /** The player's language according to the portal (a BCP 47 tag), or null. */
+  /** The player's language according to the portal, read as a BCP 47 tag, or null. */
   locale(): string | null;
   /** The game is loaded and can be played. */
   loaded(): void;
@@ -68,15 +68,27 @@ export interface PlatformAdapter {
   rewarded(onStart: AdStart): Promise<boolean>;
   /**
    * A link to the game to share, carrying `params`, or null when the platform
-   * forbids links (the share then has no address).
+   * forbids links (the share then has no address). A portal's SDK makes it: it
+   * is read at the door (`readLink`) where it is shared.
    */
-  shareLink(params: Readonly<Record<string, string>>): Promise<string | null>;
+  shareLink(params: Readonly<Record<string, string>>): Promise<unknown>;
   /** True if the portal asks the game to be silent, whatever its own settings. */
   muted(): boolean;
   /** Calls `listener` when the portal's wish for silence changes; returns how to stop. */
   onMutedChange(listener: (muted: boolean) => void): () => void;
   /** Calls `listener` when the portal pauses or resumes the game (its own ads, tabs). */
   onPausedChange(listener: (paused: boolean) => void): () => void;
+}
+
+/**
+ * A field of an object a portal's SDK hands over (an error, an event, its settings), by a name
+ * the game knows, or undefined when the value is no object or lacks it. The value is then read
+ * like any other from outside.
+ */
+export function sdkField(value: unknown, name: 'code' | 'name' | 'muteAudio'): unknown {
+  return typeof value === 'object' && value !== null && name in value
+    ? Reflect.get(value, name)
+    : undefined;
 }
 
 /** Loads an external script; resolves false if it fails or takes too long. */

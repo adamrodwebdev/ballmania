@@ -91,11 +91,63 @@ input {
   font-size: max(1rem, 1em);
 }
 
-button {
+/*
+ * The cursor tells what can be clicked (the rule of 9 Nov 2026), once for the whole game: the
+ * arrow on content (titles, texts, lists, cards), the hand on links, buttons and controls, the
+ * I-beam in text fields, the no-entry sign on a disabled control. The board keeps the arrow and
+ * shows the hand over a lever (src/play/Controls.ts); the decks keep Swiper's grab.
+ */
+html {
+  cursor: default;
+}
+
+a[href],
+area[href],
+button:not(:disabled),
+select:not(:disabled),
+summary,
+label[for],
+[role='button'],
+[role='link'],
+[role='tab'],
+[role='menuitem'],
+[role='option'],
+[role='switch'],
+input:is(
+    [type='checkbox'],
+    [type='radio'],
+    [type='submit'],
+    [type='button'],
+    [type='reset'],
+    [type='file'],
+    [type='color'],
+    [type='range']
+  ):not(:disabled) {
   cursor: pointer;
 }
 
-button:disabled {
+/* Its own rule: a browser without :has() drops only this one, not the list above. */
+label:has(> input:not(:disabled)) {
+  cursor: pointer;
+}
+
+input:is(
+    :not([type]),
+    [type='text'],
+    [type='email'],
+    [type='search'],
+    [type='password'],
+    [type='number'],
+    [type='tel'],
+    [type='url']
+  ):not(:disabled),
+textarea:not(:disabled),
+[contenteditable='true'] {
+  cursor: text;
+}
+
+:disabled,
+[aria-disabled='true'] {
   cursor: not-allowed;
 }
 

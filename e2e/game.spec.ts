@@ -404,7 +404,9 @@ test('shows the colour mixes in the Jewel world, up to the Crystal Colossus', as
   await expect(page.getByText('Crystal Colossus')).toBeVisible();
 });
 
-test('flips the switches of the Volcano world by touch and by keyboard', async ({ page }) => {
+test('flips the switches of the Volcano world by touch and by keyboard, the hand over their levers', async ({
+  page,
+}) => {
   // Time stands still: the chain cannot reach (and lock) the first switch before the click.
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 1000);
@@ -431,8 +433,14 @@ test('flips the switches of the Volcano world by touch and by keyboard', async (
   );
   const switches = (await board.getAttribute('data-switches')) ?? '';
   const [leverX, leverY] = switches.split(',')[0].split(' ').map(Number);
+  const lever = { x: left + leverX * scale, y: top + leverY * scale };
+  // The board keeps the arrow, and shows the hand where a click flips a lever.
+  await board.hover({ position: { x: 4, y: 4 } });
+  await expect(board).toHaveCSS('cursor', 'default');
+  await board.hover({ position: lever });
+  await expect(board).toHaveCSS('cursor', 'pointer');
   const live = page.locator('[aria-live="polite"]');
-  await board.click({ position: { x: left + leverX * scale, y: top + leverY * scale } });
+  await board.click({ position: lever });
   await expect(live).toHaveText('Switch set to the detour');
   await board.focus();
   await page.keyboard.press('KeyS');

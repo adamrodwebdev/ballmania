@@ -1,3 +1,5 @@
+import { readLanguageTag } from '@/rules/formats';
+import { orElse, readBoolean } from '@/rules/input';
 import type { KeyValueStorage } from '@/services/KeyValueStorage';
 import type { AdStart, PlatformAdapter } from './PlatformAdapter';
 
@@ -22,9 +24,18 @@ const AD_TIMEOUT = 120_000;
 /** Bridge ad states during which it ignores any other ad request. */
 const AD_BUSY: readonly string[] = ['loading', 'opened', 'rewarded'];
 
+/** True for a state Bridge gives (any value) that is one of the busy ones. */
+const isBusy = (state: unknown): boolean => AD_BUSY.some((busy) => busy === state);
+/** A boolean Bridge hands to a listener, or null when what it hands is none. */
+const booleanOf = (value: unknown): boolean | null =>
+  orElse<boolean | null>(() => readBoolean(value, 'playgama.event'), null);
+
 type Listener = (value: never) => void;
 
-/** The part of the Playgama Bridge SDK (v2) the game uses. */
+/**
+ * The part of the Playgama Bridge SDK (v2) the game uses. What it gives back is typed `unknown`:
+ * the game reads each value at the door.
+ */
 export interface PlaygamaBridge {
   initialize(): Promise<void>;
   readonly EVENT_NAME: {
@@ -34,22 +45,22 @@ export interface PlaygamaBridge {
     readonly REWARDED_STATE_CHANGED: string;
   };
   readonly platform: {
-    readonly language: string;
-    readonly isAudioEnabled: boolean;
-    readonly isPaused?: boolean;
+    readonly language: unknown;
+    readonly isAudioEnabled: unknown;
+    readonly isPaused?: unknown;
     sendMessage(message: string): void;
     on(event: string, listener: Listener): void;
     off?(event: string, listener: Listener): void;
   };
   readonly storage: {
-    get(keys: readonly string[], tryParseJson?: boolean): Promise<readonly (string | null)[]>;
+    get(keys: readonly string[], tryParseJson?: boolean): Promise<unknown>;
     set(keys: readonly string[], values: readonly string[]): Promise<void>;
   };
   readonly advertisement: {
-    readonly isInterstitialSupported: boolean;
-    readonly isRewardedSupported: boolean;
-    readonly interstitialState?: string;
-    readonly rewardedState?: string;
+    readonly isInterstitialSupported: unknown;
+    readonly isRewardedSupported: unknown;
+    readonly interstitialState?: unknown;
+    readonly rewardedState?: unknown;
     /** True if ads are blocked; checked at the boundary, Bridge being outside our types. */
     checkAdBlock?(): Promise<unknown>;
     showInterstitial(placement?: string): void;
@@ -66,7 +77,9 @@ export interface PlaygamaHost {
 /**
  * Playgama (Bridge SDK v2), which also publishes the game on its partner
  * sites. Saves (settings included) go through `bridge.storage`, loaded in one
- * call at start and kept in memory so the game reads them synchronously; the
+ * call at start and kept in memory so the game reads them synchronously (and
+ * written back only once they were loaded, never over saves Bridge could not
+ * hand over); the
  * portal's language, sound and pause states are followed; the moments of
  * play are told as level messages; ads come from Bridge only, and are not
  * offered when Bridge finds them blocked.
@@ -79,7 +92,15 @@ export class PlaygamaPlatform implements PlatformAdapter {
   readonly allowsSharing = true;
   readonly showsVersion = true;
   private bridge: PlaygamaBridge | null = null;
-  private readonly cache = new Map<string, string>();
+  /** The saves as Bridge handed them over, in whatever shape: the game reads them at the door. */
+  private readonly cache = new Map<string, unknown>();
+  /** Bridge handed the saves over: only then are the game's saves sent back to it. */
+  private savesLoaded = false;
+  /**
+   * The game read its saves before Bridge handed them over (it starts without the SDK after a
+   * while, `createPlatform`): this visit then plays on what it read and writes none over them.
+   */
+  private readTooEarly = false;
   private inLevel = false;
   /** The portal paused the game (hidden tab, its own overlay). */
   private portalPaused = false;
@@ -90,9 +111,13 @@ export class PlaygamaPlatform implements PlatformAdapter {
   private paused = false;
   private readonly pauseListeners = new Set<(paused: boolean) => void>();
   private readonly store: KeyValueStorage = {
-    get: (key) => this.cache.get(key) ?? null,
+    get: (key) => {
+      if (!this.savesLoaded) this.readTooEarly = true;
+      return this.cache.get(key) ?? null;
+    },
     set: (key, value) => {
       this.cache.set(key, value);
+      if (!this.savesLoaded) return;
       void this.bridge?.storage.set([key], [value]).catch(() => undefined);
     },
   };
@@ -111,13 +136,17 @@ export class PlaygamaPlatform implements PlatformAdapter {
     this.followPause(bridge);
     this.checkAds();
     try {
-      const values = await bridge.storage.get(SAVE_KEYS, false);
+      const values: unknown = await bridge.storage.get(SAVE_KEYS, false);
+      // An answer that is not one value per key cannot be told from a new player's: kept as it is.
+      if (!Array.isArray(values) || values.length > SAVE_KEYS.length || this.readTooEarly) return;
+      const saved: readonly unknown[] = values;
       SAVE_KEYS.forEach((key, i) => {
-        const value = values[i];
-        if (typeof value === 'string') this.cache.set(key, value);
+        const value = saved[i];
+        if (value !== null && value !== undefined) this.cache.set(key, value);
       });
+      this.savesLoaded = true;
     } catch {
-      // No saved data: a new player.
+      // Bridge could not hand the saves over: the visit plays from memory, and they stay untouched.
     }
   }
 
@@ -130,7 +159,7 @@ export class PlaygamaPlatform implements PlatformAdapter {
   }
 
   locale(): string | null {
-    return this.bridge?.platform.language || null;
+    return readLanguageTag(this.bridge?.platform.language);
   }
 
   loaded(): void {
@@ -156,7 +185,7 @@ export class PlaygamaPlatform implements PlatformAdapter {
 
   async interstitial(onStart: AdStart): Promise<void> {
     const ads = this.bridge?.advertisement;
-    if (!this.bridge || !ads || !this.canShow(ads.isInterstitialSupported)) return;
+    if (!this.bridge || !ads || !this.canShow(ads.isInterstitialSupported === true)) return;
     await this.watch(this.bridge.EVENT_NAME.INTERSTITIAL_STATE_CHANGED, onStart, () =>
       ads.showInterstitial('between_games'),
     );
@@ -179,12 +208,13 @@ export class PlaygamaPlatform implements PlatformAdapter {
     return Promise.resolve(null);
   }
 
+  /** Silent unless Bridge says, with a real boolean, that the sound is on. */
   muted(): boolean {
-    return this.bridge ? !this.bridge.platform.isAudioEnabled : false;
+    return this.bridge ? this.bridge.platform.isAudioEnabled !== true : false;
   }
 
   onMutedChange(listener: (muted: boolean) => void): () => void {
-    return this.listen(this.bridge?.EVENT_NAME.AUDIO_STATE_CHANGED, (enabled: boolean) =>
+    return this.listen(this.bridge?.EVENT_NAME.AUDIO_STATE_CHANGED, (enabled) =>
       listener(!enabled),
     );
   }
@@ -207,11 +237,13 @@ export class PlaygamaPlatform implements PlatformAdapter {
       bridge.advertisement.rewardedState,
     ].includes('opened');
     this.tellPaused();
-    bridge.platform.on(bridge.EVENT_NAME.PAUSE_STATE_CHANGED, (paused: boolean) => {
+    bridge.platform.on(bridge.EVENT_NAME.PAUSE_STATE_CHANGED, (value: unknown) => {
+      const paused = booleanOf(value);
+      if (paused === null) return;
       this.portalPaused = paused;
       this.tellPaused();
     });
-    const onAd = ((state: string) => {
+    const onAd = ((state: unknown) => {
       if (state === 'opened') this.adOpen = true;
       else if (state === 'closed' || state === 'failed') this.adOpen = false;
       else return;
@@ -228,10 +260,14 @@ export class PlaygamaPlatform implements PlatformAdapter {
     this.pauseListeners.forEach((listener) => listener(paused));
   }
 
+  /** Follows a boolean state of Bridge; a value it hands that is not a boolean changes nothing. */
   private listen(event: string | undefined, listener: (value: boolean) => void): () => void {
     const platform = this.bridge?.platform;
     if (!platform || !event) return () => {};
-    const handler = listener as Listener;
+    const handler = ((value: unknown) => {
+      const state = booleanOf(value);
+      if (state !== null) listener(state);
+    }) as Listener;
     platform.on(event, handler);
     return () => platform.off?.(event, handler);
   }
@@ -243,9 +279,7 @@ export class PlaygamaPlatform implements PlatformAdapter {
   private canShow(supported: boolean): boolean {
     const ads = this.bridge?.advertisement;
     if (!ads || !supported || this.adsBlocked) return false;
-    return (
-      !AD_BUSY.includes(ads.interstitialState ?? '') && !AD_BUSY.includes(ads.rewardedState ?? '')
-    );
+    return !isBusy(ads.interstitialState) && !isBusy(ads.rewardedState);
   }
 
   /**
@@ -287,7 +321,8 @@ export class PlaygamaPlatform implements PlatformAdapter {
         clearTimeout(timer);
         timer = setTimeout(finish, delay);
       };
-      const handler = ((state: string) => {
+      // Each state is matched against the ones the game knows: any other value changes nothing.
+      const handler = ((state: unknown) => {
         if (state === 'loading') wait(AD_OPEN_TIMEOUT);
         else if (state === 'opened') {
           wait(AD_TIMEOUT);

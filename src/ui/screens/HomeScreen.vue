@@ -838,7 +838,6 @@ const openSettings = () => {
     0 0.25rem 0 color-mix(in srgb, var(--orb-cyan) 45%, black),
     0 0.5rem 1.25rem color-mix(in srgb, var(--orb-cyan) 35%, transparent),
     inset 0 2px 0 rgb(255 255 255 / 0.55);
-  cursor: pointer;
 }
 
 .streak {

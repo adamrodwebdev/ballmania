@@ -172,7 +172,6 @@ defineExpose({ slideTo: (index: number) => swiper?.slideTo(index) });
   font: inherit;
   font-size: 0.9rem;
   font-weight: 700;
-  cursor: pointer;
   transition:
     background-color 0.2s ease,
     color 0.2s ease,

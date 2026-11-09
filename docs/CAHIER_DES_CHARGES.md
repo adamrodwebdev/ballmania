@@ -2911,6 +2911,12 @@ Depuis la v1.7.5 :
 - Politique de sécurité du contenu (CSP) stricte, sans `'unsafe-inline'` : les seuls blocs en
   ligne de la page (styles et scripts du premier affichage, v1.7.6) sont autorisés un par un
   par leur empreinte.
+- Ce qui vient du dehors est lu à la porte (règle du 9 novembre 2026) : sauvegardes et réglages,
+  valeurs des SDK des portails, messages des workers, curseurs de volume, script du thème. Un
+  nombre n'est qu'un nombre fini dans sa plage, un texte une chaîne nettoyée et bornée, un choix
+  l'un de sa liste, lu dans les champs propres de l'objet ; rien n'est converti, coupé ni deviné
+  (`src/rules/input.ts`, limites dans `src/rules/limits.ts`). Une sauvegarde se relit champ par
+  champ ; celle que le jeu ne sait pas lire est gardée, et seul un progrès du joueur la remplace.
 
 ### 4.7 Compatibilité
 

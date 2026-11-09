@@ -1,7 +1,7 @@
 import displayFace from '@fontsource/lilita-one/files/lilita-one-latin-400-normal.woff2?url';
 import { Palette } from '@/play/Palette';
 import type { CosmeticSlot } from '@/player/catalog';
-import type { PaletteSet, ReelMessage, ReelReply } from './messages';
+import { readReelMessage, type PaletteSet, type ReelMessage, type ReelReply } from './messages';
 import type { Scene } from './moments';
 import { Reel, type ReelHost } from './Reel';
 import type { ReelPalettes } from './Take';
@@ -40,6 +40,10 @@ function loadDisplayFace(): void {
   face.load().catch(() => fonts.delete(face));
 }
 
+/** The canvas the page hands over, where this worker can draw. */
+const isOffscreenCanvas = (value: unknown): value is OffscreenCanvas =>
+  typeof OffscreenCanvas !== 'undefined' && value instanceof OffscreenCanvas;
+
 type Handlers = {
   readonly [K in ReelMessage['kind']]: (message: Extract<ReelMessage, { kind: K }>) => void;
 };
@@ -62,9 +66,12 @@ export function serveReel(lineup: Lineup): void {
     run: ({ running }) => reel?.run(running),
     fit: ({ slot, equipped }) => reel?.play(lineup(slot), equipped),
   };
-  addEventListener('message', (event: MessageEvent<ReelMessage>) => {
-    const handle = handlers[event.data.kind] as (message: ReelMessage) => void;
-    handle(event.data);
+  addEventListener('message', (event: MessageEvent<unknown>) => {
+    // Read at the door, even from the page that started it: a message that does not fit is ignored.
+    const message = readReelMessage(event.data, isOffscreenCanvas);
+    if (!message) return;
+    const handle = handlers[message.kind] as (message: ReelMessage) => void;
+    handle(message);
   });
   reply({ kind: 'ready' });
 }

@@ -279,7 +279,7 @@ describe('PlayerProfile', () => {
         equipped: { trail: 'trail-comet', shooter: 'shooter-eye', burst: 'trail-comet' },
         stats: { levelsWon: 'x', bestDepth: 4 },
         daily: { '20261012': { score: 10, stars: 9, won: true }, yesterday: { won: true } },
-        failures: { a: 2, b: -1 },
+        failures: { 'nebula-01': 2, 'nebula-02': -1, a: 2 },
       }),
     );
     const repaired = new PlayerProfile(storage);
@@ -290,9 +290,11 @@ describe('PlayerProfile', () => {
     expect(repaired.equipped('shooter')).toBe('shooter-star');
     expect(repaired.equipped('burst')).toBe('burst-glass');
     expect(repaired.view.stats.bestDepth).toBe(4);
-    expect(repaired.daily('20261012')).toEqual({ score: 10, stars: 3, won: true });
-    expect(repaired.failures('a')).toBe(2);
-    expect(repaired.failures('b')).toBe(0);
+    // Nine stars are refused, never cut to three: the record keeps its score and its outcome.
+    expect(repaired.daily('20261012')).toEqual({ score: 10, stars: 0, won: true });
+    expect(repaired.failures('nebula-01')).toBe(2);
+    expect(repaired.failures('nebula-02')).toBe(0);
+    expect(repaired.view.failures).toEqual({ 'nebula-01': 2 });
 
     storage.set(PLAYER_KEY, JSON.stringify({ version: 7, shards: 999 }));
     expect(new PlayerProfile(storage).shards).toBe(0);
@@ -311,6 +313,14 @@ describe('PlayerProfile', () => {
 
     storage.set(PLAYER_KEY, JSON.stringify({ version: 2, training: { step: 9, done: 'yes' } }));
     expect(new PlayerProfile(storage).training).toEqual({ step: 1, done: false });
+  });
+
+  it('keeps a profile it could not read when the Observatory opens', () => {
+    const storage = new MemoryStorage();
+    const newer = JSON.stringify({ version: 3, shards: 900 });
+    storage.set(PLAYER_KEY, newer);
+    new PlayerProfile(storage).markTipSeen('observatory');
+    expect(storage.get(PLAYER_KEY)).toBe(newer);
   });
 
   it('gives the Star heart to players who wore the first launcher by default', () => {

@@ -119,6 +119,7 @@ describe('KeyboardControls', () => {
     const commands = {
       aimAt: vi.fn(),
       isOnShooter: vi.fn(() => false),
+      isOnSwitch: vi.fn(() => false),
       flipSwitchAt: vi.fn(() => false),
       flipNextSwitch: vi.fn(),
       charge: vi.fn(),
@@ -204,10 +205,13 @@ describe('PointerControls', () => {
         listeners.set(type, listener),
       getBoundingClientRect: () => ({ left: 0, top: 0 }),
       setPointerCapture: vi.fn(),
+      style: { cursor: '' },
     } as unknown as HTMLElement;
     const commands = {
       aimAt: vi.fn(),
       isOnShooter: vi.fn(() => false),
+      // A lever stands on the right of the board.
+      isOnSwitch: vi.fn((x: number) => x > 500),
       flipSwitchAt: vi.fn(() => false),
       flipNextSwitch: vi.fn(),
       charge: vi.fn(),
@@ -230,8 +234,23 @@ describe('PointerControls', () => {
       } as unknown as PointerEvent);
     /** Where the shot went: the last aim given before firing. */
     const shot = () => commands.aimAt.mock.calls.at(-1);
-    return { commands, send, shot };
+    return { commands, send, shot, target };
   };
+
+  it('shows the hand to a mouse over a lever, and the arrow elsewhere on the board', () => {
+    const { send, target } = setup();
+    send('pointermove', 600, 300, 0, 'mouse');
+    expect(target.style.cursor).toBe('pointer');
+    send('pointermove', 100, 300, 16, 'mouse');
+    expect(target.style.cursor).toBe('');
+  });
+
+  it('leaves the cursor alone for a finger, even over a lever', () => {
+    const { send, target } = setup();
+    send('pointerdown', 600, 300, 0);
+    send('pointermove', 610, 300, 16);
+    expect(target.style.cursor).toBe('');
+  });
 
   it('fires a finger where it lifts when it held still', () => {
     const { commands, send, shot } = setup();
