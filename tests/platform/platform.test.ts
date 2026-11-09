@@ -32,7 +32,7 @@ import {
   type YandexPlayer,
   type YandexSdk,
 } from '@/platform/YandexPlatform';
-import { MemoryStorage } from '@/services/KeyValueStorage';
+import { MemoryStorage, UNREADABLE } from '@/services/KeyValueStorage';
 
 const silence = () => ({ start: vi.fn(), end: vi.fn() });
 
@@ -296,6 +296,78 @@ describe('CrazyGamesPlatform', () => {
     ]);
   });
 
+  it.each([
+    { name: 'a number', locale: 7 },
+    { name: 'a list', locale: ['id-ID'] },
+    { name: 'text with a hidden script', locale: 'id-ID<script>' },
+  ])('gives no locale when CrazyGames gives $name', async ({ locale }) => {
+    const { sdk } = crazySdk({ user: { systemInfo: { locale } } });
+    const portal = new CrazyGamesPlatform({ CrazyGames: { SDK: sdk } }, () =>
+      Promise.resolve(true),
+    );
+    await portal.init();
+    expect(portal.locale()).toBeNull();
+  });
+
+  it.each([
+    { name: 'a text', answer: 'no' },
+    { name: 'nothing', answer: undefined },
+    { name: 'a number', answer: 0 },
+  ])('offers no rewarded ad when the ad-block check answers $name', async ({ answer }) => {
+    const { sdk } = crazySdk({
+      ad: { requestAd: () => undefined, hasAdblock: () => Promise.resolve(answer) },
+    });
+    const portal = new CrazyGamesPlatform({ CrazyGames: { SDK: sdk } }, () =>
+      Promise.resolve(true),
+    );
+    await portal.init();
+    expect(portal.rewardedAvailable()).toBe(false);
+  });
+
+  it.each([
+    { name: 'nothing', settings: null },
+    { name: 'a text', settings: 'muted' },
+    { name: 'a silence as text', settings: { muteAudio: 'true' } },
+    { name: 'a silence as a number', settings: { muteAudio: 1 } },
+  ])('keeps the sound when CrazyGames hands over $name as its settings', async ({ settings }) => {
+    const listeners: ((settings: unknown) => void)[] = [];
+    const { sdk } = crazySdk();
+    const game = {
+      ...sdk.game,
+      addSettingsChangeListener: (l: (s: unknown) => void) => void listeners.push(l),
+    };
+    const portal = new CrazyGamesPlatform({ CrazyGames: { SDK: { ...sdk, game } } }, () =>
+      Promise.resolve(true),
+    );
+    await portal.init();
+    const muted = vi.fn();
+    portal.onMutedChange(muted);
+    listeners[0]!(settings);
+    expect(muted).toHaveBeenCalledWith(false);
+  });
+
+  it.each([
+    { name: 'nothing', error: null },
+    { name: 'a text', error: 'adblock' },
+    { name: 'a code that is a number', error: { code: 7 } },
+  ])(
+    'gives no reward, and keeps rewards on offer, when an ad fails with $name',
+    async ({ error }) => {
+      const { sdk } = crazySdk({
+        ad: {
+          requestAd: (_type, callbacks) => callbacks.adError?.(error),
+          hasAdblock: () => Promise.resolve(false),
+        },
+      });
+      const portal = new CrazyGamesPlatform({ CrazyGames: { SDK: sdk } }, () =>
+        Promise.resolve(true),
+      );
+      await portal.init();
+      expect(await portal.rewarded(() => {})).toBe(false);
+      expect(portal.rewardedAvailable()).toBe(true);
+    },
+  );
+
   it('hides rewarded offers once ads turn out to be off (Basic Launch)', async () => {
     const { sdk } = crazySdk({
       ad: {
@@ -342,7 +414,8 @@ describe('CrazyGamesPlatform', () => {
     );
     await portal.init();
     portal.saves().set('ballmania:player', '{}');
-    expect(portal.saves().get('ballmania:player')).toBeNull();
+    // Not "nothing saved": what the module holds is there, only unread.
+    expect(portal.saves().get('ballmania:player')).toBe(UNREADABLE);
     expect(warn).toHaveBeenCalledTimes(1);
     expect(String(warn.mock.calls[0]?.[0])).toContain('dataModuleDisabled');
     warn.mockRestore();
@@ -478,6 +551,30 @@ describe('GameDistributionPlatform', () => {
     expect(load).not.toHaveBeenCalled();
     expect(portal.rewardedAvailable()).toBe(false);
   });
+
+  it.each([
+    { name: 'nothing', event: null },
+    { name: 'a bare text', event: 'SDK_READY' },
+    { name: 'a name that is a number', event: { name: 7 } },
+    { name: 'a list', event: ['SDK_READY'] },
+  ])('takes no sign from an event that is $name', async ({ event }) => {
+    vi.useFakeTimers();
+    try {
+      const host: GameDistributionHost = {};
+      const load = () => {
+        host.gdsdk = { showAd: () => Promise.resolve() };
+        setTimeout(() => host.GD_OPTIONS?.onEvent(event), 0);
+        return Promise.resolve(true);
+      };
+      const portal = new GameDistributionPlatform(host, load, 'abc123', new MemoryStorage());
+      const init = portal.init();
+      await vi.advanceTimersByTimeAsync(6_000);
+      await init;
+      expect(portal.rewardedAvailable()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe('PlaygamaPlatform', () => {
@@ -486,11 +583,25 @@ describe('PlaygamaPlatform', () => {
    * stall: a request on Playgama's page without its ad SDK stays "loading".
    */
   const fakeBridge = (
-    options: { rewarded?: boolean; audio?: boolean; blocked?: boolean; stall?: boolean } = {},
+    options: {
+      rewarded?: boolean;
+      /** What Bridge says of the sound; on by default. */
+      audio?: unknown;
+      blocked?: boolean;
+      stall?: boolean;
+      /** What Bridge says the player's language is. */
+      language?: unknown;
+      /** True: Bridge cannot load the saves (its storage fails). */
+      loadFails?: boolean;
+      /** What Bridge answers when asked for the saves, instead of one value per key. */
+      answer?: unknown;
+      /** Bridge hands the saves over only once this settles. */
+      handOver?: Promise<void>;
+    } = {},
   ) => {
     const messages: string[] = [];
     const stored = new Map<string, string>([['ballmania:player', '{"version":1}']]);
-    const platformListeners = new Map<string, (value: boolean) => void>();
+    const platformListeners = new Map<string, (value: unknown) => void>();
     const adListeners = new Map<string, Set<(state: string) => void>>();
     const adStates = new Map<string, string>();
     const emitAd = (event: string, state: string) => {
@@ -519,14 +630,19 @@ describe('PlaygamaPlatform', () => {
         REWARDED_STATE_CHANGED: 'rewarded',
       },
       platform: {
-        language: 'id',
-        isAudioEnabled: options.audio ?? true,
+        language: 'language' in options ? options.language : 'id',
+        isAudioEnabled: 'audio' in options ? options.audio : true,
         sendMessage: (message) => messages.push(message),
         on: (event, listener) => void platformListeners.set(event, listener as never),
         off: (event) => void platformListeners.delete(event),
       },
       storage: {
-        get: (keys) => Promise.resolve(keys.map((key) => stored.get(key) ?? null)),
+        get: (keys) =>
+          options.loadFails
+            ? Promise.reject(new Error('storage unavailable'))
+            : (options.handOver ?? Promise.resolve()).then(() =>
+                'answer' in options ? options.answer : keys.map((key) => stored.get(key) ?? null),
+              ),
         set: (keys, values) => {
           keys.forEach((key, i) => stored.set(key, values[i]!));
           return Promise.resolve();
@@ -564,6 +680,42 @@ describe('PlaygamaPlatform', () => {
     portal.saves().set('ballmania:progress', '{}');
     expect(stored.get('ballmania:progress')).toBe('{}');
     expect(portal.locale()).toBe('id');
+  });
+
+  it('never writes over saves Bridge hands over after the game started without them', async () => {
+    let handOver = () => {};
+    const late = new Promise<void>((resolve) => (handOver = resolve));
+    const { bridge, stored } = fakeBridge({ handOver: late });
+    const portal = new PlaygamaPlatform({ bridge });
+    const init = portal.init();
+    // The game gave up waiting for the SDK (createPlatform) and read its saves: none yet.
+    expect(portal.saves().get('ballmania:player')).toBeNull();
+    handOver();
+    await init;
+    portal.saves().set('ballmania:player', '{"version":2}');
+    expect(stored.get('ballmania:player')).toBe('{"version":1}');
+  });
+
+  it('never writes over the saves it could not load', async () => {
+    const { bridge, stored } = fakeBridge({ loadFails: true });
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    portal.saves().set('ballmania:player', '{"version":2}');
+    expect(stored.get('ballmania:player')).toBe('{"version":1}');
+    expect(portal.saves().get('ballmania:player')).toBe('{"version":2}');
+  });
+
+  it.each([
+    { name: 'a number', language: 42 },
+    { name: 'an object', language: { code: 'fr' } },
+    { name: 'a list', language: ['fr'] },
+    { name: 'text that is no language tag', language: 'fr fr' },
+    { name: 'a tag longer than any language', language: `fr-${'x'.repeat(33)}` },
+  ])('gives no language when Bridge gives $name', async ({ language }) => {
+    const { bridge } = fakeBridge({ language });
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    expect(portal.locale()).toBeNull();
   });
 
   it('tells the portal the game is ready and the levels it plays', async () => {
@@ -611,6 +763,54 @@ describe('PlaygamaPlatform', () => {
     const other = new PlaygamaPlatform({ bridge: refused.bridge });
     await other.init();
     expect(await other.rewarded(() => {})).toBe(false);
+  });
+
+  it.each([
+    { name: 'a text', value: 'true' },
+    { name: 'a number', value: 1 },
+    { name: 'nothing', value: undefined },
+  ])('changes neither sound nor pause when Bridge hands over $name', async ({ value }) => {
+    const { bridge, platformListeners } = fakeBridge();
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    const muted = vi.fn();
+    const paused = vi.fn();
+    portal.onMutedChange(muted);
+    portal.onPausedChange(paused);
+    platformListeners.get('audio')!(value);
+    platformListeners.get('pause')!(value);
+    expect(muted).not.toHaveBeenCalled();
+    expect(paused).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { name: 'a text', audio: 'yes' },
+    { name: 'a number', audio: 1 },
+    { name: 'nothing', audio: undefined },
+  ])('stays silent when Bridge gives $name for its sound', async ({ audio }) => {
+    const { bridge } = fakeBridge({ audio });
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    expect(portal.muted()).toBe(true);
+  });
+
+  it.each([
+    { name: 'no list', answer: { 'ballmania:player': '{}' } },
+    { name: 'more values than keys', answer: ['{}', '{}', '{}', '{}', '{}'] },
+  ])('plays from memory when Bridge answers the saves with $name', async ({ answer }) => {
+    const { bridge, stored } = fakeBridge({ answer });
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    portal.saves().set('ballmania:player', '{"version":2}');
+    expect(stored.get('ballmania:player')).toBe('{"version":1}');
+  });
+
+  it('hands over a save Bridge parsed as it is, for the game to read at the door', async () => {
+    const { bridge } = fakeBridge({ answer: [{ locale: 'ru' }, null, null, null] });
+    const portal = new PlaygamaPlatform({ bridge });
+    await portal.init();
+    expect(portal.saves().get('ballmania:settings')).toEqual({ locale: 'ru' });
+    expect(portal.saves().get('ballmania:progress')).toBeNull();
   });
 
   it('pauses the game while an ad the portal launched by itself is open', async () => {
@@ -702,12 +902,16 @@ describe('YandexPlatform', () => {
     watched?: boolean;
     /** False: the player's data cannot be read. */
     player?: boolean;
+    /** What Yandex holds as the player's data; by default a profile and an old number. */
+    data?: unknown;
+    /** What Yandex says the player's language is. */
+    lang?: unknown;
   }
 
   /** A Yandex SDK and page, recording what the adapter asks of them. */
   const fakeYandex = (options: FakeYandexOptions = {}) => {
     const calls: string[] = [];
-    const saved: Readonly<Record<string, string>>[] = [];
+    const saved: Readonly<Record<string, unknown>>[] = [];
     const listeners = new Map<string, () => void>();
     const play = (callbacks: YandexAdCallbacks, rewarded: boolean) => {
       const outcome = options.ad ?? 'shown';
@@ -721,7 +925,11 @@ describe('YandexPlatform', () => {
     const player: YandexPlayer = {
       getData: () => {
         calls.push('getData');
-        return Promise.resolve({ 'ballmania:player': '{"version":1}', 'ballmania:legacy': 3 });
+        return Promise.resolve(
+          'data' in options
+            ? options.data
+            : { 'ballmania:player': '{"version":1}', 'ballmania:legacy': 3 },
+        );
       },
       setData: (data, flush) => {
         expect(flush).toBe(true);
@@ -734,7 +942,7 @@ describe('YandexPlatform', () => {
         LoadingAPI: { ready: () => calls.push('ready') },
         GameplayAPI: { start: () => calls.push('start'), stop: () => calls.push('stop') },
       },
-      environment: { i18n: { lang: 'ru' } },
+      environment: { i18n: { lang: 'lang' in options ? options.lang : 'ru' } },
       adv: {
         showFullscreenAdv: ({ callbacks }) => {
           calls.push('fullscreen');
@@ -790,7 +998,7 @@ describe('YandexPlatform', () => {
     expect(load).toHaveBeenCalledTimes(1);
     expect(portal.locale()).toBe('ru');
     expect(portal.saves().get('ballmania:player')).toBe('{"version":1}');
-    expect(portal.saves().get('ballmania:legacy')).toBeNull();
+    expect(portal.saves().get('ballmania:legacy')).toBe(3);
     expect(portal.saves()).not.toBe(browser);
     expect(portal.preferences()).toBe(browser);
     expect(calls).toEqual(['getData']);
@@ -806,7 +1014,11 @@ describe('YandexPlatform', () => {
       expect(saved).toEqual([]);
       await vi.advanceTimersByTimeAsync(0);
       expect(saved).toEqual([
-        { 'ballmania:player': '{"version":1,"shards":5}', 'ballmania:progress': '{"level":2}' },
+        {
+          'ballmania:player': '{"version":1,"shards":5}',
+          'ballmania:legacy': 3,
+          'ballmania:progress': '{"level":2}',
+        },
       ]);
       saves.set('ballmania:arcade', '{"best":10}');
       saves.set('ballmania:arcade', '{"best":12}');
@@ -816,6 +1028,7 @@ describe('YandexPlatform', () => {
       expect(saved).toHaveLength(2);
       expect(saved[1]).toEqual({
         'ballmania:player': '{"version":1,"shards":5}',
+        'ballmania:legacy': 3,
         'ballmania:progress': '{"level":2}',
         'ballmania:arcade': '{"best":12}',
       });
@@ -855,6 +1068,47 @@ describe('YandexPlatform', () => {
     portal.saves().set('k', 'v');
     expect(browser.get('k')).toBe('v');
     expect(saved).toEqual([]);
+  });
+
+  it('sends back, untouched, the player data it could not read', async () => {
+    vi.useFakeTimers();
+    try {
+      const { portal, saved } = await yandexPortal();
+      portal.saves().set('ballmania:progress', '{"version":1,"levels":{}}');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(saved).toEqual([
+        {
+          'ballmania:player': '{"version":1}',
+          'ballmania:legacy': 3,
+          'ballmania:progress': '{"version":1,"levels":{}}',
+        },
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each([
+    { name: 'nothing', data: null },
+    { name: 'a list', data: ['{"version":1}'] },
+    { name: 'a text', data: '{"ballmania:player":"{}"}' },
+    {
+      name: 'more fields than the game could ever have saved',
+      data: Object.fromEntries(Array.from({ length: 65 }, (_, i) => [`key-${i}`, '{}'])),
+    },
+  ])('keeps the saves in the browser when the player data is $name', async ({ data }) => {
+    const { portal, browser, saved } = await yandexPortal({ data });
+    expect(portal.saves()).toBe(browser);
+    expect(saved).toEqual([]);
+  });
+
+  it.each([
+    { name: 'a number', lang: 7 },
+    { name: 'an object', lang: { code: 'ru' } },
+    { name: 'text that is no language tag', lang: 'ru!' },
+  ])('gives no language when Yandex gives $name', async ({ lang }) => {
+    const { portal } = await yandexPortal({ lang });
+    expect(portal.locale()).toBeNull();
   });
 
   it('tells Yandex once that the game is ready, then each start and stop of play', async () => {

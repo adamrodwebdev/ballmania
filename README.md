@@ -194,15 +194,19 @@ ni juste après sa défaite. Détails : § 3.7 du
 | `src/showcase` | Boucle de l'écran titre et cabine d'essayage : de vraies parties, dans un worker    |
 | `src/audio`    | Sons et musique synthétisés (Web Audio, aucun fichier)                              |
 | `src/player`   | Profil, objectifs, cosmétiques, défi du jour                                        |
-| `src/services` | Réglages, sauvegardes, partage, thème                                               |
+| `src/services` | Réglages, sauvegardes (relues champ par champ, `SaveSlot`), partage, thème          |
 | `src/i18n`     | Langues (un fichier chacune, chargé à la demande), pluriels, détection              |
 | `src/app`      | Services injectés, modes de jeu (stratégies) et règles de fin de partie             |
 | `src/platform` | Notre site et les portails (publicités, sauvegarde, signaux), choisis au build      |
 | `src/ui`       | Écrans et composants Vue 3 ; l'écran de jeu en parties (`src/ui/game`)              |
+| `src/rules`    | Lecture à la porte de ce qui vient du dehors, et la table de ses limites            |
 
 Programmation orientée objet, TypeScript strict, Vue 3 (Composition API), vue-i18n
 précompilé, aucune bibliothèque de jeu. Politique de sécurité du contenu stricte (aucun
-script ni style en ligne). Détails, décisions et équilibrage : le
+script ni style en ligne). Ce qui vient du dehors (sauvegardes, SDK des portails, messages des
+workers, curseurs) passe un lecteur à la porte : un nombre fini dans sa plage, un texte nettoyé
+et borné, un choix de sa liste, rien de converti ni de coupé ; une sauvegarde que le jeu ne sait
+pas lire reste intacte. Détails, décisions et équilibrage : le
 [cahier des charges](docs/CAHIER_DES_CHARGES.md) ; historique : le
 [journal des modifications](CHANGELOG.md).
 

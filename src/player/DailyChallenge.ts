@@ -26,11 +26,14 @@ export class DailyChallenge {
     /** YYYYMMDD, in the player's time zone. */
     readonly day: string,
     readonly level: CampaignLevel,
+    /** The day at noon, to avoid time-zone edges when formatting. */
+    private readonly noon: Date,
   ) {}
 
   static of(date: Date): DailyChallenge {
     const day = dayKey(date);
-    return new DailyChallenge(day, POOL[hash(`ballmania:${day}`) % POOL.length]!);
+    const noon = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+    return new DailyChallenge(day, POOL[hash(`ballmania:${day}`) % POOL.length]!, noon);
   }
 
   /** Seed of the balls: identical for everyone today. */
@@ -40,8 +43,6 @@ export class DailyChallenge {
 
   /** The day as a date, at noon to avoid time-zone edges when formatting. */
   get date(): Date {
-    const year = Number(this.day.slice(0, 4));
-    const month = Number(this.day.slice(4, 6)) - 1;
-    return new Date(year, month, Number(this.day.slice(6, 8)), 12);
+    return new Date(this.noon.getTime());
   }
 }

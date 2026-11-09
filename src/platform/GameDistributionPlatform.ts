@@ -1,5 +1,5 @@
 import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage';
-import type { AdStart, PlatformAdapter, ScriptLoader } from './PlatformAdapter';
+import { sdkField, type AdStart, type PlatformAdapter, type ScriptLoader } from './PlatformAdapter';
 
 export const GAMEDISTRIBUTION_SDK = 'https://html5.api.gamedistribution.com/main.min.js';
 
@@ -9,12 +9,9 @@ export interface GameDistributionSdk {
   preloadAd?(type: 'rewarded'): Promise<unknown>;
 }
 
-interface SdkEvent {
-  readonly name: string;
-}
-
 export interface GameDistributionHost {
-  GD_OPTIONS?: { gameId: string; onEvent: (event: SdkEvent) => void };
+  /** The SDK tells its events here: whatever it hands over is read at the door. */
+  GD_OPTIONS?: { gameId: string; onEvent: (event: unknown) => void };
   gdsdk?: GameDistributionSdk;
 }
 
@@ -54,10 +51,12 @@ export class GameDistributionPlatform implements PlatformAdapter {
       this.host.GD_OPTIONS = {
         gameId: this.gameId,
         onEvent: (event) => {
-          if (event.name === 'SDK_READY') resolve(true);
-          else if (event.name === 'SDK_ERROR') resolve(false);
-          else if (event.name === 'SDK_GAME_PAUSE') this.adStart?.();
-          else if (event.name === 'SDK_REWARDED_WATCH_COMPLETE') this.rewardEarned = true;
+          // Matched against the names the game knows: any other value changes nothing.
+          const name = sdkField(event, 'name');
+          if (name === 'SDK_READY') resolve(true);
+          else if (name === 'SDK_ERROR') resolve(false);
+          else if (name === 'SDK_GAME_PAUSE') this.adStart?.();
+          else if (name === 'SDK_REWARDED_WATCH_COMPLETE') this.rewardEarned = true;
         },
       };
     });

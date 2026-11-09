@@ -1,9 +1,17 @@
 import { reactive, readonly } from 'vue';
-import { readJson, type KeyValueStorage } from './KeyValueStorage';
+import { keyOf, LEVEL_ID } from '@/rules/formats';
+import { orElse, type InputRecord } from '@/rules/input';
+import { COUNT_LIMITS, NUMBER_RULES, SAVE_LIMITS } from '@/rules/limits';
+import type { KeyValueStorage } from './KeyValueStorage';
+import { readMap, SaveSlot } from './SaveSlot';
 
 export const PROGRESS_KEY = 'ballmania:progress';
 /** Format version of the saved progress; bump it with a migration when it changes. */
 export const PROGRESS_VERSION = 1;
+
+/** The stars of a won level. */
+const STARS = { min: 1, max: 3, integer: true } as const;
+const isLevelId = keyOf(LEVEL_ID);
 
 export interface LevelRecord {
   readonly stars: number;
@@ -21,15 +29,23 @@ export interface RecordResult {
 /**
  * The player's campaign (specification § 3.4): stars and best score of every
  * finished level. A level is open when the one before it is finished.
- * Validated when read; a corrupt or unknown save starts afresh.
+ * Read field by field (`SaveSlot`): a level whose stars or score cannot be
+ * read stays won, with one star or no score, so the levels after it stay open.
  */
 export class CampaignProgress {
+  private readonly slot: SaveSlot;
   private readonly records: Record<string, LevelRecord>;
   /** Read-only, reactive view for the interface. */
   readonly levels: Readonly<Record<string, LevelRecord>>;
 
-  constructor(private readonly storage: KeyValueStorage) {
-    this.records = reactive(CampaignProgress.parse(readJson(storage, PROGRESS_KEY)));
+  constructor(storage: KeyValueStorage) {
+    this.slot = new SaveSlot(storage, { key: PROGRESS_KEY, maxLength: SAVE_LIMITS.progress });
+    this.records = reactive(
+      this.slot.load(
+        (save) => CampaignProgress.read(save),
+        () => ({}),
+      ),
+    );
     this.levels = readonly(this.records);
   }
 
@@ -69,24 +85,23 @@ export class CampaignProgress {
   }
 
   private save(): void {
-    this.storage.set(
-      PROGRESS_KEY,
-      JSON.stringify({ version: PROGRESS_VERSION, levels: this.records }),
-    );
+    this.slot.write({ version: PROGRESS_VERSION, levels: this.records });
   }
 
-  private static parse(value: unknown): Record<string, LevelRecord> {
-    if (typeof value !== 'object' || value === null) return {};
-    const { version, levels } = value as { version?: unknown; levels?: unknown };
-    if (version !== PROGRESS_VERSION || typeof levels !== 'object' || levels === null) return {};
-    const records: Record<string, LevelRecord> = {};
-    for (const [id, record] of Object.entries(levels as Record<string, unknown>)) {
-      if (typeof record !== 'object' || record === null) continue;
-      const { stars, best } = record as { stars?: unknown; best?: unknown };
-      if (!Number.isInteger(stars) || (stars as number) < 1 || (stars as number) > 3) continue;
-      if (typeof best !== 'number' || !Number.isFinite(best) || best < 0) continue;
-      records[id] = { stars: stars as number, best };
-    }
-    return records;
+  /** The levels of a save of this version: each one whose id reads as a level's, field by field. */
+  private static read(save: InputRecord): Record<string, LevelRecord> {
+    // Another version's save is not read here: it is kept as it is (SaveSlot).
+    save.choice('version', [PROGRESS_VERSION]);
+    return readMap(save, 'levels', {
+      maxKeys: COUNT_LIMITS.levels,
+      isKey: isLevelId,
+      entry: (levels, id) => {
+        const level = levels.record(id);
+        return {
+          stars: orElse(() => level.number('stars', STARS), STARS.min),
+          best: orElse(() => level.number('best', NUMBER_RULES.score), 0),
+        };
+      },
+    });
   }
 }

@@ -50,6 +50,32 @@ test.describe('home', () => {
     expect(await scroll()).toBeLessThanOrEqual(0);
   });
 
+  test('starts on tampered saves, reads what it can, and keeps a profile it cannot read', async ({
+    page,
+    consoleErrors,
+  }) => {
+    const newer = '{"version":3,"shards":900}';
+    await page.addInitScript((newer) => {
+      localStorage.setItem(
+        'ballmania:settings',
+        '{"locale":"en","theme":["light"],"volume":"0.5","__proto__":{"theme":"light"}}',
+      );
+      localStorage.setItem(
+        'ballmania:progress',
+        '{"version":1,"levels":{"nebula-01":{"stars":"3","best":1e999},"constructor":{"stars":3}}}',
+      );
+      localStorage.setItem('ballmania:player', newer);
+    }, newer);
+    await page.goto('./');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ballmania' })).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    // Opening the Observatory notes its tip as seen: never over a profile the game cannot read.
+    await page.getByTestId('observatory').click();
+    await expect(page.getByRole('heading', { name: 'Observatory', level: 1 })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('ballmania:player'))).toBe(newer);
+    expect(await consoleErrors()).toEqual([]);
+  });
+
   test('keeps the chosen theme from the first paint after a reload', async ({ page }) => {
     await page.goto('./');
     // The cosmos (dark) is the game's own look, from the very first visit.
@@ -61,3 +87,4 @@ test.describe('home', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   });
 });
+

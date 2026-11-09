@@ -1,8 +1,19 @@
 /** Where the game keeps small pieces of data (settings, records). */
 export interface KeyValueStorage {
-  get(key: string): string | null;
+  /**
+   * What is kept under the key: null when nothing is, else what the storage holds, a text as the
+   * game wrote it or anything a portal kept in another shape, or `UNREADABLE`. Read only through
+   * a `SaveSlot`, which tells a value it cannot read from nothing at all.
+   */
+  get(key: string): unknown;
   set(key: string, value: string): void;
 }
+
+/**
+ * A value the storage holds but could not hand over (a portal's data module failed): there, so
+ * nothing the game notes by itself replaces it, but unread.
+ */
+export const UNREADABLE: unique symbol = Symbol('unreadable');
 
 export class MemoryStorage implements KeyValueStorage {
   private readonly values = new Map<string, string>();
@@ -48,16 +59,5 @@ export class BrowserStorage implements KeyValueStorage {
     } catch {
       // Kept in memory only.
     }
-  }
-}
-
-/** Reads a JSON value, or null when it is missing or corrupt. */
-export function readJson(storage: KeyValueStorage, key: string): unknown {
-  const raw = storage.get(key);
-  if (raw === null) return null;
-  try {
-    return JSON.parse(raw) as unknown;
-  } catch {
-    return null;
   }
 }

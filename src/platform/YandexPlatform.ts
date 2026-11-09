@@ -1,3 +1,5 @@
+import { readLanguageTag } from '@/rules/formats';
+import { COUNT_LIMITS } from '@/rules/limits';
 import { BrowserStorage, type KeyValueStorage } from '@/services/KeyValueStorage';
 import type { AdStart, PlatformAdapter, ScriptLoader } from './PlatformAdapter';
 import { YANDEX_SDK } from './platforms';
@@ -25,18 +27,33 @@ export interface YandexAdCallbacks {
 
 /** The player's data on Yandex's servers, kept whether or not the player is logged in. */
 export interface YandexPlayer {
-  getData(): Promise<Readonly<Record<string, unknown>>>;
+  /** The data as Yandex holds it: read at the door (`fieldsOf`). */
+  getData(): Promise<unknown>;
   /** Replaces the whole data object; `flush` sends it at once instead of queuing it. */
-  setData(data: Readonly<Record<string, string>>, flush: boolean): Promise<void>;
+  setData(data: Readonly<Record<string, unknown>>, flush: boolean): Promise<void>;
 }
 
-/** The part of the Yandex Games SDK (v2) the game uses. */
+/**
+ * The fields of the player's data as Yandex holds them, each value as it is (the game reads its
+ * own at the door), or null when the data is no record or holds more fields than the game could
+ * ever have saved: it is then left on Yandex's servers untouched.
+ */
+function fieldsOf(data: unknown): readonly (readonly [string, unknown])[] | null {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return null;
+  const fields: readonly (readonly [string, unknown])[] = Object.entries(data);
+  return fields.length > COUNT_LIMITS.portalFields ? null : fields;
+}
+
+/**
+ * The part of the Yandex Games SDK (v2) the game uses. What it gives back is typed `unknown`: the
+ * game reads each value at the door.
+ */
 export interface YandexSdk {
   readonly features: {
     readonly LoadingAPI?: { ready(): void };
     readonly GameplayAPI?: { start(): void; stop(): void };
   };
-  readonly environment: { readonly i18n: { readonly lang: string } };
+  readonly environment: { readonly i18n: { readonly lang: unknown } };
   readonly adv: {
     showFullscreenAdv(options: { callbacks: YandexAdCallbacks }): void;
     showRewardedVideo(options: { callbacks: YandexAdCallbacks }): void;
@@ -109,7 +126,8 @@ export class YandexPlatform implements PlatformAdapter {
   readonly showsVersion = false;
   private sdk: YandexSdk | null = null;
   private player: YandexPlayer | null = null;
-  private readonly cache = new Map<string, string>();
+  /** Every field of the player's data, as Yandex handed it over or as the game saved it since. */
+  private readonly cache = new Map<string, unknown>();
   private readonly queue = new SaveQueue(() => this.write(), SAVE_INTERVAL);
   private readonly cloud: KeyValueStorage = {
     get: (key) => this.cache.get(key) ?? null,
@@ -172,7 +190,7 @@ export class YandexPlatform implements PlatformAdapter {
   }
 
   locale(): string | null {
-    return this.sdk?.environment.i18n.lang || null;
+    return readLanguageTag(this.sdk?.environment.i18n.lang);
   }
 
   /** Once, when the player can play (rule 1.19.2). */
@@ -299,10 +317,10 @@ export class YandexPlatform implements PlatformAdapter {
     try {
       // Without the name and photo: older SDKs asked the player's permission for them.
       const player = await sdk.getPlayer({ scopes: false });
-      const data = await player.getData();
-      for (const [key, value] of Object.entries(data)) {
-        if (typeof value === 'string') this.cache.set(key, value);
-      }
+      const fields = fieldsOf(await player.getData());
+      if (!fields) return;
+      // Every field is kept as it came, the ones the game cannot read too: each save sends them back.
+      for (const [key, value] of fields) this.cache.set(key, value);
       this.player = player;
     } catch {
       // No player data: saves stay in the browser.

@@ -8,6 +8,7 @@ import type { PlayRequest } from '@/app/PlayRequest';
 import { DEMO } from '@/levels/edition';
 import { nextLauncher } from '@/player/catalog';
 import { CONTINUE_PRICE } from '@/player/rewards';
+import { readLink } from '@/rules/formats';
 import { SHARD_PATH } from '@/ui/components/icons';
 import type { HudState } from '@/play/PlaySession';
 import AdIcon from '@/ui/components/AdIcon.vue';
@@ -133,8 +134,8 @@ const shareResult = async () => {
   const record = dailyRecord.value;
   if (!daily || !record) return;
   const stars = '★'.repeat(record.stars) + '☆'.repeat(3 - record.stars);
-  // On a portal, the link is the portal's own (or none where links are not allowed).
-  const url = await platform.shareLink({ day: daily.day });
+  // On a portal, the link is the portal's own (or none where links are not allowed), read at the door.
+  const url = readLink(await platform.shareLink({ day: daily.day }));
   const params = { date: dayLabel.value, score: number.value.format(record.score), stars };
   const text = url
     ? t('daily.shareText', { ...params, url }, record.score)

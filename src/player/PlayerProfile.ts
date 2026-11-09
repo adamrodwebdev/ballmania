@@ -2,8 +2,18 @@ import { reactive, readonly, shallowRef } from 'vue';
 import type { GameReport } from '@/engine/Game';
 import type { WorldId } from '@/levels/campaign';
 import type { TrainingStep } from '@/levels/training';
-import { readJson, type KeyValueStorage } from '@/services/KeyValueStorage';
-import { EMPTY_STATS, newlyReached, type Achievement, type PlayerStats } from './achievements';
+import { DAY, IDENTIFIER, isDayKey, keyOf, LEVEL_ID, readDay } from '@/rules/formats';
+import { orElse, readChoice, readText, type InputRecord } from '@/rules/input';
+import { COUNT_LIMITS, NUMBER_RULES, SAVE_LIMITS } from '@/rules/limits';
+import type { KeyValueStorage } from '@/services/KeyValueStorage';
+import { readList, readMap, SaveSlot } from '@/services/SaveSlot';
+import {
+  EMPTY_STATS,
+  newlyReached,
+  type Achievement,
+  type PlayerStats,
+  type StatName,
+} from './achievements';
 import {
   COSMETICS,
   DEFAULT_LOOK,
@@ -26,10 +36,24 @@ import {
 export const PLAYER_KEY = 'ballmania:player';
 /** Format version of the saved profile; bump it with a migration when it changes. */
 export const PLAYER_VERSION = 2;
+/** The versions a save may have: 1 until v1.7, 2 since (the Star heart by default). */
+const PLAYER_VERSIONS: readonly number[] = [1, PLAYER_VERSION];
 
 /** Tips shown once, then never again (v1.7.4): the bubble that points at the Observatory. */
 export type TipId = 'observatory';
 const TIP_IDS: readonly TipId[] = ['observatory'];
+
+/** The training's steps (its module stays out of the menus' code until it is played). */
+const TRAINING_STEPS: readonly TrainingStep[] = [1, 2, 3];
+const COSMETIC_IDS: readonly string[] = COSMETICS.map((item) => item.id);
+const STAT_NAMES = Object.keys(EMPTY_STATS) as StatName[];
+/** The stars of a daily challenge: none when it was lost. */
+const DAILY_STARS = { min: 0, max: 3, integer: true } as const;
+/** Defeats in a row on a level: a level without any is not saved. */
+const DEFEATS = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true } as const;
+const RANK = { min: 0, max: MAX_RANK, integer: true } as const;
+const GIFT_STREAK = { min: 1, max: GIFT_SHARDS.length, integer: true } as const;
+const isLevelId = keyOf(LEVEL_ID);
 
 /** Result of one day's challenge: the first attempt counts for the day. */
 export interface DailyRecord {
@@ -92,16 +116,24 @@ interface State {
  * The player's belongings and history (specification § 3.6): shards, owned
  * and equipped cosmetics, lifetime counters, achievements, daily challenges
  * and failure streaks (for the assistance). Everything a game earns goes
- * through `recordGame`. Saved on every change; validated when read.
+ * through `recordGame`. Saved on every change; read field by field
+ * (`SaveSlot`), each bad field falling back to its default.
  */
 export class PlayerProfile {
+  private readonly slot: SaveSlot;
   private readonly state: State;
   /** Read-only, reactive view for the interface. */
   readonly view: Readonly<State>;
   private readonly trialItem = shallowRef<string | null>(null);
 
-  constructor(private readonly storage: KeyValueStorage) {
-    this.state = reactive(PlayerProfile.parse(readJson(storage, PLAYER_KEY)));
+  constructor(storage: KeyValueStorage) {
+    this.slot = new SaveSlot(storage, { key: PLAYER_KEY, maxLength: SAVE_LIMITS.player });
+    this.state = reactive(
+      this.slot.load(
+        (save) => PlayerProfile.read(save),
+        () => PlayerProfile.fresh(),
+      ),
+    );
     this.view = readonly(this.state) as Readonly<State>;
   }
 
@@ -174,11 +206,14 @@ export class PlayerProfile {
     );
   }
 
-  /** A one-time tip has been shown, or what it points at was opened: it never comes back. */
+  /**
+   * A one-time tip has been shown, or what it points at was opened: it never comes back. The game
+   * notes it by itself, so it is never saved over a profile that could not be read.
+   */
   markTipSeen(id: TipId): void {
     if (this.state.tips.includes(id)) return;
     this.state.tips.push(id);
-    this.save();
+    this.slot.note(this.saved());
   }
 
   /** Where the training stands (v1.8.0): the showcase to play next, and whether it is over. */
@@ -340,11 +375,16 @@ export class PlayerProfile {
   }
 
   private save(): void {
-    this.storage.set(PLAYER_KEY, JSON.stringify({ version: PLAYER_VERSION, ...this.state }));
+    this.slot.write(this.saved());
   }
 
-  private static parse(value: unknown): State {
-    const fresh: State = {
+  /** The profile as it is saved. */
+  private saved(): unknown {
+    return { version: PLAYER_VERSION, ...this.state };
+  }
+
+  private static fresh(): State {
+    return {
       shards: 0,
       owned: [...STARTER_ITEMS],
       equipped: { ...DEFAULT_LOOK },
@@ -359,65 +399,121 @@ export class PlayerProfile {
       tips: [],
       training: { step: 1, done: false },
     };
-    if (typeof value !== 'object' || value === null) return fresh;
-    const saved = value as Partial<Record<keyof State | 'version', unknown>>;
-    if (saved.version !== PLAYER_VERSION && saved.version !== 1) return fresh;
+  }
 
-    const count = (raw: unknown) =>
-      typeof raw === 'number' && Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : 0;
-    const strings = (raw: unknown) =>
-      Array.isArray(raw) ? raw.filter((item): item is string => typeof item === 'string') : [];
-    const record = (raw: unknown) =>
-      typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {};
-
-    fresh.shards = count(saved.shards);
-    fresh.owned = [...new Set([...STARTER_ITEMS, ...strings(saved.owned).filter(findCosmetic)])];
-    const equipped = record(saved.equipped);
-    for (const slot of SLOTS) {
-      const id = equipped[slot];
-      const item = typeof id === 'string' ? findCosmetic(id) : undefined;
-      if (item?.slot === slot && fresh.owned.includes(item.id)) fresh.equipped[slot] = item.id;
-    }
+  /** A profile of version 1 or 2, field by field: a field that cannot be read keeps its default. */
+  private static read(save: InputRecord): State {
+    // Another version's save is not read here: it is kept as it is (SaveSlot).
+    const version = save.choice('version', PLAYER_VERSIONS);
+    const count = (field: string) => orElse(() => save.number(field, NUMBER_RULES.count), 0);
+    const owned = [
+      ...new Set([
+        ...STARTER_ITEMS,
+        ...readList(save, 'owned', {
+          maxItems: COUNT_LIMITS.owned,
+          item: (value, field) => readChoice(value, COSMETIC_IDS, field),
+        }),
+      ]),
+    ];
+    const equipped = PlayerProfile.readLook(save, owned);
     // Version 1 wore the first launcher by default: from 1.7, everyone gets the Star heart.
-    if (saved.version === 1 && fresh.equipped.shooter === 'shooter-orbit') {
-      fresh.equipped.shooter = DEFAULT_LOOK.shooter;
+    if (version === 1 && equipped.shooter === 'shooter-orbit') {
+      equipped.shooter = DEFAULT_LOOK.shooter;
     }
-    const stats = record(saved.stats);
-    fresh.stats = Object.fromEntries(
-      Object.keys(EMPTY_STATS).map((name) => [name, count(stats[name])]),
-    ) as unknown as PlayerStats;
-    fresh.achievements = strings(saved.achievements);
-    fresh.worlds = strings(saved.worlds);
-    for (const [day, raw] of Object.entries(record(saved.daily))) {
-      const entry = record(raw);
-      if (!/^\d{8}$/.test(day) || typeof entry.won !== 'boolean') continue;
-      fresh.daily[day] = {
-        score: count(entry.score),
-        stars: Math.min(3, count(entry.stars)),
-        won: entry.won,
-      };
-    }
-    for (const [level, raw] of Object.entries(record(saved.failures))) {
-      if (count(raw) > 0) fresh.failures[level] = count(raw);
-    }
-    fresh.fragments = count(saved.fragments);
-    const gift = record(saved.gift);
-    if (typeof gift.last === 'string' && /^\d{8}$/.test(gift.last)) {
-      const streak = Math.min(GIFT_SHARDS.length, Math.max(1, count(gift.streak)));
-      fresh.gift = { last: gift.last, streak };
-    }
-    const upgrades = record(saved.upgrades);
-    for (const id of UPGRADE_IDS) {
-      const rank = Math.min(MAX_RANK, count(upgrades[id]));
-      if (rank > 0) fresh.upgrades[id] = rank;
-    }
-    fresh.tips = TIP_IDS.filter((id) => strings(saved.tips).includes(id));
-    const training = record(saved.training);
-    const step = count(training.step);
-    fresh.training = {
-      step: step === 2 || step === 3 ? step : 1,
-      done: training.done === true,
+    return {
+      shards: count('shards'),
+      owned,
+      equipped,
+      stats: PlayerProfile.readStats(save),
+      achievements: readList(save, 'achievements', {
+        maxItems: COUNT_LIMITS.achievements,
+        item: (value, field) => readText(value, IDENTIFIER, field),
+      }),
+      worlds: readList(save, 'worlds', {
+        maxItems: COUNT_LIMITS.worlds,
+        item: (value, field) => readText(value, IDENTIFIER, field),
+      }),
+      daily: readMap(save, 'daily', {
+        maxKeys: COUNT_LIMITS.days,
+        isKey: isDayKey,
+        entry: (days, day) => {
+          const attempt = days.record(day);
+          return {
+            // Scores, read as numbers, are still floored as before 9 Nov 2026.
+            score: Math.floor(orElse(() => attempt.number('score', NUMBER_RULES.score), 0)),
+            stars: orElse(() => attempt.number('stars', DAILY_STARS), 0),
+            won: orElse(() => attempt.boolean('won'), false),
+          };
+        },
+      }),
+      failures: readMap(save, 'failures', {
+        maxKeys: COUNT_LIMITS.levels,
+        isKey: isLevelId,
+        entry: (failures, level) => failures.number(level, DEFEATS),
+      }),
+      fragments: count('fragments'),
+      upgrades: PlayerProfile.readUpgrades(save),
+      gift: PlayerProfile.readGift(save),
+      tips: PlayerProfile.readTips(save),
+      training: PlayerProfile.readTraining(save),
     };
-    return fresh;
+  }
+
+  /** What the player wears, slot by slot: an owned cosmetic of that slot, or the default one. */
+  private static readLook(
+    save: InputRecord,
+    owned: readonly string[],
+  ): Record<CosmeticSlot, string> {
+    const look = { ...DEFAULT_LOOK };
+    const equipped = orElse(() => save.record('equipped'), null);
+    for (const slot of SLOTS) {
+      const id = orElse(() => equipped?.choice(slot, COSMETIC_IDS) ?? null, null);
+      if (id !== null && findCosmetic(id)?.slot === slot && owned.includes(id)) look[slot] = id;
+    }
+    return look;
+  }
+
+  private static readStats(save: InputRecord): PlayerStats {
+    const saved = orElse(() => save.record('stats'), null);
+    const stats: Record<StatName, number> = { ...EMPTY_STATS };
+    for (const name of STAT_NAMES) {
+      stats[name] = orElse(() => saved?.number(name, NUMBER_RULES.count) ?? 0, 0);
+    }
+    return stats;
+  }
+
+  private static readUpgrades(save: InputRecord): Partial<Record<UpgradeId, number>> {
+    const saved = orElse(() => save.record('upgrades'), null);
+    const upgrades: Partial<Record<UpgradeId, number>> = {};
+    for (const id of UPGRADE_IDS) {
+      const rank = orElse(() => saved?.number(id, RANK) ?? 0, 0);
+      if (rank > 0) upgrades[id] = rank;
+    }
+    return upgrades;
+  }
+
+  /** The gift's streak: the last day taken, a real day, and the day of the streak it was. */
+  private static readGift(save: InputRecord): GiftRecord {
+    const gift = orElse(() => save.record('gift'), null);
+    if (!gift) return { last: null, streak: 0 };
+    const last = orElse(() => readDay(gift.text('last', DAY), 'player.gift.last'), null);
+    if (last === null) return { last: null, streak: 0 };
+    return { last, streak: orElse(() => gift.number('streak', GIFT_STREAK), GIFT_STREAK.min) };
+  }
+
+  private static readTips(save: InputRecord): TipId[] {
+    const seen = readList(save, 'tips', {
+      maxItems: COUNT_LIMITS.tips,
+      item: (value, field) => readChoice(value, TIP_IDS, field),
+    });
+    return TIP_IDS.filter((id) => seen.includes(id));
+  }
+
+  private static readTraining(save: InputRecord): State['training'] {
+    const training = orElse(() => save.record('training'), null);
+    return {
+      step: orElse(() => training?.choice('step', TRAINING_STEPS) ?? 1, 1),
+      done: orElse(() => training?.boolean('done') ?? false, false),
+    };
   }
 }

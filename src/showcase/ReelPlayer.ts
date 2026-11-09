@@ -1,5 +1,5 @@
 import type { CosmeticSlot } from '@/player/catalog';
-import type { Equipped, PaletteSet, ReelMessage, ReelReply } from './messages';
+import { readReelReply, type Equipped, type PaletteSet, type ReelMessage } from './messages';
 import type { Reel, ReelHost } from './Reel';
 import type { Lineup } from './reelServer';
 import type { ReelPalettes, ReelStyle } from './Take';
@@ -43,8 +43,10 @@ export class WorkerReel implements FittingPlayer {
     canvas: HTMLCanvasElement,
     { style, slot, showing }: ReelOpening,
   ) {
-    worker.addEventListener('message', ({ data }: MessageEvent<ReelReply>) => {
-      if (data.kind === 'showing') showing(data.index);
+    worker.addEventListener('message', ({ data }: MessageEvent<unknown>) => {
+      // Read at the door, even from the game's own worker: a reply that does not fit is ignored.
+      const reply = readReelReply(data);
+      if (reply?.kind === 'showing') showing(reply.index);
     });
     const offscreen = canvas.transferControlToOffscreen();
     const { equipped, effects, still } = style;

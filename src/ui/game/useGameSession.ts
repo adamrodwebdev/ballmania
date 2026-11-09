@@ -25,6 +25,7 @@ import { EffectProfile } from '@/play/effects/EffectProfile';
 import { sharedFeedback } from '@/play/feedback';
 import { Palette } from '@/play/Palette';
 import { PlaySession } from '@/play/PlaySession';
+import { readCssPixels } from '@/rules/formats';
 import { frameRateCap } from '@/ui/frameRate';
 
 /** The game screen's elements the session draws on and measures. */
@@ -136,10 +137,10 @@ export function useGameSession(game: SessionGame, elements: SessionElements) {
     // The notch and the home bar at least (v1.7.6): on a phone on its side, no rail covers the bottom.
     const safe = elements.safeArea.value ? getComputedStyle(elements.safeArea.value) : null;
     const insets = {
-      top: parseFloat(safe?.paddingTop ?? '') || 0,
-      right: parseFloat(safe?.paddingRight ?? '') || 0,
-      bottom: parseFloat(safe?.paddingBottom ?? '') || 0,
-      left: parseFloat(safe?.paddingLeft ?? '') || 0,
+      top: readCssPixels(safe?.paddingTop),
+      right: readCssPixels(safe?.paddingRight),
+      bottom: readCssPixels(safe?.paddingBottom),
+      left: readCssPixels(safe?.paddingLeft),
     };
     for (const element of elements.bars()) {
       if (!element) continue;
